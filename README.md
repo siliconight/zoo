@@ -31,9 +31,17 @@ CC0-derived and every specimen carries its license metadata in its
 
 ## Install (Blender 4.2+ / 5.x)
 
-Use the packaged add-on zip (`zoo_keeper_blender_addon_vX.Y.Z.zip`):
-Edit > Preferences > Add-ons > Install from Disk. Legacy `bl_info` and an
-extension `blender_manifest.toml` are both included.
+The add-on is the `zoo_keeper/` folder in this repo. Two ways to install:
+
+- **From the repo (dev):** Edit > Preferences > Add-ons > Install from Disk
+  and point at `zoo_keeper/` — or drop the folder in your Blender addons
+  path. No zip needed when you already have the repo cloned.
+- **Redistributable zip:** run `.\tools\build_addon.ps1` to produce
+  `dist\zoo_keeper_blender_addon_v<version>.zip` (package at the zip root, as
+  Install from Disk expects). This is a build artifact — attach it to a
+  GitHub Release; it is gitignored, not committed.
+
+Legacy `bl_info` and an extension `blender_manifest.toml` are both included.
 
 The Keeper panel lives in the 3D Viewport sidebar: press **N**, pick the
 **Zoo** tab, type a prompt, hit **Generate Specimen**.
@@ -119,11 +127,17 @@ unit-tested: `python -m pytest tests`. The bpy layer
 (`zoo_keeper/bpylayer/`, `recipes/`) uses bmesh + data API only; the only
 `bpy.ops` calls are the two background-safe exporters.
 
+## Godot (Phase 3)
+
+A Godot 4.x editor plugin that imports family/habitat manifests into a scene
+lives in `godot/addons/zoo_importer/` — see `godot/README.md`.
+
 ## Roadmap
 
-Phase 0 desk prototype -> Phase 1 five species (this release) -> Phase 2
-Starter Habitat batch/variants -> Phase 3 Godot import support -> habitats
--> knowledge packs -> Godot editor plug-in.
+Phase 0 desk prototype (done) -> Phase 1 five species (done) -> Phase 2
+variant families + habitat batch (done) -> Phase 3 Godot importer (in
+progress: `godot/addons/zoo_importer/`) -> more habitats -> knowledge packs
+-> deeper Godot editor integration.
 
 ## License
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0]
+### Added - Phase 3: Godot importer (editor plugin)
+- New Godot 4.x editor plugin godot/addons/zoo_importer/: a dock that reads a
+  .family.json or .habitat.json manifest and instances every member GLB into
+  the open scene, laid out in a grid under one container node.
+- Relies on Godot's native glTF import for -colonly collision and ATT_*
+  markers; the plugin only resolves + places the pieces.
+- Install: copy godot/addons/zoo_importer into res://addons/ and enable it.
+- NOTE: GDScript, not exercisable in the Python test suite — first run in
+  Godot 4.7 is the real smoke test.
+
 ## [0.4.0]
 ### Added - filing cabinet species (6th species)
 - New species `filing_cabinet`: a 2-5 drawer vertical file (body box, stacked
