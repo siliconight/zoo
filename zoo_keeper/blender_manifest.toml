@@ -1,0 +1,10 @@
+schema_version = "1.0.0"
+id = "zoo_keeper"
+version = "0.1.1"
+name = "Zoo Keeper"
+tagline = "Offline procedural asset compiler - prompt to Godot-ready GLB"
+maintainer = "GabagoolStudios"
+type = "add-on"
+blender_version_min = "4.2.0"
+license = ["SPDX:MIT"]
+tags = ["Add Mesh", "Pipeline"]

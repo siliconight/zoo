@@ -1,0 +1,31 @@
+# Changelog
+
+## [0.1.1]
+- simple_car: added windshield, rear and side window panes (Car_Windows)
+  with tinted glass material — TDD required part / acceptance criterion.
+- Added "glass" to the material property table and simple_car genome.
+
+## [0.1.0]
+### Added — Starter Habitat MVP
+- Rule-based offline prompt parser -> Asset Intent Spec (species, era,
+  style tags, material, color, wear, size hint, counted parts; number
+  words and digits; unknowns fall back to genome defaults).
+- Genome layer: five species JSONs (desk, chair, helmet, boots,
+  simple_car) with dimension ranges, params, era/style blocks, tri
+  budgets, attachment lists, and CC0 construction-knowledge license
+  metadata.
+- DNA plan resolver: deterministic BuildPlan from intent + genome via
+  SHA256-derived named RNG streams (seed + version stable).
+- bpy geometry layer: bmesh-only recipes (no context-dependent ops),
+  deterministic cube-projection UVs, concavity + seeded-noise vertex wear
+  ("Wear" COLOR_0), edge bevels, glTF-safe flat Principled materials.
+- Godot conventions: `-col` collision siblings, `ATT_*` attachment
+  empties, optional `_LOD1/_LOD2` decimated LODs, meters, Y-up export.
+- Validation report (dims/tris/UVs/materials/parts/collision/transforms)
+  with PASS/WARN/FAIL, printed and embedded in the timestamp-free
+  `meta.json` sidecar alongside `.glb` and optional `.blend`.
+- Keeper panel (3D Viewport > N > Zoo) and dual-mode headless CLI
+  (`tools/zoo_cli.py`): full build inside Blender, `--plan` dry run under
+  plain Python.
+- 22 pytest unit tests over the pure core, including the Build 0.1
+  acceptance prompt "1990s office desk with two drawers".

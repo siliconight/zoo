@@ -1,0 +1,76 @@
+"""GLB + .blend export and scene fact-gathering.
+
+Export ops are the only bpy.ops used in Zoo; both are background-safe.
+"""
+from __future__ import annotations
+
+import bpy
+
+from . import geometry
+
+
+def _select_only(objs):
+    for obj in bpy.data.objects:
+        obj.select_set(False)
+    for obj in objs:
+        obj.select_set(True)
+    if objs:
+        bpy.context.view_layer.objects.active = objs[0]
+
+
+def export_glb(filepath, collection):
+    objs = list(collection.objects)
+    _select_only(objs)
+    kwargs = dict(filepath=filepath, export_format="GLB",
+                  use_selection=True, export_apply=True,
+                  export_yup=True)
+    try:
+        bpy.ops.export_scene.gltf(**kwargs, export_vertex_color="ACTIVE")
+    except TypeError:  # older/newer exporter without that kwarg
+        bpy.ops.export_scene.gltf(**kwargs)
+
+
+def save_blend(filepath):
+    bpy.ops.wm.save_as_mainfile(filepath=filepath, compress=True)
+
+
+def gather_facts(collection, root_name):
+    """Collect the facts core.validate judges."""
+    meshes = [o for o in collection.objects if o.type == "MESH"
+              and not o.name.endswith("-col") and "_LOD" not in o.name]
+    col = [o for o in collection.objects if o.name.endswith("-col")]
+    if meshes:
+        lo, hi = geometry.bounds_of(meshes)
+        dims = {"width": hi.x - lo.x, "depth": hi.y - lo.y,
+                "height": hi.z - lo.z}
+    else:
+        dims = {}
+    tris = 0
+    has_uvs = bool(meshes)
+    has_wear = bool(meshes)
+    mats = set()
+    bad_xf = []
+    for obj in meshes:
+        me = obj.data
+        me.calc_loop_triangles()
+        tris += len(me.loop_triangles)
+        if not me.uv_layers:
+            has_uvs = False
+        if geometry.WEAR_LAYER not in me.color_attributes:
+            has_wear = False
+        for m in me.materials:
+            if m:
+                mats.add(m.name)
+        if (obj.location.length > 1e-6
+                or any(abs(s - 1.0) > 1e-6 for s in obj.scale)):
+            bad_xf.append(obj.name)
+    return {
+        "dimensions": {k: round(v, 4) for k, v in dims.items()},
+        "tris": tris,
+        "parts": [o.name for o in meshes],
+        "has_uvs": has_uvs,
+        "has_wear_colors": has_wear,
+        "materials": sorted(mats),
+        "has_collision": bool(col),
+        "unapplied_transforms": bad_xf,
+    }

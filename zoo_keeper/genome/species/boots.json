@@ -1,0 +1,27 @@
+{
+  "species": "boots",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width":  {"min": 0.09, "max": 0.13, "default": 0.11},
+    "depth":  {"min": 0.24, "max": 0.32, "default": 0.28},
+    "height": {"min": 0.12, "max": 0.45, "default": 0.20}
+  },
+  "parts": ["foot", "shaft", "sole", "toe"],
+  "params": {
+    "shaft_style": ["ankle", "mid", "tall"],
+    "pair": {"min": 1, "max": 2, "default": 2}
+  },
+  "materials": {"default": "leather", "options": ["leather", "rubber", "canvas"]},
+  "styles": {
+    "default": {"material": "leather", "color": [0.28, 0.18, 0.10], "wear": 0.30, "bevel": 0.003},
+    "combat":  {"material": "leather", "color": [0.08, 0.08, 0.08], "wear": 0.50, "bevel": 0.003},
+    "hiking":  {"material": "leather", "color": [0.40, 0.26, 0.12], "wear": 0.45, "bevel": 0.003},
+    "work":    {"material": "leather", "color": [0.45, 0.30, 0.14], "wear": 0.55, "bevel": 0.003}
+  },
+  "budgets": {"tris_lod0": 4000},
+  "attachments": ["ATT_foot_l", "ATT_foot_r"]
+}

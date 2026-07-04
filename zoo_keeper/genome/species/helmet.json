@@ -1,0 +1,29 @@
+{
+  "species": "helmet",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width":  {"min": 0.20, "max": 0.30, "default": 0.24},
+    "depth":  {"min": 0.24, "max": 0.34, "default": 0.28},
+    "height": {"min": 0.12, "max": 0.22, "default": 0.16}
+  },
+  "parts": ["shell", "brim", "visor"],
+  "params": {
+    "brim": {"min": 0, "max": 1, "default": 0},
+    "visor": {"min": 0, "max": 1, "default": 0},
+    "segments": {"min": 12, "max": 32, "default": 20}
+  },
+  "materials": {"default": "plastic", "options": ["plastic", "metal", "carbon"]},
+  "styles": {
+    "default":      {"material": "plastic", "color": [0.75, 0.72, 0.10], "wear": 0.20, "bevel": 0.002},
+    "construction": {"material": "plastic", "color": [0.85, 0.70, 0.05], "wear": 0.35, "bevel": 0.002},
+    "military":     {"material": "metal",   "color": [0.22, 0.26, 0.18], "wear": 0.50, "bevel": 0.002},
+    "motorcycle":   {"material": "carbon",  "color": [0.08, 0.08, 0.10], "wear": 0.10, "bevel": 0.002},
+    "sports":       {"material": "plastic", "color": [0.70, 0.10, 0.08], "wear": 0.25, "bevel": 0.002}
+  },
+  "budgets": {"tris_lod0": 4000},
+  "attachments": ["ATT_head_socket"]
+}
