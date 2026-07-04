@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.5]
+- Cheesesteak simplified for a cleaner low-poly read (fewer + bigger beats
+  many + small): filling is now ONE lumpy jittered meat mound instead of a
+  12-chunk scatter, ONE draped cheese sheet instead of two, and the sesame
+  seeds are a small set PROJECTED onto the crust surface (analytic ellipsoid
+  skin) so none float. Dropped the noisy onion bits. ~600 tris (was 3400);
+  budget 1500. Open seeded-roll silhouette kept.
+- Establishes the low-poly hero pattern: spend geometry on silhouette, use
+  single jittered forms over scatter-of-many, keep tiny detail flush/minimal.
+
 ## [0.8.4]
 - Cheesesteak reworked toward the real Philly reference: it's now an OPEN
   seeded hoagie. The roll is a bottom + two crust walls forming a channel; the

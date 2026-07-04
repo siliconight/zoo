@@ -80,7 +80,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 2600
+    "tris_lod0": 1500
   },
   "attachments": [
     "ATT_center"
