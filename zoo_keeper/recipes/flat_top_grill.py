@@ -27,23 +27,24 @@ def build(plan, streams, collection):
             bm, name, collection, bevel=bevel, texel=texel, rng=rng, wear=wear))
 
     leg_h = 0.12
-    body_z0 = leg_h
-    body_h = h - PLATE_T - leg_h
+    guard_h = 0.12
+    surface_z = h - guard_h            # cooking surface (~counter height)
+    body_h = surface_z - PLATE_T - leg_h
 
     # cabinet body
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0, 0, body_z0 + body_h / 2), (w, d, body_h))
+    geometry.add_box(bm, (0, 0, leg_h + body_h / 2), (w, d, body_h))
     part(bm, "Grill_Body")
     cboxes.append(((-w / 2, -d / 2, 0), (w / 2, d / 2, h)))
 
-    # cooktop plate
+    # cooktop plate — top surface at counter height
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0, 0, h - PLATE_T / 2), (w * 0.98, d * 0.98, PLATE_T))
+    geometry.add_box(bm, (0, 0, surface_z - PLATE_T / 2),
+                     (w * 0.98, d * 0.98, PLATE_T))
     part(bm, "Grill_Cooktop", texel=2.0)
 
-    # splash guards: back + two sides
-    guard_h = 0.12
-    gz = h + guard_h / 2
+    # splash guards rise from the surface to the overall height
+    gz = surface_z + guard_h / 2
     bm = geometry.new_bm()
     geometry.add_box(bm, (0, d / 2 - GUARD_T / 2, gz), (w, GUARD_T, guard_h))
     part(bm, "Grill_SplashGuard_B")
@@ -55,7 +56,7 @@ def build(plan, streams, collection):
 
     # grease trap slot along the front lip
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0, -d / 2 + 0.02, h - PLATE_T - 0.015),
+    geometry.add_box(bm, (0, -d / 2 + 0.02, surface_z - PLATE_T - 0.015),
                      (w * 0.7, 0.03, 0.03))
     part(bm, "Grill_GreaseTrap")
 
@@ -63,7 +64,7 @@ def build(plan, streams, collection):
     for i in range(n_knobs):
         x = (i - (n_knobs - 1) / 2) * (w * 0.14)
         bm = geometry.new_bm()
-        geometry.add_cylinder(bm, (x, -d / 2 - 0.02, body_z0 + body_h * 0.6),
+        geometry.add_cylinder(bm, (x, -d / 2 - 0.02, leg_h + body_h * 0.6),
                               0.022, 0.03, segments=12, axis="Y")
         part(bm, f"Grill_Knob_{i + 1}")
 

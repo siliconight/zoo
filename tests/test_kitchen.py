@@ -43,4 +43,6 @@ def test_grill_dims_realistic():
     _, plan = _plan("flat top grill")
     dims = plan["dimensions"]
     assert 0.9 <= dims["width"] <= 1.6
-    assert 0.85 <= dims["height"] <= 0.98   # counter height
+    # overall height includes the splash guards; cooking surface = height-0.12
+    assert 0.98 <= dims["height"] <= 1.15
+    assert 0.85 <= dims["height"] - 0.12 <= 0.98   # surface at counter height

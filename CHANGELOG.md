@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.8.4]
+- Cheesesteak reworked toward the real Philly reference: it's now an OPEN
+  seeded hoagie. The roll is a bottom + two crust walls forming a channel; the
+  meat pile is cradled low in the groove with cheese draped over it; and
+  sesame seeds are scattered across the crust (Steak_Seeds). Warmer golden
+  crust color. Reads as a split seeded roll, not a blob with toppings.
+
+## [0.8.3]
+- Look pass on the two food heroes after first Godot view: toppings were
+  stacking into a floating tower instead of nestling. french_fries: shallower
+  wider 6-sided boat, pile pulled down and compacted (layer_rise 0.004->0.0025,
+  base 0.85->0.6). cheesesteak: meat mound nestled into the roll and compacted
+  (layer_rise w*0.05->w*0.018, base lowered), cheese dropped onto the meat,
+  onions lowered. No floating filling.
+
+## [0.8.2]
+- Fixed the two habitat-build validation FAILs (same protruding-part class as
+  boots/soda-cup): flat_top_grill splash guards rose above the declared height
+  (restructured so guards define the top and the cooktop sits at counter
+  height; height range now overall 0.98-1.15m); french_fries pile stacked
+  ~12cm over the boat (tamed the mound and widened the genome footprint).
+
 ## [0.8.1]
 - Fixed soda_cup validation FAIL from the first Blender run: the straw
   protruded 18cm so the specimen measured 0.34m vs the cup-only height range.
