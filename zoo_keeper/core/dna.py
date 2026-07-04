@@ -169,6 +169,23 @@ def _cash_stack(plan, intent):
     plan["dimensions"]["height"] = round(n * CASH_STRAP_H, 4)
 
 
+_CONDIMENT_COLORS = {
+    "mustard": [0.86, 0.72, 0.12],
+    "mayonnaise": [0.94, 0.92, 0.84], "mayo": [0.94, 0.92, 0.84],
+    "hot sauce": [0.55, 0.08, 0.06], "hot": [0.55, 0.08, 0.06],
+    "cooking oil": [0.85, 0.78, 0.40], "oil": [0.85, 0.78, 0.40],
+    "ketchup": [0.75, 0.12, 0.10],
+}
+
+
+def _condiment_bottle(plan, intent):
+    text = intent.prompt_norm
+    for word, color in _CONDIMENT_COLORS.items():
+        if word in text:
+            plan["color"] = color
+            break
+
+
 _SPECIES_EXTRAS = {
     "desk": _desk,
     "chair": _chair,
@@ -176,4 +193,5 @@ _SPECIES_EXTRAS = {
     "boots": _boots,
     "simple_car": _simple_car,
     "cash_stack": _cash_stack,
+    "condiment_bottle": _condiment_bottle,
 }

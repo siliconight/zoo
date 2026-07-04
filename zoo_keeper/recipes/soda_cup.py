@@ -46,7 +46,7 @@ def build(plan, streams, collection):
 
     if has_straw:
         bm = geometry.new_bm()
-        geometry.add_cylinder(bm, (r * 0.3, 0, h + 0.09), 0.006, 0.18,
+        geometry.add_cylinder(bm, (r * 0.3, 0, h + 0.03), 0.006, 0.10,
                               segments=6)
         part(bm, "Cup_Straw")
 

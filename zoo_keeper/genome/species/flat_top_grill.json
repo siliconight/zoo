@@ -1,0 +1,84 @@
+{
+  "species": "flat_top_grill",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.9,
+      "max": 1.6,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.7,
+      "max": 1.0,
+      "default": 0.9
+    },
+    "height": {
+      "min": 0.85,
+      "max": 0.98,
+      "default": 0.92
+    }
+  },
+  "parts": [
+    "body",
+    "cooktop",
+    "splash_guard",
+    "grease_trap",
+    "knob",
+    "leg"
+  ],
+  "params": {
+    "knobs": {
+      "min": 2,
+      "max": 4,
+      "default": 3
+    }
+  },
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.25,
+      "bevel": 0.004
+    },
+    "1990s": {
+      "material": "metal",
+      "color": [
+        0.68,
+        0.69,
+        0.7
+      ],
+      "wear": 0.35,
+      "bevel": 0.004
+    },
+    "greasy": {
+      "material": "metal",
+      "color": [
+        0.55,
+        0.55,
+        0.56
+      ],
+      "wear": 0.55,
+      "bevel": 0.004
+    }
+  },
+  "budgets": {
+    "tris_lod0": 3000
+  },
+  "attachments": [
+    "ATT_cook_center"
+  ]
+}

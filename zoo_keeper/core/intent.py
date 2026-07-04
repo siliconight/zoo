@@ -30,6 +30,11 @@ SPECIES_KEYWORDS = {
     "cheesesteak": ["philly cheesesteak", "cheesesteak", "cheese steak",
                     "hoagie", "sub sandwich"],
     "soda_cup": ["soda cup", "fountain drink", "soda", "drink cup", "cup"],
+    "flat_top_grill": ["flat top grill", "flat-top grill", "flattop", "grill",
+                       "griddle"],
+    "condiment_bottle": ["ketchup", "mustard", "mayonnaise", "mayo",
+                         "hot sauce", "squeeze bottle", "condiment"],
+    "french_fries": ["french fries", "fries", "fry pile", "chips"],
 }
 
 NUMBER_WORDS = {

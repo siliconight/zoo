@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.8.1]
+- Fixed soda_cup validation FAIL from the first Blender run: the straw
+  protruded 18cm so the specimen measured 0.34m vs the cup-only height range.
+  Trimmed the straw to a realistic ~8cm and widened height to [0.12, 0.32] to
+  honestly include it.
+- Verified in Blender: the 0.7.0 low-poly toolkit works — cheesesteak (ellipsoid
+  + jitter + scatter) PASSED; soda_cup builds clean.
+
+## [0.8.0]
+### Added - cheesesteak-shop kitchen batch (17 species)
+- flat_top_grill: steel cabinet, cooktop, splash guards, grease trap, knobs,
+  legs (hard-surface, proven primitives).
+- condiment_bottle: tapered squeeze bottle + cap + nozzle; DNA hook colors it
+  by flavor (ketchup/mustard/mayo/hot sauce/oil from the prompt).
+- french_fries: paper boat + scattered jittered fry sticks (scatter showcase;
+  pickup, no collision).
+- New cheesesteak_shop habitat (grill + table + cheesesteak + fries +
+  condiment + soda). 4 new tests (56 total).
+
 ## [0.7.0]
 ### Added - low-poly (PS1/N64) hero capability
 - New geometry primitives for chunky organic form: add_ellipsoid (faceted

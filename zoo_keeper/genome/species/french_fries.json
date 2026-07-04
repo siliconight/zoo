@@ -1,0 +1,71 @@
+{
+  "species": "french_fries",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.1,
+      "max": 0.16,
+      "default": 0.12
+    },
+    "depth": {
+      "min": 0.12,
+      "max": 0.2,
+      "default": 0.16
+    },
+    "height": {
+      "min": 0.06,
+      "max": 0.12,
+      "default": 0.09
+    }
+  },
+  "parts": [
+    "boat",
+    "fries"
+  ],
+  "params": {
+    "fries": {
+      "min": 12,
+      "max": 28,
+      "default": 20
+    }
+  },
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper"
+    ]
+  },
+  "collision": false,
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.82,
+        0.42
+      ],
+      "wear": 0.18,
+      "bevel": 0.002
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.88,
+        0.78,
+        0.38
+      ],
+      "wear": 0.24,
+      "bevel": 0.002
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1400
+  },
+  "attachments": [
+    "ATT_center"
+  ]
+}

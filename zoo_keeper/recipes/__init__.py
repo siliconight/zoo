@@ -31,6 +31,12 @@ def get(species):
         from . import soda_cup as mod
     elif species == "cheesesteak":
         from . import cheesesteak as mod
+    elif species == "flat_top_grill":
+        from . import flat_top_grill as mod
+    elif species == "condiment_bottle":
+        from . import condiment_bottle as mod
+    elif species == "french_fries":
+        from . import french_fries as mod
     else:
         raise KeyError(f"No recipe for species '{species}'")
     return mod.build

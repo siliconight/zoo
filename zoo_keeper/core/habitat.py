@@ -21,6 +21,8 @@ HABITATS = {
     "corner_store": ["vending_machine", "atm", "table", "crt_tv"],
     "score": ["briefcase", "cash_stack", "atm"],
     "diner": ["table", "chair", "cheesesteak", "soda_cup"],
+    "cheesesteak_shop": ["flat_top_grill", "table", "cheesesteak",
+                         "french_fries", "condiment_bottle", "soda_cup"],
 }
 
 
