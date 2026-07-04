@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3]
+- Boots validation FAIL fixed. The validator now scales genome dimension
+  ranges by a per-axis plan `dim_scale`, so a mirrored pair validates
+  against its true footprint (~2.3x boot width) while the genome stays
+  honest about a single boot.
+- Widened boots genome height to [0.18, 0.50] m so its own "tall" combat
+  shaft is in range; DNA now writes the real sole+foot+shaft height back
+  into the plan (meta.json no longer under-reports boot height).
+- Boot construction constants (shaft/sole/foot/gap) live once in the DNA
+  layer and travel in the plan; the recipe executes them verbatim.
+
+## [0.1.2]
+- Fixed UV projection crash on first real Blender run: BMLoopUV coords
+  must be written via loop[uv].uv, not slice assignment (TypeError:
+  'BMLoopUV' object does not support item assignment).
+
 ## [0.1.1]
 - simple_car: added windshield, rear and side window panes (Car_Windows)
   with tinted glass material — TDD required part / acceptance criterion.

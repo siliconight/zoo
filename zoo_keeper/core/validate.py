@@ -21,15 +21,18 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
     tol = 0.02  # 2 cm grace on bound checks
 
     dims = facts.get("dimensions", {})
+    scale = plan.get("dim_scale", {})
     for name, spec in genome["dimensions"].items():
         if name not in dims:
             continue
+        s = scale.get(name, 1.0)
+        lo, hi = spec["min"] * s, spec["max"] * s
         v = dims[name]
-        ok = (spec["min"] - tol) <= v <= (spec["max"] + tol)
+        ok = (lo - tol) <= v <= (hi + tol)
         _check(checks, f"dim_{name}", ok,
-               f"{name}={v:.3f}m within [{spec['min']}, {spec['max']}]m"
+               f"{name}={v:.3f}m within [{lo:.3f}, {hi:.3f}]m"
                if ok else
-               f"{name}={v:.3f}m OUTSIDE [{spec['min']}, {spec['max']}]m")
+               f"{name}={v:.3f}m OUTSIDE [{lo:.3f}, {hi:.3f}]m")
 
     tris = facts.get("tris", 0)
     budget = plan["budgets"].get("tris_lod0", 0)

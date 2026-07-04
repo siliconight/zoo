@@ -8,6 +8,14 @@ from __future__ import annotations
 
 from . import seeding
 
+# Boot construction constants — single source of truth. The DNA hook writes
+# the resolved values into the plan; the recipe executes them verbatim so the
+# built height and the plan's recorded height can never disagree.
+BOOT_SHAFT_H = {"ankle": 0.14, "mid": 0.22, "tall": 0.38}
+BOOT_SOLE_T = 0.025
+BOOT_FOOT_H = 0.07
+BOOT_GAP_FACTOR = 0.65  # each boot sits at x = ±(width * this)
+
 
 def _clamp(v, lo, hi):
     return max(lo, min(hi, v))
@@ -83,6 +91,10 @@ def resolve_plan(intent, genome: dict, streams: seeding.RNGStreams,
         "budgets": dict(genome["budgets"]),
         "attachments": list(genome.get("attachments", [])),
         "bevel": style.get("bevel", 0.004),
+        # per-axis multiplier applied to genome dimension ranges at validation
+        # time — lets a multi-unit specimen (e.g. a boot pair) keep an honest
+        # single-unit genome while still validating its true footprint.
+        "dim_scale": {"width": 1.0, "depth": 1.0, "height": 1.0},
     }
 
     # per-species touch-ups driven by intent
@@ -120,6 +132,20 @@ def _boots(plan, intent):
         plan["params"]["shaft_style"] = "tall"
     elif "hiking" in intent.style_tags or "work" in intent.style_tags:
         plan["params"]["shaft_style"] = "mid"
+
+    p = plan["params"]
+    shaft_h = BOOT_SHAFT_H.get(p["shaft_style"], BOOT_SHAFT_H["ankle"])
+    # publish construction values so the recipe executes the plan verbatim
+    p["shaft_h"] = shaft_h
+    p["sole_t"] = BOOT_SOLE_T
+    p["foot_h"] = BOOT_FOOT_H
+    p["gap_factor"] = BOOT_GAP_FACTOR
+    # the recipe builds height from these, not from the genome dimension, so
+    # write the true value back for an honest meta.json
+    plan["dimensions"]["height"] = round(BOOT_SOLE_T + BOOT_FOOT_H + shaft_h, 4)
+    # a mirrored pair spans (2*gap + 1) boot-widths along X
+    if p.get("pair", 2) == 2:
+        plan["dim_scale"]["width"] = round(2 * BOOT_GAP_FACTOR + 1, 4)
 
 
 def _simple_car(plan, intent):

@@ -47,3 +47,29 @@ def test_species_hooks():
     assert plan["params"]["has_arms"] == 1
     plan, _ = _plan("red hatchback car")
     assert plan["params"]["body_style"] == "hatchback"
+
+
+def test_boots_pair_footprint_and_height():
+    # A mirrored pair validates against the whole footprint, not one boot,
+    # and the plan records the real shaft-derived height (regression: the
+    # first Blender run FAILed width 0.249 vs single-boot [0.09,0.13] and
+    # height 0.475 vs [0.12,0.45]).
+    from zoo_keeper.core import validate
+    plan, g = _plan("worn leather combat boots")
+    assert plan["params"]["shaft_style"] == "tall"
+    assert plan["dimensions"]["height"] == 0.475      # sole+foot+tall shaft
+    assert plan["dim_scale"]["width"] == 2.3          # pair spans 2*0.65+1
+
+    facts = {"dimensions": {"width": 0.249, "depth": 0.28, "height": 0.475},
+             "tris": 900, "parts": ["Boot_L_Sole", "Boot_R_Sole"],
+             "has_uvs": True, "has_wear_colors": True,
+             "materials": ["M_Boots_leather"], "has_collision": True,
+             "unapplied_transforms": []}
+    rep = validate.evaluate(facts, g, plan, {"collision": True, "lods": False})
+    assert rep["status"] == "pass"
+
+
+def test_single_boot_still_single_scale():
+    plan, _ = _plan("one leather boot")
+    if plan["params"].get("pair", 2) == 1:
+        assert plan["dim_scale"]["width"] == 1.0

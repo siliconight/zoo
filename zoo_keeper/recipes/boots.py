@@ -1,9 +1,12 @@
-"""Boots recipe: mirrored pair — sole, foot, toe, shaft."""
+"""Boots recipe: mirrored pair — sole, foot, toe, shaft.
+
+Construction constants (shaft height, sole/foot thickness, pair gap) are
+resolved in the DNA layer and travel in the plan, so this recipe executes
+them verbatim and can never drift from the validated height.
+"""
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-
-SHAFT_H = {"ankle": 0.14, "mid": 0.22, "tall": 0.38}
 
 
 def build(plan, streams, collection):
@@ -11,9 +14,10 @@ def build(plan, streams, collection):
     d = plan["dimensions"]["depth"]
     bevel, wear = plan["bevel"], plan["wear"]
     rng = streams.stream("wear")
-    shaft_h = SHAFT_H.get(plan["params"]["shaft_style"], 0.20)
-    pair = plan["params"].get("pair", 2)
-    sole_t, foot_h = 0.025, 0.07
+    p = plan["params"]
+    shaft_h = p["shaft_h"]
+    sole_t, foot_h = p["sole_t"], p["foot_h"]
+    pair = p.get("pair", 2)
     objs, cboxes = [], []
 
     def part(bm, name):
@@ -22,7 +26,7 @@ def build(plan, streams, collection):
             rng=rng, wear=wear))
 
     sides = [("L", -1), ("R", 1)][:pair]
-    gap = w * 0.65
+    gap = w * p["gap_factor"]
     for tag, sx in sides:
         x = sx * gap
         # sole

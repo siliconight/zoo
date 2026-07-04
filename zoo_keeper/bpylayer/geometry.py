@@ -101,7 +101,7 @@ def cube_project_uv(bm, texel=1.0):
                 u, v = co.y, co.z
             else:
                 u, v = co.x, co.z
-            loop[uv][:] = (u * texel, v * texel)
+            loop[uv].uv = (u * texel, v * texel)
 
 
 def wear_colors(bm, rng, wear):
