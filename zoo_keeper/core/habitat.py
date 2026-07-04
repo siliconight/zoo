@@ -20,6 +20,7 @@ HABITATS = {
     "gear": ["helmet", "boots"],
     "corner_store": ["vending_machine", "atm", "table", "crt_tv"],
     "score": ["briefcase", "cash_stack", "atm"],
+    "diner": ["table", "chair", "cheesesteak", "soda_cup"],
 }
 
 

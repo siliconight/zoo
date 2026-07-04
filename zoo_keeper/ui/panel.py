@@ -8,6 +8,9 @@ import bpy
 from ..core import validate
 
 
+_COLL = {"AUTO": None, "ON": True, "OFF": False}
+
+
 class ZooProps(bpy.types.PropertyGroup):
     prompt: bpy.props.StringProperty(
         name="Prompt", default="1990s office desk with two drawers")
@@ -19,7 +22,12 @@ class ZooProps(bpy.types.PropertyGroup):
         name="Habitat", default="starter",
         description="Named set (starter/office/gear) or comma list "
         "(desk,chair); Prompt is the shared theme")
-    collision: bpy.props.BoolProperty(name="Collision (-colonly)", default=True)
+    collision: bpy.props.EnumProperty(
+        name="Collision",
+        items=[("AUTO", "Auto", "Per-species default (pickups get none)"),
+               ("ON", "On", "Force collision on"),
+               ("OFF", "Off", "Force collision off")],
+        default="AUTO")
     lods: bpy.props.BoolProperty(name="LODs", default=False)
     save_blend: bpy.props.BoolProperty(name="Save .blend", default=False)
     out_dir: bpy.props.StringProperty(
@@ -40,7 +48,7 @@ class ZOO_OT_generate(bpy.types.Operator):
         try:
             result = build.build_specimen(
                 p.prompt, out_dir, seed=p.seed,
-                options={"collision": p.collision, "lods": p.lods,
+                options={"collision": _COLL[p.collision], "lods": p.lods,
                          "save_blend": p.save_blend,
                          "clear_scene": False})
         except Exception as exc:  # surface, don't crash the UI
@@ -67,7 +75,7 @@ class ZOO_OT_generate_variants(bpy.types.Operator):
         try:
             fam = build.build_family(
                 p.prompt, out_dir, base_seed=p.seed, count=p.count,
-                options={"collision": p.collision, "lods": p.lods,
+                options={"collision": _COLL[p.collision], "lods": p.lods,
                          "save_blend": p.save_blend, "clear_scene": False})
         except Exception as exc:
             self.report({"ERROR"}, str(exc))
@@ -92,7 +100,7 @@ class ZOO_OT_generate_habitat(bpy.types.Operator):
         try:
             fam = build.build_habitat(
                 p.prompt, p.habitat, out_dir, seed=p.seed,
-                options={"collision": p.collision, "lods": p.lods,
+                options={"collision": _COLL[p.collision], "lods": p.lods,
                          "save_blend": p.save_blend, "clear_scene": False})
         except Exception as exc:
             self.report({"ERROR"}, str(exc))

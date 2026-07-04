@@ -27,6 +27,9 @@ SPECIES_KEYWORDS = {
     "briefcase": ["briefcase", "attache case", "attache"],
     "cash_stack": ["cash stack", "stack of cash", "banknotes", "cash", "money",
                    "bills"],
+    "cheesesteak": ["philly cheesesteak", "cheesesteak", "cheese steak",
+                    "hoagie", "sub sandwich"],
+    "soda_cup": ["soda cup", "fountain drink", "soda", "drink cup", "cup"],
 }
 
 NUMBER_WORDS = {

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0]
+### Added - low-poly (PS1/N64) hero capability
+- New geometry primitives for chunky organic form: add_ellipsoid (faceted
+  blobs), jitter_verts (deterministic per-vertex irregularity), cylinder
+  radius_top (cones/cups), and geometry.place. New pure core.scatter for
+  deterministic 'pile' placement (one chunk -> duplicate -> randomize -> join).
+- Two new hero species (14 total): cheesesteak (flagship - jittered roll +
+  scattered meat pile + draped cheese + onions, ~2k tris) and soda_cup
+  (tapered cup, lid, straw). Both default to no collision (pickups).
+- New 'diner' habitat (table + chair + cheesesteak + soda_cup).
+- 6 new tests (52 total). Sculpted high-detail heroes still out of scope.
+
+## [0.6.1]
+- Collision is now per-species and tri-state. Genomes can declare a collision
+  default; the build resolves explicit flag > genome default > on. cash_stack
+  defaults to OFF (loot/pickup). CLI gains `--collision` alongside
+  `--no-collision`; with neither, the genome default is used. Keeper panel's
+  Collision control is now Auto / On / Off.
+
 ## [0.6.0]
 ### Added - heist prop pack (6 species, 12 total)
 - Six new hard-surface species for a 1990s Philly/Delco heist setting:

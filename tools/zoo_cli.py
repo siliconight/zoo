@@ -50,12 +50,25 @@ def parse_args():
     ap.add_argument("--plan", "--dry-run", action="store_true",
                     dest="plan", help="print Intent + BuildPlan and exit "
                     "(works without Blender)")
-    ap.add_argument("--no-collision", action="store_true")
+    ap.add_argument("--no-collision", action="store_true",
+                    help="force collision OFF (overrides the genome default)")
+    ap.add_argument("--collision", action="store_true",
+                    help="force collision ON (overrides the genome default)")
     ap.add_argument("--lods", action="store_true")
     ap.add_argument("--no-blend", action="store_true",
                     help="skip saving the .blend sidecar")
     ap.add_argument("--species-list", action="store_true")
     return ap.parse_args(argv)
+
+
+def _collision_opt(args):
+    """Tri-state: --collision -> True, --no-collision -> False, neither ->
+    None (use the genome's per-species default)."""
+    if args.collision:
+        return True
+    if args.no_collision:
+        return False
+    return None
 
 
 def habitat_preview(args):
@@ -87,7 +100,7 @@ def habitat_build(args):
     fam = build.build_habitat(
         args.prompt or "", args.habitat, os.path.abspath(args.out),
         seed=args.seed,
-        options={"collision": not args.no_collision, "lods": args.lods,
+        options={"collision": _collision_opt(args), "lods": args.lods,
                  "save_blend": not args.no_blend, "clear_scene": True})
     print(f"[zoo] habitat:  {fam['habitat_id']} "
           f"({len(fam['species'])} species)")
@@ -139,7 +152,7 @@ def full_build(args):
     from zoo_keeper.bpylayer import build
     from zoo_keeper.core import validate
 
-    opts = {"collision": not args.no_collision, "lods": args.lods,
+    opts = {"collision": _collision_opt(args), "lods": args.lods,
             "save_blend": not args.no_blend, "clear_scene": True}
 
     if args.count > 1:

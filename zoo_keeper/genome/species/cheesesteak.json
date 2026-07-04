@@ -1,0 +1,88 @@
+{
+  "species": "cheesesteak",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.09,
+      "max": 0.13,
+      "default": 0.11
+    },
+    "depth": {
+      "min": 0.26,
+      "max": 0.36,
+      "default": 0.32
+    },
+    "height": {
+      "min": 0.07,
+      "max": 0.12,
+      "default": 0.09
+    }
+  },
+  "parts": [
+    "bun",
+    "meat",
+    "cheese",
+    "onion"
+  ],
+  "params": {
+    "meat_chunks": {
+      "min": 6,
+      "max": 18,
+      "default": 12
+    },
+    "onions": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    }
+  },
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper"
+    ]
+  },
+  "collision": false,
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.72,
+        0.52,
+        0.3
+      ],
+      "wear": 0.22,
+      "bevel": 0.003
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.7,
+        0.5,
+        0.28
+      ],
+      "wear": 0.28,
+      "bevel": 0.003
+    },
+    "toasted": {
+      "material": "paper",
+      "color": [
+        0.6,
+        0.4,
+        0.2
+      ],
+      "wear": 0.35,
+      "bevel": 0.003
+    }
+  },
+  "budgets": {
+    "tris_lod0": 2000
+  },
+  "attachments": [
+    "ATT_center"
+  ]
+}

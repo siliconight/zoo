@@ -51,3 +51,11 @@ def test_new_habitats():
         ["vending_machine", "atm", "table", "crt_tv"]
     assert habitat.resolve_species("score", known) == \
         ["briefcase", "cash_stack", "atm"]
+
+
+def test_collision_defaults():
+    # cash is loot -> no blocking collision by default
+    assert genome.load_species("cash_stack").get("collision") is False
+    # solid props leave it unset -> build treats absent as True
+    for s in ("atm", "vending_machine", "table", "desk"):
+        assert genome.load_species(s).get("collision", True) is True

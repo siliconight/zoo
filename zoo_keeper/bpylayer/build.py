@@ -16,7 +16,7 @@ from .. import recipes
 from . import collision, export, lods, markers
 
 DEFAULT_OPTIONS = {
-    "collision": True,
+    "collision": None,      # None = use the genome's per-species default
     "lods": False,
     "save_blend": True,
     "clear_scene": False,   # True for headless CLI on a fresh file
@@ -45,6 +45,10 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
             f"Mention one of: {known}.")
 
     genome = genome_mod.load_species(intent.species)
+    # resolve collision: explicit option wins, else the genome's per-species
+    # default (pickups like cash default to no collision), else True.
+    if opts["collision"] is None:
+        opts["collision"] = bool(genome.get("collision", True))
     root = seeding.root_key(intent.prompt_norm, intent.species, seed,
                             TOOL_VERSION)
     streams = seeding.RNGStreams(root)

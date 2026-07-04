@@ -19,15 +19,31 @@ CC0-derived and every specimen carries its license metadata in its
 |---|---|
 | Genome | Per-species construction knowledge (`zoo_keeper/genome/species/*.json`) |
 | DNA | Recipes that turn a plan into geometry (`zoo_keeper/recipes/`) |
-| Species | An asset type — 12 so far (desk, chair, atm, vending_machine, briefcase, ...) |
+| Species | An asset type — 14 so far (desk, chair, atm, vending_machine, briefcase, ...) |
 | Specimen | One generated instance |
 | Keeper | The Blender UI panel |
 | Habitat | A themed collection of species (roadmap) |
 | Exhibit | Output folder / demo scene |
 
+## Low-poly heroes (PS1/N64)
+
+Beyond hard-surface props, Zoo builds simple *low-poly* heroes — chunky,
+faceted, deliberately retro. The organic look comes from three primitives,
+not sculpting:
+
+- `add_ellipsoid` — faceted blobs (buns, produce)
+- `jitter_verts` — deterministic per-vertex offset (organic irregularity)
+- `core.scatter` + `geometry.place` — deterministic piles (steak, fries,
+  onions: one chunk, duplicated, randomized, joined)
+
+`cheesesteak` is the flagship: a jittered roll, a scattered meat pile, draped
+cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
+shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
+scope (hand-model those to the same standards).
+
 ## Species
 
-`desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`
+`desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`
 
 ## Install (Blender 4.2+ / 5.x)
 
@@ -62,7 +78,7 @@ Dry run — resolved Intent + BuildPlan as JSON, no Blender needed:
 python tools\zoo_cli.py --prompt "1990s office desk with two drawers" --plan
 ```
 
-Flags: `--seed N`, `--count N`, `--no-collision`, `--lods`, `--no-blend`,
+Flags: `--seed N`, `--count N`, `--collision` / `--no-collision` (force on/off; default is the per-species genome default), `--lods`, `--no-blend`,
 `--species-list`.
 
 Variants — one prompt, a cohesive family across seeds `base..base+N-1`
@@ -107,7 +123,7 @@ stream, so adding a subsystem never disturbs existing randomness.
 
 ## Godot import notes
 
-- Collision: the `-colonly` sibling becomes a static collision shape on
+- Collision: on by default per species (pickups like `cash_stack` default to none; force with `--collision` / `--no-collision`). When present, the `-colonly` sibling becomes a static collision shape on
   import automatically, with no visible mesh (collision-only).
 - Wear: on the imported material enable **Vertex Color > Use as Albedo**
   to multiply the baked grime into the base color.

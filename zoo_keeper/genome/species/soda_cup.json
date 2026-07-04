@@ -1,0 +1,98 @@
+{
+  "species": "soda_cup",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.07,
+      "max": 0.11,
+      "default": 0.09
+    },
+    "depth": {
+      "min": 0.07,
+      "max": 0.11,
+      "default": 0.09
+    },
+    "height": {
+      "min": 0.12,
+      "max": 0.22,
+      "default": 0.16
+    }
+  },
+  "parts": [
+    "cup",
+    "lid",
+    "straw"
+  ],
+  "params": {
+    "lid": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    "straw": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    }
+  },
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper",
+      "plastic"
+    ]
+  },
+  "collision": false,
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.85,
+        0.2,
+        0.18
+      ],
+      "wear": 0.12,
+      "bevel": 0.002
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.82,
+        0.22,
+        0.2
+      ],
+      "wear": 0.18,
+      "bevel": 0.002
+    },
+    "diner": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.86,
+        0.8
+      ],
+      "wear": 0.15,
+      "bevel": 0.002
+    },
+    "clean": {
+      "material": "plastic",
+      "color": [
+        0.88,
+        0.88,
+        0.9
+      ],
+      "wear": 0.04,
+      "bevel": 0.002
+    }
+  },
+  "budgets": {
+    "tris_lod0": 900
+  },
+  "attachments": [
+    "ATT_lid"
+  ]
+}

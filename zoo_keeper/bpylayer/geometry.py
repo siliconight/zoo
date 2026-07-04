@@ -33,11 +33,13 @@ def add_box(bm, center, size):
 
 
 def add_cylinder(bm, center, radius, depth, segments=14, axis="Z",
-                 cap=True):
-    """Cylinder along +axis through center."""
+                 cap=True, radius_top=None):
+    """Cylinder along +axis through center. radius_top != radius makes a
+    truncated cone (cup / tapered limb)."""
     ret = bmesh.ops.create_cone(
         bm, cap_ends=cap, cap_tris=True, segments=segments,
-        radius1=radius, radius2=radius, depth=depth)
+        radius1=radius, radius2=(radius if radius_top is None else radius_top),
+        depth=depth)
     verts = ret["verts"]
     rot = Matrix.Identity(4)
     if axis == "X":
@@ -66,6 +68,41 @@ def add_hemisphere(bm, center, radius_x, radius_y, radius_z, segments=20):
         Vector((radius_x, radius_y, radius_z)).to_4d())
     bmesh.ops.transform(bm, matrix=mat, verts=keep)
     return keep
+
+
+def add_ellipsoid(bm, center, radii, u_seg=10, v_seg=6):
+    """Low-poly ellipsoid (faceted, PS1-flavored). radii = (rx, ry, rz).
+    Keep u_seg/v_seg small for chunky facets."""
+    ret = bmesh.ops.create_uvsphere(
+        bm, u_segments=u_seg, v_segments=v_seg, radius=1.0)
+    verts = ret["verts"]
+    mat = Matrix.Translation(Vector(center)) @ Matrix.Diagonal(
+        Vector(radii).to_4d())
+    bmesh.ops.transform(bm, matrix=mat, verts=verts)
+    return verts
+
+
+def jitter_verts(verts, rng, amount):
+    """Deterministic per-vertex offset — turns a clean primitive into an
+    irregular organic lump. amount is the max offset in meters."""
+    if amount <= 0:
+        return verts
+    for v in verts:
+        v.co.x += (rng.random() * 2.0 - 1.0) * amount
+        v.co.y += (rng.random() * 2.0 - 1.0) * amount
+        v.co.z += (rng.random() * 2.0 - 1.0) * amount
+    return verts
+
+
+def place(verts, pos, rot_z=0.0, scale=1.0):
+    """Scale -> Z-rotate -> translate a set of just-built verts. Used to
+    lay scattered copies (piles) from core.scatter transforms."""
+    m = (Matrix.Translation(Vector(pos))
+         @ Matrix.Rotation(rot_z, 4, "Z")
+         @ Matrix.Diagonal(Vector((scale, scale, scale)).to_4d()))
+    for v in verts:
+        v.co = m @ v.co
+    return verts
 
 
 def solidify(bm, thickness):

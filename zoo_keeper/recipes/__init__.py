@@ -27,6 +27,10 @@ def get(species):
         from . import briefcase as mod
     elif species == "cash_stack":
         from . import cash_stack as mod
+    elif species == "soda_cup":
+        from . import soda_cup as mod
+    elif species == "cheesesteak":
+        from . import cheesesteak as mod
     else:
         raise KeyError(f"No recipe for species '{species}'")
     return mod.build
