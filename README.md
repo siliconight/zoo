@@ -41,6 +41,32 @@ cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
 shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
 scope (hand-model those to the same standards).
 
+## Adopting external assets (ingest)
+
+Zoo can also *condition* assets it didn't generate — drop in an itch.io pack,
+take what you want, and get Zoo-standard GLBs out. Same normalization every
+generated asset gets: pivot bottom-center on Z=0, applied transforms, optional
+scale-to-size, optional bbox collision, a provenance `meta.json`, Godot-ready
+GLB. Formats: glb/gltf/fbx/obj/dae/stl/ply.
+
+List what's importable in a pack (works without Blender):
+
+    python tools/zoo_cli.py --ingest pack.zip --list
+
+Ingest one, scaled to a species' real-world size from its genome:
+
+    blender --background --python tools/zoo_cli.py -- \
+      --ingest pack.zip --pick models/chair.fbx \
+      --as-species chair --as-name diner_chair --out exhibits
+
+Or scale to an explicit height, or leave as-is (assumed already meters):
+
+    ... --target-height 0.9        # scale overall height to 0.9m
+    ... --license "CC0 (Kenney)"   # recorded in the meta.json
+
+Zoo records provenance but grants no rights — confirming the asset's license
+is on you. The output GLB drops into Godot exactly like a generated one.
+
 ## Adding a species (Knowledge Packs)
 
 A species is self-describing — adding one needs **no edits to the engine**:

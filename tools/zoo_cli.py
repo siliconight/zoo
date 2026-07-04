@@ -58,6 +58,23 @@ def parse_args():
     ap.add_argument("--no-blend", action="store_true",
                     help="skip saving the .blend sidecar")
     ap.add_argument("--species-list", action="store_true")
+    # --- ingest: adopt external assets (zip of itch.io assets, etc.) --------
+    ap.add_argument("--ingest",
+                    help="path to an external asset (.glb/.fbx/.obj/...) or a "
+                         ".zip of them to condition into Zoo's standard")
+    ap.add_argument("--list", action="store_true",
+                    help="with --ingest <zip>: list importable files and exit")
+    ap.add_argument("--pick",
+                    help="with --ingest <zip>: inner file path to ingest")
+    ap.add_argument("--as-name", dest="as_name",
+                    help="specimen name for the ingested asset")
+    ap.add_argument("--as-species", dest="as_species",
+                    help="scale the asset to this species' genome size "
+                         "(e.g. --as-species chair)")
+    ap.add_argument("--target-height", dest="target_height", type=float,
+                    help="scale the asset's overall height to this many meters")
+    ap.add_argument("--license", dest="license_note",
+                    help="license note recorded in the ingested meta.json")
     return ap.parse_args(argv)
 
 
@@ -181,12 +198,78 @@ def full_build(args):
     return 0 if result["report"]["status"] != "fail" else 2
 
 
+def ingest_run(args):
+    import tempfile
+    import zipfile
+    from zoo_keeper.core import ingest as ing
+
+    src = args.ingest
+    is_zip = src.lower().endswith(".zip")
+
+    # inventory mode (pure — works without Blender)
+    if is_zip and (args.list or not args.pick):
+        entries = ing.scan_archive(src)
+        if not entries:
+            print("[zoo] no importable meshes found in", src)
+            return 1
+        print(f"[zoo] {len(entries)} importable file(s) in {src}:")
+        for e in entries:
+            print(f"  {e['path']}  ({e['ext']}, {e['size']} bytes)")
+        if not args.pick:
+            print("[zoo] re-run with --pick <path> --out <dir> "
+                  "[--as-species X | --target-height M] to ingest one.")
+        return 0
+
+    if not HAS_BPY:
+        print("[zoo] ingest import/normalize needs Blender. Run inside "
+              "Blender (blender --background --python tools/zoo_cli.py -- ...).")
+        return 1
+
+    from zoo_keeper import TOOL_VERSION
+    from zoo_keeper.bpylayer import ingest as bing
+    from zoo_keeper.core import genome
+
+    tmp = None
+    if is_zip:
+        if not args.pick:
+            print("[zoo] --pick <inner path> is required to ingest from a zip.")
+            return 1
+        tmp = tempfile.mkdtemp(prefix="zoo_ingest_")
+        with zipfile.ZipFile(src) as z:
+            src_file = z.extract(args.pick, tmp)
+    else:
+        src_file = src
+
+    target_h = ing.resolve_target_height(
+        args.target_height, args.as_species, genome)
+    name = args.as_name or ing.safe_name(src_file)
+    collision = not args.no_collision
+
+    report = bing.ingest(src_file, args.out, name=name, target_height=target_h,
+                         species=args.as_species, collision=collision,
+                         license_note=args.license_note,
+                         tool_version=TOOL_VERSION)
+    print(f"[zoo] ingested: {report['name']}")
+    print(f"[zoo]   glb:  {report['glb']}")
+    print(f"[zoo]   meta: {report['meta']}")
+    print(f"[zoo]   dims (m): {report['dimensions']}")
+    if target_h:
+        print(f"[zoo]   scaled to height {target_h}m"
+              + (f" (from '{args.as_species}' genome)" if args.as_species
+                 and not args.target_height else ""))
+    else:
+        print("[zoo]   no target size given -> assumed already in meters")
+    return 0
+
+
 def main():
     args = parse_args()
     if args.species_list:
         from zoo_keeper.core import genome
         print("\n".join(genome.list_species()))
         return 0
+    if args.ingest:
+        return ingest_run(args)
     if not args.prompt:
         print("error: --prompt is required (or use --species-list)")
         return 1

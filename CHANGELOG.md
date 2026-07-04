@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0] - Ingest: adopt external assets
+### Added - Zoo can now condition assets it didn't generate
+- New ingest pipeline: take a random external asset (or a .zip of them, e.g.
+  an itch.io pack), normalize it to Zoo's standard (pivot bottom-center on
+  Z=0, applied transforms, optional scale-to-size, optional bbox collision),
+  and export a Godot-ready GLB + provenance meta.json — same output shape as a
+  generated specimen, so the importer treats them identically.
+- Pure core (core/ingest.py, tested): archive scan, target-height resolution
+  (explicit or from a species' genome), provenance meta, name cleaning.
+- Blender side (bpylayer/ingest.py): import glb/gltf/fbx/obj/dae/stl/ply,
+  normalize, export. WRITE-BLIND — needs a Blender test pass.
+- CLI: --ingest <file|zip> [--list | --pick <inner>] [--as-species X |
+  --target-height M] [--as-name N] [--license "..."]. Inventory works without
+  Blender. Zoo records provenance but grants no rights.
+- 6 new tests (67 total).
+
 ## [0.9.0] - Phase 4: Knowledge Packs
 ### Changed - species are now self-describing (add one with no engine edits)
 - Keywords moved from a hardcoded table in intent.py into each genome
