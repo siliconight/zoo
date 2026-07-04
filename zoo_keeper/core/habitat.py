@@ -18,6 +18,8 @@ HABITATS = {
                 "filing_cabinet"],
     "office": ["desk", "chair", "filing_cabinet"],
     "gear": ["helmet", "boots"],
+    "corner_store": ["vending_machine", "atm", "table", "crt_tv"],
+    "score": ["briefcase", "cash_stack", "atm"],
 }
 
 

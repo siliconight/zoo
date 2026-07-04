@@ -159,10 +159,21 @@ def _simple_car(plan, intent):
         plan["params"]["body_style"] = "coupe"
 
 
+CASH_STRAP_H = 0.011  # thickness of one banded bill strap
+
+
+def _cash_stack(plan, intent):
+    n = int(plan["params"].get("stacks", 1))
+    plan["params"]["strap_h"] = CASH_STRAP_H
+    # the recipe builds height from strap count; keep meta.json honest
+    plan["dimensions"]["height"] = round(n * CASH_STRAP_H, 4)
+
+
 _SPECIES_EXTRAS = {
     "desk": _desk,
     "chair": _chair,
     "helmet": _helmet,
     "boots": _boots,
     "simple_car": _simple_car,
+    "cash_stack": _cash_stack,
 }

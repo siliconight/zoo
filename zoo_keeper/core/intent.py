@@ -19,6 +19,14 @@ SPECIES_KEYWORDS = {
     "boots": ["boots", "boot"],
     "simple_car": ["car", "sedan", "hatchback", "coupe", "automobile"],
     "filing_cabinet": ["filing cabinet", "file cabinet", "filing", "cabinet"],
+    "table": ["dining table", "coffee table", "table"],
+    "crt_tv": ["television", "crt", "tube tv", "tv"],
+    "atm": ["atm", "cash machine", "cashpoint", "cash register"],
+    "vending_machine": ["vending machine", "vending", "soda machine",
+                        "snack machine"],
+    "briefcase": ["briefcase", "attache case", "attache"],
+    "cash_stack": ["cash stack", "stack of cash", "banknotes", "cash", "money",
+                   "bills"],
 }
 
 NUMBER_WORDS = {
@@ -29,6 +37,9 @@ NUMBER_WORDS = {
 # nouns we try to count, mapped to intent param names
 COUNT_NOUNS = {
     "drawer": "drawers",
+    "stack": "stacks",
+    "knob": "knobs",
+    "latch": "latches",
     "leg": "legs",
     "wheel": "wheels",
     "door": "doors",

@@ -1,0 +1,21 @@
+{
+  "species": "atm",
+  "version": 1,
+  "license": {"construction_knowledge": "CC0", "notes": "Original procedural construction. No source meshes, no scraped data."},
+  "dimensions": {
+    "width":  {"min": 0.5, "max": 0.75, "default": 0.6},
+    "depth":  {"min": 0.4, "max": 0.7, "default": 0.55},
+    "height": {"min": 1.2, "max": 1.65, "default": 1.45}
+  },
+  "parts": ["body", "screen", "keypad", "card_slot", "cash_slot", "sign"],
+  "params": {"sign": {"min": 0, "max": 1, "default": 1}},
+  "materials": {"default": "metal", "options": ["metal", "plastic"]},
+  "styles": {
+    "default": {"material": "metal",  "color": [0.30, 0.32, 0.36], "wear": 0.20, "bevel": 0.005},
+    "1990s":  {"material": "metal",   "color": [0.34, 0.34, 0.30], "wear": 0.28, "bevel": 0.005},
+    "bodega": {"material": "metal",   "color": [0.20, 0.22, 0.28], "wear": 0.35, "bevel": 0.005},
+    "modern": {"material": "metal",   "color": [0.14, 0.15, 0.17], "wear": 0.06, "bevel": 0.003}
+  },
+  "budgets": {"tris_lod0": 6000},
+  "attachments": ["ATT_cash_slot"]
+}

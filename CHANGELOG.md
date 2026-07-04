@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0]
+### Added - heist prop pack (6 species, 12 total)
+- Six new hard-surface species for a 1990s Philly/Delco heist setting:
+  table, crt_tv (tube TV), atm, vending_machine, briefcase, cash_stack
+  (banded bill straps; count with "N stacks of cash").
+- Two new habitats: `corner_store` (vending_machine + atm + table + crt_tv)
+  and `score` (briefcase + cash_stack + atm).
+- New "paper" material; cash_stack DNA hook writes real stack height to plan.
+- 4 new tests (45 total). Cheesesteak / chip-bag deliberately NOT added:
+  soft organic forms unsuited to the procedural box/cylinder toolkit.
+
 ## [0.5.2]
 - Zoo Importer: human-readable names in the scene tree. Instances are named by
   species ("Desk", "Chair", "Filing Cabinet") instead of the specimen hash;

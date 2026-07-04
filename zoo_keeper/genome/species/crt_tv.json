@@ -1,0 +1,22 @@
+{
+  "species": "crt_tv",
+  "version": 1,
+  "license": {"construction_knowledge": "CC0", "notes": "Original procedural construction. No source meshes, no scraped data."},
+  "dimensions": {
+    "width":  {"min": 0.35, "max": 0.90, "default": 0.55},
+    "depth":  {"min": 0.35, "max": 0.62, "default": 0.50},
+    "height": {"min": 0.30, "max": 0.70, "default": 0.42}
+  },
+  "parts": ["body", "screen", "bezel", "knob", "foot"],
+  "params": {"knobs": {"min": 0, "max": 4, "default": 2}},
+  "materials": {"default": "plastic", "options": ["plastic", "wood", "metal"]},
+  "styles": {
+    "default": {"material": "plastic", "color": [0.20, 0.20, 0.20], "wear": 0.18, "bevel": 0.006},
+    "1980s":  {"material": "plastic",  "color": [0.78, 0.72, 0.58], "wear": 0.30, "bevel": 0.006},
+    "1990s":  {"material": "plastic",  "color": [0.16, 0.16, 0.17], "wear": 0.22, "bevel": 0.006},
+    "wood":   {"material": "wood",     "color": [0.40, 0.26, 0.15], "wear": 0.35, "bevel": 0.006},
+    "modern": {"material": "plastic",  "color": [0.08, 0.08, 0.09], "wear": 0.05, "bevel": 0.004}
+  },
+  "budgets": {"tris_lod0": 4000},
+  "attachments": ["ATT_screen_center"]
+}
