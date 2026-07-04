@@ -114,10 +114,12 @@ func _on_import() -> void:
 		_set_status("Open a scene first (Scene > New Scene > 3D Scene).")
 		return
 
+	# human-readable container name from the theme (habitat) or prompt (family)
+	var label := str(data.get("theme", "")) if kind == "Habitat" else str(data.get("prompt", ""))
 	var container := Node3D.new()
-	container.name = "Zoo%s_%s" % [kind, id]
 	scene_root.add_child(container)
 	container.owner = scene_root
+	container.name = "Zoo " + (label.capitalize() if not label.is_empty() else id)
 
 	var base_dir := path.get_base_dir()
 	var gap: float = _spacing.value
@@ -140,10 +142,19 @@ func _on_import() -> void:
 		if packed == null:
 			missing += 1
 			continue
+		var specimen_id := str(item.get("specimen_id", "zoo_asset"))
+		var species_str := ""
+		if item.has("species"):
+			species_str = str(item["species"])              # habitat member
+		elif typeof(data.get("species", null)) == TYPE_STRING:
+			species_str = str(data["species"])              # family (one species)
 		var inst: Node = packed.instantiate()
-		inst.name = str(item.get("specimen_id", "zoo_asset"))
 		container.add_child(inst)
 		inst.owner = scene_root
+		# readable name ("filing_cabinet" -> "Filing Cabinet"); Godot auto-numbers
+		# duplicates. Keep the hash in metadata for traceability.
+		inst.name = species_str.capitalize() if not species_str.is_empty() else specimen_id
+		inst.set_meta("zoo_specimen_id", specimen_id)
 		if inst is Node3D:
 			instances.append(inst)
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2]
+- Zoo Importer: human-readable names in the scene tree. Instances are named by
+  species ("Desk", "Chair", "Filing Cabinet") instead of the specimen hash;
+  the hash is kept in node metadata (zoo_specimen_id) for traceability. The
+  container is named from the theme/prompt ("Zoo 1990s Office"). Names are set
+  after add_child (reliable Godot idiom). Plugin-only — no GLB rebuild.
+
 ## [0.5.1]
 - Zoo Importer: footprint-aware layout. Instances are now packed edge-to-edge
   in rows using each asset's real AABB (wrapping past ~8 m), so nothing spawns
