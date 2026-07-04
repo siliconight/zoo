@@ -41,6 +41,27 @@ cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
 shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
 scope (hand-model those to the same standards).
 
+## Adding a species (Knowledge Packs)
+
+A species is self-describing — adding one needs **no edits to the engine**:
+
+1. **Drop a genome** at `zoo_keeper/genome/species/<name>.json`. Besides the
+   dimensions/parts/styles, it carries its own:
+   - `"keywords"`: the prompt words that select it (longest match at the
+     earliest position wins, so `"soda machine"` beats `"soda"`).
+   - `"prompt_rules"` (optional): declarative keyword logic, e.g.
+     `{"any": ["mustard"], "set": {"color": [0.86,0.72,0.12]}}` or
+     `{"any": ["police","brim"], "set": {"params.brim": 1}}`. Keys can be
+     `color`/`material`/`style` or `params.<x>`.
+   - `"collision"` (optional bool): per-species default.
+2. **Drop a recipe** at `zoo_keeper/recipes/<name>.py` exposing
+   `build(plan, streams, collection)`. It's auto-discovered by filename.
+
+That's it — the genome is globbed, the keywords and rules are read from it,
+and the recipe is imported by name. The only thing still requiring code is a
+*computed* dimension (e.g. boots deriving height from shaft length), which
+lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
+
 ## Species
 
 `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`

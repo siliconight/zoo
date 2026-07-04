@@ -1,23 +1,122 @@
 {
   "species": "table",
   "version": 1,
-  "license": {"construction_knowledge": "CC0", "notes": "Original procedural construction. No source meshes, no scraped data."},
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
   "dimensions": {
-    "width":  {"min": 0.6, "max": 2.4, "default": 1.2},
-    "depth":  {"min": 0.6, "max": 1.2, "default": 0.8},
-    "height": {"min": 0.4, "max": 0.78, "default": 0.74}
+    "width": {
+      "min": 0.6,
+      "max": 2.4,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 1.2,
+      "default": 0.8
+    },
+    "height": {
+      "min": 0.4,
+      "max": 0.78,
+      "default": 0.74
+    }
   },
-  "parts": ["top", "leg", "shelf"],
-  "params": {"leg_style": ["post", "panel"], "shelf": {"min": 0, "max": 1, "default": 0}},
-  "materials": {"default": "wood", "options": ["wood", "laminate", "metal"]},
+  "parts": [
+    "top",
+    "leg",
+    "shelf"
+  ],
+  "params": {
+    "leg_style": [
+      "post",
+      "panel"
+    ],
+    "shelf": {
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  },
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood",
+      "laminate",
+      "metal"
+    ]
+  },
   "styles": {
-    "default": {"material": "wood",     "color": [0.55, 0.40, 0.26], "wear": 0.20, "bevel": 0.005},
-    "1970s":  {"material": "wood",      "color": [0.36, 0.22, 0.12], "wear": 0.38, "bevel": 0.006},
-    "1980s":  {"material": "laminate",  "color": [0.60, 0.56, 0.50], "wear": 0.28, "bevel": 0.004},
-    "1990s":  {"material": "laminate",  "color": [0.70, 0.64, 0.54], "wear": 0.25, "bevel": 0.004},
-    "modern": {"material": "wood",      "color": [0.72, 0.60, 0.44], "wear": 0.06, "bevel": 0.003},
-    "diner":  {"material": "metal",     "color": [0.72, 0.72, 0.74], "wear": 0.30, "bevel": 0.004}
+    "default": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.4,
+        0.26
+      ],
+      "wear": 0.2,
+      "bevel": 0.005
+    },
+    "1970s": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.38,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "laminate",
+      "color": [
+        0.6,
+        0.56,
+        0.5
+      ],
+      "wear": 0.28,
+      "bevel": 0.004
+    },
+    "1990s": {
+      "material": "laminate",
+      "color": [
+        0.7,
+        0.64,
+        0.54
+      ],
+      "wear": 0.25,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "wood",
+      "color": [
+        0.72,
+        0.6,
+        0.44
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "diner": {
+      "material": "metal",
+      "color": [
+        0.72,
+        0.72,
+        0.74
+      ],
+      "wear": 0.3,
+      "bevel": 0.004
+    }
   },
-  "budgets": {"tris_lod0": 5000},
-  "attachments": ["ATT_surface_center"]
+  "budgets": {
+    "tris_lod0": 5000
+  },
+  "attachments": [
+    "ATT_surface_center"
+  ],
+  "keywords": [
+    "dining table",
+    "coffee table",
+    "table"
+  ]
 }

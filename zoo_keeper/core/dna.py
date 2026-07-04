@@ -97,38 +97,29 @@ def resolve_plan(intent, genome: dict, streams: seeding.RNGStreams,
         "dim_scale": {"width": 1.0, "depth": 1.0, "height": 1.0},
     }
 
-    # per-species touch-ups driven by intent
+    # declarative prompt rules from the genome (keyword -> set param/color/...)
+    _apply_prompt_rules(plan, genome.get("prompt_rules", []), intent.prompt_norm)
+    # remaining computed touch-ups (derived dimensions) live in code
     extra = _SPECIES_EXTRAS.get(genome["species"])
     if extra:
         extra(plan, intent)
     return plan
 
 
+def _apply_prompt_rules(plan, rules, text):
+    """Data-driven per-species tweaks: if any listed word is in the prompt,
+    apply the rule's `set` (keys like 'color', 'material', 'params.brim').
+    Lets a Knowledge Pack ship keyword logic as genome data, no code."""
+    for rule in rules:
+        if any(word in text for word in rule.get("any", [])):
+            for key, value in rule.get("set", {}).items():
+                if key.startswith("params."):
+                    plan["params"][key.split(".", 1)[1]] = value
+                else:
+                    plan[key] = value
+
+
 # --- per-species intent hooks ----------------------------------------------
-
-def _desk(plan, intent):
-    if "executive" in intent.style_tags:
-        plan["params"]["leg_style"] = "panel"
-
-
-def _chair(plan, intent):
-    text = intent.prompt_norm
-    if "office" in intent.style_tags or "gaming" in intent.style_tags:
-        plan["params"]["has_arms"] = 1
-    if "armchair" in text or "arm chair" in text or " arms" in text:
-        plan["params"]["has_arms"] = 1
-
-
-def _helmet(plan, intent):
-    text = intent.prompt_norm
-    brim_words = ("construction", "hard hat", "hardhat", "police", "bobby",
-                  "peaked", "cap", "brim", "trooper", "ranger")
-    if any(w in text for w in brim_words) \
-            or "construction" in intent.style_tags:
-        plan["params"]["brim"] = 1
-    if "visor" in text or "motorcycle" in intent.style_tags:
-        plan["params"]["visor"] = 1
-
 
 def _boots(plan, intent):
     if "combat" in intent.style_tags or "military" in intent.style_tags:
@@ -151,14 +142,6 @@ def _boots(plan, intent):
         plan["dim_scale"]["width"] = round(2 * BOOT_GAP_FACTOR + 1, 4)
 
 
-def _simple_car(plan, intent):
-    text = intent.prompt_norm
-    if "hatchback" in text:
-        plan["params"]["body_style"] = "hatchback"
-    elif "coupe" in text:
-        plan["params"]["body_style"] = "coupe"
-
-
 CASH_STRAP_H = 0.011  # thickness of one banded bill strap
 
 
@@ -169,29 +152,9 @@ def _cash_stack(plan, intent):
     plan["dimensions"]["height"] = round(n * CASH_STRAP_H, 4)
 
 
-_CONDIMENT_COLORS = {
-    "mustard": [0.86, 0.72, 0.12],
-    "mayonnaise": [0.94, 0.92, 0.84], "mayo": [0.94, 0.92, 0.84],
-    "hot sauce": [0.55, 0.08, 0.06], "hot": [0.55, 0.08, 0.06],
-    "cooking oil": [0.85, 0.78, 0.40], "oil": [0.85, 0.78, 0.40],
-    "ketchup": [0.75, 0.12, 0.10],
-}
-
-
-def _condiment_bottle(plan, intent):
-    text = intent.prompt_norm
-    for word, color in _CONDIMENT_COLORS.items():
-        if word in text:
-            plan["color"] = color
-            break
-
-
+# Only computed touch-ups (derived dimensions) remain as code; all keyword ->
+# set logic now lives declaratively in each genome's prompt_rules.
 _SPECIES_EXTRAS = {
-    "desk": _desk,
-    "chair": _chair,
-    "helmet": _helmet,
     "boots": _boots,
-    "simple_car": _simple_car,
     "cash_stack": _cash_stack,
-    "condiment_bottle": _condiment_bottle,
 }

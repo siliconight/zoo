@@ -6,23 +6,124 @@
     "notes": "Original procedural construction. No source meshes, no scraped data."
   },
   "dimensions": {
-    "width":  {"min": 0.38, "max": 0.62, "default": 0.45},
-    "depth":  {"min": 0.38, "max": 0.60, "default": 0.45},
-    "height": {"min": 0.75, "max": 1.10, "default": 0.85}
+    "width": {
+      "min": 0.38,
+      "max": 0.62,
+      "default": 0.45
+    },
+    "depth": {
+      "min": 0.38,
+      "max": 0.6,
+      "default": 0.45
+    },
+    "height": {
+      "min": 0.75,
+      "max": 1.1,
+      "default": 0.85
+    }
   },
-  "parts": ["seat", "back", "leg", "arm"],
+  "parts": [
+    "seat",
+    "back",
+    "leg",
+    "arm"
+  ],
   "params": {
-    "legs": {"min": 3, "max": 4, "default": 4},
-    "has_arms": {"min": 0, "max": 1, "default": 0}
+    "legs": {
+      "min": 3,
+      "max": 4,
+      "default": 4
+    },
+    "has_arms": {
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
   },
-  "materials": {"default": "wood", "options": ["wood", "metal", "plastic", "leather"]},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood",
+      "metal",
+      "plastic",
+      "leather"
+    ]
+  },
   "styles": {
-    "default": {"material": "wood",    "color": [0.42, 0.28, 0.15], "wear": 0.15, "bevel": 0.004},
-    "1970s":  {"material": "wood",    "color": [0.35, 0.22, 0.10], "wear": 0.35, "bevel": 0.006},
-    "1990s":  {"material": "plastic", "color": [0.25, 0.28, 0.45], "wear": 0.25, "bevel": 0.003},
-    "office": {"material": "plastic", "color": [0.15, 0.15, 0.18], "wear": 0.20, "bevel": 0.003},
-    "school": {"material": "plastic", "color": [0.55, 0.35, 0.12], "wear": 0.45, "bevel": 0.003}
+    "default": {
+      "material": "wood",
+      "color": [
+        0.42,
+        0.28,
+        0.15
+      ],
+      "wear": 0.15,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "wood",
+      "color": [
+        0.35,
+        0.22,
+        0.1
+      ],
+      "wear": 0.35,
+      "bevel": 0.006
+    },
+    "1990s": {
+      "material": "plastic",
+      "color": [
+        0.25,
+        0.28,
+        0.45
+      ],
+      "wear": 0.25,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "plastic",
+      "color": [
+        0.15,
+        0.15,
+        0.18
+      ],
+      "wear": 0.2,
+      "bevel": 0.003
+    },
+    "school": {
+      "material": "plastic",
+      "color": [
+        0.55,
+        0.35,
+        0.12
+      ],
+      "wear": 0.45,
+      "bevel": 0.003
+    }
   },
-  "budgets": {"tris_lod0": 5000},
-  "attachments": ["ATT_seat_center"]
+  "budgets": {
+    "tris_lod0": 5000
+  },
+  "attachments": [
+    "ATT_seat_center"
+  ],
+  "keywords": [
+    "chair",
+    "stool",
+    "office seat"
+  ],
+  "prompt_rules": [
+    {
+      "any": [
+        "office",
+        "gaming",
+        "armchair",
+        "arm chair",
+        "arms"
+      ],
+      "set": {
+        "params.has_arms": 1
+      }
+    }
+  ]
 }

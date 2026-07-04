@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0] - Phase 4: Knowledge Packs
+### Changed - species are now self-describing (add one with no engine edits)
+- Keywords moved from a hardcoded table in intent.py into each genome
+  ("keywords"); the parser reads them from the genomes. Tie-break is now
+  position-then-keyword-length ("soda machine" beats "soda", "cash machine"
+  beats "cash"), with an optional "match_priority".
+- Keyword-driven hooks (desk/chair/helmet/simple_car/condiment_bottle) moved
+  from Python into declarative genome "prompt_rules" (any-word -> set
+  color/material/style/params.x). Only computed hooks (boots, cash_stack
+  derived dimensions) remain as code.
+- Recipe registry auto-discovers modules by filename via importlib (no more
+  hardcoded if/elif chain). Dropping recipes/<name>.py registers it.
+- Net: adding a species = drop a genome JSON + a recipe module. 61 tests.
+
 ## [0.8.5]
 - Cheesesteak simplified for a cleaner low-poly read (fewer + bigger beats
   many + small): filling is now ONE lumpy jittered meat mound instead of a

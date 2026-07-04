@@ -7,12 +7,12 @@ Tooled procedural construction, NOT AI mesh generation. No cloud, no
 scraping, no copyrighted source meshes.
 """
 
-TOOL_VERSION = "0.8.5"
+TOOL_VERSION = "0.9.0"
 
 bl_info = {
     "name": "Zoo Keeper",
     "author": "GabagoolStudios",
-    "version": (0, 8, 5),
+    "version": (0, 9, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar (N) > Zoo",
     "description": "Prompt-driven offline procedural asset compiler "

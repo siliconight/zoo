@@ -1,21 +1,98 @@
 {
   "species": "briefcase",
   "version": 1,
-  "license": {"construction_knowledge": "CC0", "notes": "Original procedural construction. No source meshes, no scraped data."},
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
   "dimensions": {
-    "width":  {"min": 0.35, "max": 0.52, "default": 0.45},
-    "depth":  {"min": 0.28, "max": 0.40, "default": 0.34},
-    "height": {"min": 0.08, "max": 0.20, "default": 0.12}
+    "width": {
+      "min": 0.35,
+      "max": 0.52,
+      "default": 0.45
+    },
+    "depth": {
+      "min": 0.28,
+      "max": 0.4,
+      "default": 0.34
+    },
+    "height": {
+      "min": 0.08,
+      "max": 0.2,
+      "default": 0.12
+    }
   },
-  "parts": ["body", "handle", "latch"],
-  "params": {"latches": {"min": 1, "max": 2, "default": 2}},
-  "materials": {"default": "leather", "options": ["leather", "metal", "plastic"]},
+  "parts": [
+    "body",
+    "handle",
+    "latch"
+  ],
+  "params": {
+    "latches": {
+      "min": 1,
+      "max": 2,
+      "default": 2
+    }
+  },
+  "materials": {
+    "default": "leather",
+    "options": [
+      "leather",
+      "metal",
+      "plastic"
+    ]
+  },
   "styles": {
-    "default": {"material": "leather", "color": [0.18, 0.12, 0.08], "wear": 0.22, "bevel": 0.006},
-    "1990s":  {"material": "leather",  "color": [0.14, 0.10, 0.07], "wear": 0.28, "bevel": 0.006},
-    "aluminum":{"material": "metal",   "color": [0.72, 0.73, 0.75], "wear": 0.18, "bevel": 0.004},
-    "modern": {"material": "leather",  "color": [0.08, 0.08, 0.09], "wear": 0.05, "bevel": 0.004}
+    "default": {
+      "material": "leather",
+      "color": [
+        0.18,
+        0.12,
+        0.08
+      ],
+      "wear": 0.22,
+      "bevel": 0.006
+    },
+    "1990s": {
+      "material": "leather",
+      "color": [
+        0.14,
+        0.1,
+        0.07
+      ],
+      "wear": 0.28,
+      "bevel": 0.006
+    },
+    "aluminum": {
+      "material": "metal",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "leather",
+      "color": [
+        0.08,
+        0.08,
+        0.09
+      ],
+      "wear": 0.05,
+      "bevel": 0.004
+    }
   },
-  "budgets": {"tris_lod0": 3000},
-  "attachments": ["ATT_handle"]
+  "budgets": {
+    "tris_lod0": 3000
+  },
+  "attachments": [
+    "ATT_handle"
+  ],
+  "keywords": [
+    "briefcase",
+    "attache case",
+    "attache"
+  ]
 }

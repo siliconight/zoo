@@ -51,5 +51,79 @@
   },
   "attachments": [
     "ATT_cap"
+  ],
+  "keywords": [
+    "ketchup",
+    "mustard",
+    "mayonnaise",
+    "mayo",
+    "hot sauce",
+    "squeeze bottle",
+    "condiment"
+  ],
+  "prompt_rules": [
+    {
+      "any": [
+        "mustard"
+      ],
+      "set": {
+        "color": [
+          0.86,
+          0.72,
+          0.12
+        ]
+      }
+    },
+    {
+      "any": [
+        "mayonnaise",
+        "mayo"
+      ],
+      "set": {
+        "color": [
+          0.94,
+          0.92,
+          0.84
+        ]
+      }
+    },
+    {
+      "any": [
+        "hot sauce",
+        "hot"
+      ],
+      "set": {
+        "color": [
+          0.55,
+          0.08,
+          0.06
+        ]
+      }
+    },
+    {
+      "any": [
+        "cooking oil",
+        "oil"
+      ],
+      "set": {
+        "color": [
+          0.85,
+          0.78,
+          0.4
+        ]
+      }
+    },
+    {
+      "any": [
+        "ketchup"
+      ],
+      "set": {
+        "color": [
+          0.75,
+          0.12,
+          0.1
+        ]
+      }
+    }
   ]
 }

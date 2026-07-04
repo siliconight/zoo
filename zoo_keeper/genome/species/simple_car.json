@@ -128,5 +128,30 @@
     "ATT_roof",
     "ATT_driver_seat",
     "ATT_trunk"
+  ],
+  "keywords": [
+    "car",
+    "sedan",
+    "hatchback",
+    "coupe",
+    "automobile"
+  ],
+  "prompt_rules": [
+    {
+      "any": [
+        "hatchback"
+      ],
+      "set": {
+        "params.body_style": "hatchback"
+      }
+    },
+    {
+      "any": [
+        "coupe"
+      ],
+      "set": {
+        "params.body_style": "coupe"
+      }
+    }
   ]
 }

@@ -12,30 +12,20 @@ from dataclasses import dataclass, field
 
 # --- vocab tables ----------------------------------------------------------
 
-SPECIES_KEYWORDS = {
-    "desk": ["desk", "workstation", "writing table"],
-    "chair": ["chair", "stool", "office seat"],
-    "helmet": ["helmet", "hard hat", "hardhat"],
-    "boots": ["boots", "boot"],
-    "simple_car": ["car", "sedan", "hatchback", "coupe", "automobile"],
-    "filing_cabinet": ["filing cabinet", "file cabinet", "filing", "cabinet"],
-    "table": ["dining table", "coffee table", "table"],
-    "crt_tv": ["television", "crt", "tube tv", "tv"],
-    "atm": ["atm", "cash machine", "cashpoint", "cash register"],
-    "vending_machine": ["vending machine", "vending", "soda machine",
-                        "snack machine"],
-    "briefcase": ["briefcase", "attache case", "attache"],
-    "cash_stack": ["cash stack", "stack of cash", "banknotes", "cash", "money",
-                   "bills"],
-    "cheesesteak": ["philly cheesesteak", "cheesesteak", "cheese steak",
-                    "hoagie", "sub sandwich"],
-    "soda_cup": ["soda cup", "fountain drink", "soda", "drink cup", "cup"],
-    "flat_top_grill": ["flat top grill", "flat-top grill", "flattop", "grill",
-                       "griddle"],
-    "condiment_bottle": ["ketchup", "mustard", "mayonnaise", "mayo",
-                         "hot sauce", "squeeze bottle", "condiment"],
-    "french_fries": ["french fries", "fries", "fry pile", "chips"],
-}
+import functools
+
+from . import genome as _genome_mod
+
+
+@functools.lru_cache(maxsize=1)
+def _species_keywords():
+    """Keywords + match_priority per species, read from the genomes so a
+    species is self-describing (Knowledge Pack ready). Cached."""
+    out = {}
+    for sp in _genome_mod.list_species():
+        g = _genome_mod.load_species(sp)
+        out[sp] = (list(g.get("keywords", [])), int(g.get("match_priority", 0)))
+    return out
 
 NUMBER_WORDS = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
@@ -138,14 +128,18 @@ def normalize(prompt: str) -> str:
 
 
 def _find_species(text: str) -> str | None:
-    best = None
-    best_pos = len(text) + 1
-    for species, keys in SPECIES_KEYWORDS.items():
+    # tie-break: earliest match wins; then the longer (more specific) keyword
+    # ("soda machine" beats "soda", "cash machine" beats "cash"); then higher
+    # match_priority; then species name for determinism.
+    best = None  # (start, -keyword_len, -priority, species)
+    for species, (keys, prio) in sorted(_species_keywords().items()):
         for k in keys:
             m = re.search(rf"\b{re.escape(k)}s?\b", text)
-            if m and m.start() < best_pos:
-                best, best_pos = species, m.start()
-    return best
+            if m:
+                cand = (m.start(), -len(k), -prio, species)
+                if best is None or cand < best:
+                    best = cand
+    return best[3] if best else None
 
 
 def _find_counts(text: str) -> dict[str, int]:
