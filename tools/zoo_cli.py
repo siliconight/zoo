@@ -41,6 +41,10 @@ def parse_args():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--count", type=int, default=1,
                     help="build N variant siblings (seeds base..base+N-1)")
+    ap.add_argument("--habitat",
+                    help="build a themed set: a named habitat "
+                    "(starter/office/gear) or comma list (desk,chair). "
+                    "--prompt is the shared theme, e.g. \"1990s office\".")
     ap.add_argument("--out", default="exhibits",
                     help="output directory (full build only)")
     ap.add_argument("--plan", "--dry-run", action="store_true",
@@ -52,6 +56,48 @@ def parse_args():
                     help="skip saving the .blend sidecar")
     ap.add_argument("--species-list", action="store_true")
     return ap.parse_args(argv)
+
+
+def habitat_preview(args):
+    from zoo_keeper import TOOL_VERSION
+    from zoo_keeper.core import genome, habitat, intent, seeding
+
+    species_list = habitat.resolve_species(args.habitat,
+                                           genome.list_species())
+    hid = habitat.habitat_id(args.prompt or "", species_list, args.seed,
+                             TOOL_VERSION)
+    members = []
+    for sp in species_list:
+        prompt = habitat.species_prompt(args.prompt or "", sp)
+        it = intent.parse(prompt, seed=args.seed)
+        root = seeding.root_key(it.prompt_norm, it.species, args.seed,
+                                TOOL_VERSION)
+        members.append({"species": sp, "prompt": prompt,
+                        "specimen_id": "{}_{}".format(
+                            it.species, seeding.short_hash(root))})
+    print(json.dumps({"habitat_id": hid, "theme": args.prompt,
+                      "species": species_list, "members": members},
+                     indent=2, sort_keys=True))
+    return 0
+
+
+def habitat_build(args):
+    from zoo_keeper.bpylayer import build
+
+    fam = build.build_habitat(
+        args.prompt or "", args.habitat, os.path.abspath(args.out),
+        seed=args.seed,
+        options={"collision": not args.no_collision, "lods": args.lods,
+                 "save_blend": not args.no_blend, "clear_scene": True})
+    print(f"[zoo] habitat:  {fam['habitat_id']} "
+          f"({len(fam['species'])} species)")
+    print(f"[zoo] out:      {fam['out_dir']}")
+    print(f"[zoo] manifest: {fam['manifest_file']}")
+    for m in fam["members"]:
+        print(f"[zoo]   {m['species']:<11} {m['specimen_id']}: "
+              f"{m['status'].upper()}")
+    print(f"[zoo] {len(fam['species'])} built, {fam['n_fail']} failed")
+    return 0 if fam["n_fail"] == 0 else 2
 
 
 def dry_run(args):
@@ -131,6 +177,12 @@ def main():
     if not args.prompt:
         print("error: --prompt is required (or use --species-list)")
         return 1
+    if args.habitat:
+        if args.plan or not HAS_BPY:
+            if not args.plan and not HAS_BPY:
+                print("[zoo] bpy not available -> habitat preview only.")
+            return habitat_preview(args)
+        return habitat_build(args)
     if args.plan or not HAS_BPY:
         if not args.plan and not HAS_BPY:
             print("[zoo] bpy not available -> dry run (plan only). "

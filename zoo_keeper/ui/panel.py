@@ -15,6 +15,10 @@ class ZooProps(bpy.types.PropertyGroup):
     count: bpy.props.IntProperty(
         name="Variants", default=1, min=1, max=200,
         description="Build N deterministic siblings (seeds base..base+N-1)")
+    habitat: bpy.props.StringProperty(
+        name="Habitat", default="starter",
+        description="Named set (starter/office/gear) or comma list "
+        "(desk,chair); Prompt is the shared theme")
     collision: bpy.props.BoolProperty(name="Collision (-col)", default=True)
     lods: bpy.props.BoolProperty(name="LODs", default=False)
     save_blend: bpy.props.BoolProperty(name="Save .blend", default=False)
@@ -74,6 +78,31 @@ class ZOO_OT_generate_variants(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class ZOO_OT_generate_habitat(bpy.types.Operator):
+    bl_idname = "zoo.generate_habitat"
+    bl_label = "Generate Habitat"
+    bl_description = ("Build a themed set of different species that share a "
+                      "look — Prompt is the theme, Habitat the species set")
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        from ..bpylayer import build
+        p = context.scene.zoo_keeper
+        out_dir = bpy.path.abspath(p.out_dir) or os.getcwd()
+        try:
+            fam = build.build_habitat(
+                p.prompt, p.habitat, out_dir, seed=p.seed,
+                options={"collision": p.collision, "lods": p.lods,
+                         "save_blend": p.save_blend, "clear_scene": False})
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        p.last_status = (f"{fam['habitat_id']}: {len(fam['species'])} built, "
+                         f"{fam['n_fail']} failed")
+        self.report({"WARNING" if fam["n_fail"] else "INFO"}, p.last_status)
+        return {"FINISHED"}
+
+
 class VIEW3D_PT_zoo_keeper(bpy.types.Panel):
     bl_label = "Zoo Keeper"
     bl_space_type = "VIEW_3D"
@@ -94,12 +123,15 @@ class VIEW3D_PT_zoo_keeper(bpy.types.Panel):
         col.separator()
         col.prop(p, "count")
         col.operator("zoo.generate_variants", icon="GROUP_VERTEX")
+        col.separator()
+        col.prop(p, "habitat")
+        col.operator("zoo.generate_habitat", icon="OUTLINER_COLLECTION")
         if p.last_status:
             col.label(text=p.last_status)
 
 
 _CLASSES = (ZooProps, ZOO_OT_generate, ZOO_OT_generate_variants,
-            VIEW3D_PT_zoo_keeper)
+            ZOO_OT_generate_habitat, VIEW3D_PT_zoo_keeper)
 
 
 def register():

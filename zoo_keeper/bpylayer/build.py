@@ -131,3 +131,36 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
     return {"family_id": fid, "out_dir": out_dir, "count": count,
             "manifest_file": manifest_file, "shared": shared,
             "n_fail": n_fail, "results": results}
+
+
+def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,
+                  options: dict | None = None) -> dict:
+    """Build a themed set of different species that share a look.
+
+    The theme string is prepended to each species' prompt, so cohesion falls
+    out of the normal parser. One specimen per species, plus a
+    `<habitat_id>.habitat.json` index.
+    """
+    from ..core import habitat as habitat_mod
+
+    known = genome_mod.list_species()
+    species_list = habitat_mod.resolve_species(habitat, known)
+
+    results, members = [], []
+    for sp in species_list:
+        r = build_specimen(habitat_mod.species_prompt(theme, sp), out_dir,
+                           seed=seed, options=options)
+        results.append(r)
+        members.append({"species": sp, "specimen_id": r["specimen_id"],
+                        "status": r["report"]["status"], "files": r["files"]})
+
+    hid = habitat_mod.habitat_id(theme, species_list, seed, TOOL_VERSION)
+    manifest = habitat_mod.build_habitat_manifest(
+        TOOL_VERSION, hid, theme, species_list, seed, members)
+    manifest_file = f"{hid}.habitat.json"
+    meta_mod.write_meta(os.path.join(out_dir, manifest_file), manifest)
+
+    n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
+    return {"habitat_id": hid, "out_dir": out_dir, "species": species_list,
+            "manifest_file": manifest_file, "members": members,
+            "n_fail": n_fail, "results": results}

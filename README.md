@@ -69,6 +69,19 @@ Each sibling is a full specimen (own glb/blend/meta) and is reproducible on
 its own with `--seed`; a `<family_id>.family.json` index lists them all.
 `--count N --plan` previews the family without building.
 
+Habitats — one theme, a set of *different* species that share a look
+(the theme is prepended to each species' prompt, so cohesion is automatic):
+
+```powershell
+blender --background --python tools\zoo_cli.py -- `
+    --prompt "1990s office" --habitat office --out exhibits
+```
+
+`--habitat` takes a named set (`starter` = all five, `office` = desk+chair,
+`gear` = helmet+boots) or a comma list (`desk,chair`). A
+`<habitat_id>.habitat.json` index lists the members; `--habitat X --plan`
+previews without building.
+
 ## Outputs per specimen
 
 - `<species>_<hash>.glb` — meshes with UVs, vertex wear colors (COLOR_0),

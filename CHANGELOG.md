@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0]
+### Added - Phase 2: habitats
+- Habitat batch: build a themed set of different species that share a look.
+  The theme string is prepended to each species' prompt, so era/palette/
+  material cohesion falls out of the normal parser - no shared-state plumbing.
+- Named sets (starter = all five, office = desk+chair, gear = helmet+boots)
+  or a comma list (desk,chair). `<habitat_id>.habitat.json` indexes members.
+- CLI `--habitat NAME` (build) and `--habitat NAME --plan` (preview, no
+  Blender). Keeper panel gains a Habitat field + Generate Habitat button.
+- New pure-core module zoo_keeper/core/habitat.py; 7 new tests (36 total).
+
 ## [0.2.0]
 ### Added - Phase 2: variant families
 - Variant generation: one prompt built across seeds base..base+N-1 as a
