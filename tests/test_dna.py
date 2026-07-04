@@ -73,3 +73,15 @@ def test_single_boot_still_single_scale():
     plan, _ = _plan("one leather boot")
     if plan["params"].get("pair", 2) == 1:
         assert plan["dim_scale"]["width"] == 1.0
+
+
+def test_helmet_brim_triggers():
+    # police / bobby / peaked helmets get a brim, not just hard hats
+    for prompt in ("police helmet", "bobby helmet", "peaked helmet",
+                   "yellow construction helmet"):
+        plan, _ = _plan(prompt)
+        assert plan["params"]["brim"] == 1, prompt
+    # a plain motorcycle helmet stays brimless (but gets a visor)
+    plan, _ = _plan("motorcycle helmet")
+    assert plan["params"]["brim"] == 0
+    assert plan["params"]["visor"] == 1

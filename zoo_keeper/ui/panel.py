@@ -19,7 +19,7 @@ class ZooProps(bpy.types.PropertyGroup):
         name="Habitat", default="starter",
         description="Named set (starter/office/gear) or comma list "
         "(desk,chair); Prompt is the shared theme")
-    collision: bpy.props.BoolProperty(name="Collision (-col)", default=True)
+    collision: bpy.props.BoolProperty(name="Collision (-colonly)", default=True)
     lods: bpy.props.BoolProperty(name="LODs", default=False)
     save_blend: bpy.props.BoolProperty(name="Save .blend", default=False)
     out_dir: bpy.props.StringProperty(

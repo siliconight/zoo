@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1]
+- Collision now exports as `-colonly` (was `-col`): Godot imports it as a
+  static collision shape with NO visible mesh, so the proxy no longer renders
+  over the asset in-game. Export/validation detect any Godot collision suffix.
+- Helmet brim now triggers for police / bobby / peaked / trooper / ranger
+  helmets (and "brim"/"cap"), not only hard hats. Motorcycle stays brimless.
+
 ## [0.3.0]
 ### Added - Phase 2: habitats
 - Habitat batch: build a themed set of different species that share a look.

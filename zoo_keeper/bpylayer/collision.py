@@ -1,7 +1,8 @@
 """Collision meshes using Godot's import-time naming convention.
 
-A sibling mesh named '<Root>-col' becomes a static collision shape on
-Godot glTF import — zero manual cleanup.
+A sibling mesh named '<Root>-colonly' becomes a static collision shape on
+Godot glTF import and the visual mesh is discarded — so the proxy provides
+collision without rendering in-game. Zero manual cleanup.
 """
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ def collision_from_boxes(root_name, boxes, collection):
         center = tuple((a + b) / 2 for a, b in zip(lo, hi))
         size = tuple(max(0.01, b - a) for a, b in zip(lo, hi))
         geometry.add_box(bm, center, size)
-    obj = geometry.bm_to_object(bm, f"{root_name}-col", collection,
+    obj = geometry.bm_to_object(bm, f"{root_name}-colonly", collection,
                                 finish=False)
     obj.display_type = "WIRE"
     obj.hide_render = True

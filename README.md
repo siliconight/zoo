@@ -85,7 +85,7 @@ previews without building.
 ## Outputs per specimen
 
 - `<species>_<hash>.glb` — meshes with UVs, vertex wear colors (COLOR_0),
-  flat Principled materials, `-col` collision sibling, `ATT_*` attachment
+  flat Principled materials, `-colonly` collision sibling (imports as collision-only), `ATT_*` attachment
   empties, optional `_LOD1/_LOD2`
 - `<species>_<hash>.blend` — editable source (optional)
 - `<species>_<hash>.meta.json` — intent, plan, genome version, license,
@@ -99,8 +99,8 @@ stream, so adding a subsystem never disturbs existing randomness.
 
 ## Godot import notes
 
-- Collision: the `-col` sibling becomes a static collision shape on import
-  automatically.
+- Collision: the `-colonly` sibling becomes a static collision shape on
+  import automatically, with no visible mesh (collision-only).
 - Wear: on the imported material enable **Vertex Color > Use as Albedo**
   to multiply the baked grime into the base color.
 - Units: real-world meters, +Y-up handled by the glTF exporter.

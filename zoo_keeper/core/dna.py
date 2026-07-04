@@ -120,10 +120,13 @@ def _chair(plan, intent):
 
 
 def _helmet(plan, intent):
-    if "construction" in intent.style_tags or "hard hat" in intent.prompt_norm \
-            or "hardhat" in intent.prompt_norm:
+    text = intent.prompt_norm
+    brim_words = ("construction", "hard hat", "hardhat", "police", "bobby",
+                  "peaked", "cap", "brim", "trooper", "ranger")
+    if any(w in text for w in brim_words) \
+            or "construction" in intent.style_tags:
         plan["params"]["brim"] = 1
-    if "visor" in intent.prompt_norm or "motorcycle" in intent.style_tags:
+    if "visor" in text or "motorcycle" in intent.style_tags:
         plan["params"]["visor"] = 1
 
 

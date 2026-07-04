@@ -34,11 +34,16 @@ def save_blend(filepath):
     bpy.ops.wm.save_as_mainfile(filepath=filepath, compress=True)
 
 
+# Godot collision name-suffix conventions (any -> static collision on import)
+_COL_SUFFIXES = ("-colonly", "-convcolonly", "-col", "-convcol")
+
+
 def gather_facts(collection, root_name):
     """Collect the facts core.validate judges."""
     meshes = [o for o in collection.objects if o.type == "MESH"
-              and not o.name.endswith("-col") and "_LOD" not in o.name]
-    col = [o for o in collection.objects if o.name.endswith("-col")]
+              and not o.name.endswith(_COL_SUFFIXES) and "_LOD" not in o.name]
+    col = [o for o in collection.objects
+           if o.name.endswith(_COL_SUFFIXES)]
     if meshes:
         lo, hi = geometry.bounds_of(meshes)
         dims = {"width": hi.x - lo.x, "depth": hi.y - lo.y,
