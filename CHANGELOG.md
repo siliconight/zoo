@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0]
+### Added - filing cabinet species (6th species)
+- New species `filing_cabinet`: a 2-5 drawer vertical file (body box, stacked
+  proud drawer fronts with bar pulls, recessed kick base). Reuses the desk's
+  drawer/handle construction. Metal/office styling, ATT_top_center marker.
+- Parser keywords: "filing cabinet", "file cabinet", "filing", "cabinet".
+- Added to the `office` habitat (desk + chair + filing_cabinet) and `starter`.
+- New genome + recipe + 4 tests (41 total).
+
 ## [0.3.1]
 - Collision now exports as `-colonly` (was `-col`): Godot imports it as a
   static collision shape with NO visible mesh, so the proxy no longer renders

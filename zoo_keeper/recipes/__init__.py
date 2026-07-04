@@ -13,6 +13,8 @@ def get(species):
         from . import boots as mod
     elif species == "simple_car":
         from . import simple_car as mod
+    elif species == "filing_cabinet":
+        from . import filing_cabinet as mod
     else:
         raise KeyError(f"No recipe for species '{species}'")
     return mod.build

@@ -19,15 +19,15 @@ CC0-derived and every specimen carries its license metadata in its
 |---|---|
 | Genome | Per-species construction knowledge (`zoo_keeper/genome/species/*.json`) |
 | DNA | Recipes that turn a plan into geometry (`zoo_keeper/recipes/`) |
-| Species | An asset type (desk, chair, helmet, boots, simple_car) |
+| Species | An asset type (desk, chair, helmet, boots, simple_car, filing_cabinet) |
 | Specimen | One generated instance |
 | Keeper | The Blender UI panel |
 | Habitat | A themed collection of species (roadmap) |
 | Exhibit | Output folder / demo scene |
 
-## Starter Habitat (v0.1 species)
+## Species
 
-`desk`, `chair`, `helmet`, `boots`, `simple_car`
+`desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`
 
 ## Install (Blender 4.2+ / 5.x)
 

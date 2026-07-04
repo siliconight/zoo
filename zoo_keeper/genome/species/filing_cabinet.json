@@ -1,0 +1,29 @@
+{
+  "species": "filing_cabinet",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width":  {"min": 0.35, "max": 0.47, "default": 0.38},
+    "depth":  {"min": 0.50, "max": 0.72, "default": 0.62},
+    "height": {"min": 0.70, "max": 1.35, "default": 1.32}
+  },
+  "parts": ["body", "drawer", "handle", "base"],
+  "params": {
+    "drawers": {"min": 2, "max": 5, "default": 4},
+    "base": {"min": 0, "max": 1, "default": 1}
+  },
+  "materials": {"default": "metal", "options": ["metal", "wood", "laminate"]},
+  "styles": {
+    "default": {"material": "metal",    "color": [0.55, 0.54, 0.50], "wear": 0.15, "bevel": 0.003},
+    "1970s":  {"material": "metal",     "color": [0.45, 0.42, 0.30], "wear": 0.35, "bevel": 0.004},
+    "1980s":  {"material": "metal",     "color": [0.60, 0.58, 0.52], "wear": 0.28, "bevel": 0.003},
+    "1990s":  {"material": "metal",     "color": [0.68, 0.66, 0.60], "wear": 0.25, "bevel": 0.003},
+    "modern": {"material": "metal",     "color": [0.80, 0.80, 0.80], "wear": 0.05, "bevel": 0.002},
+    "office": {"material": "metal",     "color": [0.66, 0.64, 0.58], "wear": 0.20, "bevel": 0.003}
+  },
+  "budgets": {"tris_lod0": 6000},
+  "attachments": ["ATT_top_center"]
+}

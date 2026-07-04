@@ -14,8 +14,9 @@ from . import seeding
 
 # Named species sets. "starter" is the full MVP Starter Habitat.
 HABITATS = {
-    "starter": ["desk", "chair", "helmet", "boots", "simple_car"],
-    "office": ["desk", "chair"],
+    "starter": ["desk", "chair", "helmet", "boots", "simple_car",
+                "filing_cabinet"],
+    "office": ["desk", "chair", "filing_cabinet"],
     "gear": ["helmet", "boots"],
 }
 

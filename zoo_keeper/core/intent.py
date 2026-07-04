@@ -18,6 +18,7 @@ SPECIES_KEYWORDS = {
     "helmet": ["helmet", "hard hat", "hardhat"],
     "boots": ["boots", "boot"],
     "simple_car": ["car", "sedan", "hatchback", "coupe", "automobile"],
+    "filing_cabinet": ["filing cabinet", "file cabinet", "filing", "cabinet"],
 }
 
 NUMBER_WORDS = {

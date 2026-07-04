@@ -6,9 +6,10 @@ KNOWN = genome.list_species()
 
 
 def test_named_habitats_resolve():
-    assert habitat.resolve_species("office", KNOWN) == ["desk", "chair"]
+    assert habitat.resolve_species("office", KNOWN) == \
+        ["desk", "chair", "filing_cabinet"]
     assert habitat.resolve_species("gear", KNOWN) == ["helmet", "boots"]
-    assert len(habitat.resolve_species("starter", KNOWN)) == 5
+    assert len(habitat.resolve_species("starter", KNOWN)) == 6
 
 
 def test_comma_list_resolves():
