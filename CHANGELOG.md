@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0]
+### Added - Phase 2: variant families
+- Variant generation: one prompt built across seeds base..base+N-1 as a
+  cohesive family. Style, material and palette are shared (seed-independent);
+  dimensions and wear vary per sibling. Each variant is a full specimen and
+  reproducible standalone with --seed.
+- `<family_id>.family.json` manifest indexes every sibling (shared look +
+  per-specimen seed/id/dimensions/status/files). Timestamp-free/deterministic.
+- CLI `--count N` (build) and `--count N --plan` (preview the family without
+  building). Keeper panel gains a Variants count + Generate Variants button.
+- New pure-core module zoo_keeper/core/variants.py; 5 new tests (29 total).
+
 ## [0.1.3]
 - Boots validation FAIL fixed. The validator now scales genome dimension
   ranges by a per-axis plan `dim_scale`, so a mirrored pair validates

@@ -54,8 +54,20 @@ Dry run — resolved Intent + BuildPlan as JSON, no Blender needed:
 python tools\zoo_cli.py --prompt "1990s office desk with two drawers" --plan
 ```
 
-Flags: `--seed N`, `--no-collision`, `--lods`, `--no-blend`,
+Flags: `--seed N`, `--count N`, `--no-collision`, `--lods`, `--no-blend`,
 `--species-list`.
+
+Variants — one prompt, a cohesive family across seeds `base..base+N-1`
+(shared style/material/palette, unique proportions and wear):
+
+```powershell
+blender --background --python tools\zoo_cli.py -- `
+    --prompt "1990s office chair" --count 30 --out exhibits
+```
+
+Each sibling is a full specimen (own glb/blend/meta) and is reproducible on
+its own with `--seed`; a `<family_id>.family.json` index lists them all.
+`--count N --plan` previews the family without building.
 
 ## Outputs per specimen
 

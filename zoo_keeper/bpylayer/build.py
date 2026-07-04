@@ -88,3 +88,46 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
     return {"specimen_id": specimen_id, "out_dir": out_dir,
             "files": files, "report": report, "facts": facts,
             "plan": plan}
+
+
+def build_family(prompt: str, out_dir: str, base_seed: int = 0,
+                 count: int = 1, options: dict | None = None) -> dict:
+    """Build a cohesive family: one prompt across seeds base..base+count-1.
+
+    Each sibling is a full specimen (own glb/blend/meta). A single
+    `<family_id>.family.json` index is written alongside them.
+    """
+    from ..core import variants as variants_mod
+
+    intent = intent_mod.parse(prompt, seed=base_seed)
+    if intent.species is None:
+        known = ", ".join(genome_mod.list_species())
+        raise ValueError(
+            f"Couldn't tell what to build from: '{prompt}'. "
+            f"Mention one of: {known}.")
+    species = intent.species
+
+    seeds = variants_mod.variant_seeds(base_seed, count)
+    results = [build_specimen(prompt, out_dir, seed=s, options=options)
+               for s in seeds]
+
+    plan0 = results[0]["plan"]
+    shared = {"style": plan0["style"], "material": plan0["material"],
+              "color": plan0["color"]}
+    specimens = [{"seed": s, "specimen_id": r["specimen_id"],
+                  "dimensions": r["plan"]["dimensions"],
+                  "status": r["report"]["status"], "files": r["files"]}
+                 for s, r in zip(seeds, results)]
+
+    fid = variants_mod.family_id(intent.prompt_norm, species, base_seed,
+                                 count, TOOL_VERSION)
+    manifest = variants_mod.build_family_manifest(
+        TOOL_VERSION, fid, prompt, species, base_seed, count, shared,
+        specimens)
+    manifest_file = f"{fid}.family.json"
+    meta_mod.write_meta(os.path.join(out_dir, manifest_file), manifest)
+
+    n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
+    return {"family_id": fid, "out_dir": out_dir, "count": count,
+            "manifest_file": manifest_file, "shared": shared,
+            "n_fail": n_fail, "results": results}

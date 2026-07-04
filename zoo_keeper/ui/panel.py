@@ -12,6 +12,9 @@ class ZooProps(bpy.types.PropertyGroup):
     prompt: bpy.props.StringProperty(
         name="Prompt", default="1990s office desk with two drawers")
     seed: bpy.props.IntProperty(name="Seed", default=0, min=0)
+    count: bpy.props.IntProperty(
+        name="Variants", default=1, min=1, max=200,
+        description="Build N deterministic siblings (seeds base..base+N-1)")
     collision: bpy.props.BoolProperty(name="Collision (-col)", default=True)
     lods: bpy.props.BoolProperty(name="LODs", default=False)
     save_blend: bpy.props.BoolProperty(name="Save .blend", default=False)
@@ -46,6 +49,31 @@ class ZOO_OT_generate(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class ZOO_OT_generate_variants(bpy.types.Operator):
+    bl_idname = "zoo.generate_variants"
+    bl_label = "Generate Variants"
+    bl_description = ("Build a cohesive family of N siblings — shared style, "
+                      "unique proportions and wear")
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        from ..bpylayer import build
+        p = context.scene.zoo_keeper
+        out_dir = bpy.path.abspath(p.out_dir) or os.getcwd()
+        try:
+            fam = build.build_family(
+                p.prompt, out_dir, base_seed=p.seed, count=p.count,
+                options={"collision": p.collision, "lods": p.lods,
+                         "save_blend": p.save_blend, "clear_scene": False})
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        p.last_status = (f"{fam['family_id']}: {fam['count']} built, "
+                         f"{fam['n_fail']} failed")
+        self.report({"WARNING" if fam["n_fail"] else "INFO"}, p.last_status)
+        return {"FINISHED"}
+
+
 class VIEW3D_PT_zoo_keeper(bpy.types.Panel):
     bl_label = "Zoo Keeper"
     bl_space_type = "VIEW_3D"
@@ -63,11 +91,15 @@ class VIEW3D_PT_zoo_keeper(bpy.types.Panel):
         col.prop(p, "save_blend")
         col.prop(p, "out_dir")
         col.operator("zoo.generate_specimen", icon="MESH_MONKEY")
+        col.separator()
+        col.prop(p, "count")
+        col.operator("zoo.generate_variants", icon="GROUP_VERTEX")
         if p.last_status:
             col.label(text=p.last_status)
 
 
-_CLASSES = (ZooProps, ZOO_OT_generate, VIEW3D_PT_zoo_keeper)
+_CLASSES = (ZooProps, ZOO_OT_generate, ZOO_OT_generate_variants,
+            VIEW3D_PT_zoo_keeper)
 
 
 def register():

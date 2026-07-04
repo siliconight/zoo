@@ -39,6 +39,8 @@ def parse_args():
     ap = argparse.ArgumentParser(prog="zoo_cli")
     ap.add_argument("--prompt", help="plain-text asset prompt")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--count", type=int, default=1,
+                    help="build N variant siblings (seeds base..base+N-1)")
     ap.add_argument("--out", default="exhibits",
                     help="output directory (full build only)")
     ap.add_argument("--plan", "--dry-run", action="store_true",
@@ -65,6 +67,24 @@ def dry_run(args):
         streams = seeding.RNGStreams(root)
         out["plan"] = dna.resolve_plan(it, g, streams, TOOL_VERSION)
         out["specimen_id"] = f"{it.species}_{seeding.short_hash(root)}"
+        if args.count > 1:
+            from zoo_keeper.core import variants
+            seeds = variants.variant_seeds(args.seed, args.count)
+            fid = variants.family_id(it.prompt_norm, it.species, args.seed,
+                                     args.count, TOOL_VERSION)
+            out["family"] = {
+                "family_id": fid,
+                "count": args.count,
+                "shared": {"style": out["plan"]["style"],
+                           "material": out["plan"]["material"],
+                           "color": out["plan"]["color"]},
+                "variants": [
+                    {"seed": s, "specimen_id": "{}_{}".format(
+                        it.species, seeding.short_hash(
+                            seeding.root_key(it.prompt_norm, it.species, s,
+                                             TOOL_VERSION)))}
+                    for s in seeds],
+            }
     print(json.dumps(out, indent=2, sort_keys=True))
     return 0 if it.species else 1
 
@@ -73,10 +93,26 @@ def full_build(args):
     from zoo_keeper.bpylayer import build
     from zoo_keeper.core import validate
 
+    opts = {"collision": not args.no_collision, "lods": args.lods,
+            "save_blend": not args.no_blend, "clear_scene": True}
+
+    if args.count > 1:
+        fam = build.build_family(args.prompt, os.path.abspath(args.out),
+                                 base_seed=args.seed, count=args.count,
+                                 options=opts)
+        print(f"[zoo] family:   {fam['family_id']} ({fam['count']} specimens)")
+        print(f"[zoo] out:      {fam['out_dir']}")
+        print(f"[zoo] shared:   style={fam['shared']['style']} "
+              f"material={fam['shared']['material']}")
+        print(f"[zoo] manifest: {fam['manifest_file']}")
+        for r in fam["results"]:
+            print(f"[zoo]   {r['specimen_id']}: "
+                  f"{r['report']['status'].upper()}")
+        print(f"[zoo] {fam['count']} built, {fam['n_fail']} failed")
+        return 0 if fam["n_fail"] == 0 else 2
+
     result = build.build_specimen(
-        args.prompt, os.path.abspath(args.out), seed=args.seed,
-        options={"collision": not args.no_collision, "lods": args.lods,
-                 "save_blend": not args.no_blend, "clear_scene": True})
+        args.prompt, os.path.abspath(args.out), seed=args.seed, options=opts)
     print(f"[zoo] specimen: {result['specimen_id']}")
     print(f"[zoo] out:      {result['out_dir']}")
     for kind, fname in result["files"].items():
