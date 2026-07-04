@@ -38,14 +38,14 @@ func _ready() -> void:
 	var srow := HBoxContainer.new()
 	add_child(srow)
 	var slabel := Label.new()
-	slabel.text = "Grid spacing (m)"
+	slabel.text = "Gap between assets (m)"
 	slabel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	srow.add_child(slabel)
 	_spacing = SpinBox.new()
 	_spacing.min_value = 0.0
-	_spacing.max_value = 20.0
+	_spacing.max_value = 10.0
 	_spacing.step = 0.1
-	_spacing.value = 1.5
+	_spacing.value = 0.5
 	srow.add_child(_spacing)
 
 	var go := Button.new()
@@ -120,10 +120,9 @@ func _on_import() -> void:
 	container.owner = scene_root
 
 	var base_dir := path.get_base_dir()
-	var spacing: float = _spacing.value
-	var cols := int(ceil(sqrt(float(maxi(items.size(), 1)))))
-	var placed := 0
+	var gap: float = _spacing.value
 	var missing := 0
+	var instances := []
 
 	for item in items:
 		if typeof(item) != TYPE_DICTIONARY:
@@ -146,12 +145,63 @@ func _on_import() -> void:
 		container.add_child(inst)
 		inst.owner = scene_root
 		if inst is Node3D:
-			var c := placed % cols
-			var r := placed / cols
-			(inst as Node3D).position = Vector3(c * spacing, 0.0, r * spacing)
-		placed += 1
+			instances.append(inst)
 
-	var msg := "%s '%s': imported %d asset(s)." % [kind, id, placed]
+	_layout_row_pack(instances, gap)
+
+	var msg := "%s '%s': imported %d asset(s)." % [kind, id, instances.size()]
 	if missing > 0:
 		msg += " %d GLB(s) not found next to the manifest — copy the .glb files into %s." % [missing, base_dir]
 	_set_status(msg)
+
+
+## --- layout -----------------------------------------------------------------
+
+## Pack instances edge-to-edge in rows using each one's real footprint, so
+## nothing overlaps regardless of size. Wraps to a new row past ~8 m wide.
+func _layout_row_pack(instances: Array, gap: float) -> void:
+	const MAX_ROW := 8.0
+	var cursor_x := 0.0
+	var row_z := 0.0
+	var row_depth := 0.0
+	for inst in instances:
+		var box: AABB = _local_aabb(inst)
+		var w: float = maxf(box.size.x, 0.05)
+		var dpt: float = maxf(box.size.z, 0.05)
+		if cursor_x > 0.0 and cursor_x + w > MAX_ROW:
+			cursor_x = 0.0
+			row_z += row_depth + gap
+			row_depth = 0.0
+		# left edge at cursor_x, front edge at row_z; leave Y (assets sit on 0)
+		inst.position = Vector3(cursor_x - box.position.x, inst.position.y,
+			row_z - box.position.z)
+		cursor_x += w + gap
+		row_depth = maxf(row_depth, dpt)
+
+
+## Merged AABB of an instance's visible meshes, in the instance's own space.
+## (-colonly collision imports as a StaticBody with no mesh, so it's ignored.)
+func _local_aabb(inst: Node3D) -> AABB:
+	var acc := AABB()
+	var first := true
+	var inv := inst.global_transform.affine_inverse()
+	for mi in _mesh_instances(inst):
+		if mi.mesh == null:
+			continue
+		var rel := inv * mi.global_transform
+		var box: AABB = rel * mi.mesh.get_aabb()
+		if first:
+			acc = box
+			first = false
+		else:
+			acc = acc.merge(box)
+	return acc
+
+
+func _mesh_instances(node: Node) -> Array:
+	var out := []
+	if node is MeshInstance3D:
+		out.append(node)
+	for c in node.get_children():
+		out.append_array(_mesh_instances(c))
+	return out

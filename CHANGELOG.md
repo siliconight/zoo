@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1]
+- Zoo Importer: footprint-aware layout. Instances are now packed edge-to-edge
+  in rows using each asset's real AABB (wrapping past ~8 m), so nothing spawns
+  on top of anything else regardless of size. The spacing control is now a
+  gap-between-assets (default 0.5 m). Plugin-only change — no need to rebuild
+  GLBs; re-copy the plugin and re-import.
+
 ## [0.5.0]
 ### Added - Phase 3: Godot importer (editor plugin)
 - New Godot 4.x editor plugin godot/addons/zoo_importer/: a dock that reads a
