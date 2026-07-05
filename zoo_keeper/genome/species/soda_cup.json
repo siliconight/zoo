@@ -101,5 +101,13 @@
     "soda",
     "drink cup",
     "cup"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "cup"
+    },
+    "sockets": {
+      "ATT_lid": "lid"
+    }
+  }
 }

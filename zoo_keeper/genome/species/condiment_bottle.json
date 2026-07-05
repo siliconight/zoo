@@ -125,5 +125,10 @@
         ]
       }
     }
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "surface"
+    }
+  }
 }

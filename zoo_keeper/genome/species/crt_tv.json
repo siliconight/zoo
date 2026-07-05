@@ -107,5 +107,10 @@
     "crt",
     "tube tv",
     "tv"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "surface"
+    }
+  }
 }

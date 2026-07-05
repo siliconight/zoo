@@ -100,5 +100,10 @@
   "keywords": [
     "boots",
     "boot"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "feet"
+    }
+  }
 }

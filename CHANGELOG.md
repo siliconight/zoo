@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.12.0] - Connectors: Lego-style anchoring
+### Added - typed sockets/anchors so props snap to players and levels
+- New connector system (core/connect.py, pure + tested): every asset has a
+  typed ANCHOR (how it attaches: head/feet/grip/surface/floor/...) and typed
+  SOCKETS (where things attach to it). They connect only when compatible
+  (grip<->hand, cup/surface<->surface, head won't sit on a table). Includes
+  snap-pose math (align anchor to socket, with a 'butt' mode for level modules)
+  and find_matches (which host sockets a prop fits).
+- Genomes declare connectors as data ("connectors": {"anchor":..,"sockets":..})
+  — pack-friendly, no code. Declared on 11 species.
+- Build injects the connector block into each specimen's meta.json (recipe
+  attachment positions + genome types).
+- Godot importer: a Snap section — select prop, Ctrl-click a socket (ATT_*
+  node), Snap; the prop's anchor aligns to the socket transform.
+- Documented socket convention for character rigs (ATT_head/hand_l/hand_r/
+  back/hip/feet/chest) and levels. 8 new tests (82 total).
+
+## [0.11.0] - Exhibits: organize a scene full of GLBs
+### Added - the "asset zoo" pattern (Gyms/Zoos/Museums)
+- New exhibit system: point Zoo at a folder of built/ingested GLBs and it
+  reads their meta.json footprints and lays them out into a browsable scene.
+  Two schemes: 'zoo' (knolled uniform grid + 1.8m/1m scale reference, no names
+  needed) and 'museum' (each asset on a labelled pedestal with name + size).
+- Pure core (core/layout.py + core/exhibit.py, tested): footprint-based
+  layout, category grouping + size sort, scan generated OR ingested meta.json,
+  write <folder>_<scheme>.exhibit.json. No Blender needed to plan a layout.
+- CLI: --exhibit <folder> --scheme zoo|museum [--cols N] [--exhibit-name X].
+- Godot importer extended: places exhibit members at computed positions and
+  spawns pedestals (BoxMesh), placards (Label3D), and scale markers natively.
+- 8 new tests (74 total).
+
 ## [0.10.0] - Ingest: adopt external assets
 ### Added - Zoo can now condition assets it didn't generate
 - New ingest pipeline: take a random external asset (or a .zip of them, e.g.

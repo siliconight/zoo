@@ -142,5 +142,10 @@
         "params.visor": 1
       }
     }
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "head"
+    }
+  }
 }

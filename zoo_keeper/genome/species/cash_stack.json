@@ -85,5 +85,10 @@
     "cash",
     "money",
     "bills"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "surface"
+    }
+  }
 }

@@ -118,5 +118,13 @@
     "dining table",
     "coffee table",
     "table"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {
+      "ATT_surface_center": "surface"
+    }
+  }
 }

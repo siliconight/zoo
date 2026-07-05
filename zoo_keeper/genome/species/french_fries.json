@@ -73,5 +73,10 @@
     "fries",
     "fry pile",
     "chips"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "surface"
+    }
+  }
 }

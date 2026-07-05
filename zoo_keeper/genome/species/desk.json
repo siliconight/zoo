@@ -135,5 +135,13 @@
         "params.leg_style": "panel"
       }
     }
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {
+      "ATT_surface_center": "surface"
+    }
+  }
 }

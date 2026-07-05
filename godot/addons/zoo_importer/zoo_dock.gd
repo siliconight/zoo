@@ -53,6 +53,23 @@ func _ready() -> void:
 	go.pressed.connect(_on_import)
 	add_child(go)
 
+	# --- snap section: anchor a prop onto a socket (Lego-style) -------------
+	var sep := HSeparator.new()
+	add_child(sep)
+	var snap_title := Label.new()
+	snap_title.text = "Snap (anchor prop -> socket)"
+	add_child(snap_title)
+	var snap_help := Label.new()
+	snap_help.text = ("Select the prop, then Ctrl-click a socket (an ATT_* "
+		+ "node), then Snap. The prop's origin lands on the socket.")
+	snap_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	snap_help.modulate = Color(1, 1, 1, 0.7)
+	add_child(snap_help)
+	var snap_btn := Button.new()
+	snap_btn.text = "Snap selected prop -> socket"
+	snap_btn.pressed.connect(_on_snap)
+	add_child(snap_btn)
+
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_status)
@@ -63,6 +80,7 @@ func _ready() -> void:
 	_dialog.filters = PackedStringArray([
 		"*.family.json ; Zoo family",
 		"*.habitat.json ; Zoo habitat",
+		"*.exhibit.json ; Zoo exhibit",
 		"*.json ; JSON",
 	])
 	_dialog.file_selected.connect(func(p: String) -> void: _manifest_edit.text = p)
@@ -90,6 +108,11 @@ func _on_import() -> void:
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 	if typeof(data) != TYPE_DICTIONARY:
 		_set_status("Not a valid Zoo manifest.")
+		return
+
+	# exhibit manifests carry a "scheme" and pre-computed positions
+	if data.has("scheme") and data.has("members"):
+		_import_exhibit(data, path)
 		return
 
 	# family manifests list "specimens", habitat manifests list "members"
@@ -164,6 +187,136 @@ func _on_import() -> void:
 	if missing > 0:
 		msg += " %d GLB(s) not found next to the manifest — copy the .glb files into %s." % [missing, base_dir]
 	_set_status(msg)
+
+
+## --- snap (Lego anchoring) --------------------------------------------------
+
+## Snap a prop onto a socket. Uses the editor selection: the first selected
+## Node3D is the prop, the last is the socket (an ATT_* marker). The prop's
+## anchor (its origin by default) is aligned to the socket's transform.
+func _on_snap() -> void:
+	var sel := EditorInterface.get_selection().get_selected_nodes()
+	var nodes3d: Array = []
+	for n in sel:
+		if n is Node3D:
+			nodes3d.append(n)
+	if nodes3d.size() < 2:
+		_set_status("Select the prop, then Ctrl-click the socket (2 nodes).")
+		return
+	var prop: Node3D = nodes3d[0]
+	var socket: Node3D = nodes3d[nodes3d.size() - 1]
+
+	# align the prop's anchor to the socket. Default anchor = prop origin, so
+	# the prop's global transform becomes the socket's global transform. If the
+	# prop carries an anchor offset (set on import), apply its inverse.
+	var anchor_local := Transform3D.IDENTITY
+	if prop.has_meta("zoo_anchor"):
+		anchor_local = prop.get_meta("zoo_anchor")
+	prop.global_transform = socket.global_transform * anchor_local.affine_inverse()
+	_set_status("Snapped '%s' -> '%s'." % [prop.name, socket.name])
+
+
+
+
+## Place an exhibit manifest (zoo/museum): members go at their pre-computed
+## positions; props add pedestals, labels, and scale-reference markers.
+func _import_exhibit(data: Dictionary, path: String) -> void:
+	var scene_root := EditorInterface.get_edited_scene_root()
+	if scene_root == null:
+		_set_status("Open a scene first (Scene > New Scene > 3D Scene).")
+		return
+
+	var scheme := str(data.get("scheme", "zoo"))
+	var ex_name := str(data.get("exhibit", "exhibit"))
+	var container := Node3D.new()
+	scene_root.add_child(container)
+	container.owner = scene_root
+	container.name = "Zoo Exhibit %s (%s)" % [ex_name.capitalize(), scheme]
+
+	var base_dir := path.get_base_dir()
+	var placed := 0
+	var missing := 0
+
+	for m in data.get("members", []):
+		if typeof(m) != TYPE_DICTIONARY:
+			continue
+		var glb_name := str(m.get("glb", ""))
+		if glb_name.is_empty():
+			continue
+		var glb_path := base_dir.path_join(glb_name)
+		if not ResourceLoader.exists(glb_path):
+			missing += 1
+			push_warning("Zoo Importer: GLB not found: " + glb_path)
+			continue
+		var packed: PackedScene = load(glb_path)
+		if packed == null:
+			missing += 1
+			continue
+		var inst: Node = packed.instantiate()
+		container.add_child(inst)
+		inst.owner = scene_root
+		if inst is Node3D:
+			inst.position = _to_vec3(m.get("pos", [0, 0, 0]))
+			inst.rotation.y = float(m.get("rot_y", 0.0))
+		var nm := str(m.get("name", "asset"))
+		inst.name = nm.capitalize()
+		inst.set_meta("zoo_specimen_id", nm)
+		placed += 1
+
+	for p in data.get("props", []):
+		if typeof(p) != TYPE_DICTIONARY:
+			continue
+		_spawn_prop(p, container, scene_root)
+
+	var msg := "Exhibit '%s' (%s): placed %d asset(s)." % [ex_name, scheme, placed]
+	if missing > 0:
+		msg += " %d GLB(s) not found — copy the .glb files into %s." % [missing, base_dir]
+	_set_status(msg)
+
+
+func _to_vec3(a) -> Vector3:
+	if typeof(a) == TYPE_ARRAY and a.size() >= 3:
+		return Vector3(float(a[0]), float(a[1]), float(a[2]))
+	return Vector3.ZERO
+
+
+func _spawn_prop(p: Dictionary, container: Node3D, owner_root: Node) -> void:
+	var kind := str(p.get("type", ""))
+	var pos := _to_vec3(p.get("pos", [0, 0, 0]))
+	if kind == "label":
+		var lab := Label3D.new()
+		lab.text = str(p.get("text", ""))
+		lab.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		lab.pixel_size = 0.002
+		lab.modulate = Color(1, 1, 1)
+		container.add_child(lab)
+		lab.owner = owner_root
+		lab.position = pos
+		lab.name = "Label"
+		return
+	# pedestal / marker are boxes sitting on Y=0 (pos is the floor point)
+	var size := _to_vec3(p.get("size", [0.4, 0.4, 0.4]))
+	var mi := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = size
+	mi.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = (Color(0.7, 0.7, 0.72) if kind == "pedestal"
+		else Color(0.35, 0.6, 0.9))
+	mi.material_override = mat
+	container.add_child(mi)
+	mi.owner = owner_root
+	mi.position = pos + Vector3(0, size.y * 0.5, 0)
+	mi.name = ("Pedestal" if kind == "pedestal" else "ScaleMarker")
+	if kind == "marker" and p.has("label"):
+		var lab2 := Label3D.new()
+		lab2.text = str(p.get("label", ""))
+		lab2.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		lab2.pixel_size = 0.003
+		container.add_child(lab2)
+		lab2.owner = owner_root
+		lab2.position = pos + Vector3(0, size.y + 0.1, 0)
+		lab2.name = "MarkerLabel"
 
 
 ## --- layout -----------------------------------------------------------------

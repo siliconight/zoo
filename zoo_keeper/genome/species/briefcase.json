@@ -94,5 +94,10 @@
     "briefcase",
     "attache case",
     "attache"
-  ]
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "grip"
+    }
+  }
 }

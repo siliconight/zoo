@@ -11,7 +11,7 @@ import bpy
 
 from .. import TOOL_VERSION
 from ..core import dna, genome as genome_mod, intent as intent_mod
-from ..core import meta as meta_mod, seeding, validate
+from ..core import meta as meta_mod, seeding, validate, connect
 from .. import recipes
 from . import collision, export, lods, markers
 
@@ -85,6 +85,8 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
 
     meta = meta_mod.build_meta(TOOL_VERSION, intent, plan, genome, report,
                                files, specimen_id)
+    meta["connectors"] = connect.build_connectors(
+        genome, result.get("attachments", {}))
     meta_mod.write_meta(base + ".meta.json", meta)
     if opts["save_blend"]:
         export.save_blend(base + ".blend")

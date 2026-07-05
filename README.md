@@ -41,6 +41,58 @@ cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
 shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
 scope (hand-model those to the same standards).
 
+## Connectors (Lego-style anchoring)
+
+Every asset exports named `ATT_*` markers and now carries a typed **connector**
+block in its `meta.json`, so props snap onto players and levels the way a Lego
+stud only fits an anti-stud:
+
+- an asset's **anchor** = how it attaches (its type: `head`, `feet`, `grip`,
+  `surface`, `floor`, ...).
+- an asset's **sockets** = where other things attach to it (a table declares
+  `ATT_surface_center` as type `surface`).
+- they connect only when the types are **compatible** (a `grip` anchor fits a
+  `hand_l`/`hand_r` socket; a `cup`/`surface` anchor rests on a `surface`; a
+  `head` anchor will NOT sit on a table).
+
+Declare connectors in the genome (pack-friendly, no code):
+
+    "connectors": {
+      "anchor":  {"type": "head"},
+      "sockets": {"ATT_surface_center": "surface"}
+    }
+
+**Attach to a player:** add empties to your character rig following Zoo's
+socket convention — `ATT_head`, `ATT_hand_l`, `ATT_hand_r`, `ATT_back`,
+`ATT_hip`, `ATT_feet`, `ATT_chest`. A helmet (anchor `head`) snaps to
+`ATT_head`, a briefcase (`grip`) to a hand.
+
+**Attach to a level:** give modules `surface`/`floor`/`wall` sockets; props
+snap onto them.
+
+**Snap in Godot:** with the Zoo Importer dock, select the prop, Ctrl-click the
+socket (`ATT_*` node), and hit **Snap** — the prop's anchor aligns to the
+socket.
+
+## Organizing a collection (exhibits: zoo / museum)
+
+Point Zoo at a folder of built or ingested GLBs and it lays them out into a
+browsable **exhibit** — the game-dev "asset zoo" pattern (Gyms/Zoos/Museums by
+Robin-Yann Storm). It reads each asset's `meta.json` footprint and computes an
+organized layout so you see scale and everything at a glance. Pure — no
+Blender needed to plan the layout.
+
+    # knolled grid + a 1.8m / 1m scale reference
+    python tools/zoo_cli.py --exhibit exhibits --scheme zoo
+
+    # each asset on a labelled pedestal (name + size)
+    python tools/zoo_cli.py --exhibit exhibits --scheme museum --cols 6
+
+Writes `<folder>_<scheme>.exhibit.json`. Import it with the Zoo Importer dock
+in Godot: members drop in at their computed spots, and the dock spawns
+pedestals, `Label3D` placards, and scale markers natively. Works on generated
+and ingested assets alike — one place to see your whole prop library.
+
 ## Adopting external assets (ingest)
 
 Zoo can also *condition* assets it didn't generate — drop in an itch.io pack,

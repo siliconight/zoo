@@ -75,6 +75,17 @@ def parse_args():
                     help="scale the asset's overall height to this many meters")
     ap.add_argument("--license", dest="license_note",
                     help="license note recorded in the ingested meta.json")
+    # --- exhibit: organize a folder of GLBs into a zoo/museum layout -------
+    ap.add_argument("--exhibit",
+                    help="folder of built/ingested assets to organize into an "
+                         "exhibit (reads their meta.json; writes .exhibit.json)")
+    ap.add_argument("--scheme", default="zoo", choices=["zoo", "museum"],
+                    help="exhibit layout: zoo (knolled grid) or museum "
+                         "(pedestals + labels)")
+    ap.add_argument("--cols", type=int,
+                    help="columns in the exhibit grid (default ~sqrt(n))")
+    ap.add_argument("--exhibit-name", dest="exhibit_name",
+                    help="name for the .exhibit.json (default: folder name)")
     return ap.parse_args(argv)
 
 
@@ -262,6 +273,35 @@ def ingest_run(args):
     return 0
 
 
+def exhibit_run(args):
+    import os
+    from zoo_keeper import TOOL_VERSION
+    from zoo_keeper.core import exhibit
+
+    directory = args.exhibit
+    if not os.path.isdir(directory):
+        print("[zoo] not a folder:", directory)
+        return 1
+    assets = exhibit.scan_collection(directory)
+    if not assets:
+        print("[zoo] no assets with meta.json found in", directory)
+        return 1
+    name = args.exhibit_name or (os.path.basename(os.path.normpath(directory))
+                                 + "_" + args.scheme)
+    manifest = exhibit.build_exhibit(
+        assets, scheme=args.scheme, name=name, tool_version=TOOL_VERSION,
+        cols=args.cols, gap=(0.5 if args.no_collision else 0.5))
+    out_dir = args.out if args.out != "exhibits" else directory
+    path = exhibit.write_exhibit(manifest, out_dir, name=name)
+    b = manifest["bounds"]
+    print(f"[zoo] exhibit '{name}' ({args.scheme}): "
+          f"{manifest['asset_count']} assets")
+    print(f"[zoo]   manifest: {path}")
+    print(f"[zoo]   footprint: x{b['x']} z{b['z']} (meters)")
+    print("[zoo]   import it with the Zoo Importer dock in Godot.")
+    return 0
+
+
 def main():
     args = parse_args()
     if args.species_list:
@@ -270,6 +310,8 @@ def main():
         return 0
     if args.ingest:
         return ingest_run(args)
+    if args.exhibit:
+        return exhibit_run(args)
     if not args.prompt:
         print("error: --prompt is required (or use --species-list)")
         return 1
