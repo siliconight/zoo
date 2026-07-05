@@ -1,0 +1,31 @@
+{
+  "species": "doorway",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. Architectural module: a center-pivot wall slab with a floor-height passage (open frame, no door leaf)."
+  },
+  "dimensions": {
+    "width":  { "min": 0.6,  "max": 5.0,  "default": 1.1 },
+    "depth":  { "min": 0.05, "max": 0.6,  "default": 0.3 },
+    "height": { "min": 1.8,  "max": 3.6,  "default": 2.1 }
+  },
+  "parts": ["Doorway_Jamb_L", "Doorway_Jamb_R", "Doorway_Header"],
+  "params": {
+    "jamb":   { "min": 0.02, "max": 0.4,  "default": 0.12 },
+    "header": { "min": 0.05, "max": 0.6,  "default": 0.22 }
+  },
+  "materials": {
+    "default": "concrete",
+    "options": ["concrete", "plaster", "metal"]
+  },
+  "styles": {
+    "default": { "material": "concrete", "color": [0.56, 0.55, 0.53], "wear": 0.15, "bevel": 0.003 },
+    "delco":   { "material": "concrete", "color": [0.50, 0.49, 0.46], "wear": 0.35, "bevel": 0.003 }
+  },
+  "budgets": { "tris_lod0": 600 },
+  "attachments": [],
+  "collision": true,
+  "match_priority": -1,
+  "keywords": ["doorway"]
+}

@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.15.0] - Architectural module species: a planned kit becomes real GLBs
+### Added - the five wall-slot modules Deli Counter swaps in
+- 5 new species (genome + recipe): wall, wallEnd, doorway, window, breach.
+  These are a *different kind* of species from Zoo's props - they dress a Deli
+  Counter greybox's wall slots, so they follow two extra rules:
+  - CENTER pivot (not bottom-center): geometry is centered on the origin in all
+    axes, so DC drops a module onto a slot transform with no conversion.
+  - fit-to-EXACT-dims (not sampled): built at the slot's authored w/d/h; DC
+    instances at that size and NEVER scales it.
+- core/arch.py (pure, tested): decomposes a center-pivot slab into axis-aligned
+  boxes around an optional passable void. Guarantees the union's outer bbox
+  equals (w, d, h) exactly - jambs always reach +/-w/2 at full height and every
+  box spans full depth - so exact-fit validation passes by construction. A
+  doorway/breach is a hole to the floor (jambs + lintel, no sill); a window is a
+  mid-height opening (jambs + sill + header) plus a thin non-colliding glass
+  pane; the void gets no collision, so passages are walk/shoot-through.
+- dna.resolve_module_plan (pure): a fit-to-exact-dims, center-pivot BuildPlan
+  straight from a kit entry - no size_hint, no jitter. Carries target_dims,
+  pivot, and the DC module contract (type/theme/style/width/stem).
+- validate: exact-fit checks (fit_width/depth/height) fire when a plan carries
+  target_dims - the built size must equal the slot size, not just the envelope.
+- bpylayer/build.py: build_module (one named GLB, e.g. wall_delco_01_w200.glb)
+  and build_kit (plan + build every module a building needs into art/zoo/, plus
+  a <building>_kit.built.json index).
+- CLI: --build-kit <slots.json> [--theme delco] [--style N] [--out DIR] builds
+  the module GLBs (needs Blender). --kit still does the dry plan.
+- materials: concrete + plaster roughness.
+- 18 new tests (111 total). This is the plain STRUCTURAL pass (generic
+  industrial concrete + steel frames); Delco-flavored look-passes come next.
+### Next
+- Delco art direction per module (materials, trim, door leaf vs open frame,
+  window mullions, blown/rough breach with rebar + rubble, grime).
+- Verify build in Blender + swap into a real Deli Counter building in Godot.
+
 ## [0.14.0] - Greybox integration: Zoo as Deli Counter's art/zoo library
 ### Added - plan the module kit that dresses a Deli Counter greybox
 - core/kit.py (pure, tested): reads a Deli Counter <name>.slots.json swap

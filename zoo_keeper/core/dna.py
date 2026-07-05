@@ -6,7 +6,7 @@ value comes from a named RNG stream.
 """
 from __future__ import annotations
 
-from . import seeding
+from . import kit, seeding
 
 # Boot construction constants — single source of truth. The DNA hook writes
 # the resolved values into the plan; the recipe executes them verbatim so the
@@ -117,6 +117,97 @@ def _apply_prompt_rules(plan, rules, text):
                     plan["params"][key.split(".", 1)[1]] = value
                 else:
                     plan[key] = value
+
+
+# --- architectural modules --------------------------------------------------
+#
+# Modules (wall/doorway/window/breach/wallEnd) are not prompt-driven — they are
+# planned by core.kit from a Deli Counter slots.json. So they get a dedicated
+# plan builder: dimensions are the slot's EXACT dims (never sampled), the pivot
+# is CENTER, and the output is named by Deli Counter's law so the resolver swaps
+# it straight in.
+
+def _pick_style_tag(genome: dict, tag: str | None) -> tuple[str, dict]:
+    styles = genome["styles"]
+    if tag and tag in styles:
+        return tag, styles[tag]
+    if "default" in styles:
+        return "default", styles["default"]
+    name = sorted(styles)[0]
+    return name, styles[name]
+
+
+def _default_params(genome: dict) -> dict:
+    params = {}
+    for name, spec in genome.get("params", {}).items():
+        if isinstance(spec, dict) and "default" in spec:
+            params[name] = spec["default"]
+        elif isinstance(spec, dict) and "min" in spec:
+            params[name] = spec["min"]
+        elif isinstance(spec, list):
+            params[name] = spec[0]
+        else:
+            params[name] = spec
+    return params
+
+
+def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
+                        tool_version: str) -> dict:
+    """A fit-to-exact-dims, center-pivot BuildPlan for an architectural module.
+
+    ``module`` is a ``core.kit.plan_kit`` entry:
+    ``{type, width_cm, fit, dims:[w,d,h], pivot, stem}``. Unlike
+    :func:`resolve_plan`, dimensions are taken verbatim from the slot (no
+    size_hint, no jitter): Deli Counter instances the module at the authored
+    size and never scales it, so the built size must equal the slot size.
+    """
+    style_name, style_block = _pick_style_tag(genome, theme)
+
+    material = style_block.get("material") or genome["materials"]["default"]
+    if material not in genome["materials"]["options"]:
+        material = genome["materials"]["default"]
+    color = list(style_block.get("color", [0.6, 0.6, 0.6]))
+    wear = style_block.get("wear", 0.15)
+
+    w, dep, h = module["dims"]
+    dims = {"width": round(float(w), 4), "depth": round(float(dep), 4),
+            "height": round(float(h), 4)}
+
+    stem = module.get("stem") or kit.module_stem(
+        module["type"], theme, int(style), module.get("width_cm"))
+
+    plan = {
+        "species": genome["species"],
+        "genome_version": genome["version"],
+        "tool_version": tool_version,
+        "style": style_name,
+        "style_block": dict(style_block),
+        "material": material,
+        "color": [round(c, 4) for c in color],
+        "wear": round(float(wear), 3),
+        "dimensions": dims,
+        "params": _default_params(genome),
+        "parts": list(genome["parts"]),
+        "budgets": dict(genome["budgets"]),
+        "attachments": list(genome.get("attachments", [])),
+        "bevel": style_block.get("bevel", 0.003),
+        "dim_scale": {"width": 1.0, "depth": 1.0, "height": 1.0},
+        # architectural-module extras (consumed by validate + the recipe):
+        "pivot": "center",
+        "fit_exact": module.get("fit", "exact") == "exact",
+        "target_dims": dict(dims),
+        "module": {
+            "type": module["type"],
+            "theme": theme,
+            "style": int(style),
+            "width_cm": module.get("width_cm"),
+            "fit": module.get("fit", "exact"),
+            "stem": stem,
+        },
+    }
+    if "glass_color" in genome:
+        plan["glass_color"] = list(genome["glass_color"])
+    return plan
 
 
 # --- per-species intent hooks ----------------------------------------------

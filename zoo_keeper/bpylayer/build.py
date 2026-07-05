@@ -11,6 +11,8 @@ import bpy
 
 from .. import TOOL_VERSION
 from ..core import dna, genome as genome_mod, intent as intent_mod
+from ..core import kit as kit_mod
+from ..core import arch as arch_mod
 from ..core import meta as meta_mod, seeding, validate, connect
 from .. import recipes
 from . import collision, export, lods, markers
@@ -137,6 +139,110 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
     return {"family_id": fid, "out_dir": out_dir, "count": count,
             "manifest_file": manifest_file, "shared": shared,
             "n_fail": n_fail, "results": results}
+
+
+def build_module(module: dict, out_dir: str, theme: str = "delco",
+                 style: int = 1, options: dict | None = None) -> dict:
+    """Build ONE architectural module GLB, named by Deli Counter's law.
+
+    ``module`` is a ``core.kit.plan_kit`` entry. The GLB is a center-pivot slab
+    built to the slot's exact dims and written as ``<stem>.glb`` (e.g.
+    ``wall_delco_01_w200.glb``) so Deli Counter's resolver instances it at the
+    slot with no scaling. Skips the intent/dna sampling path entirely.
+    """
+    opts = dict(DEFAULT_OPTIONS)
+    opts["clear_scene"] = True
+    if options:
+        opts.update(options)
+
+    species = module["type"]
+    genome = genome_mod.load_species(species)
+    if opts["collision"] is None:
+        opts["collision"] = bool(genome.get("collision", True))
+
+    plan = dna.resolve_module_plan(module, genome, theme, style, TOOL_VERSION)
+    stem = plan["module"]["stem"]
+
+    if opts["clear_scene"]:
+        clear_scene()
+    coll = bpy.data.collections.new(stem)
+    bpy.context.scene.collection.children.link(coll)
+
+    streams = seeding.RNGStreams(
+        seeding.root_key(stem, species, 0, TOOL_VERSION))
+    result = recipes.get(species)(plan, streams, coll)
+    root_name = arch_mod.root_name(species)
+
+    if opts["collision"] and result.get("collision_boxes"):
+        collision.collision_from_boxes(root_name, result["collision_boxes"],
+                                       coll)
+    for name, loc in result.get("attachments", {}).items():
+        markers.add_marker(name, loc, coll)
+
+    facts = export.gather_facts(coll, root_name)
+    report = validate.evaluate(facts, genome, plan, opts)
+
+    os.makedirs(out_dir, exist_ok=True)
+    base = os.path.join(out_dir, stem)
+    files = {"glb": f"{stem}.glb", "meta": f"{stem}.meta.json"}
+    export.export_glb(base + ".glb", coll)
+    if opts["save_blend"]:
+        export.save_blend(base + ".blend")
+        files["blend"] = f"{stem}.blend"
+
+    meta = meta_mod.build_module_meta(TOOL_VERSION, plan, genome, report,
+                                      files, stem)
+    meta_mod.write_meta(base + ".meta.json", meta)
+
+    return {"stem": stem, "out_dir": out_dir, "files": files,
+            "report": report, "facts": facts, "plan": plan}
+
+
+def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
+              style: int = 1, roles=None, state: str | None = None,
+              options: dict | None = None) -> dict:
+    """Plan + BUILD every module a Deli Counter building needs, into ``out_dir``.
+
+    Plans the kit from a ``slots.json`` manifest (pure), then builds each
+    distinct module to a correctly-named GLB and writes a
+    ``<building>_kit.built.json`` index. Copy ``out_dir`` into the game's
+    ``art/zoo/`` and Deli Counter swaps them in for the greybox boxes.
+    """
+    plan = kit_mod.plan_kit(manifest, theme=theme, style=style, roles=roles,
+                            state=state)
+    counts = {m["stem"]: m["count"] for m in plan["modules"]}
+    results = [build_module(m, out_dir, theme=theme, style=style,
+                            options=options)
+               for m in plan["modules"]]
+
+    modules = [{"stem": r["stem"],
+                "type": r["plan"]["module"]["type"],
+                "width_cm": r["plan"]["module"]["width_cm"],
+                "fit": r["plan"]["module"]["fit"],
+                "count": counts.get(r["stem"], 1),
+                "status": r["report"]["status"],
+                "files": r["files"]}
+               for r in results]
+
+    building_id = plan.get("building_id")
+    index = {
+        "zoo": {"tool_version": TOOL_VERSION},
+        "building_id": building_id,
+        "theme": theme,
+        "style": int(style),
+        "state": state,
+        "module_library": "art/zoo",
+        "module_count": plan["module_count"],
+        "slot_count": plan["slot_count"],
+        "modules": modules,
+    }
+    index_file = f"{building_id}_kit.built.json"
+    meta_mod.write_meta(os.path.join(out_dir, index_file), index)
+
+    n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
+    return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
+            "style": int(style), "modules": modules, "n_fail": n_fail,
+            "results": results, "index_file": index_file}
 
 
 def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,

@@ -90,6 +90,10 @@ def parse_args():
     ap.add_argument("--kit",
                     help="a Deli Counter <name>.slots.json to plan an art/zoo "
                          "module kit for (reads the swap contract; pure)")
+    ap.add_argument("--build-kit", dest="build_kit",
+                    help="a Deli Counter <name>.slots.json to BUILD the art/zoo "
+                         "module GLBs for (center-pivot, exact-fit; needs "
+                         "Blender). Use --theme/--style/--out.")
     ap.add_argument("--theme", default="delco",
                     help="theme/kit name for module filenames (default: delco)")
     ap.add_argument("--style", type=int, default=1,
@@ -339,6 +343,39 @@ def kit_run(args):
     return 0
 
 
+def build_kit_run(args):
+    import json
+    import os
+    if not HAS_BPY:
+        print("[zoo] --build-kit builds geometry -> needs Blender. "
+              "Run inside Blender, or use --kit for a dry plan first.")
+        return 1
+    if not os.path.isfile(args.build_kit):
+        print("[zoo] not a file:", args.build_kit)
+        return 1
+    manifest = json.load(open(args.build_kit, encoding="utf-8"))
+
+    from zoo_keeper.bpylayer import build
+    res = build.build_kit(
+        manifest, os.path.abspath(args.out), theme=args.theme,
+        style=args.style,
+        options={"collision": _collision_opt(args),
+                 "save_blend": not args.no_blend, "clear_scene": True})
+
+    print(f"[zoo] kit built for '{res['building_id']}' "
+          f"(theme={res['theme']}, style={res['style']:02d}) -> "
+          f"{res['out_dir']}")
+    for m in res["modules"]:
+        print(f"[zoo]   {m['stem']+'.glb':32} x{m['count']:<4} "
+              f"{m['status'].upper()}")
+    print(f"[zoo] {len(res['modules'])} modules built, "
+          f"{res['n_fail']} failed")
+    print(f"[zoo] index: {res['index_file']}")
+    print("[zoo] copy these into your game's art/zoo/ so Deli Counter's "
+          "resolver swaps them in.")
+    return 0 if res["n_fail"] == 0 else 2
+
+
 def main():
     args = parse_args()
     if args.species_list:
@@ -349,6 +386,8 @@ def main():
         return ingest_run(args)
     if args.exhibit:
         return exhibit_run(args)
+    if args.build_kit:
+        return build_kit_run(args)
     if args.kit:
         return kit_run(args)
     if not args.prompt:

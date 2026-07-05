@@ -1,0 +1,33 @@
+{
+  "species": "window",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. Architectural module: a center-pivot wall slab with a mid-height opening and a thin glass pane."
+  },
+  "dimensions": {
+    "width":  { "min": 0.4,  "max": 4.0,  "default": 1.3 },
+    "depth":  { "min": 0.05, "max": 0.6,  "default": 0.3 },
+    "height": { "min": 0.5,  "max": 3.0,  "default": 1.5 }
+  },
+  "parts": ["Window_Jamb_L", "Window_Jamb_R", "Window_Sill", "Window_Header", "Window_Glass"],
+  "params": {
+    "jamb": { "min": 0.02, "max": 0.4, "default": 0.12 },
+    "sill": { "min": 0.05, "max": 0.7, "default": 0.35 },
+    "head": { "min": 0.05, "max": 0.7, "default": 0.20 }
+  },
+  "materials": {
+    "default": "concrete",
+    "options": ["concrete", "plaster", "metal"]
+  },
+  "glass_color": [0.55, 0.66, 0.72],
+  "styles": {
+    "default": { "material": "concrete", "color": [0.56, 0.55, 0.53], "wear": 0.15, "bevel": 0.003 },
+    "delco":   { "material": "concrete", "color": [0.50, 0.49, 0.46], "wear": 0.35, "bevel": 0.003 }
+  },
+  "budgets": { "tris_lod0": 800 },
+  "attachments": [],
+  "collision": true,
+  "match_priority": -1,
+  "keywords": ["window"]
+}

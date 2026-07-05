@@ -19,7 +19,7 @@ CC0-derived and every specimen carries its license metadata in its
 |---|---|
 | Genome | Per-species construction knowledge (`zoo_keeper/genome/species/*.json`) |
 | DNA | Recipes that turn a plan into geometry (`zoo_keeper/recipes/`) |
-| Species | An asset type — 17 so far (desk, chair, atm, vending_machine, briefcase, ...) |
+| Species | An asset type — 22 so far: 17 props + 5 architectural modules (wall, doorway, window, ...) |
 | Specimen | One generated instance |
 | Keeper | The Blender UI panel |
 | Habitat | A themed collection of species (roadmap) |
@@ -59,8 +59,23 @@ Plan the modules a building needs (pure, no Blender):
 It reads the slot contract and reports the distinct modules to build, honoring
 Deli Counter's naming law (wall remainders collapse to one scaled `wallEnd`
 unit; everything else is exact-fit per width). A real 128-slot building needs
-only ~9 modules — that's the whole art-pass workload. Build those into
-`art/zoo/`, rebuild the greybox with `theme=delco`, and the resolver dresses it.
+only ~9 modules — that's the whole art-pass workload.
+
+**Build** those modules straight into an output folder (needs Blender):
+
+    blender --background --python tools/zoo_cli.py -- \
+      --build-kit path/to/<name>.slots.json --theme delco --out art_zoo
+
+Each module is a **center-pivot** slab built to the slot's **exact** dims and
+named by the resolver's law (e.g. `wall_delco_01_w200.glb`,
+`doorway_delco_01_w110.glb`, `wallEnd_delco_01.glb`), with a
+`<building>_kit.built.json` index. Copy the folder into your game's `art/zoo/`,
+rebuild the greybox with `theme=delco`, and the resolver swaps them in for the
+grey boxes — missing modules keep the box, so the art pass stays progressive.
+
+> The current module look is a plain **structural pass** (generic industrial
+> concrete + steel frames). Doorways/breaches are open passages; the door leaf,
+> mullions, and a blown/rough breach are Delco look-passes still to come.
 
 ## Connectors (Lego-style anchoring)
 
@@ -179,7 +194,9 @@ lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
 
 ## Species
 
-`desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`
+**Props (17):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`
+
+**Architectural modules (5):** `wall`, `wallEnd`, `doorway`, `window`, `breach` — Deli Counter wall-slot dressing. Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
 
 ## Install (Blender 4.2+ / 5.x)
 

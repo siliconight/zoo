@@ -34,6 +34,21 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
                if ok else
                f"{name}={v:.3f}m OUTSIDE [{lo:.3f}, {hi:.3f}]m")
 
+    # architectural modules are built to a slot's EXACT dims (Deli Counter
+    # never scales them) — verify the built size matches the target, not just
+    # the genome envelope. Only fires when a plan carries target_dims.
+    target = plan.get("target_dims")
+    if target:
+        for name in sorted(target):
+            if name not in dims:
+                continue
+            tv = target[name]
+            v = dims[name]
+            ok = abs(v - tv) <= tol
+            _check(checks, f"fit_{name}", ok,
+                   f"{name}={v:.3f}m fits exact target {tv:.3f}m" if ok
+                   else f"{name}={v:.3f}m != exact target {tv:.3f}m")
+
     tris = facts.get("tris", 0)
     budget = plan["budgets"].get("tris_lod0", 0)
     _check(checks, "tri_budget", tris <= budget,
