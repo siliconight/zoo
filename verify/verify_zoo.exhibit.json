@@ -1,0 +1,103 @@
+{
+  "exhibit": "verify_zoo",
+  "scheme": "zoo",
+  "tool_version": "0.12.0",
+  "asset_count": 5,
+  "members": [
+    {
+      "name": "cheesesteak_5d82b8",
+      "glb": "cheesesteak_5d82b8.glb",
+      "category": "cheesesteak",
+      "pos": [
+        -1.0182,
+        0.0,
+        0.0
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "ingested_desk",
+      "glb": "ingested_desk.glb",
+      "category": "desk",
+      "pos": [
+        1.0182,
+        0.0,
+        0.0
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "desk_2fe2e2",
+      "glb": "desk_2fe2e2.glb",
+      "category": "desk",
+      "pos": [
+        -1.0182,
+        0.0,
+        1.3048
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "soda_cup_f86c94",
+      "glb": "soda_cup_f86c94.glb",
+      "category": "soda_cup",
+      "pos": [
+        1.0182,
+        0.0,
+        1.3048
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "table_1021bd",
+      "glb": "table_1021bd.glb",
+      "category": "table",
+      "pos": [
+        -1.0182,
+        0.0,
+        2.6096
+      ],
+      "rot_y": 0.0
+    }
+  ],
+  "props": [
+    {
+      "type": "marker",
+      "label": "1.8 m",
+      "pos": [
+        -3.055,
+        0.0,
+        0.0
+      ],
+      "size": [
+        0.4,
+        1.8,
+        0.4
+      ]
+    },
+    {
+      "type": "marker",
+      "label": "1 m",
+      "pos": [
+        -3.055,
+        0.0,
+        1.305
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "bounds": {
+    "x": [
+      -3.555,
+      1.518
+    ],
+    "z": [
+      -0.5,
+      3.11
+    ]
+  }
+}

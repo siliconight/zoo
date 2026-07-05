@@ -141,7 +141,14 @@
       "type": "floor"
     },
     "sockets": {
-      "ATT_surface_center": "surface"
+      "ATT_surface_center": {
+        "type": "surface",
+        "shape": "area",
+        "size_rel": [
+          0.85,
+          0.85
+        ]
+      }
     }
   }
 }

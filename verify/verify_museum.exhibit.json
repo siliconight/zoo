@@ -1,0 +1,199 @@
+{
+  "exhibit": "verify_museum",
+  "scheme": "museum",
+  "tool_version": "0.12.0",
+  "asset_count": 5,
+  "members": [
+    {
+      "name": "cheesesteak_5d82b8",
+      "glb": "cheesesteak_5d82b8.glb",
+      "category": "cheesesteak",
+      "pos": [
+        -1.0182,
+        0.4,
+        0.0
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "ingested_desk",
+      "glb": "ingested_desk.glb",
+      "category": "desk",
+      "pos": [
+        1.0182,
+        0.4,
+        0.0
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "desk_2fe2e2",
+      "glb": "desk_2fe2e2.glb",
+      "category": "desk",
+      "pos": [
+        -1.0182,
+        0.4,
+        2.2048
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "soda_cup_f86c94",
+      "glb": "soda_cup_f86c94.glb",
+      "category": "soda_cup",
+      "pos": [
+        1.0182,
+        0.4,
+        2.2048
+      ],
+      "rot_y": 0.0
+    },
+    {
+      "name": "table_1021bd",
+      "glb": "table_1021bd.glb",
+      "category": "table",
+      "pos": [
+        -1.0182,
+        0.4,
+        4.4096
+      ],
+      "rot_y": 0.0
+    }
+  ],
+  "props": [
+    {
+      "type": "pedestal",
+      "pos": [
+        -1.0182,
+        0.0,
+        0.0
+      ],
+      "size": [
+        0.2403,
+        0.4,
+        0.5079
+      ]
+    },
+    {
+      "type": "label",
+      "text": "cheesesteak_5d82b8  (0.11x0.31x0.09m)",
+      "pos": [
+        -1.0182,
+        0.64,
+        0.0
+      ]
+    },
+    {
+      "type": "pedestal",
+      "pos": [
+        1.0182,
+        0.0,
+        0.0
+      ],
+      "size": [
+        2.0973,
+        0.4,
+        1.0712
+      ]
+    },
+    {
+      "type": "label",
+      "text": "ingested_desk  (1.54x0.75x0.74m)",
+      "pos": [
+        1.0182,
+        1.29,
+        0.0
+      ]
+    },
+    {
+      "type": "pedestal",
+      "pos": [
+        -1.0182,
+        0.0,
+        2.2048
+      ],
+      "size": [
+        2.0709,
+        0.4,
+        1.0584
+      ]
+    },
+    {
+      "type": "label",
+      "text": "desk_2fe2e2  (1.52x0.74x0.73m)",
+      "pos": [
+        -1.0182,
+        1.28,
+        2.2048
+      ]
+    },
+    {
+      "type": "pedestal",
+      "pos": [
+        1.0182,
+        0.0,
+        2.2048
+      ],
+      "size": [
+        0.2173,
+        0.4,
+        0.2169
+      ]
+    },
+    {
+      "type": "label",
+      "text": "soda_cup_f86c94  (0.09x0.09x0.16m)",
+      "pos": [
+        1.0182,
+        0.711,
+        2.2048
+      ]
+    },
+    {
+      "type": "pedestal",
+      "pos": [
+        -1.0182,
+        0.0,
+        4.4096
+      ],
+      "size": [
+        1.6911,
+        0.4,
+        1.1462
+      ]
+    },
+    {
+      "type": "label",
+      "text": "table_1021bd  (1.22x0.80x0.73m)",
+      "pos": [
+        -1.0182,
+        1.28,
+        4.4096
+      ]
+    },
+    {
+      "type": "marker",
+      "label": "1.8 m",
+      "pos": [
+        -3.055,
+        0.0,
+        0.0
+      ],
+      "size": [
+        0.4,
+        1.8,
+        0.4
+      ]
+    }
+  ],
+  "bounds": {
+    "x": [
+      -3.555,
+      1.518
+    ],
+    "z": [
+      -0.5,
+      4.91
+    ]
+  }
+}

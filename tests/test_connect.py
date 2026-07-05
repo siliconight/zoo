@@ -75,5 +75,51 @@ def test_genomes_declare_valid_connector_types():
         atype = conn.get("anchor", {}).get("type")
         if atype:
             assert atype in valid, f"{sp} anchor type {atype}"
-        for stype in (conn.get("sockets", {}) or {}).values():
+        for sdecl in (conn.get("sockets", {}) or {}).values():
+            stype = sdecl if isinstance(sdecl, str) else sdecl.get("type")
             assert stype in valid, f"{sp} socket type {stype}"
+
+
+def test_socket_offset_point_ignores_hit():
+    s = {"shape": "point"}
+    assert connect.resolve_socket_offset(s, (0.3, -0.2)) == (0.0, 0.0)
+
+
+def test_socket_offset_area_clamps():
+    s = {"shape": "area", "size": [1.0, 0.6]}
+    assert connect.resolve_socket_offset(s, (0.3, -0.2)) == (0.3, -0.2)  # inside
+    assert connect.resolve_socket_offset(s, (9.0, -9.0)) == (0.5, -0.3)  # clamped
+
+
+def test_socket_offset_grid_snaps_to_cell():
+    s = {"shape": "grid", "size": [2.0, 2.0], "cell": [0.5, 0.5]}
+    assert connect.resolve_socket_offset(s, (0.62, -0.10)) == (0.5, 0.0)
+    assert connect.resolve_socket_offset(s, (0.24, 0.24)) == (0.0, 0.0)
+
+
+def test_snap_pose_area_places_at_hit():
+    socket = {"pos": [0.0, 0.74, 0.0], "yaw": 0.0, "shape": "area",
+              "size": [1.0, 0.8]}
+    anchor = {"pos": [0.0, 0.0, 0.0]}
+    pose = connect.snap_pose(socket, anchor, hit_local=(0.3, -0.2))
+    assert pose["pos"] == [0.3, 0.74, -0.2]   # on the surface, at the hit spot
+
+
+def test_snap_pose_point_unchanged_by_hit():
+    socket = {"pos": [1.0, 0.5, 2.0], "yaw": 0.0}     # shape defaults to point
+    anchor = {"pos": [0.0, 0.0, 0.0]}
+    a = connect.snap_pose(socket, anchor, hit_local=(0.3, 0.3))
+    b = connect.snap_pose(socket, anchor)
+    assert a == b                                      # hit ignored for point
+
+
+def test_build_connectors_area_size_from_dims():
+    genome = {"connectors": {"anchor": {"type": "floor"}, "sockets": {
+        "ATT_surface_center": {"type": "surface", "shape": "area",
+                               "size_rel": [0.85, 0.85]}}}}
+    conn = connect.build_connectors(
+        genome, {"ATT_surface_center": (0.0, 0.0, 0.74)},
+        dims={"width": 1.2, "depth": 0.8, "height": 0.74})
+    s = conn["sockets"][0]
+    assert s["shape"] == "area"
+    assert s["size"] == [round(1.2 * 0.85, 4), round(0.8 * 0.85, 4)]

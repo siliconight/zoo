@@ -62,6 +62,22 @@ Declare connectors in the genome (pack-friendly, no code):
       "sockets": {"ATT_surface_center": "surface"}
     }
 
+Sockets have a **shape**, so a connection can be one spot or a whole region:
+
+- `point` (default) — one exact spot: a helmet on a head, a lid on a cup.
+- `area` — a surface region (e.g. a tabletop): place the prop anywhere on it.
+  Declare with `"shape": "area"` and a `"size"` or `"size_rel"` (a fraction of
+  the asset's width/depth, so it scales per specimen).
+- `grid` — Lego studs: a repeating grid; snap to the nearest cell. Declare a
+  `"size"` and a `"cell"` spacing.
+
+    "sockets": {"ATT_surface_center":
+                {"type": "surface", "shape": "area", "size_rel": [0.85, 0.85]}}
+
+In Godot's Snap, tick **Free placement** to drop a prop wherever you left it on
+a surface (keeps X/Z, matches the surface height) instead of jumping to the
+exact point — a cup can sit anywhere on the table.
+
 **Attach to a player:** add empties to your character rig following Zoo's
 socket convention — `ATT_head`, `ATT_hand_l`, `ATT_hand_r`, `ATT_back`,
 `ATT_hip`, `ATT_feet`, `ATT_chest`. A helmet (anchor `head`) snaps to

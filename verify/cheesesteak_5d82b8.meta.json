@@ -1,0 +1,157 @@
+{
+  "connectors": {
+    "anchor": {
+      "pos": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "type": "surface",
+      "yaw": 0.0
+    },
+    "sockets": [
+      {
+        "name": "ATT_center",
+        "pos": [
+          0.0,
+          0.0,
+          0.09
+        ],
+        "type": "surface",
+        "yaw": 0.0
+      }
+    ]
+  },
+  "files": {
+    "blend": "cheesesteak_5d82b8.blend",
+    "glb": "cheesesteak_5d82b8.glb",
+    "meta": "cheesesteak_5d82b8.meta.json"
+  },
+  "genome": {
+    "species": "cheesesteak",
+    "version": 1
+  },
+  "intent": {
+    "color": null,
+    "color_name": null,
+    "counts": {},
+    "era": null,
+    "material": null,
+    "prompt": "philly cheesesteak",
+    "prompt_norm": "philly cheesesteak",
+    "seed": 0,
+    "size_hint": 1.0,
+    "species": "cheesesteak",
+    "style_tags": [],
+    "unresolved": [],
+    "wear": null
+  },
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "plan": {
+    "attachments": [
+      "ATT_center"
+    ],
+    "bevel": 0.003,
+    "budgets": {
+      "tris_lod0": 1500
+    },
+    "color": [
+      0.78,
+      0.58,
+      0.32
+    ],
+    "dim_scale": {
+      "depth": 1.0,
+      "height": 1.0,
+      "width": 1.0
+    },
+    "dimensions": {
+      "depth": 0.3138,
+      "height": 0.09,
+      "width": 0.1079
+    },
+    "genome_version": 1,
+    "material": "paper",
+    "params": {
+      "meat_chunks": 12,
+      "onions": 1
+    },
+    "parts": [
+      "bun",
+      "meat",
+      "cheese",
+      "onion"
+    ],
+    "species": "cheesesteak",
+    "style": "default",
+    "style_block": {
+      "bevel": 0.003,
+      "color": [
+        0.78,
+        0.58,
+        0.32
+      ],
+      "material": "paper",
+      "wear": 0.22
+    },
+    "tool_version": "0.12.0",
+    "wear": 0.22
+  },
+  "validation": {
+    "checks": [
+      {
+        "id": "dim_width",
+        "level": "pass",
+        "msg": "width=0.117m within [0.090, 0.130]m"
+      },
+      {
+        "id": "dim_depth",
+        "level": "pass",
+        "msg": "depth=0.303m within [0.260, 0.360]m"
+      },
+      {
+        "id": "dim_height",
+        "level": "pass",
+        "msg": "height=0.081m within [0.070, 0.120]m"
+      },
+      {
+        "id": "tri_budget",
+        "level": "pass",
+        "msg": "1028 tris <= budget 1500"
+      },
+      {
+        "id": "uvs",
+        "level": "pass",
+        "msg": "UV layer present"
+      },
+      {
+        "id": "wear_colors",
+        "level": "pass",
+        "msg": "vertex wear colors present"
+      },
+      {
+        "id": "materials",
+        "level": "pass",
+        "msg": "materials assigned"
+      },
+      {
+        "id": "parts_named",
+        "level": "pass",
+        "msg": "6 named parts"
+      },
+      {
+        "id": "transforms",
+        "level": "pass",
+        "msg": "all transforms applied"
+      }
+    ],
+    "status": "pass"
+  },
+  "zoo": {
+    "specimen_id": "cheesesteak_5d82b8",
+    "tool_version": "0.12.0"
+  }
+}

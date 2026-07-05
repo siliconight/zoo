@@ -8,6 +8,8 @@ var _manifest_edit: LineEdit
 var _spacing: SpinBox
 var _status: Label
 var _dialog: FileDialog
+var _snap_attach: CheckBox
+var _snap_free: CheckBox
 
 
 func _ready() -> void:
@@ -60,15 +62,27 @@ func _ready() -> void:
 	snap_title.text = "Snap (anchor prop -> socket)"
 	add_child(snap_title)
 	var snap_help := Label.new()
-	snap_help.text = ("Select the prop, then Ctrl-click a socket (an ATT_* "
-		+ "node), then Snap. The prop's origin lands on the socket.")
+	snap_help.text = ("Select the prop, then Ctrl-click the host (a table, a "
+		+ "character...). Zoo finds the socket and snaps the prop onto it.")
 	snap_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	snap_help.modulate = Color(1, 1, 1, 0.7)
 	add_child(snap_help)
+	_snap_attach = CheckBox.new()
+	_snap_attach.text = "Attach (parent to host, moves with it)"
+	_snap_attach.button_pressed = true
+	add_child(_snap_attach)
+	_snap_free = CheckBox.new()
+	_snap_free.text = "Free placement (keep X/Z, drop to surface)"
+	_snap_free.button_pressed = false
+	add_child(_snap_free)
 	var snap_btn := Button.new()
-	snap_btn.text = "Snap selected prop -> socket"
+	snap_btn.text = "Snap prop -> socket"
 	snap_btn.pressed.connect(_on_snap)
 	add_child(snap_btn)
+	var unsnap_btn := Button.new()
+	unsnap_btn.text = "Unsnap (detach selected prop)"
+	unsnap_btn.pressed.connect(_on_unsnap)
+	add_child(unsnap_btn)
 
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -191,29 +205,114 @@ func _on_import() -> void:
 
 ## --- snap (Lego anchoring) --------------------------------------------------
 
-## Snap a prop onto a socket. Uses the editor selection: the first selected
-## Node3D is the prop, the last is the socket (an ATT_* marker). The prop's
-## anchor (its origin by default) is aligned to the socket's transform.
+## Snap a prop onto a host's socket. Select the prop, then Ctrl-click the host
+## (its root — the table, the character). Zoo finds the first ATT_* socket
+## inside the host, snaps the prop's anchor onto it, and (by default) parents
+## the prop under the host root so it moves with the host. Sockets stay put.
 func _on_snap() -> void:
+	var scene_root := EditorInterface.get_edited_scene_root()
+	if scene_root == null:
+		_set_status("Open a scene first.")
+		return
 	var sel := EditorInterface.get_selection().get_selected_nodes()
 	var nodes3d: Array = []
 	for n in sel:
 		if n is Node3D:
 			nodes3d.append(n)
 	if nodes3d.size() < 2:
-		_set_status("Select the prop, then Ctrl-click the socket (2 nodes).")
+		_set_status("Select the prop, then Ctrl-click the host (2 nodes).")
 		return
 	var prop: Node3D = nodes3d[0]
-	var socket: Node3D = nodes3d[nodes3d.size() - 1]
+	var host: Node3D = nodes3d[nodes3d.size() - 1]
+	if prop == host:
+		_set_status("Pick two different nodes (prop + host).")
+		return
 
-	# align the prop's anchor to the socket. Default anchor = prop origin, so
-	# the prop's global transform becomes the socket's global transform. If the
-	# prop carries an anchor offset (set on import), apply its inverse.
-	var anchor_local := Transform3D.IDENTITY
-	if prop.has_meta("zoo_anchor"):
-		anchor_local = prop.get_meta("zoo_anchor")
-	prop.global_transform = socket.global_transform * anchor_local.affine_inverse()
-	_set_status("Snapped '%s' -> '%s'." % [prop.name, socket.name])
+	# resolve the socket: the host if it's already an ATT_*, else find one in it
+	var socket: Node3D = host
+	if not str(host.name).begins_with("ATT_"):
+		socket = _find_socket(host)
+	if socket == null:
+		_set_status("No ATT_* socket found on '%s'." % host.name)
+		return
+	if socket.is_ancestor_of(prop):
+		_set_status("'%s' is already inside that host." % prop.name)
+		return
+
+	# align the prop's anchor (its origin by default) onto the socket
+	if _snap_free.button_pressed:
+		# free placement on a surface: keep the prop where it is in X/Z, just
+		# drop it to the socket's surface height. Put it anywhere on the table.
+		var t := prop.global_transform
+		t.origin.y = socket.global_transform.origin.y
+		prop.global_transform = t
+	else:
+		var anchor_local := Transform3D.IDENTITY
+		if prop.has_meta("zoo_anchor"):
+			anchor_local = prop.get_meta("zoo_anchor")
+		prop.global_transform = socket.global_transform * anchor_local.affine_inverse()
+
+	# attach: parent under the host's top-level node so it moves with the host
+	# (parenting under the scene-owned root, not the internal socket, so it saves)
+	if _snap_attach.button_pressed:
+		var host_root := _top_under(socket, scene_root)
+		if host_root != null and host_root != prop and not prop.is_ancestor_of(host_root):
+			prop.reparent(host_root, true)
+			prop.owner = scene_root
+			_reown(prop, scene_root)
+	var tail := " (attached)" if _snap_attach.button_pressed else ""
+	_set_status("Snapped '%s' -> '%s'%s." % [prop.name, socket.name, tail])
+
+
+## Detach a prop that was attached with Snap: reparent it back to the scene
+## root, keeping its world position, so it's free-standing again.
+func _on_unsnap() -> void:
+	var scene_root := EditorInterface.get_edited_scene_root()
+	if scene_root == null:
+		_set_status("Open a scene first.")
+		return
+	var sel := EditorInterface.get_selection().get_selected_nodes()
+	var prop: Node3D = null
+	for n in sel:
+		if n is Node3D:
+			prop = n
+			break
+	if prop == null:
+		_set_status("Select the prop to detach.")
+		return
+	if prop.get_parent() == scene_root:
+		_set_status("'%s' is already free (not attached)." % prop.name)
+		return
+	prop.reparent(scene_root, true)
+	prop.owner = scene_root
+	_reown(prop, scene_root)
+	_set_status("Detached '%s' — now free-standing." % prop.name)
+
+
+
+func _find_socket(node: Node) -> Node3D:
+	for c in node.get_children():
+		if c is Node3D and str(c.name).begins_with("ATT_"):
+			return c
+	for c in node.get_children():
+		var deep := _find_socket(c)
+		if deep != null:
+			return deep
+	return null
+
+
+## The top-level node under scene_root that contains `node` (the GLB root).
+func _top_under(node: Node, scene_root: Node) -> Node:
+	var n := node
+	while n.get_parent() != null and n.get_parent() != scene_root:
+		n = n.get_parent()
+	return n
+
+
+func _reown(node: Node, root: Node) -> void:
+	for c in node.get_children():
+		c.owner = root
+		_reown(c, root)
 
 
 
@@ -352,7 +451,7 @@ func _local_aabb(inst: Node3D) -> AABB:
 	for mi in _mesh_instances(inst):
 		if mi.mesh == null:
 			continue
-		var rel := inv * mi.global_transform
+		var rel: Transform3D = inv * mi.global_transform
 		var box: AABB = rel * mi.mesh.get_aabb()
 		if first:
 			acc = box

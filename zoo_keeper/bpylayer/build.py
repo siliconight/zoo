@@ -86,7 +86,7 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
     meta = meta_mod.build_meta(TOOL_VERSION, intent, plan, genome, report,
                                files, specimen_id)
     meta["connectors"] = connect.build_connectors(
-        genome, result.get("attachments", {}))
+        genome, result.get("attachments", {}), plan.get("dimensions"))
     meta_mod.write_meta(base + ".meta.json", meta)
     if opts["save_blend"]:
         export.save_blend(base + ".blend")

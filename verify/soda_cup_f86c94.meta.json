@@ -1,0 +1,156 @@
+{
+  "connectors": {
+    "anchor": {
+      "pos": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "type": "cup",
+      "yaw": 0.0
+    },
+    "sockets": [
+      {
+        "name": "ATT_lid",
+        "pos": [
+          0.0,
+          0.0,
+          0.1609
+        ],
+        "type": "lid",
+        "yaw": 0.0
+      }
+    ]
+  },
+  "files": {
+    "blend": "soda_cup_f86c94.blend",
+    "glb": "soda_cup_f86c94.glb",
+    "meta": "soda_cup_f86c94.meta.json"
+  },
+  "genome": {
+    "species": "soda_cup",
+    "version": 1
+  },
+  "intent": {
+    "color": null,
+    "color_name": null,
+    "counts": {},
+    "era": null,
+    "material": null,
+    "prompt": "soda cup",
+    "prompt_norm": "soda cup",
+    "seed": 0,
+    "size_hint": 1.0,
+    "species": "soda_cup",
+    "style_tags": [],
+    "unresolved": [],
+    "wear": null
+  },
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "plan": {
+    "attachments": [
+      "ATT_lid"
+    ],
+    "bevel": 0.002,
+    "budgets": {
+      "tris_lod0": 900
+    },
+    "color": [
+      0.85,
+      0.2,
+      0.18
+    ],
+    "dim_scale": {
+      "depth": 1.0,
+      "height": 1.0,
+      "width": 1.0
+    },
+    "dimensions": {
+      "depth": 0.0899,
+      "height": 0.1609,
+      "width": 0.0902
+    },
+    "genome_version": 1,
+    "material": "paper",
+    "params": {
+      "lid": 1,
+      "straw": 1
+    },
+    "parts": [
+      "cup",
+      "lid",
+      "straw"
+    ],
+    "species": "soda_cup",
+    "style": "default",
+    "style_block": {
+      "bevel": 0.002,
+      "color": [
+        0.85,
+        0.2,
+        0.18
+      ],
+      "material": "paper",
+      "wear": 0.12
+    },
+    "tool_version": "0.12.0",
+    "wear": 0.12
+  },
+  "validation": {
+    "checks": [
+      {
+        "id": "dim_width",
+        "level": "pass",
+        "msg": "width=0.094m within [0.070, 0.110]m"
+      },
+      {
+        "id": "dim_depth",
+        "level": "pass",
+        "msg": "depth=0.094m within [0.070, 0.110]m"
+      },
+      {
+        "id": "dim_height",
+        "level": "pass",
+        "msg": "height=0.241m within [0.120, 0.320]m"
+      },
+      {
+        "id": "tri_budget",
+        "level": "pass",
+        "msg": "420 tris <= budget 900"
+      },
+      {
+        "id": "uvs",
+        "level": "pass",
+        "msg": "UV layer present"
+      },
+      {
+        "id": "wear_colors",
+        "level": "pass",
+        "msg": "vertex wear colors present"
+      },
+      {
+        "id": "materials",
+        "level": "pass",
+        "msg": "materials assigned"
+      },
+      {
+        "id": "parts_named",
+        "level": "pass",
+        "msg": "5 named parts"
+      },
+      {
+        "id": "transforms",
+        "level": "pass",
+        "msg": "all transforms applied"
+      }
+    ],
+    "status": "pass"
+  },
+  "zoo": {
+    "specimen_id": "soda_cup_f86c94",
+    "tool_version": "0.12.0"
+  }
+}

@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.13.1]
+- Added an Unsnap button (the counterpart to Snap): detaches the selected prop
+  by reparenting it back to the scene root while keeping its world position, so
+  it becomes free-standing again. Snap attaches, Unsnap releases. Plugin-only.
+
+## [0.13.0] - Socket shapes: point / grid / area
+### Added - connectors are no longer just single points
+- Sockets now have a shape: point (one spot, the default), area (a surface
+  region you can place anywhere on), or grid (Lego studs - snap to nearest
+  cell). core/connect.py: resolve_socket_offset + grid/area math, snap_pose
+  takes a hit point for area/grid placement. Fully tested.
+- Genome socket declarations can be objects with shape + size / size_rel
+  (scales to the specimen) + cell. build_connectors sizes area sockets from
+  the specimen's dimensions. table/desk surfaces are now 0.85x area sockets.
+- Godot Snap gains a "Free placement" toggle: drop a prop wherever it sits on
+  a surface (keep X/Z, match surface height) vs exact point-snap. Plugin-only
+  Godot change; grid/area-from-meta cursor placement is a further step.
+- 6 new tests (88 total).
+
+## [0.12.2]
+- Reworked Snap after playtest feedback (the old one-shot placement felt
+  fragile). Now: select the prop + the HOST (its root), and Zoo auto-finds the
+  ATT_* socket inside the host (no more digging into the GLB or accidentally
+  moving the socket). New "Attach" checkbox (default on) parents the prop under
+  the host so it moves with it — a real attachment, not a one-time drop.
+  Plugin-only.
+
+## [0.12.1]
+- Fixed a Godot 4.7 plugin compile error: in _local_aabb the loop var is
+  Variant, so `var rel := inv * mi.global_transform` couldn't infer a type and
+  failed the whole script (which broke exhibit import + Snap). Typed it as
+  `var rel: Transform3D`. Plugin-only.
+
 ## [0.12.0] - Connectors: Lego-style anchoring
 ### Added - typed sockets/anchors so props snap to players and levels
 - New connector system (core/connect.py, pure + tested): every asset has a

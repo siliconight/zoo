@@ -1,0 +1,164 @@
+{
+  "connectors": {
+    "anchor": {
+      "pos": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "type": "floor",
+      "yaw": 0.0
+    },
+    "sockets": [
+      {
+        "name": "ATT_surface_center",
+        "pos": [
+          0.0,
+          0.0,
+          0.7302
+        ],
+        "type": "surface",
+        "yaw": 0.0
+      }
+    ]
+  },
+  "files": {
+    "blend": "desk_2fe2e2.blend",
+    "glb": "desk_2fe2e2.glb",
+    "meta": "desk_2fe2e2.meta.json"
+  },
+  "genome": {
+    "species": "desk",
+    "version": 1
+  },
+  "intent": {
+    "color": null,
+    "color_name": null,
+    "counts": {},
+    "era": null,
+    "material": "wood",
+    "prompt": "wooden desk",
+    "prompt_norm": "wooden desk",
+    "seed": 0,
+    "size_hint": 1.0,
+    "species": "desk",
+    "style_tags": [],
+    "unresolved": [],
+    "wear": null
+  },
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "plan": {
+    "attachments": [
+      "ATT_surface_center"
+    ],
+    "bevel": 0.004,
+    "budgets": {
+      "tris_lod0": 8000
+    },
+    "color": [
+      0.72,
+      0.68,
+      0.6
+    ],
+    "dim_scale": {
+      "depth": 1.0,
+      "height": 1.0,
+      "width": 1.0
+    },
+    "dimensions": {
+      "depth": 0.7372,
+      "height": 0.7302,
+      "width": 1.5161
+    },
+    "genome_version": 1,
+    "material": "wood",
+    "params": {
+      "drawers": 2,
+      "leg_style": "panel",
+      "modesty_panel": 1
+    },
+    "parts": [
+      "top",
+      "leg",
+      "drawer",
+      "handle",
+      "modesty_panel"
+    ],
+    "species": "desk",
+    "style": "default",
+    "style_block": {
+      "bevel": 0.004,
+      "color": [
+        0.72,
+        0.68,
+        0.6
+      ],
+      "material": "laminate",
+      "wear": 0.15
+    },
+    "tool_version": "0.12.0",
+    "wear": 0.15
+  },
+  "validation": {
+    "checks": [
+      {
+        "id": "dim_width",
+        "level": "pass",
+        "msg": "width=1.516m within [1.000, 2.200]m"
+      },
+      {
+        "id": "dim_depth",
+        "level": "pass",
+        "msg": "depth=0.737m within [0.500, 1.000]m"
+      },
+      {
+        "id": "dim_height",
+        "level": "pass",
+        "msg": "height=0.730m within [0.650, 0.820]m"
+      },
+      {
+        "id": "tri_budget",
+        "level": "pass",
+        "msg": "396 tris <= budget 8000"
+      },
+      {
+        "id": "uvs",
+        "level": "pass",
+        "msg": "UV layer present"
+      },
+      {
+        "id": "wear_colors",
+        "level": "pass",
+        "msg": "vertex wear colors present"
+      },
+      {
+        "id": "materials",
+        "level": "pass",
+        "msg": "materials assigned"
+      },
+      {
+        "id": "parts_named",
+        "level": "pass",
+        "msg": "9 named parts"
+      },
+      {
+        "id": "collision",
+        "level": "pass",
+        "msg": "collision mesh present ('-col')"
+      },
+      {
+        "id": "transforms",
+        "level": "pass",
+        "msg": "all transforms applied"
+      }
+    ],
+    "status": "pass"
+  },
+  "zoo": {
+    "specimen_id": "desk_2fe2e2",
+    "tool_version": "0.12.0"
+  }
+}

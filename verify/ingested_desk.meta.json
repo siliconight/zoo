@@ -1,0 +1,14 @@
+{
+  "specimen_id": "ingested_desk",
+  "source": "ingested",
+  "generator": "zoo-ingest",
+  "origin_file": "desk_2fe2e2.glb",
+  "species_hint": "desk",
+  "dimensions": {
+    "width": 1.5364,
+    "depth": 0.7471,
+    "height": 0.74
+  },
+  "tool_version": "0.12.0",
+  "license": "third-party \u2014 user must confirm rights"
+}
