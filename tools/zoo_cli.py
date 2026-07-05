@@ -86,6 +86,14 @@ def parse_args():
                     help="columns in the exhibit grid (default ~sqrt(n))")
     ap.add_argument("--exhibit-name", dest="exhibit_name",
                     help="name for the .exhibit.json (default: folder name)")
+    # --- kit: plan Zoo modules to theme a Deli Counter greybox --------------
+    ap.add_argument("--kit",
+                    help="a Deli Counter <name>.slots.json to plan an art/zoo "
+                         "module kit for (reads the swap contract; pure)")
+    ap.add_argument("--theme", default="delco",
+                    help="theme/kit name for module filenames (default: delco)")
+    ap.add_argument("--style", type=int, default=1,
+                    help="style number for module filenames (default: 1)")
     return ap.parse_args(argv)
 
 
@@ -302,6 +310,35 @@ def exhibit_run(args):
     return 0
 
 
+def kit_run(args):
+    import json
+    import os
+    from zoo_keeper.core import kit
+
+    if not os.path.isfile(args.kit):
+        print("[zoo] not a file:", args.kit)
+        return 1
+    manifest = json.load(open(args.kit, encoding="utf-8"))
+    plan = kit.plan_kit(manifest, theme=args.theme, style=args.style)
+    print(f"[zoo] kit for '{plan['building_id']}' "
+          f"(theme={plan['theme']}, style={plan['style']:02d}):")
+    print(f"[zoo]   {plan['module_count']} distinct modules dress "
+          f"{plan['slot_count']} slots")
+    for m in plan["modules"]:
+        w, d, h = m["dims"]
+        note = ("unit box, scaled per-slot" if m["fit"] == "unit"
+                else f"{w}x{d}x{h}m exact")
+        print(f"[zoo]   {m['stem']+'.glb':32} x{m['count']:<4} {note}")
+    print(f"[zoo] build these into art/zoo/, then Deli Counter's resolver "
+          f"swaps them in (theme={args.theme}).")
+    if args.out and args.out != "exhibits":
+        os.makedirs(args.out, exist_ok=True)
+        p = os.path.join(args.out, f"{plan['building_id']}_kit.json")
+        json.dump(plan, open(p, "w", encoding="utf-8"), indent=2)
+        print("[zoo]   plan written:", p)
+    return 0
+
+
 def main():
     args = parse_args()
     if args.species_list:
@@ -312,6 +349,8 @@ def main():
         return ingest_run(args)
     if args.exhibit:
         return exhibit_run(args)
+    if args.kit:
+        return kit_run(args)
     if not args.prompt:
         print("error: --prompt is required (or use --species-list)")
         return 1

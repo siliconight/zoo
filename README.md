@@ -41,6 +41,27 @@ cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
 shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
 scope (hand-model those to the same standards).
 
+## Dressing a greybox (Deli Counter / Lot integration)
+
+Zoo is designed to be [Deli Counter](https://github.com/siliconight/deli-counter)'s
+`art/zoo` module library. Deli Counter greyboxes a building and emits a
+`<name>.slots.json` swap contract — every wall / doorway / window / breach slot
+with a transform, fit dims, and a role — and its resolver looks for
+`<type>_<theme>_<style>_w<cm>.glb` in `art/zoo`, instancing that themed module
+at the slot (falling back to greybox when a module is missing, so the art pass
+is progressive). Same coordinate space (Blender Z-up, meters), so a Zoo module
+drops onto a slot with no conversion.
+
+Plan the modules a building needs (pure, no Blender):
+
+    python tools/zoo_cli.py --kit path/to/<name>.slots.json --theme delco
+
+It reads the slot contract and reports the distinct modules to build, honoring
+Deli Counter's naming law (wall remainders collapse to one scaled `wallEnd`
+unit; everything else is exact-fit per width). A real 128-slot building needs
+only ~9 modules — that's the whole art-pass workload. Build those into
+`art/zoo/`, rebuild the greybox with `theme=delco`, and the resolver dresses it.
+
 ## Connectors (Lego-style anchoring)
 
 Every asset exports named `ATT_*` markers and now carries a typed **connector**

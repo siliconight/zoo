@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.14.0] - Greybox integration: Zoo as Deli Counter's art/zoo library
+### Added - plan the module kit that dresses a Deli Counter greybox
+- core/kit.py (pure, tested): reads a Deli Counter <name>.slots.json swap
+  contract and computes the distinct Zoo modules needed to theme the building,
+  honoring Deli Counter's naming law (<type>_<theme>_<style>_w<cm>; wall
+  remainders collapse to one scaled 'wallEnd' unit; everything else exact-fit
+  per width). Validated against a real 128-slot building -> 9 modules.
+- CLI: --kit <slots.json> [--theme delco] [--style N] prints the kit plan and
+  optionally writes <building>_kit.json. Pure - no Blender.
+- 5 new tests (93 total).
+### Next
+- Architectural module species (wall/doorway/window/breach/wallEnd) with
+  fit-to-exact-dims + center pivot, exported into art/zoo/ with the resolver's
+  naming, so a planned kit becomes real GLBs Deli Counter swaps in.
+
 ## [0.13.1]
 - Added an Unsnap button (the counterpart to Snap): detaches the selected prop
   by reparenting it back to the scene root while keeping its world position, so
