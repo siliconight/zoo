@@ -77,6 +77,14 @@ grey boxes — missing modules keep the box, so the art pass stays progressive.
 > concrete + steel frames). Doorways/breaches are open passages; the door leaf,
 > mullions, and a blown/rough breach are Delco look-passes still to come.
 
+**Interactive fixtures** (doors, breachable walls) whose state all players must
+agree on are handled as replicable state machines — see
+[`INTERACTIVES.md`](INTERACTIVES.md). A slot's `interactive` block expands into
+per-state art variants (`wall_delco_01_w200` + `_breached`), so a breachable
+wall is the *breached state of a wall slot*, not a separate module. The state
+machine + replication live in `gameplay.json` / the game, network-solution
+agnostic; Zoo only builds the art each state points at.
+
 ## Connectors (Lego-style anchoring)
 
 Every asset exports named `ATT_*` markers and now carries a typed **connector**

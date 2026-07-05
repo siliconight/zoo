@@ -8,7 +8,7 @@
   "dimensions": {
     "width":  { "min": 0.6,  "max": 5.0,  "default": 1.2 },
     "depth":  { "min": 0.05, "max": 0.6,  "default": 0.3 },
-    "height": { "min": 1.8,  "max": 3.6,  "default": 2.4 }
+    "height": { "min": 1.8,  "max": 4.5,  "default": 2.4 }
   },
   "parts": ["Breach_Jamb_L", "Breach_Jamb_R", "Breach_Header"],
   "params": {

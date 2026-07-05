@@ -15,6 +15,10 @@ given building, honoring Deli Counter's naming law:
   never themed, just solid filler.
 - everything else -> exact-fit: one module per distinct (type, width), built at
   the authored size so themed art is instanced, never stretched.
+- INTERACTIVE slots (doors, breachable walls) carry an `interactive` block and
+  expand into per-state module variants (`_<state>` suffix), so each networked
+  state has art to show. Zoo builds the art; the state machine + replication
+  live in gameplay.json / the game. See INTERACTIVES.md for the shared contract.
 
 Coordinates match Zoo's native space (Blender Z-up, meters; rot_y in degrees),
 so a Zoo module drops onto a slot transform with no conversion.
@@ -41,17 +45,65 @@ def module_stem(typ: str, theme: str, style: int,
     return base
 
 
+def slot_variants(slot: dict, typ: str, global_state: str = None):
+    """Which (build_species, state, stem_state) a slot needs.
+
+    A plain slot needs one module. An INTERACTIVE slot (an `interactive` block
+    with `states` + `default`) is a small replicable state machine — see
+    INTERACTIVES.md — and needs the DEFAULT state's art (the base stem) plus a
+    variant per non-default state WHOSE GEOMETRY DIFFERS. Which species backs a
+    state comes from the slot's `interactive.state_geometry` map (state ->
+    module species; unmapped -> the slot's own type). A non-default state that
+    resolves to the SAME species as the default is identical art today, so it's
+    deferred: Deli Counter's resolver falls back to the base module (the art
+    pass differentiates it later). This keeps a breachable wall as the
+    `breached` STATE of a wall slot (built with breach geometry, named
+    `wall_..._breached`), not a standalone module.
+
+    Yields ``(build_species, state, stem_state, deferred)`` — deferred entries
+    are reported, not built.
+    """
+    inter = slot.get("interactive")
+    if not inter:
+        yield (typ, None, global_state, False)
+        return
+    states = inter.get("states") or []
+    default = inter.get("default") or (states[0] if states else None)
+    sg = inter.get("state_geometry", {})
+
+    def species_for(st):
+        return sg.get(st, typ)
+
+    default_species = species_for(default)
+    # default state -> base stem (carries any whole-kit global_state suffix)
+    yield (default_species, None, global_state, False)
+    for st in states:
+        if st == default:
+            continue
+        sp = species_for(st)
+        # same species as default => identical art today => resolver fallback
+        yield (sp, st, st, sp == default_species)
+
+
 def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
              roles=None, state: str = None) -> dict:
     """From a Deli Counter slots.json manifest, return the distinct Zoo modules
     needed to theme the building.
 
     roles: optional set to limit which slot roles are planned (e.g. {'wall'}).
-    Returns {building_id, theme, module_count, slot_count, modules:[...]},
-    where each module has: stem, type, width_cm, fit ('exact'|'unit'),
-    dims [w, d, h], pivot, and count (how many slots it fills).
+    state: an optional WHOLE-KIT state suffix (e.g. build every module as a
+    'night' variant) — distinct from per-slot interactive states, which come
+    from each slot's `interactive` block (see INTERACTIVES.md).
+
+    Returns {building_id, theme, module_count, slot_count, modules:[...],
+    deferred_variants:[...]}, where each module has: stem, type (the slot's
+    base/role type — drives the filename), species (the geometry actually
+    built — differs from type only for state variants like a breached wall),
+    state (the interactive state this variant is, or None), width_cm,
+    fit ('exact'|'unit'), dims [w, d, h], pivot, and count.
     """
     buckets = {}
+    deferred = {}
     for s in manifest.get("slots", []):
         role = s.get("role")
         if role is None or (roles and role not in roles):
@@ -63,23 +115,44 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         typ = slot_typename(role, s.get("size_mod"))
         exact = typ != "wallEnd"
         width_cm = int(round(dims[0] * 100)) if exact else None
-        key = (typ, width_cm)
-        b = buckets.get(key)
-        if b is None:
-            b = {
-                "stem": module_stem(typ, theme, style, width_cm, state),
-                "type": typ,
-                "width_cm": width_cm,
-                "fit": "exact" if exact else "unit",
-                "dims": ([round(dims[0], 4), round(dims[1], 4),
-                          round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
-                "pivot": fit.get("pivot", "center"),
-                "count": 0,
-            }
-            buckets[key] = b
-        b["count"] += 1
+
+        for species, st, stem_state, is_deferred in slot_variants(s, typ,
+                                                                   state):
+            stem = module_stem(typ, theme, style, width_cm, stem_state)
+            if is_deferred:
+                d = deferred.get(stem)
+                if d is None:
+                    d = {"stem": stem, "type": typ, "state": st,
+                         "would_be_species": species,
+                         "reason": "same geometry as default state; Deli "
+                                   "Counter falls back to the base module "
+                                   "until the art pass differentiates it",
+                         "count": 0}
+                    deferred[stem] = d
+                d["count"] += 1
+                continue
+
+            key = (typ, width_cm, st, species)
+            b = buckets.get(key)
+            if b is None:
+                b = {
+                    "stem": stem,
+                    "type": typ,
+                    "species": species,
+                    "state": st,
+                    "width_cm": width_cm,
+                    "fit": "exact" if exact else "unit",
+                    "dims": ([round(dims[0], 4), round(dims[1], 4),
+                              round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
+                    "pivot": fit.get("pivot", "center"),
+                    "count": 0,
+                }
+                buckets[key] = b
+            b["count"] += 1
+
     modules = sorted(buckets.values(),
-                     key=lambda m: (m["type"], m["width_cm"] or 0))
+                     key=lambda m: (m["type"], m["width_cm"] or 0,
+                                    m["state"] or ""))
     return {
         "building_id": manifest.get("building_id"),
         "theme": theme,
@@ -89,4 +162,5 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         "module_count": len(modules),
         "slot_count": sum(m["count"] for m in modules),
         "modules": modules,
+        "deferred_variants": sorted(deferred.values(), key=lambda d: d["stem"]),
     }

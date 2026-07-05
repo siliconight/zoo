@@ -332,7 +332,13 @@ def kit_run(args):
         w, d, h = m["dims"]
         note = ("unit box, scaled per-slot" if m["fit"] == "unit"
                 else f"{w}x{d}x{h}m exact")
+        if m.get("state"):
+            note += f"  [state:{m['state']} <- {m['species']} geometry]"
         print(f"[zoo]   {m['stem']+'.glb':32} x{m['count']:<4} {note}")
+    for dv in plan.get("deferred_variants", []):
+        print(f"[zoo]   (deferred) {dv['stem']+'.glb':22} "
+              f"state:{dv['state']} -> resolver falls back to base "
+              f"(x{dv['count']})")
     print(f"[zoo] build these into art/zoo/, then Deli Counter's resolver "
           f"swaps them in (theme={args.theme}).")
     if args.out and args.out != "exhibits":
@@ -366,8 +372,12 @@ def build_kit_run(args):
           f"(theme={res['theme']}, style={res['style']:02d}) -> "
           f"{res['out_dir']}")
     for m in res["modules"]:
+        tag = f" [state:{m['state']}]" if m.get("state") else ""
         print(f"[zoo]   {m['stem']+'.glb':32} x{m['count']:<4} "
-              f"{m['status'].upper()}")
+              f"{m['status'].upper()}{tag}")
+    for dv in res.get("deferred_variants", []):
+        print(f"[zoo]   (deferred) {dv['stem']}.glb  state:{dv['state']} "
+              f"-> resolver falls back to base")
     print(f"[zoo] {len(res['modules'])} modules built, "
           f"{res['n_fail']} failed")
     print(f"[zoo] index: {res['index_file']}")

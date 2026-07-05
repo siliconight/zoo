@@ -198,6 +198,8 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
         "target_dims": dict(dims),
         "module": {
             "type": module["type"],
+            "species": module.get("species", module["type"]),
+            "state": module.get("state"),
             "theme": theme,
             "style": int(style),
             "width_cm": module.get("width_cm"),

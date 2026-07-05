@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.16.0] - Interactive fixtures: networked doors + breachable walls
+### Added - state-machine art variants, network-solution-agnostic
+- INTERACTIVES.md: the shared contract (copy into deli-counter too). An
+  interactive fixture (door, breachable wall) is a replicable state machine
+  `(stable_id, states[], default, transitions[])` - the ENTIRE networked
+  surface. It describes STATE, never synchronization, so it maps onto any
+  solution (server snapshot / event-RPC / lockstep / rollback) without
+  committing. State lives in gameplay.json (netcode-owned); art variants live
+  in art/zoo (the `_<state>` naming law); ownership stays on the existing art
+  vs gameplay line. Stable ids must NOT be array-index (re-greybox would
+  renumber and break references); advisory hints (authority/persist/reversible)
+  are never instructions; mid-states + continuous motion are handled by the
+  state set, not by adding networking concepts.
+- kit.plan_kit reads each slot's `interactive` block and expands it: default
+  state -> base module; each non-default state whose geometry DIFFERS ->
+  a `_<state>` variant, built with its `state_geometry` species at the slot's
+  exact dims; same-geometry states -> deferred_variants (resolver falls back to
+  base, so the art pass stays progressive). kit.slot_variants (pure) is the
+  expansion. Modules now carry `species` (geometry built) distinct from `type`
+  (the slot's base type, which drives the filename) + `state`.
+- This makes a breachable wall the `breached` STATE of a wall slot:
+  `state_geometry {"intact":"wall","breached":"breach"}` builds
+  `wall_..._w200` (wall) + `wall_..._w200_breached` (breach geometry at the
+  wall's dims) - not a standalone module.
+- build.build_module builds by the state's geometry species; build_kit records
+  species/state per module + the deferred list in <building>_kit.built.json.
+  CLI --kit / --build-kit show state variants and deferrals.
+- breach genome height envelope widened to 4.5m (a breached wall inherits the
+  wall's height).
+- 8 new tests (119 total).
+### Next
+- Deli Counter: assign stable interactive ids + emit the two blocks.
+- Delco art direction per state (door leaf for `closed`, blown/rebar breach) -
+  which turns today's deferred same-geometry states into real variants.
+
 ## [0.15.0] - Architectural module species: a planned kit becomes real GLBs
 ### Added - the five wall-slot modules Deli Counter swaps in
 - 5 new species (genome + recipe): wall, wallEnd, doorway, window, breach.

@@ -156,7 +156,8 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
         opts.update(options)
 
     species = module["type"]
-    genome = genome_mod.load_species(species)
+    build_species = module.get("species", species)
+    genome = genome_mod.load_species(build_species)
     if opts["collision"] is None:
         opts["collision"] = bool(genome.get("collision", True))
 
@@ -169,9 +170,9 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     bpy.context.scene.collection.children.link(coll)
 
     streams = seeding.RNGStreams(
-        seeding.root_key(stem, species, 0, TOOL_VERSION))
-    result = recipes.get(species)(plan, streams, coll)
-    root_name = arch_mod.root_name(species)
+        seeding.root_key(stem, build_species, 0, TOOL_VERSION))
+    result = recipes.get(build_species)(plan, streams, coll)
+    root_name = arch_mod.root_name(build_species)
 
     if opts["collision"] and result.get("collision_boxes"):
         collision.collision_from_boxes(root_name, result["collision_boxes"],
@@ -217,6 +218,8 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
 
     modules = [{"stem": r["stem"],
                 "type": r["plan"]["module"]["type"],
+                "species": r["plan"]["module"]["species"],
+                "state": r["plan"]["module"]["state"],
                 "width_cm": r["plan"]["module"]["width_cm"],
                 "fit": r["plan"]["module"]["fit"],
                 "count": counts.get(r["stem"], 1),
@@ -235,6 +238,7 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "module_count": plan["module_count"],
         "slot_count": plan["slot_count"],
         "modules": modules,
+        "deferred_variants": plan.get("deferred_variants", []),
     }
     index_file = f"{building_id}_kit.built.json"
     meta_mod.write_meta(os.path.join(out_dir, index_file), index)
@@ -242,6 +246,7 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
     n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
     return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
             "style": int(style), "modules": modules, "n_fail": n_fail,
+            "deferred_variants": plan.get("deferred_variants", []),
             "results": results, "index_file": index_file}
 
 
