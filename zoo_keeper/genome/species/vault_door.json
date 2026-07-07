@@ -1,0 +1,34 @@
+{
+  "species": "vault_door",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. Architectural interactive module: the CLOSED armored vault door (heavy portal frame + thick leaf + wheel hub) that fills a vault portal slot. Its open/breached states reuse doorway/breach geometry via the slot's interactive.state_geometry."
+  },
+  "dimensions": {
+    "width":  { "min": 0.8,  "max": 3.5,  "default": 1.4 },
+    "depth":  { "min": 0.2,  "max": 1.2,  "default": 0.5 },
+    "height": { "min": 1.8,  "max": 3.6,  "default": 2.3 }
+  },
+  "parts": ["VaultDoor_Jamb_L", "VaultDoor_Jamb_R", "VaultDoor_Sill", "VaultDoor_Header", "VaultDoor_Leaf", "VaultDoor_Hub"],
+  "params": {
+    "jamb":     { "min": 0.08, "max": 0.5,  "default": 0.18 },
+    "header":   { "min": 0.08, "max": 0.5,  "default": 0.20 },
+    "sill_lip": { "min": 0.0,  "max": 0.4,  "default": 0.15 },
+    "leaf_frac":{ "min": 0.4,  "max": 1.0,  "default": 0.7 },
+    "hub_frac": { "min": 0.1,  "max": 0.6,  "default": 0.32 }
+  },
+  "materials": {
+    "default": "metal",
+    "options": ["metal", "concrete"]
+  },
+  "styles": {
+    "default": { "material": "metal", "color": [0.42, 0.44, 0.47], "wear": 0.20, "bevel": 0.006 },
+    "delco":   { "material": "metal", "color": [0.38, 0.40, 0.43], "wear": 0.35, "bevel": 0.006 }
+  },
+  "budgets": { "tris_lod0": 900 },
+  "attachments": [],
+  "collision": true,
+  "match_priority": -1,
+  "keywords": ["vault door", "vault", "safe door"]
+}

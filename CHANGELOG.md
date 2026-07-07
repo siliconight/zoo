@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.17.0] - vault_door: the first bank module (interactive hero portal)
+### Added
+- New `vault_door` species (23 total: 17 props + 6 architectural modules). An
+  interactive architectural module: center-pivot, fit-to-exact-dims like the
+  other modules, but its closed form is a heavy
+  portal FRAME (thick jambs + header + a raised threshold lip) + a thick armored
+  LEAF filling the opening + a wheel HUB (~120 tris). The frame defines the exact
+  outer box; the leaf + hub sit inside, so fit-to-exact-dims holds at every size.
+  Plain structural pass (armored metal); the wheel spokes / bolt work / branded
+  face are a Delco art pass.
+- The species builds ONLY the closed (locked/unlocked) door. Its other states
+  come from the slot's interactive.state_geometry (INTERACTIVES.md): map
+  `open -> doorway` (leaf gone, a passage) and `breached -> breach` (blown), and
+  `unlocked` is identical art to `locked` today so the resolver falls back to
+  the base. So a vault-door slot with
+  `state_geometry {locked: vault_door, unlocked: vault_door, open: doorway,
+  breached: breach}` builds `vault_door_<theme>_01_w140` (closed) +
+  `..._open` (doorway geom) + `..._breached` (breach geom) at the vault's dims.
+- core/arch.py: a `vault_door` void (heavy frame + threshold lip). 5 new tests
+  (124 total).
+### Next
+- The rest of the bank vocabulary: teller_line (counter + bulletproof glass,
+  intact/shattered), safe_deposit_boxes (locked/drilled), plus props
+  (security_camera, queue_stanchion, drop_safe, gold_bar).
+- Deli Counter: a `vault` opening kind so a bank spec emits vault_door slots +
+  the interactive fixture (today it needs an authored interactive override).
+- Delco art pass on the vault face (wheel, bolts, signage).
+
 ## [0.16.0] - Interactive fixtures: networked doors + breachable walls
 ### Added - state-machine art variants, network-solution-agnostic
 - INTERACTIVES.md: the shared contract (copy into deli-counter too). An

@@ -83,6 +83,14 @@ def void_for(species: str, w: float, h: float, params: dict | None = None):
             z0, z1 = -h * 0.2, h * 0.2
         return {"x0": x0, "x1": x1, "z0": z0, "z1": z1}
 
+    if species == "vault_door":
+        # a heavy portal: thick jambs (from the genome's larger jamb), a header,
+        # and a raised threshold LIP you step over (vaults sit proud of the
+        # floor). The armored leaf fills this opening in the closed state.
+        header = min(float(params.get("header", 0.20)), h * 0.35)
+        lip = min(float(params.get("sill_lip", 0.15)), h * 0.20)
+        return {"x0": x0, "x1": x1, "z0": -hh + lip, "z1": hh - header}
+
     return None
 
 
