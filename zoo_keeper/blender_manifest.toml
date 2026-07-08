@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "zoo_keeper"
-version = "0.17.0"
+version = "0.18.0"
 name = "Zoo Keeper"
 tagline = "Offline procedural asset compiler - prompt to Godot-ready GLB"
 maintainer = "GabagoolStudios"

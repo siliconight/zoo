@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.18.0] - teller_line: bank teller window (counter + bulletproof glass)
+### Added
+- New `teller_line` species (24 total: 17 props + 7 architectural modules). An
+  interactive architectural module, center-pivot + fit-to-exact-dims: a solid
+  COUNTER base (floor to waist) + two side POSTS and a HEADER framing the
+  opening above it + a bulletproof GLASS barrier filling that opening with a
+  central transaction PASS-SLOT (money slides through -> no collision there).
+  The counter, frame and glass all block, so an intact teller line is a barrier.
+  The counter + frame tile the exact (w, d, h) box; the glass sits inside, so
+  fit-to-exact-dims holds (~84 tris). Glass panels reuse `arch.slab_parts` to
+  frame the pass-slot. Plain structural pass; the tray, speaker grille, signage
+  and cash drawer are a Delco art pass.
+- Builds only the intact state. A teller slot's `shattered` state reuses this
+  same species art, so Zoo defers it and the resolver falls back to the intact
+  base until a shattered-glass art pass gives it distinct geometry (same deal as
+  a broken window or unlocked vault). `collision_per_state` still tells the game
+  intact blocks / shattered is passable.
+- 3 new tests (127 total).
+### Next
+- `safe_deposit_boxes` (the vault box wall, locked/drilled), plus bank props
+  (security_camera, queue_stanchion, drop_safe, gold_bar).
+- Deli Counter: a `teller` opening kind so a bank spec emits teller_line slots +
+  the interactive fixture (states intact/shattered), same as the vault kind.
+- Delco art pass: shattered-glass variant, tray/grille/signage on the counter.
+
 ## [0.17.0] - vault_door: the first bank module (interactive hero portal)
 ### Added
 - New `vault_door` species (23 total: 17 props + 6 architectural modules). An

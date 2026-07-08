@@ -19,7 +19,7 @@ CC0-derived and every specimen carries its license metadata in its
 |---|---|
 | Genome | Per-species construction knowledge (`zoo_keeper/genome/species/*.json`) |
 | DNA | Recipes that turn a plan into geometry (`zoo_keeper/recipes/`) |
-| Species | An asset type — 23 so far: 17 props + 6 architectural modules (wall, doorway, window, vault_door, ...) |
+| Species | An asset type — 24 so far: 17 props + 7 architectural modules (wall, doorway, window, vault_door, teller_line, ...) |
 | Specimen | One generated instance |
 | Keeper | The Blender UI panel |
 | Habitat | A themed collection of species (roadmap) |
@@ -204,7 +204,7 @@ lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
 
 **Props (17):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`
 
-**Architectural modules (6):** `wall`, `wallEnd`, `doorway`, `window`, `breach`, `vault_door` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
+**Architectural modules (7):** `wall`, `wallEnd`, `doorway`, `window`, `breach`, `vault_door`, `teller_line` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
 
 ## Install (Blender 4.2+ / 5.x)
 
