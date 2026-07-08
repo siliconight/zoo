@@ -1,0 +1,22 @@
+{
+  "species": "drop_safe",
+  "version": 1,
+  "license": { "construction_knowledge": "CC0", "notes": "Original procedural construction. A small floor/drop safe: body, recessed door, dial, handle, drop slot." },
+  "dimensions": {
+    "width":  { "min": 0.4, "max": 0.6, "default": 0.5 },
+    "depth":  { "min": 0.4, "max": 0.6, "default": 0.5 },
+    "height": { "min": 0.4, "max": 0.75, "default": 0.6 }
+  },
+  "parts": ["DropSafe_Body", "DropSafe_Door", "DropSafe_Dial", "DropSafe_Handle", "DropSafe_Slot"],
+  "params": { "dial": { "min": 0, "max": 1, "default": 1 } },
+  "materials": { "default": "metal", "options": ["metal"] },
+  "styles": {
+    "default": { "material": "metal", "color": [0.24, 0.25, 0.28], "wear": 0.25, "bevel": 0.005 },
+    "delco":   { "material": "metal", "color": [0.20, 0.21, 0.23], "wear": 0.40, "bevel": 0.005 }
+  },
+  "budgets": { "tris_lod0": 1200 },
+  "attachments": ["ATT_dial"],
+  "collision": true,
+  "connectors": { "anchor": { "type": "floor" } },
+  "keywords": ["drop safe", "floor safe", "deposit safe"]
+}

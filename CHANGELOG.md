@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.20.0] - Bank props: camera, stanchion, drop safe, gold bar
+### Added
+- 4 new props (29 species: 21 props + 8 architectural modules) — the loose
+  bank dressing, all bottom-center props with connectors (not wall modules):
+  - `security_camera` — wall-mounted CCTV (mount plate + arm + body + lens +
+    LED), `wall` anchor so it snaps to a wall; collision (shootable).
+  - `queue_stanchion` — a rope/belt queue post (weighted disc base + slim post +
+    finial + belt hook), `floor` anchor + a top `ATT_belt` grip socket so a belt
+    can link to the next stanchion.
+  - `drop_safe` — a small floor safe (body + proud door + combo dial + lever
+    handle + drop slot), `floor` anchor; the body sits back 6cm so the proud
+    details reach the nominal front without pushing the bbox past the depth
+    range at any sampled size.
+  - `gold_bar` — a gold ingot, `surface` anchor, no collision (a pickup, like
+    cash_stack). Placed in bulk by the level.
+- All prompt-buildable (`--prompt "a security camera"`). 8 new tests (139 total).
+### Next
+- Deli Counter / Lot can scatter these via placements; the camera also pairs
+  with DC's `camera_socket` marker.
+- Delco art pass across the bank set (shattered glass, drilled boxes, blown
+  breach, plus signage/labels/wear on the props).
+
 ## [0.19.0] - safe_deposit_boxes: the vault-room box wall
 ### Added
 - New `safe_deposit_boxes` species (25 total: 17 props + 8 architectural
