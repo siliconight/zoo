@@ -1,0 +1,34 @@
+{
+  "species": "safe_deposit_boxes",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. Architectural interactive module: a vault-room wall of safe deposit boxes — a bordered grid of compartments on a metal backing. The intact (default) state; its drilled state reuses the same species art (deferred) until a drilled-boxes art pass."
+  },
+  "dimensions": {
+    "width":  { "min": 0.6, "max": 5.0, "default": 2.0 },
+    "depth":  { "min": 0.15, "max": 0.6, "default": 0.3 },
+    "height": { "min": 0.8, "max": 3.6, "default": 2.4 }
+  },
+  "parts": ["SafeDepositBoxes_Backing", "SafeDepositBoxes_Divider"],
+  "params": {
+    "cell":   { "min": 0.10, "max": 0.5,  "default": 0.22 },
+    "bar":    { "min": 0.01, "max": 0.08, "default": 0.03 },
+    "margin": { "min": 0.0,  "max": 0.3,  "default": 0.06 },
+    "max_cols": { "min": 1, "max": 24, "default": 16 },
+    "max_rows": { "min": 1, "max": 24, "default": 16 }
+  },
+  "materials": {
+    "default": "metal",
+    "options": ["metal", "laminate"]
+  },
+  "styles": {
+    "default": { "material": "metal", "color": [0.52, 0.53, 0.55], "wear": 0.18, "bevel": 0.003 },
+    "delco":   { "material": "metal", "color": [0.47, 0.47, 0.49], "wear": 0.30, "bevel": 0.003 }
+  },
+  "budgets": { "tris_lod0": 1400 },
+  "attachments": [],
+  "collision": true,
+  "match_priority": -1,
+  "keywords": ["safe deposit boxes", "safety deposit boxes", "deposit box wall", "vault boxes"]
+}

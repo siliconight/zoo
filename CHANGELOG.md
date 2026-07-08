@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.19.0] - safe_deposit_boxes: the vault-room box wall
+### Added
+- New `safe_deposit_boxes` species (25 total: 17 props + 8 architectural
+  modules). An interactive architectural module, center-pivot + fit-to-exact-
+  dims: a solid metal BACKING slab (rear of the depth) + a bordered GRID of
+  raised DIVIDERS on the front, so the compartments between them read as the
+  little numbered boxes. The backing defines the exact (w, d, h) box on
+  width/height/rear, the dividers reach the front; the wall is solid (one
+  collision box). Cheap by construction — (cols+1) vertical + (rows+1)
+  horizontal dividers, not a box per cell — and the grid is capped (default
+  16x16) so even a 5 m wall at a tiny cell size stays ~420 tris.
+- Builds only the intact state; a `drilled` state reuses this art (resolver
+  falls back to the base) until a drilled-boxes art pass. Numbers, handles and
+  keyholes are a Delco art pass.
+- 4 new tests (131 total).
+### Next
+- Bank props (security_camera, queue_stanchion, drop_safe, gold_bar) — these
+  are bottom-center props with connectors, not wall modules.
+- Deli Counter: `teller` and `safe_deposit` opening kinds so a bank spec emits
+  those slots + interactive fixtures (states intact/shattered, intact/drilled),
+  same as the `vault` kind. Pending a fresh DC zip.
+- Delco art pass: shattered-glass / drilled-box variants, box numbers + handles.
+
 ## [0.18.0] - teller_line: bank teller window (counter + bulletproof glass)
 ### Added
 - New `teller_line` species (24 total: 17 props + 7 architectural modules). An
