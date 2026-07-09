@@ -16,6 +16,7 @@ def build_slab(plan, streams, collection, species):
     dims = plan["dimensions"]
     w, d, h = dims["width"], dims["depth"], dims["height"]
     bevel, wear = plan["bevel"], plan["wear"]
+    ambient = plan.get("ambient", 0.0)
     params = plan.get("params", {})
     rng = streams.stream("wear")
     root = arch.root_name(species)
@@ -23,7 +24,8 @@ def build_slab(plan, streams, collection, species):
 
     def part(bm, name, wr=wear):
         objs.append(geometry.bm_to_object(
-            bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wr))
+            bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wr,
+            ambient=ambient))
 
     void = arch.void_for(species, w, h, params)
     slab = arch.slab_parts(w, d, h, void)

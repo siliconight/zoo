@@ -1,31 +1,82 @@
 {
-  "species": "breach",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Architectural module: a center-pivot wall slab with a punched floor-height hole (clean cutout; blown/rough look is a later art pass)."
+ "species": "breach",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural module: a center-pivot wall slab with a punched floor-height hole (clean cutout; blown/rough look is a later art pass)."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.6,
+   "max": 5.0,
+   "default": 1.2
   },
-  "dimensions": {
-    "width":  { "min": 0.6,  "max": 5.0,  "default": 1.2 },
-    "depth":  { "min": 0.05, "max": 0.6,  "default": 0.3 },
-    "height": { "min": 1.8,  "max": 4.5,  "default": 2.4 }
+  "depth": {
+   "min": 0.05,
+   "max": 0.6,
+   "default": 0.3
   },
-  "parts": ["Breach_Jamb_L", "Breach_Jamb_R", "Breach_Header"],
-  "params": {
-    "jamb":   { "min": 0.02, "max": 0.4, "default": 0.08 },
-    "lintel": { "min": 0.05, "max": 0.5, "default": 0.10 }
+  "height": {
+   "min": 1.8,
+   "max": 4.5,
+   "default": 2.4
+  }
+ },
+ "parts": [
+  "Breach_Jamb_L",
+  "Breach_Jamb_R",
+  "Breach_Header"
+ ],
+ "params": {
+  "jamb": {
+   "min": 0.02,
+   "max": 0.4,
+   "default": 0.08
   },
-  "materials": {
-    "default": "concrete",
-    "options": ["concrete", "plaster", "metal"]
+  "lintel": {
+   "min": 0.05,
+   "max": 0.5,
+   "default": 0.1
+  }
+ },
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.54,
+    0.52,
+    0.49
+   ],
+   "wear": 0.45,
+   "bevel": 0.002
   },
-  "styles": {
-    "default": { "material": "concrete", "color": [0.54, 0.52, 0.49], "wear": 0.45, "bevel": 0.002 },
-    "delco":   { "material": "concrete", "color": [0.48, 0.46, 0.43], "wear": 0.55, "bevel": 0.002 }
-  },
-  "budgets": { "tris_lod0": 600 },
-  "attachments": [],
-  "collision": true,
-  "match_priority": -1,
-  "keywords": ["breach"]
+  "delco": {
+   "material": "concrete",
+   "color": [
+    0.48,
+    0.46,
+    0.43
+   ],
+   "wear": 0.55,
+   "bevel": 0.002,
+   "ambient": 0.35
+  }
+ },
+ "budgets": {
+  "tris_lod0": 600
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "breach"
+ ]
 }

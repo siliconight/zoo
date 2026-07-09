@@ -250,6 +250,101 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
             "results": results, "index_file": index_file}
 
 
+def _orient_matrix(normal):
+    """A rotation placing a local +Z-up strip so its 'proud' (+Y) axis points
+    along ``normal``. For up-normals (roofline/curb) the strip stays flat; for
+    outward horizontal normals (wall base/conduit) it faces out from the wall.
+    """
+    import math
+
+    import mathutils
+
+    n = mathutils.Vector(normal)
+    if n.length < 1e-6:
+        return mathutils.Matrix.Identity(4)
+    n.normalize()
+    up = mathutils.Vector((0.0, 0.0, 1.0))
+    if abs(n.z) > 0.99:
+        # normal is (roughly) vertical: strip lies flat, no rotation needed.
+        return mathutils.Matrix.Identity(4)
+    # rotate local +Y (the proud axis) to the horizontal normal about Z.
+    yaw = math.atan2(n.y, n.x) - math.pi / 2.0
+    return mathutils.Matrix.Rotation(yaw, 4, "Z")
+
+
+def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
+                   options: dict | None = None) -> dict:
+    """Build non-collision facade covers from a Patina dressing manifest.
+
+    Reads Patina v0.11 ``<building>.dressing.json`` (via ``core.dressing``),
+    builds one thin cover mesh per order at its anchor pos/orientation, and
+    writes them into a single ``<building>_dressing.glb`` plus a
+    ``<building>_dressing.built.json`` index. Never emits collision: covers are
+    visual only, so the DC greybox collision stays authoritative.
+    """
+    import mathutils
+
+    from ..core import dressing as dressing_mod
+
+    opts = dict(DEFAULT_OPTIONS)
+    opts["clear_scene"] = True
+    if options:
+        opts.update(options)
+
+    genome = genome_mod.load_species("dress_cover")
+    plan = dressing_mod.plan_dressing(manifest, genome, theme, TOOL_VERSION)
+    building_id = plan["building_id"] or "building"
+
+    if opts["clear_scene"]:
+        clear_scene()
+    coll = bpy.data.collections.new(f"{building_id}_dressing")
+    bpy.context.scene.collection.children.link(coll)
+
+    built = 0
+    for i, cplan in enumerate(plan["plans"]):
+        order = cplan["order"]
+        streams = seeding.RNGStreams(
+            seeding.root_key(f"{building_id}_cover_{i}", "dress_cover",
+                             order["seed_offset"], TOOL_VERSION))
+        result = recipes.get("dress_cover")(cplan, streams, coll)
+        # place: orient by the anchor normal, then translate to its position.
+        rot = _orient_matrix(order["normal"])
+        trans = mathutils.Matrix.Translation(mathutils.Vector(order["pos"]))
+        m = trans @ rot
+        for obj in result["objects"]:
+            obj.matrix_world = m @ obj.matrix_world
+        # covers carry no collision boxes by contract -> no -colonly proxy.
+        built += len(result["objects"])
+
+    os.makedirs(out_dir, exist_ok=True)
+    stem = f"{building_id}_dressing"
+    base = os.path.join(out_dir, stem)
+    export.export_glb(base + ".glb", coll)
+    files = {"glb": f"{stem}.glb"}
+    if opts["save_blend"]:
+        export.save_blend(base + ".blend")
+        files["blend"] = f"{stem}.blend"
+
+    index = {
+        "zoo": {"tool_version": TOOL_VERSION},
+        "building_id": building_id,
+        "theme": theme,
+        "source": "patina-dressing/1",
+        "trim_sheet": plan["trim_sheet"],
+        "space": plan["space"],
+        "collision": "none",
+        "cover_count": plan["cover_count"],
+        "counts": plan["counts"],
+        "files": files,
+    }
+    index_file = f"{stem}.built.json"
+    meta_mod.write_meta(os.path.join(out_dir, index_file), index)
+
+    return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
+            "cover_count": plan["cover_count"], "counts": plan["counts"],
+            "covers_built": built, "files": files, "index_file": index_file}
+
+
 def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,
                   options: dict | None = None) -> dict:
     """Build a themed set of different species that share a look.

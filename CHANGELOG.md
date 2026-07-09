@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.22.0] - Directional ambient: form before the art pass
+### Added
+- **Directional ambient** baked into architectural-module vertex colour
+  (`geometry.wear_colors(..., ambient=)`): a cool-from-above / warm-fill-below
+  tint multiplied into the `Wear` layer per face, so modules read with soft
+  form before any external light — the geometry-side companion to Patina
+  v0.12's depth cues (Arne Jansson's "cool up / warm down" ambient). Godot
+  already reads `Wear` as an albedo multiply, so it shows with no shader change.
+  - Driven by a style-block `ambient` (0..1); the `delco` style on wall /
+    wallEnd / doorway / window / breach sets `0.35`. `ambient=0` (every other
+    style) keeps the original grayscale wear — byte-identical.
+  - Threaded style -> `dna.resolve_module_plan` -> `_arch.build_slab` ->
+    `bm_to_object` -> `wear_colors`.
+
+### Notes
+- Geometry build needs Blender; the pure logic (`_ambient_tint`: cool up, warm
+  down, white at strength 0) is verified. 152 tests green.
+
+
+## [0.21.0] - Dressing: build Patina's facade covers
+### Added
+- **`--dress <building>.dressing.json`** — build the non-collision facade covers
+  Patina v0.11 places. Patina emits a trim atlas + per-anchor build orders
+  (roof edges, base courses, curbs, conduit); Zoo builds the geometry. This is
+  the Zoo half of Patina's dressing contract.
+  - `core/dressing.py` (pure): reads a `patina-dressing/1` manifest, converts
+    Patina's baked Y-up to Blender Z-up when needed (DC-aligned manifests are
+    already Blender Z-up and pass through), resolves theme -> style
+    material/color/wear via the `dress_cover` genome, and drops any order whose
+    `collision` isn't `none`.
+  - `recipes/dress_cover.py` + `genome/species/dress_cover.json` (30th species):
+    a thin proud cover strip per order, oriented by the anchor normal, UV-region
+    carried from the order. **Returns no collision boxes** — covers are visual
+    only, so the DC greybox collision stays authoritative.
+  - `bpylayer/build.build_dressing`: builds every cover into one
+    `<building>_dressing.glb` + a `<building>_dressing.built.json` index.
+  - 13 new tests (152 total, pure planner). The geometry build needs Blender
+    (the standing in-engine walk).
+### Next
+- In-engine walk: confirm covers render correctly over DC's collision in Godot.
+- UV assignment to the atlas region is carried in the order; wiring it to the
+  exported mesh UVs is the remaining recipe detail to verify in Blender.
+
+
 ## [0.20.0] - Bank props: camera, stanchion, drop safe, gold bar
 ### Added
 - 4 new props (29 species: 21 props + 8 architectural modules) — the loose

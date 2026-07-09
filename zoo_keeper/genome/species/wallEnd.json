@@ -1,28 +1,70 @@
 {
-  "species": "wallEnd",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Architectural filler: ONE unit 1x1x1 solid box that Deli Counter scales per wall remainder."
+ "species": "wallEnd",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural filler: ONE unit 1x1x1 solid box that Deli Counter scales per wall remainder."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.1,
+   "max": 2.0,
+   "default": 1.0
   },
-  "dimensions": {
-    "width":  { "min": 0.1, "max": 2.0, "default": 1.0 },
-    "depth":  { "min": 0.1, "max": 2.0, "default": 1.0 },
-    "height": { "min": 0.1, "max": 2.5, "default": 1.0 }
+  "depth": {
+   "min": 0.1,
+   "max": 2.0,
+   "default": 1.0
   },
-  "parts": ["WallEnd_Panel"],
-  "params": {},
-  "materials": {
-    "default": "concrete",
-    "options": ["concrete", "plaster", "metal"]
+  "height": {
+   "min": 0.1,
+   "max": 2.5,
+   "default": 1.0
+  }
+ },
+ "parts": [
+  "WallEnd_Panel"
+ ],
+ "params": {},
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.56,
+    0.55,
+    0.53
+   ],
+   "wear": 0.15,
+   "bevel": 0.002
   },
-  "styles": {
-    "default": { "material": "concrete", "color": [0.56, 0.55, 0.53], "wear": 0.15, "bevel": 0.002 },
-    "delco":   { "material": "concrete", "color": [0.50, 0.49, 0.46], "wear": 0.35, "bevel": 0.002 }
-  },
-  "budgets": { "tris_lod0": 200 },
-  "attachments": [],
-  "collision": true,
-  "match_priority": -1,
-  "keywords": ["wall end", "wall cap"]
+  "delco": {
+   "material": "concrete",
+   "color": [
+    0.5,
+    0.49,
+    0.46
+   ],
+   "wear": 0.35,
+   "bevel": 0.002,
+   "ambient": 0.35
+  }
+ },
+ "budgets": {
+  "tris_lod0": 200
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "wall end",
+  "wall cap"
+ ]
 }

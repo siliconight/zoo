@@ -168,6 +168,7 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
         material = genome["materials"]["default"]
     color = list(style_block.get("color", [0.6, 0.6, 0.6]))
     wear = style_block.get("wear", 0.15)
+    ambient = style_block.get("ambient", 0.0)
 
     w, dep, h = module["dims"]
     dims = {"width": round(float(w), 4), "depth": round(float(dep), 4),
@@ -185,6 +186,7 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
         "material": material,
         "color": [round(c, 4) for c in color],
         "wear": round(float(wear), 3),
+        "ambient": round(float(ambient), 3),
         "dimensions": dims,
         "params": _default_params(genome),
         "parts": list(genome["parts"]),

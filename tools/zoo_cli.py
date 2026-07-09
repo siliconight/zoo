@@ -90,6 +90,11 @@ def parse_args():
     ap.add_argument("--kit",
                     help="a Deli Counter <name>.slots.json to plan an art/zoo "
                          "module kit for (reads the swap contract; pure)")
+    ap.add_argument("--dress",
+                    help="a Patina <name>.dressing.json to BUILD non-collision "
+                         "facade covers (roof edges, base courses, curbs, "
+                         "conduit) into <out>. Patina places + skins; Zoo "
+                         "builds the geometry (collision: none).")
     ap.add_argument("--build-kit", dest="build_kit",
                     help="a Deli Counter <name>.slots.json to BUILD the art/zoo "
                          "module GLBs for (center-pivot, exact-fit; needs "
@@ -386,6 +391,36 @@ def build_kit_run(args):
     return 0 if res["n_fail"] == 0 else 2
 
 
+def dress_run(args):
+    import json
+    import os
+    if not HAS_BPY:
+        print("[zoo] --dress builds geometry -> needs Blender. "
+              "Run inside Blender.")
+        return 1
+    if not os.path.isfile(args.dress):
+        print("[zoo] not a file:", args.dress)
+        return 1
+    manifest = json.load(open(args.dress, encoding="utf-8"))
+    schema = manifest.get("schema", "")
+    if not schema.startswith("patina-dressing/"):
+        print(f"[zoo] not a Patina dressing manifest (schema={schema!r})")
+        return 1
+
+    from zoo_keeper.bpylayer import build
+    res = build.build_dressing(
+        manifest, os.path.abspath(args.out), theme=args.theme,
+        options={"save_blend": not args.no_blend, "clear_scene": True})
+
+    summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
+    print(f"[zoo] dressing built for '{res['building_id']}' "
+          f"(theme={res['theme']}) -> {res['out_dir']}")
+    print(f"[zoo]   {res['covers_built']} covers ({summary}); collision: none")
+    print(f"[zoo]   glb: {res['files']['glb']}   index: {res['index_file']}")
+    print("[zoo] covers are visual-only; the DC greybox collision is unchanged.")
+    return 0
+
+
 def main():
     args = parse_args()
     if args.species_list:
@@ -396,6 +431,8 @@ def main():
         return ingest_run(args)
     if args.exhibit:
         return exhibit_run(args)
+    if args.dress:
+        return dress_run(args)
     if args.build_kit:
         return build_kit_run(args)
     if args.kit:

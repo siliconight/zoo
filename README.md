@@ -319,3 +319,21 @@ progress: `godot/addons/zoo_importer/`) -> more habitats -> knowledge packs
 ## License
 
 MIT (c) 2026 GabagoolStudios
+
+## Dressing (Patina facade covers)
+
+Patina (v0.11+) places facade dressing and skins it, then hands Zoo the
+geometry to build:
+
+```bash
+# Patina emits <building>.dressing.json + a trim atlas
+python tools/zoo_cli.py --dress gs_corner_station.patina.dressing.json --theme delco --out art/zoo
+```
+
+Zoo reads the per-anchor build orders (roof edges, base courses, curbs, conduit
+runs), builds a thin proud cover strip per order oriented by the anchor normal,
+and writes one `<building>_dressing.glb`. **Covers carry no collision** — they
+are visual only, so the Deli Counter greybox collision stays authoritative.
+Theme resolves to the same `delco` style the kit uses, so covers match the
+building. See Patina's `docs/DRESSING_CONTRACT.md` for the manifest shape.
+

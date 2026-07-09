@@ -1,28 +1,69 @@
 {
-  "species": "wall",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Architectural module: a solid center-pivot slab built to a Deli Counter slot's exact dims."
+ "species": "wall",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural module: a solid center-pivot slab built to a Deli Counter slot's exact dims."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.1,
+   "max": 5.0,
+   "default": 2.0
   },
-  "dimensions": {
-    "width":  { "min": 0.1,  "max": 5.0,  "default": 2.0 },
-    "depth":  { "min": 0.05, "max": 0.6,  "default": 0.3 },
-    "height": { "min": 2.0,  "max": 4.5,  "default": 3.6 }
+  "depth": {
+   "min": 0.05,
+   "max": 0.6,
+   "default": 0.3
   },
-  "parts": ["Wall_Panel"],
-  "params": {},
-  "materials": {
-    "default": "concrete",
-    "options": ["concrete", "plaster", "metal"]
+  "height": {
+   "min": 2.0,
+   "max": 4.5,
+   "default": 3.6
+  }
+ },
+ "parts": [
+  "Wall_Panel"
+ ],
+ "params": {},
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.56,
+    0.55,
+    0.53
+   ],
+   "wear": 0.15,
+   "bevel": 0.003
   },
-  "styles": {
-    "default": { "material": "concrete", "color": [0.56, 0.55, 0.53], "wear": 0.15, "bevel": 0.003 },
-    "delco":   { "material": "concrete", "color": [0.50, 0.49, 0.46], "wear": 0.35, "bevel": 0.003 }
-  },
-  "budgets": { "tris_lod0": 400 },
-  "attachments": [],
-  "collision": true,
-  "match_priority": -1,
-  "keywords": ["wall"]
+  "delco": {
+   "material": "concrete",
+   "color": [
+    0.5,
+    0.49,
+    0.46
+   ],
+   "wear": 0.35,
+   "bevel": 0.003,
+   "ambient": 0.35
+  }
+ },
+ "budgets": {
+  "tris_lod0": 400
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "wall"
+ ]
 }

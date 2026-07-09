@@ -141,11 +141,30 @@ def cube_project_uv(bm, texel=1.0):
             loop[uv].uv = (u * texel, v * texel)
 
 
-def wear_colors(bm, rng, wear):
-    """Write grayscale wear into a corner color layer.
+def _ambient_tint(nz, strength):
+    """Cool-from-above / warm-fill-below directional ambient for a face normal.
 
-    Concave verts (avg edge angle) darken; seeded noise adds grime.
-    wear=0 -> white; wear=1 -> heavy darkening."""
+    ``nz`` is the face normal's up-component (-1 down .. +1 up). Upward faces
+    catch cool sky light; downward faces catch warm bounce. Returns an RGB
+    multiplier centred on white, scaled by ``strength`` — the "cool up / warm
+    down" ambient painters use to give a form depth before any key light.
+    """
+    t = (nz + 1.0) * 0.5                         # 0 down .. 1 up
+    cool = (0.94, 0.97, 1.05)
+    warm = (1.05, 0.98, 0.92)
+    return tuple(1.0 + strength * ((c * t + w * (1.0 - t)) - 1.0)
+                 for c, w in zip(cool, warm))
+
+
+def wear_colors(bm, rng, wear, ambient=0.0):
+    """Write wear (and optional directional ambient) into a corner color layer.
+
+    Concave verts (avg edge angle) darken; seeded noise adds grime. With
+    ``ambient`` > 0, a cool-up / warm-fill-down tint is multiplied in per face
+    so modules read with soft form before any external light — the same
+    depth-from-ambient cue Patina bakes on the texture side. ``ambient=0``
+    keeps the original grayscale wear (byte-identical).
+    """
     layer = (bm.loops.layers.color.get(WEAR_LAYER)
              or bm.loops.layers.color.new(WEAR_LAYER))
     vert_dark = {}
@@ -158,22 +177,24 @@ def wear_colors(bm, rng, wear):
         vert_dark[v.index] = 1.0 - min(0.85, dark)
     bm.verts.index_update()
     for f in bm.faces:
+        tint = _ambient_tint(f.normal.z, ambient) if ambient else (1.0, 1.0, 1.0)
         for loop in f.loops:
             g = vert_dark.get(loop.vert.index, 1.0)
-            loop[layer][:] = (g, g, g, 1.0)
+            loop[layer][:] = (min(1.0, g * tint[0]), min(1.0, g * tint[1]),
+                              min(1.0, g * tint[2]), 1.0)
 
 
 # --- object plumbing ---------------------------------------------------------
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
-                 texel=1.0, rng=None, wear=0.0):
+                 texel=1.0, rng=None, wear=0.0, ambient=0.0):
     """Finish a bmesh (bevel -> normals -> UVs -> wear) and link an object."""
     if finish:
         bevel_edges(bm, bevel)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
         cube_project_uv(bm, texel)
         if rng is not None:
-            wear_colors(bm, rng, wear)
+            wear_colors(bm, rng, wear, ambient=ambient)
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()

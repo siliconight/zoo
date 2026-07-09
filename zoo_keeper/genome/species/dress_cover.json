@@ -1,0 +1,38 @@
+{
+  "species": "dress_cover",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A thin, non-collision facade cover strip (roof edge / base course / curb / conduit) built from a Patina dressing order. Visual only; never affects collision."
+  },
+  "collision": false,
+  "keywords": ["dress cover", "facade cover", "trim cover", "non-collision cover"],
+  "match_priority": -1,
+  "dimensions": {
+    "width":  { "min": 0.05, "max": 4.0, "default": 2.0 },
+    "depth":  { "min": 0.02, "max": 0.2, "default": 0.05 },
+    "height": { "min": 0.05, "max": 4.0, "default": 0.1 }
+  },
+  "parts": ["Cover_edge_strip"],
+  "params": {},
+  "materials": {
+    "default": "concrete",
+    "options": ["concrete", "plaster", "metal"]
+  },
+  "budgets": { "tris_max": 400 },
+  "attachments": [],
+  "styles": {
+    "default": {
+      "material": "concrete",
+      "color": [0.56, 0.55, 0.53],
+      "wear": 0.15,
+      "bevel": 0.002
+    },
+    "delco": {
+      "material": "concrete",
+      "color": [0.5, 0.49, 0.46],
+      "wear": 0.35,
+      "bevel": 0.002
+    }
+  }
+}
