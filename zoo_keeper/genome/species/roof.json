@@ -1,0 +1,72 @@
+{
+ "species": "roof",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural module: a flat capping slab built to a Deli Counter roof slot's exact dims (wide/deep, thin). Same slab construction as wall, oriented as a horizontal cap."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.5,
+   "max": 40.0,
+   "default": 6.0
+  },
+  "depth": {
+   "min": 0.5,
+   "max": 40.0,
+   "default": 6.0
+  },
+  "height": {
+   "min": 0.05,
+   "max": 0.8,
+   "default": 0.3
+  }
+ },
+ "parts": [
+  "Roof_Panel"
+ ],
+ "params": {},
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal",
+   "tar"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.44,
+    0.43,
+    0.42
+   ],
+   "wear": 0.2,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "tar",
+   "color": [
+    0.34,
+    0.33,
+    0.33
+   ],
+   "wear": 0.45,
+   "bevel": 0.003,
+   "ambient": 0.35
+  }
+ },
+ "budgets": {
+  "tris_lod0": 400
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "roof",
+  "rooftop",
+  "roof cap"
+ ]
+}

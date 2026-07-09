@@ -13,7 +13,7 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
-                "teller_line", "safe_deposit_boxes", "dress_cover"}
+                "teller_line", "safe_deposit_boxes", "dress_cover", "roof"}
 
 
 def test_all_species_load_and_validate():

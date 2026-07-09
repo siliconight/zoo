@@ -24,7 +24,7 @@ Coordinates: centered on the origin. x in [-w/2, w/2] (width), y in [-d/2, d/2]
 from __future__ import annotations
 
 # species whose slab is solid (no void)
-_SOLID = ("wall", "wallEnd")
+_SOLID = ("wall", "wallEnd", "roof")
 
 _EPS = 1e-6
 

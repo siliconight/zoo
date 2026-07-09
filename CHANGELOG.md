@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0] - Roof species: fill the modular roof slot
+### Added
+- **`roof` species** (`genome/species/roof.json` + `recipes/roof.py`) — a flat
+  capping slab built to a Deli Counter roof slot's exact dims (wide/deep, thin).
+  Same slab construction as `wall`, added to `_SOLID` so it builds without a
+  void. delco style is dark tar. This fills the roof slot DC emits under
+  `DC_MODULAR=1` (the "always emit the roof as an art-pass swap-slot when
+  modular" behaviour), which previously crashed `--build-kit` with
+  `No genome for species 'roof'` and left the roof face empty/black in-engine.
+- 32nd species; registered in tests. 152 tests green.
+
+
 ## [0.22.1] - Ambient: framed for Lux composition
 ### Changed
 - Documented the directional ambient's role relative to Lux: it is a *gentle,
