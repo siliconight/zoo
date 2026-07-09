@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.22.1] - Ambient: framed for Lux composition
+### Changed
+- Documented the directional ambient's role relative to Lux: it is a *gentle,
+  view-independent form* cue (the depth a surface has before any light), not a
+  second key light. Lux's sun does the runtime directional lighting; the baked
+  ambient (delco 0.35) stays subtle so it reads as form under Lux's banded
+  diffuse rather than doubling the sun. Behaviour unchanged; see Patina's
+  `docs/LOOK_PIPELINE.md` for the full cross-tool cue ownership.
+
+
 ## [0.22.0] - Directional ambient: form before the art pass
 ### Added
 - **Directional ambient** baked into architectural-module vertex colour

@@ -148,6 +148,14 @@ def _ambient_tint(nz, strength):
     catch cool sky light; downward faces catch warm bounce. Returns an RGB
     multiplier centred on white, scaled by ``strength`` — the "cool up / warm
     down" ambient painters use to give a form depth before any key light.
+
+    Composes with Lux: Lux's sun/ambient does the *runtime* directional light,
+    so this is deliberately a *gentle, view-independent form* cue baked into the
+    module — the depth a surface has before any light hits it — not a second key
+    light. Kept subtle (delco style uses 0.35) so it reads as form under Lux's
+    banded diffuse rather than doubling the sun. On the texture side Patina's
+    ``lux`` depth preset makes the matching choice: bake form (saturation),
+    defer light-dependent colour (shadow tint, distance) to Lux.
     """
     t = (nz + 1.0) * 0.5                         # 0 down .. 1 up
     cool = (0.94, 0.97, 1.05)
