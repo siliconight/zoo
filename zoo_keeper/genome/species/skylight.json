@@ -1,0 +1,73 @@
+{
+  "species": "skylight",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A low curb-mounted skylight: curb frame and glass top."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 2.0,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 1.4,
+      "default": 0.9
+    },
+    "height": {
+      "min": 0.25,
+      "max": 0.5,
+      "default": 0.35
+    }
+  },
+  "parts": [
+    "Skylight_Curb",
+    "Skylight_Glass"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.58,
+        0.58,
+        0.56
+      ],
+      "wear": 0.15,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.5,
+        0.5,
+        0.48
+      ],
+      "wear": 0.28,
+      "bevel": 0.004
+    }
+  },
+  "budgets": {
+    "tris_lod0": 400
+  },
+  "attachments": [],
+  "collision": true,
+  "connectors": {
+    "anchor": {
+      "type": "roof"
+    }
+  },
+  "keywords": [
+    "skylight",
+    "roof light",
+    "roof window"
+  ]
+}

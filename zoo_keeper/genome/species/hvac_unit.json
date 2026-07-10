@@ -1,0 +1,80 @@
+{
+  "species": "hvac_unit",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A rooftop HVAC unit (RTU): curb base, cabinet, fan cowl, side grille, conduit."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.2,
+      "max": 2.6,
+      "default": 1.8
+    },
+    "depth": {
+      "min": 0.8,
+      "max": 1.6,
+      "default": 1.1
+    },
+    "height": {
+      "min": 0.7,
+      "max": 1.2,
+      "default": 0.9
+    }
+  },
+  "parts": [
+    "Hvac_Curb",
+    "Hvac_Cabinet",
+    "Hvac_FanCowl",
+    "Hvac_Grille",
+    "Hvac_Conduit"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.72,
+        0.72,
+        0.7
+      ],
+      "wear": 0.18,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.62,
+        0.63,
+        0.6
+      ],
+      "wear": 0.32,
+      "bevel": 0.006
+    }
+  },
+  "budgets": {
+    "tris_lod0": 900
+  },
+  "attachments": [],
+  "collision": true,
+  "connectors": {
+    "anchor": {
+      "type": "roof"
+    }
+  },
+  "keywords": [
+    "hvac unit",
+    "hvac_unit",
+    "hvac",
+    "rooftop unit",
+    "rtu",
+    "air conditioner unit"
+  ]
+}

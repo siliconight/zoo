@@ -1,0 +1,83 @@
+{
+  "species": "vent_stack",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A roof vent stack / chimney: base plate, stack, rain cap. Square profile reads as a brick chimney."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.25,
+      "max": 0.9,
+      "default": 0.35
+    },
+    "depth": {
+      "min": 0.25,
+      "max": 0.9,
+      "default": 0.35
+    },
+    "height": {
+      "min": 0.8,
+      "max": 2.0,
+      "default": 1.4
+    }
+  },
+  "parts": [
+    "VentStack_Base",
+    "VentStack_Stack",
+    "VentStack_Cap"
+  ],
+  "params": {
+    "profile": [
+      "round",
+      "square"
+    ]
+  },
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.6,
+        0.6,
+        0.58
+      ],
+      "wear": 0.22,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.52,
+        0.5,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.004
+    }
+  },
+  "budgets": {
+    "tris_lod0": 600
+  },
+  "attachments": [],
+  "collision": true,
+  "connectors": {
+    "anchor": {
+      "type": "roof"
+    }
+  },
+  "keywords": [
+    "vent stack",
+    "vent_stack",
+    "chimney",
+    "exhaust stack",
+    "flue",
+    "roof vent"
+  ]
+}

@@ -376,3 +376,91 @@ def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,
     return {"habitat_id": hid, "out_dir": out_dir, "species": species_list,
             "manifest_file": manifest_file, "members": members,
             "n_fail": n_fail, "results": results}
+
+
+def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
+                     options: dict | None = None) -> dict:
+    """Build rooftop prop species from a DC slots.json (v0.25).
+
+    Plans the scatter with ``core.roofprops.scatter`` (pure, deterministic),
+    then builds each placement with its normal species recipe, lifts it onto
+    the roof slot's top surface, and exports a single
+    ``<building>_roofprops.glb`` + ``.built.json`` index. Species with
+    ``collision: true`` genomes get ``-colonly`` proxies (players walk roofs
+    in a heist game; an HVAC unit is cover, not a hologram).
+    """
+    import json
+    import mathutils
+
+    from ..core import roofprops as roofprops_mod
+
+    opts = dict(DEFAULT_OPTIONS)
+    opts["clear_scene"] = True
+    if options:
+        opts.update(options)
+    seed = int(opts.get("seed", 1999))
+
+    plan = roofprops_mod.scatter(slots_manifest, seed,
+                                 density=float(opts.get("density", 1.0)))
+    building_id = plan["building_id"] or "building"
+
+    if opts["clear_scene"]:
+        clear_scene()
+    coll = bpy.data.collections.new(f"{building_id}_roofprops")
+    bpy.context.scene.collection.children.link(coll)
+
+    built = 0
+    for i, p in enumerate(plan["placements"]):
+        species = p["species"]
+        genome = genome_mod.load_species(species)
+        intent = intent_mod.parse(species.replace("_", " "), seed=seed)
+        streams = seeding.RNGStreams(seeding.root_key(
+            f"{building_id}_roof_{i}", species, p["seed_offset"],
+            TOOL_VERSION))
+        sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
+        if theme in genome.get("styles", {}):
+            style = genome["styles"][theme]
+            sp_plan["style"] = theme
+            sp_plan["material"] = style.get("material", sp_plan["material"])
+            sp_plan["color"] = list(style.get("color", sp_plan["color"]))
+            sp_plan["wear"] = style.get("wear", sp_plan["wear"])
+
+        before = set(coll.objects)
+        result = recipes.get(species)(sp_plan, streams, coll)
+        if bool(genome.get("collision", True)) and result.get("collision_boxes"):
+            collision.collision_from_boxes(
+                species.title().replace("_", "") + str(i),
+                result["collision_boxes"], coll)
+        new_objs = [o for o in coll.objects if o not in before]
+
+        # recipes build centered: lift by half the resolved height onto the
+        # roof surface, spin by the scatter's rot_z, then translate.
+        half_h = sp_plan["dimensions"]["height"] / 2.0
+        rot = mathutils.Matrix.Rotation(
+            __import__("math").radians(p["rot_z"]), 4, "Z")
+        trans = mathutils.Matrix.Translation(mathutils.Vector(
+            (p["pos"][0], p["pos"][1], p["pos"][2] + half_h)))
+        m = trans @ rot
+        for obj in new_objs:
+            obj.matrix_world = m @ obj.matrix_world
+        built += 1
+
+    os.makedirs(out_dir, exist_ok=True)
+    base = os.path.join(out_dir, f"{building_id}_roofprops")
+    files = {"glb": f"{building_id}_roofprops.glb"}
+    export.export_glb(base + ".glb", coll)
+    if opts.get("save_blend"):
+        files["blend"] = f"{building_id}_roofprops.blend"
+        export.save_blend(base + ".blend")
+
+    index = {"tool_version": TOOL_VERSION, "building_id": building_id,
+             "theme": theme, "seed": seed, "space": plan["space"],
+             "counts": plan["counts"], "props_built": built,
+             "placements": plan["placements"], "files": files}
+    index_file = base + ".built.json"
+    with open(index_file, "w", encoding="utf-8") as fh:
+        json.dump(index, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    return {"building_id": building_id, "theme": theme, "counts": plan["counts"],
+            "props_built": built, "out_dir": out_dir, "files": files,
+            "index_file": index_file}

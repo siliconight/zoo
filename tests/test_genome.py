@@ -9,7 +9,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "soda_cup", "cheesesteak", "flat_top_grill",
                 "condiment_bottle", "french_fries",
                 "gold_bar", "drop_safe", "queue_stanchion",
-                "security_camera"}
+                "security_camera",
+                "hvac_unit", "water_tank", "vent_stack", "exhaust_fan",
+                "skylight", "satellite_dish"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.25.0] - Rooftop pack: break up the roofline
+
+### Added
+- **Six rooftop prop species** (silhouette breakers — the flat roofline was
+  the last 0% bucket of the geometric-detailing list): `hvac_unit` (curb /
+  cabinet / fan cowl / grille / conduit), `water_tank` (legs / tank /
+  stepped cap), `vent_stack` (`profile` param: round flue or square brick
+  chimney), `exhaust_fan` (curb / drum / hemisphere dome), `skylight`
+  (curb + glass slab), `satellite_dish` (pole / arm / flattened-ellipsoid
+  dish / feed, visual-only).
+- **`core/roofprops.py`** — pure, fully-tested scatter planner: reads a DC
+  slots.json, finds `roof` slots, lays a deterministic non-overlapping
+  scatter per roof plane (density scales with area; tanks and dishes hug
+  edges, skylights stay central; edge margin + clearance respected; same
+  manifest + seed = same roofscape). gs_corner_station: 18 props.
+- **`build_roof_props`** (bpylayer) + **`--roof-props <slots.json>`** CLI
+  (`--density`, `--seed`, `--theme`): builds each placement with its normal
+  species recipe, lifts it onto the roof's top surface, exports
+  `<building>_roofprops.glb` + `.built.json`. Species with collision
+  genomes get `-colonly` proxies — players walk roofs in a heist game; an
+  HVAC unit is cover, not a hologram.
+- `roof` joins the connect vocabulary as a world anchor type.
+
 ## [0.24.0] - Panel fields: the wall-scale dressing cover
 
 ### Added

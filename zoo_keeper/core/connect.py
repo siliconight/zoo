@@ -21,7 +21,7 @@ import math
 
 # canonical socket/anchor types
 CHARACTER_TYPES = {"head", "hand_l", "hand_r", "back", "hip", "feet", "chest"}
-WORLD_TYPES = {"surface", "floor", "wall", "ceiling"}
+WORLD_TYPES = {"surface", "floor", "wall", "ceiling", "roof"}
 PROP_TYPES = {"lid", "cap", "cup"}
 
 DEFAULT_ANCHOR_TYPE = "surface"
