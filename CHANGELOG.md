@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.27.0] - Skin stage: Pixelcoat packs on compiled assets
+
+### Added
+- **`--skins DIR`** — point any build mode (specimen, habitat, kit, dress,
+  roof props) at a folder of Pixelcoat texture packs and materials of a
+  matching kind become image-textured: albedo (Closest interpolation —
+  pixel art stays pixel art) + normal (OpenGL Y+) + stepped roughness
+  [+ emissive]. Kinds without a pack stay flat vertex color — the art
+  pass is progressive, same philosophy as DC's greybox fallback.
+  `make_material`'s signature is unchanged, so **zero recipes were
+  touched**; the skin decision lives entirely in the material factory.
+- **`core/skins.py`** (pure, no bpy): resolver + library report.
+  Resolution: `<kind>_<theme>/` then `<kind>/`; a pack dir holds a
+  `*.pack.json` (Pixelcoat >= 0.2, `pixelcoat-pack/1`) or bare
+  `*_albedo.png` (Pixelcoat 0.1 output). Manifest naming a missing albedo
+  raises (broken presence is loud); empty dir is a quiet miss. Without
+  Blender, `--skins` alone prints the resolved library as JSON and exits.
+- **Density contract**: mesh UVs are already world meters × texel
+  (`cube_project_uv`), so tiling packs land at uniform physical density on
+  every part of every species with zero per-species work. The pack's
+  `meters_per_tile` becomes a UV Mapping scale (exports as
+  KHR_texture_transform, which Godot 4 reads); per-part `texel` stays a
+  relative density knob.
+- Wear still exports as COLOR_0 and multiplies the albedo texture at
+  runtime per the glTF spec; the in-Blender wear-preview mix is skipped on
+  textured materials so the exporter's texture detection stays unambiguous.
+- 8 pure tests (174 total): theme-dir precedence, kind fallback, quiet
+  miss, optional-map dropping, corrupt-manifest error, legacy albedo dirs,
+  meters_per_tile passthrough, library report.
+
+### Notes
+- Consumes **Pixelcoat v0.2.0** packs (which added the material-map stage
+  and the `.pack.json` manifest for exactly this).
+- Standing caveat applies: the textured-material node graph needs a
+  Blender walk (no bpy in the build container) — smoke it with
+  `--prompt "vault door" --skins <dir>` and check the GLB in Godot.
+
 ## [0.26.0] - Facade kit: frames, gutters, pilasters
 
 ### Added

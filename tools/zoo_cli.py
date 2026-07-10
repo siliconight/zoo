@@ -109,6 +109,15 @@ def parse_args():
                          "Blender). Use --theme/--style/--out.")
     ap.add_argument("--theme", default="delco",
                     help="theme/kit name for module filenames (default: delco)")
+    ap.add_argument("--skins",
+                    help="folder of Pixelcoat texture packs "
+                         "(<kind>_<theme>/ or <kind>/ dirs, each holding a "
+                         "*.pack.json or bare *_albedo.png). Materials of a "
+                         "matching kind become textured (albedo + normal + "
+                         "roughness [+ emissive]); kinds without a pack stay "
+                         "flat vertex color — the art pass is progressive. "
+                         "Without Blender, --skins alone prints the resolved "
+                         "library and exits.")
     ap.add_argument("--style", type=int, default=1,
                     help="style number for module filenames (default: 1)")
     return ap.parse_args(argv)
@@ -460,6 +469,18 @@ def roofprops_run(args):
 
 def main():
     args = parse_args()
+    if args.skins:
+        args.skins = os.path.abspath(args.skins)
+        if HAS_BPY:
+            from zoo_keeper.bpylayer import materials
+            materials.set_skin_library(args.skins, args.theme)
+        else:
+            from zoo_keeper.core import skins
+            print(json.dumps(skins.library_report(args.skins, args.theme),
+                             indent=2, sort_keys=True))
+            print("[zoo] bpy not available -> skin library report only. "
+                  "Run inside Blender to build with these skins.")
+            return 0
     if args.species_list:
         from zoo_keeper.core import genome
         print("\n".join(genome.list_species()))

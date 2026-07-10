@@ -41,6 +41,25 @@ cheese, onion bits — ~2k tris, PS1 detail, fully deterministic. `soda_cup`
 shows the tapered-cylinder cup. Sculpted high-detail heroes remain out of
 scope (hand-model those to the same standards).
 
+## Skinning (Pixelcoat integration)
+
+Every Zoo mesh carries deterministic world-meter cube UVs, so a *tiling*
+texture pack lands on every part of every species at uniform physical
+density. Author packs in [Pixelcoat](https://github.com/siliconight/pixelcoat)
+(albedo + normal + roughness [+ emissive] + `.pack.json`), lay them out as
+`<kind>_<theme>/` or `<kind>/` dirs, and build with `--skins`:
+
+    skins/
+      metal_delco/metal.pack.json  (+ the PNGs it names)
+      concrete/wall_albedo.png     (bare Pixelcoat 0.1 output also works)
+
+    blender --background --python tools/zoo_cli.py -- ^
+        --prompt "bank vault door" --skins skins --theme delco --out exhibits
+
+Kinds without a pack stay flat vertex color — progressive art pass. Run
+`python tools/zoo_cli.py --skins skins --theme delco` (no Blender) to print
+what resolves.
+
 ## Dressing a greybox (Deli Counter / Lot integration)
 
 Zoo is designed to be [Deli Counter](https://github.com/siliconight/deli-counter)'s

@@ -1,9 +1,26 @@
-"""Export-safe flat Principled materials with vertex-color wear.
+"""Export-safe Principled materials: flat vertex-color wear by default,
+Pixelcoat texture packs when a skin library is set.
 
-Kept glTF-exporter friendly: Principled BSDF, constant base color, and a
-best-effort Color Attribute multiply for in-Blender preview (wrapped in
-try/except so node API churn can never break a build). Godot reads the
-COLOR_0 attribute directly via 'Vertex Color -> Use as Albedo'.
+Flat path (unchanged since forever): constant base color + best-effort
+Color Attribute multiply for in-Blender preview. Godot reads COLOR_0 via
+'Vertex Color -> Use as Albedo'.
+
+Skin path (v0.27): ``set_skin_library(dir, theme)`` points the factory at
+a folder of Pixelcoat packs (see ``core.skins`` for layout + resolution
+order). When ``make_material`` finds a pack for a material kind it builds
+an image-textured material instead — albedo (Closest interpolation, the
+pixel-art look), normal (OpenGL Y+, Non-Color), stepped roughness
+(Non-Color), optional emissive — shared per (kind, theme) across every
+species. No pack -> flat, exactly as before: the art pass stays
+progressive, matching DC's greybox fallback.
+
+Density: mesh UVs are world meters * texel (geometry.cube_project_uv). A
+Mapping node scales UVs by 1/meters_per_tile from the pack manifest, so a
+pack authored as "one tile = 2 m" repeats every 2 m at texel 1.0 (the
+glTF exporter emits this as KHR_texture_transform, which Godot 4 reads).
+Wear still exports as COLOR_0 and multiplies the albedo texture at
+runtime per the glTF spec; the in-Blender wear-preview mix is skipped on
+textured materials to keep the exporter's texture detection unambiguous.
 """
 from __future__ import annotations
 
@@ -16,8 +33,39 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "glass": 0.05, "paper": 0.80, "concrete": 0.92, "plaster": 0.88}
 METALLIC = {"metal": 0.85, "carbon": 0.30}
 
+_SKINS = {"dir": None, "theme": "delco"}
+
+
+def set_skin_library(skins_dir, theme="delco"):
+    """Point the material factory at a folder of Pixelcoat packs. Call
+    once per session (the CLI does it when --skins is given); pass None
+    to go back to flat materials."""
+    _SKINS["dir"] = skins_dir
+    _SKINS["theme"] = theme
+
+
+def _find_pack(material_kind):
+    if not _SKINS["dir"]:
+        return None
+    from ..core import skins  # pure; imported lazily to keep flat path lean
+    return skins.find_pack(_SKINS["dir"], material_kind, _SKINS["theme"])
+
 
 def make_material(name, base_color, material_kind):
+    """Same signature as always — recipes never know whether they got a
+    flat or a textured material. With a skin library set, all parts of a
+    kind share one textured material named for the pack (the genome's
+    per-specimen color rides only the flat path; textured paint jobs are
+    the pack's job)."""
+    pack = _find_pack(material_kind)
+    if pack:
+        skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}"
+        mat = bpy.data.materials.get(skin_name)
+        if mat:
+            return mat
+        print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})")
+        return _textured(skin_name, pack, material_kind)
+
     mat = bpy.data.materials.get(name)
     if mat:
         return mat
@@ -41,6 +89,89 @@ def make_material(name, base_color, material_kind):
         tree.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
     except Exception:
         pass
+    return mat
+
+
+def _load_image(path, non_color=False):
+    img = bpy.data.images.load(path, check_existing=True)
+    if non_color:
+        try:  # colorspace name varies across OCIO configs
+            img.colorspace_settings.name = "Non-Color"
+        except Exception:
+            pass
+    return img
+
+
+def _textured(name, pack, material_kind):
+    """Image-textured Principled from a Pixelcoat pack. Exporter-friendly
+    by construction: plain Image Texture -> socket links the glTF exporter
+    recognizes, nothing clever between texture and Base Color."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    # Kind-level defaults still set: they are the fallback response for
+    # any socket a pack doesn't texture.
+    bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(material_kind, 0.6)
+    bsdf.inputs["Metallic"].default_value = METALLIC.get(material_kind, 0.0)
+    maps = pack["maps"]
+
+    def tex_node(path, non_color=False):
+        node = tree.nodes.new("ShaderNodeTexImage")
+        node.image = _load_image(path, non_color)
+        node.interpolation = "Closest"       # pixel art stays pixel art
+        node.extension = "REPEAT"
+        return node
+
+    vector_out = None
+    mpt = pack.get("meters_per_tile") or 1.0
+    if abs(mpt - 1.0) > 1e-9:
+        try:  # UV scale -> KHR_texture_transform on export
+            uv = tree.nodes.new("ShaderNodeUVMap")
+            uv.uv_map = "UVMap"
+            mapping = tree.nodes.new("ShaderNodeMapping")
+            s = 1.0 / mpt
+            mapping.inputs["Scale"].default_value = (s, s, s)
+            tree.links.new(uv.outputs["UV"], mapping.inputs["Vector"])
+            vector_out = mapping.outputs["Vector"]
+        except Exception:
+            vector_out = None
+
+    def link_vector(node):
+        if vector_out is not None:
+            tree.links.new(vector_out, node.inputs["Vector"])
+
+    albedo = tex_node(maps["albedo"])
+    link_vector(albedo)
+    tree.links.new(albedo.outputs["Color"], bsdf.inputs["Base Color"])
+
+    if "roughness" in maps:
+        rough = tex_node(maps["roughness"], non_color=True)
+        link_vector(rough)
+        tree.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
+
+    if "normal" in maps:
+        try:
+            nrm = tex_node(maps["normal"], non_color=True)
+            link_vector(nrm)
+            nmap = tree.nodes.new("ShaderNodeNormalMap")
+            nmap.inputs["Strength"].default_value = 1.0
+            tree.links.new(nrm.outputs["Color"], nmap.inputs["Color"])
+            tree.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+        except Exception:
+            pass
+
+    if "emissive" in maps:
+        try:
+            emi = tex_node(maps["emissive"])
+            link_vector(emi)
+            sock = ("Emission Color" if "Emission Color" in bsdf.inputs
+                    else "Emission")                 # Blender 4.x vs older
+            tree.links.new(emi.outputs["Color"], bsdf.inputs[sock])
+            bsdf.inputs["Emission Strength"].default_value = 1.0
+        except Exception:
+            pass
+
     return mat
 
 
