@@ -14,6 +14,8 @@ anchor normal:
 * ``base_course`` — a foundation band at a wall foot (normal outward).
 * ``curb``        — a low ground-meet strip (normal up).
 * ``conduit_run`` — a slim vertical conduit up a wall to a light (normal out).
+* ``panel_field``  — one thin plate of a wall panel grid (normal outward;
+  Patina v0.17 emits one order per grid cell, sized by ``size2``).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -37,7 +39,8 @@ def build(plan, streams, collection):
     order = plan.get("order") or {"cover": "edge_strip", "size": 0.6}
     cover = order.get("cover", "edge_strip")
     rng = streams.stream("wear")
-    w, d, h = strip_size(cover, order.get("size", 0.6))
+    w, d, h = strip_size(cover, order.get("size", 0.6),
+                         order.get("size2"))
 
     bm = geometry.new_bm()
     geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))

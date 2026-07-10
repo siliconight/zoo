@@ -7,7 +7,7 @@ Tooled procedural construction, NOT AI mesh generation. No cloud, no
 scraping, no copyrighted source meshes.
 """
 
-TOOL_VERSION = "0.23.0"
+TOOL_VERSION = "0.24.0"
 
 bl_info = {
     "name": "Zoo Keeper",

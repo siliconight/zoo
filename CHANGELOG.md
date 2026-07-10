@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.24.0] - Panel fields: the wall-scale dressing cover
+
+### Added
+- **`panel_field` cover kind** (Patina v0.17 `wall_panel` orders): one thin
+  proud plate (3cm) per order, sized exactly by the order's new `size2` =
+  [face width, face height] — panel grids are laid out by Patina per wall
+  slot, so cells are never rescaled here. The field effect comes from many
+  orders in a grid; the gaps between plates are where a flat greybox facade
+  gets its shadow lines. Same collision as ever: covers stay
+  `collision: none`, the DC greybox stays authoritative.
+- `dress_plan` passes `size2` through; `strip_size(cover, size_hint, size2)`
+  gains the optional third argument (existing covers unaffected). Orders
+  without `size2` fall back to a square plate from the scalar size.
+
+### Notes
+- Pairs with **Patina v0.17.0** (`--panel-fields`). A gs_corner_station run
+  emits ~509 panel orders across 70 exterior wall slots.
+
 ## [0.23.0] - Roof species: fill the modular roof slot
 ### Added
 - **`roof` species** (`genome/species/roof.json` + `recipes/roof.py`) — a flat

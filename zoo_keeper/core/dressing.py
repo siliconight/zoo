@@ -32,17 +32,27 @@ _COVER = {
     "base_course": {"proud": 0.04, "cross": 0.35, "span": 2.0},
     "curb":        {"proud": 0.05, "cross": 0.12, "span": 2.0},
     "conduit_run": {"proud": 0.04, "cross": 0.05, "span": 1.6},
+    # One panel of a panel field (Patina v0.17 wall_panel orders): a thin
+    # proud plate; the field effect comes from many orders in a grid, and
+    # the gaps between plates are where the facade gets its shadow lines.
+    "panel_field": {"proud": 0.03, "cross": 1.2, "span": 1.2},
 }
 
 
-def strip_size(cover: str, size_hint: float):
+def strip_size(cover: str, size_hint: float, size2=None):
     """(w, d, h) of a cover's local strip before the anchor normal orients it.
 
     span runs along the wall/edge (scaled by the anchor size hint); depth is how
     far it stands proud; the third axis is its height/width on the surface.
-    conduit_run is the exception: a tall, slim vertical run.
+    conduit_run is the exception: a tall, slim vertical run. panel_field uses
+    the order's ``size2`` = [face width, face height] exactly — panel grids
+    are laid out by Patina, so cells must not be rescaled here.
     """
     c = _COVER.get(cover, _COVER["edge_strip"])
+    if cover == "panel_field":
+        w, h = (size2 if size2 and len(size2) == 2
+                else (max(size_hint, 0.2), max(size_hint, 0.2)))
+        return (max(float(w), 0.05), c["proud"], max(float(h), 0.05))
     span = max(0.2, c["span"] * max(size_hint, 0.1) / 0.6)
     if cover == "conduit_run":
         return (c["cross"], c["proud"], span)          # slim, tall
@@ -116,6 +126,9 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
             "normal": order_normal(order, space),
             "collision": order.get("collision", "none"),
             "seed_offset": int(order.get("seed_offset", 0)),
+            "size2": ([float(v) for v in order["size2"]]
+                      if isinstance(order.get("size2"), (list, tuple))
+                      else None),
         },
     }
 

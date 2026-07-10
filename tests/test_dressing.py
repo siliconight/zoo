@@ -111,3 +111,30 @@ def test_strip_size_scales_with_hint():
     small = dressing.strip_size("edge_strip", 0.3)
     large = dressing.strip_size("edge_strip", 1.2)
     assert large[0] > small[0]              # bigger anchor -> longer span
+
+
+# ---------------------------------------------------------------- v0.24
+def test_panel_field_uses_size2_exactly():
+    from zoo_keeper.core.dressing import strip_size
+    w, d, h = strip_size("panel_field", 0.97, [0.97, 1.02])
+    assert (w, h) == (0.97, 1.02)
+    assert d == 0.03
+
+
+def test_panel_field_without_size2_falls_back_square():
+    from zoo_keeper.core.dressing import strip_size
+    w, d, h = strip_size("panel_field", 0.8, None)
+    assert w == h == 0.8
+
+
+def test_dress_plan_passes_size2():
+    from zoo_keeper.core.dressing import dress_plan
+    genome = {"materials": {"default": "concrete", "options": ["concrete"]},
+              "styles": {"default": {"material": "concrete",
+                                     "color": [0.6, 0.6, 0.6]}}}
+    order = {"cover": "panel_field", "size": 0.97, "size2": [0.97, 1.02],
+             "pos": [0, 0, 0], "normal": [0, 1, 0], "seed_offset": 7}
+    plan = dress_plan(order, genome, "delco",
+                      "spec/Blender Z-up raw coords", "0.24.0")
+    assert plan["order"]["size2"] == [0.97, 1.02]
+    assert plan["order"]["cover"] == "panel_field"
