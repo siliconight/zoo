@@ -138,3 +138,42 @@ def test_dress_plan_passes_size2():
                       "spec/Blender Z-up raw coords", "0.24.0")
     assert plan["order"]["size2"] == [0.97, 1.02]
     assert plan["order"]["cover"] == "panel_field"
+
+
+# ---------------------------------------------------------------- v0.26
+def test_gutter_spans_module_exactly():
+    from zoo_keeper.core.dressing import strip_size
+    w, d, h = strip_size("gutter_run", 2.0)
+    assert w == 2.0 and d == 0.10 and h == 0.14
+
+
+def test_pilaster_uses_size2():
+    from zoo_keeper.core.dressing import strip_size
+    w, d, h = strip_size("pilaster", 0.24, [0.24, 4.2])
+    assert (w, h) == (0.24, 4.2) and d == 0.05
+
+
+def test_frame_strips_geometry():
+    from zoo_keeper.core.dressing import frame_strips
+    strips = frame_strips(3.0, 3.0, 0.12, 0.05)
+    assert len(strips) == 4
+    (hc, hs), (sc, ss), (lc, ls), (rc, rs) = strips
+    assert hc[2] == 1.5 + 0.06 and hs[0] == 3.24      # head overhangs jambs
+    assert sc[2] == -1.5 - 0.06
+    assert lc[0] == -1.5 - 0.06 and ls[2] == 3.0      # jamb = opening height
+    assert rc[0] == 1.5 + 0.06
+    # frame outer bounds = opening + 2 * frame width
+    assert max(c[0] + s[0] / 2 for c, s in strips) == 1.62
+
+
+def test_dress_plan_passes_frame_width():
+    from zoo_keeper.core.dressing import dress_plan
+    genome = {"materials": {"default": "concrete", "options": ["concrete"]},
+              "styles": {"default": {"material": "concrete",
+                                     "color": [0.6, 0.6, 0.6]}}}
+    order = {"cover": "frame", "size": 3.0, "size2": [3.0, 3.0],
+             "frame_width": 0.15, "pos": [0, 0, 0], "normal": [0, 1, 0],
+             "seed_offset": 7}
+    plan = dress_plan(order, genome, "delco",
+                      "spec/Blender Z-up raw coords", "0.26.0")
+    assert plan["order"]["frame_width"] == 0.15

@@ -16,6 +16,12 @@ anchor normal:
 * ``conduit_run`` — a slim vertical conduit up a wall to a light (normal out).
 * ``panel_field``  — one thin plate of a wall panel grid (normal outward;
   Patina v0.17 emits one order per grid cell, sized by ``size2``).
+* ``gutter_run``   — a horizontal eave run spanning its wall module exactly.
+* ``pilaster``     — a vertical proud strip at a module seam; reads as a
+  column at sixth-gen fidelity (``size2`` = [width, wall height]).
+* ``frame``        — four thin strips around a doorway/window opening
+  (``size2`` = the exact opening rect from DC's ``fit.openings``;
+  ``frame_width`` from the order).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -26,7 +32,7 @@ atlas so the strip reads as the right trim piece.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core.dressing import strip_size
+from ..core.dressing import frame_strips, strip_size
 
 
 def build(plan, streams, collection):
@@ -39,11 +45,19 @@ def build(plan, streams, collection):
     order = plan.get("order") or {"cover": "edge_strip", "size": 0.6}
     cover = order.get("cover", "edge_strip")
     rng = streams.stream("wear")
-    w, d, h = strip_size(cover, order.get("size", 0.6),
-                         order.get("size2"))
 
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))
+    if cover == "frame":
+        size2 = order.get("size2") or [1.0, 2.1]
+        proud = 0.05
+        for center, size in frame_strips(float(size2[0]), float(size2[1]),
+                                         float(order.get("frame_width",
+                                                         0.12)), proud):
+            geometry.add_box(bm, center, size)
+    else:
+        w, d, h = strip_size(cover, order.get("size", 0.6),
+                             order.get("size2"))
+        geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))
     obj = geometry.bm_to_object(
         bm, f"Cover_{cover}", collection,
         bevel=plan.get("bevel", 0.002), texel=1.2, rng=rng,

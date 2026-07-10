@@ -36,6 +36,10 @@ _COVER = {
     # proud plate; the field effect comes from many orders in a grid, and
     # the gaps between plates are where the facade gets its shadow lines.
     "panel_field": {"proud": 0.03, "cross": 1.2, "span": 1.2},
+    # v0.26 facade kit (Patina --frames/--gutters/--pilasters):
+    "gutter_run":  {"proud": 0.10, "cross": 0.14, "span": 2.0},
+    "pilaster":    {"proud": 0.05, "cross": 0.24, "span": 4.2},
+    "frame":       {"proud": 0.05, "cross": 0.12, "span": 1.0},
 }
 
 
@@ -49,10 +53,13 @@ def strip_size(cover: str, size_hint: float, size2=None):
     are laid out by Patina, so cells must not be rescaled here.
     """
     c = _COVER.get(cover, _COVER["edge_strip"])
-    if cover == "panel_field":
+    if cover in ("panel_field", "pilaster"):
         w, h = (size2 if size2 and len(size2) == 2
                 else (max(size_hint, 0.2), max(size_hint, 0.2)))
         return (max(float(w), 0.05), c["proud"], max(float(h), 0.05))
+    if cover == "gutter_run":
+        # spans its wall module exactly (sections join at module seams).
+        return (max(size_hint, 0.2), c["proud"], c["cross"])
     span = max(0.2, c["span"] * max(size_hint, 0.1) / 0.6)
     if cover == "conduit_run":
         return (c["cross"], c["proud"], span)          # slim, tall
@@ -129,6 +136,7 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
             "size2": ([float(v) for v in order["size2"]]
                       if isinstance(order.get("size2"), (list, tuple))
                       else None),
+            "frame_width": float(order.get("frame_width", 0.12)),
         },
     }
 
@@ -158,3 +166,19 @@ def plan_dressing(manifest: dict, genome: dict, theme: str,
         "counts": dict(sorted(counts.items())),
         "cover_count": len(plans),
     }
+
+
+def frame_strips(w: float, h: float, frame_w: float, proud: float):
+    """The four strips of an opening frame, as (center, size) box specs in
+    cover-local space (x along the wall, y proud, z up; opening centered on
+    the origin). Pure so the geometry contract is testable without Blender:
+    top and bottom strips overhang the jambs (butt joints at the corners),
+    the jambs run the opening height exactly.
+    """
+    f, p = float(frame_w), float(proud)
+    return [
+        ((0.0, 0.0, h / 2 + f / 2), (w + 2 * f, p, f)),      # head
+        ((0.0, 0.0, -h / 2 - f / 2), (w + 2 * f, p, f)),     # sill
+        ((-w / 2 - f / 2, 0.0, 0.0), (f, p, h)),             # left jamb
+        ((w / 2 + f / 2, 0.0, 0.0), (f, p, h)),              # right jamb
+    ]

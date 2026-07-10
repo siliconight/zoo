@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.26.0] - Facade kit: frames, gutters, pilasters
+
+### Added
+- **Three cover kinds** completing the architectural-depth bucket (Patina
+  v0.18 `--frames` / `--gutters` / `--pilasters`):
+  - `frame` — four thin strips (head, sill, two jambs; butt joints, head
+    and sill overhang the jambs) around a doorway/window opening. Sized by
+    `size2` = the exact opening rect from DC's `fit.openings`;
+    `frame_width` rides the order. Geometry contract lives in the pure,
+    tested `core.dressing.frame_strips`.
+  - `gutter_run` — a horizontal eave run spanning its wall module exactly
+    (never rescaled; sections join at module seams).
+  - `pilaster` — a vertical proud strip at a module seam, sized by `size2`
+    = [width, wall height].
+- `dress_plan` passes `frame_width` through. Covers stay `collision: none`.
+
+### Notes
+- Pairs with **Patina v0.18.0**. gs_corner_station: 13 frames, 70 gutters,
+  70 pilasters.
+
 ## [0.25.0] - Rooftop pack: break up the roofline
 
 ### Added
