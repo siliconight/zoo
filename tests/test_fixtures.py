@@ -132,3 +132,46 @@ def test_row_direction_matches_rotation_for_any_angle():
     p0, p1 = fixtures.row_points(a)
     assert round(p1[0] - p0[0], 4) == 1.0
     assert round(p1[1] - p0[1], 4) == 1.0
+
+
+# --- v0.29 facade hardware (sign + wall_pack, DC lights.json 1.1) ------------
+
+def _sign(aid="ext_0_S_sign", pos=(6.0, -0.2, 2.55), rot=270.0,
+          size=(2.0, 0.6)):
+    return {"id": aid, "type": "sign", "source": "derived",
+            "pos": list(pos), "rot_y": rot, "size": list(size),
+            "reacts_to_alarm": True}
+
+
+def _pack(aid="ext_0_N_pack_1", pos=(6.0, 12.15, 2.45), rot=90.0):
+    return {"id": aid, "type": "wall_pack", "source": "derived",
+            "pos": list(pos), "rot_y": rot, "reacts_to_alarm": True}
+
+
+def test_facade_types_map_with_mounts():
+    plan = fixtures.plan(_manifest([_sign(), _pack()]))
+    by = {p["species"]: p for p in plan["placements"]}
+    assert by["sign_box"]["mount"] == "center"
+    assert by["wall_pack"]["mount"] == "above"
+    assert by["sign_box"]["rot_z"] == 270.0
+
+
+def test_sign_size_rides_through_to_the_placement():
+    plan = fixtures.plan(_manifest([_sign(size=(2.0, 0.6)), _pack()]))
+    sign = next(p for p in plan["placements"] if p["species"] == "sign_box")
+    assert sign["size"] == [2.0, 0.6]
+    pack = next(p for p in plan["placements"] if p["species"] == "wall_pack")
+    assert "size" not in pack
+
+
+def test_clamp_dim_respects_genome_range():
+    dim = {"min": 0.8, "max": 6.0, "default": 2.0}
+    assert fixtures.clamp_dim(2.0, dim) == 2.0
+    assert fixtures.clamp_dim(0.2, dim) == 0.8
+    assert fixtures.clamp_dim(9.0, dim) == 6.0
+
+
+def test_facade_anchors_are_rowless_single_points():
+    plan = fixtures.plan(_manifest([_sign(), _pack()]))
+    assert len(plan["placements"]) == 2
+    assert plan["counts"] == {"sign_box": 1, "wall_pack": 1}

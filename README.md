@@ -132,7 +132,10 @@ emitter (filling DC's ceiling gap, diffuser face at the anchor); streetlight
 poles hang below it (pole top at the anchor, stretched to reach grade). Lit
 faces are glTF-emissive, so they glow under any Lux preset — and pulse with
 `reacts_to_alarm` once Lux drives them. `window` anchors are daylight through
-glass: no hardware, by design.
+glass: no hardware, by design. DC lights.json **1.1** adds facade anchors —
+`sign` (storefront cabinet, face at the anchor plane, sized by the anchor)
+and `wall_pack` (wedge over every exterior door) — both emitted proud of
+the wall so the lamp is never inside the hardware.
 
 ## Connectors (Lego-style anchoring)
 
@@ -251,7 +254,7 @@ lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
 
 ## Species
 
-**Props (29):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`, `security_camera`, `queue_stanchion`, `drop_safe`, `gold_bar`, `hvac_unit`, `water_tank`, `vent_stack`, `exhaust_fan`, `skylight`, `satellite_dish`, `fluorescent_fixture`, `streetlight`
+**Props (31):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`, `security_camera`, `queue_stanchion`, `drop_safe`, `gold_bar`, `hvac_unit`, `water_tank`, `vent_stack`, `exhaust_fan`, `skylight`, `satellite_dish`, `fluorescent_fixture`, `streetlight`, `sign_box`, `wall_pack`
 
 **Architectural modules (8):** `wall`, `wallEnd`, `doorway`, `window`, `breach`, `vault_door`, `teller_line`, `safe_deposit_boxes` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
 

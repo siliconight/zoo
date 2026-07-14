@@ -522,6 +522,12 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
             # Stretch to reach grade: pole top at the anchor, base at z=0.
             sp_plan["dimensions"]["height"] = fixtures_mod.pole_height_for(
                 p["pos"][2], genome["dimensions"]["height"])
+        if p.get("size"):
+            # DC sized the panel (signs): width x height, clamped to genome.
+            sp_plan["dimensions"]["width"] = fixtures_mod.clamp_dim(
+                p["size"][0], genome["dimensions"]["width"])
+            sp_plan["dimensions"]["height"] = fixtures_mod.clamp_dim(
+                p["size"][1], genome["dimensions"]["height"])
 
         before = set(coll.objects)
         result = recipes.get(species)(sp_plan, streams, coll)
@@ -533,8 +539,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
 
         # Recipes build centered. Mount 'above': bottom (-h/2) at the anchor
         # -> lift +h/2. Mount 'below': top (+h/2) at the anchor -> drop -h/2.
+        # Mount 'center': the anchor IS the centre (sign faces) -> no lift.
         half_h = sp_plan["dimensions"]["height"] / 2.0
-        lift = half_h if p["mount"] == "above" else -half_h
+        lift = {"above": half_h, "below": -half_h,
+                "center": 0.0}[p["mount"]]
         rot = mathutils.Matrix.Rotation(math.radians(p["rot_z"]), 4, "Z")
         trans = mathutils.Matrix.Translation(mathutils.Vector(
             (p["pos"][0], p["pos"][1], p["pos"][2] + lift)))

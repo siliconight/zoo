@@ -1,0 +1,89 @@
+{
+  "species": "sign_box",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A lit storefront cabinet sign: emissive acrylic face, shallow metal cabinet behind it, two standoff arms back to the wall. Built for the light-anchor pipeline: the anchor is the FACE plane centre (DC emits it 0.2 m proud of the wall), local +X is outward, the cabinet hangs behind toward -X."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 6.0,
+      "default": 2.0
+    },
+    "depth": {
+      "min": 0.12,
+      "max": 0.3,
+      "default": 0.18
+    },
+    "height": {
+      "min": 0.3,
+      "max": 1.5,
+      "default": 0.6
+    }
+  },
+  "parts": [
+    "SignBox_Cabinet",
+    "SignBox_Face",
+    "SignBox_Arms"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.3,
+        0.3,
+        0.32
+      ],
+      "wear": 0.2,
+      "bevel": 0.003,
+      "emissive_color": [
+        1.0,
+        0.93,
+        0.78
+      ],
+      "emissive_strength": 2.2
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.28,
+        0.27,
+        0.28
+      ],
+      "wear": 0.32,
+      "bevel": 0.003,
+      "emissive_color": [
+        1.0,
+        0.9,
+        0.7
+      ],
+      "emissive_strength": 2.2
+    }
+  },
+  "budgets": {
+    "tris_lod0": 260
+  },
+  "attachments": [],
+  "collision": false,
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    }
+  },
+  "keywords": [
+    "sign box",
+    "sign_box",
+    "storefront sign",
+    "cabinet sign",
+    "shop sign",
+    "lit sign"
+  ]
+}

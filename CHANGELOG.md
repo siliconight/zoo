@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.29.0] - Facade hardware: sign_box + wall_pack (pairs with DC v0.75.0, lux v0.14.0)
+
+### Added
+- **Two facade species** for DC's lights.json 1.1 anchors: `sign_box`
+  (emissive acrylic face at the anchor plane, cabinet + standoff arms
+  hanging back toward the wall at -X local; face sized by the anchor's
+  `size`, clamped to the genome range) and `wall_pack` (wedge body above
+  the emitter, emissive lens on the underside, arm back to the wall).
+  Both collision-free (above head height).
+- **`mount: center`** in the fixture planner — the anchor IS the body's
+  centre (sign faces); joins `above`/`below`. Anchor `size` now rides
+  through placements; `core.fixtures.clamp_dim` bounds DC-supplied panels.
+- **Emissive naming contract**: lit faces are `M_*_Lens` / `M_*_Diffuser` /
+  `M_*_Face` — exactly what lux v0.14.0's emissive binder keys on, so
+  cutting the building power kills sign glow with the lamps.
+- 4 new pure tests (190 total).
+
 ## [0.28.0] - Light fixtures: hardware for the light-anchor pipeline
 
 Light comes from the sun or from physical fixtures — never from nowhere.

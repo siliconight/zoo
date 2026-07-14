@@ -31,11 +31,21 @@ import math
 import zlib
 
 # anchor type -> which species builds its hardware and how it hangs off the
-# emitter point. Extending the pipeline (sign boxes, neon tubes, sconces) is
-# one row here + one genome + one recipe.
+# emitter point: 'above' (body above the emitter — troffers, wall packs),
+# 'below' (body below — poles), 'center' (emitter IS the body's centre —
+# sign faces). Extending the pipeline is one row here + one genome + one
+# recipe.
 FIXTURES = {
     "fluorescent": {"species": "fluorescent_fixture", "mount": "above"},
     "streetlight": {"species": "streetlight", "mount": "below"},
+    # v0.29 facade hardware (DC lights.json 1.1). Both anchors sit PROUD of
+    # the wall: the sign's pos is its FACE plane (cabinet hangs behind,
+    # toward the wall at -X local); the wall pack's pos is in free air
+    # under the wedge (body above, arm back to the wall at -X local).
+    # rot_y on both is the wall's OUTWARD facing, so local +X points away
+    # from the building.
+    "sign": {"species": "sign_box", "mount": "center"},
+    "wall_pack": {"species": "wall_pack", "mount": "above"},
 }
 
 # anchor types that are light without hardware, by design.
@@ -96,6 +106,12 @@ def pole_height_for(anchor_z: float, height_dim: dict) -> float:
                      float(height_dim["max"])), 4)
 
 
+def clamp_dim(value: float, dim: dict) -> float:
+    """A DC-supplied panel dimension, clamped into a genome range."""
+    return round(min(max(float(value), float(dim["min"])),
+                     float(dim["max"])), 4)
+
+
 def _seed_offset(anchor_id: str, slot: int) -> int:
     """Stable per-lamp variation key: same manifest -> same hardware."""
     return (zlib.crc32(str(anchor_id).encode("utf-8")) + slot) % 100000
@@ -131,7 +147,7 @@ def plan(manifest: dict, types=None) -> dict:
                             "reason": "filtered out by --fixture-types"})
             continue
         for j, p in enumerate(row_points(a)):
-            placements.append({
+            placement = {
                 "anchor_id": aid,
                 "slot": j,
                 "type": t,
@@ -141,7 +157,13 @@ def plan(manifest: dict, types=None) -> dict:
                 "rot_z": float(a.get("rot_y", 0.0)) % 360.0,
                 "reacts_to_alarm": bool(a.get("reacts_to_alarm", False)),
                 "seed_offset": _seed_offset(aid, j),
-            })
+            }
+            size = a.get("size")
+            if (isinstance(size, (list, tuple)) and len(size) >= 2):
+                # DC sizes the panel (signs); the builder clamps it into the
+                # genome's dimension range.
+                placement["size"] = [float(size[0]), float(size[1])]
+            placements.append(placement)
             counts[fx["species"]] = counts.get(fx["species"], 0) + 1
     return {
         "scope_id": scope_id(manifest),
