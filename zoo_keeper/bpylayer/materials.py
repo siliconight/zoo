@@ -92,6 +92,37 @@ def make_material(name, base_color, material_kind):
     return mat
 
 
+def make_emissive_material(name, color, strength=2.0):
+    """Self-lit surface (fixture diffusers, streetlight lenses, sign faces).
+
+    Plain Principled with Emission Color/Strength — exports as glTF emissive
+    (+ KHR_materials_emissive_strength), which Godot 4 imports as
+    StandardMaterial3D emission. Lux's LEVEL role keeps imported standard
+    materials, so the face stays lit under any preset and contributes to a
+    LightmapGI bake on the pc2000 path. No wear-preview mix and callers
+    should paint the mesh with wear=0: a lit lens doesn't grime, and a
+    white COLOR_0 keeps the albedo multiply neutral in Godot."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    rgba = (*color, 1.0)
+    bsdf.inputs["Base Color"].default_value = rgba
+    bsdf.inputs["Roughness"].default_value = 0.35
+    try:  # Blender 4.x socket names; older builds fall back below
+        bsdf.inputs["Emission Color"].default_value = rgba
+        bsdf.inputs["Emission Strength"].default_value = float(strength)
+    except KeyError:
+        try:
+            bsdf.inputs["Emission"].default_value = rgba
+        except KeyError:
+            pass
+    return mat
+
+
 def _load_image(path, non_color=False):
     img = bpy.data.images.load(path, check_existing=True)
     if non_color:

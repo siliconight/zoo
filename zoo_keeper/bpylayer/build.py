@@ -464,3 +464,102 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
     return {"building_id": building_id, "theme": theme, "counts": plan["counts"],
             "props_built": built, "out_dir": out_dir, "files": files,
             "index_file": index_file}
+
+
+def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
+                   options: dict | None = None) -> dict:
+    """Build physical light fixtures from a ``.lights.json`` (v0.28).
+
+    The light-anchor pipeline's hardware leg: DC/Lot say where light comes
+    from, Lux spawns the lamps — this bakes the fixtures the light appears
+    to come from at the SAME anchors. Plans with ``core.fixtures.plan``
+    (pure, deterministic; rows expand centered exactly like Lux's rigs),
+    builds each lamp point with its species recipe, aligns it vertically by
+    mount (``above``: bottom at the anchor — fluorescent housings fill DC's
+    ceiling gap; ``below``: top at the anchor — streetlight poles stretch to
+    grade), and exports one ``<scope>_fixtures.glb`` + ``.built.json``.
+    Works on a per-building DC manifest or a Lot-merged site manifest.
+    Species with ``collision: true`` genomes get ``-colonly`` proxies
+    (players bump into poles; ceiling troffers stay collision-free).
+    ``options['types']``: iterable of anchor types to build (default all).
+    """
+    import json
+    import math
+    import mathutils
+
+    from ..core import fixtures as fixtures_mod
+
+    opts = dict(DEFAULT_OPTIONS)
+    opts["clear_scene"] = True
+    if options:
+        opts.update(options)
+    seed = int(opts.get("seed", 1999))
+
+    plan = fixtures_mod.plan(lights_manifest, types=opts.get("types"))
+    scope = plan["scope_id"]
+
+    if opts["clear_scene"]:
+        clear_scene()
+    coll = bpy.data.collections.new(f"{scope}_fixtures")
+    bpy.context.scene.collection.children.link(coll)
+
+    built = 0
+    for i, p in enumerate(plan["placements"]):
+        species = p["species"]
+        genome = genome_mod.load_species(species)
+        intent = intent_mod.parse(species.replace("_", " "), seed=seed)
+        streams = seeding.RNGStreams(seeding.root_key(
+            f"{scope}_fixture_{i}", species, p["seed_offset"], TOOL_VERSION))
+        sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
+        if theme in genome.get("styles", {}):
+            style = genome["styles"][theme]
+            sp_plan["style"] = theme
+            sp_plan["style_block"] = dict(style)
+            sp_plan["material"] = style.get("material", sp_plan["material"])
+            sp_plan["color"] = list(style.get("color", sp_plan["color"]))
+            sp_plan["wear"] = style.get("wear", sp_plan["wear"])
+        if p["mount"] == "below":
+            # Stretch to reach grade: pole top at the anchor, base at z=0.
+            sp_plan["dimensions"]["height"] = fixtures_mod.pole_height_for(
+                p["pos"][2], genome["dimensions"]["height"])
+
+        before = set(coll.objects)
+        result = recipes.get(species)(sp_plan, streams, coll)
+        if bool(genome.get("collision", True)) and result.get("collision_boxes"):
+            collision.collision_from_boxes(
+                species.title().replace("_", "") + str(i),
+                result["collision_boxes"], coll)
+        new_objs = [o for o in coll.objects if o not in before]
+
+        # Recipes build centered. Mount 'above': bottom (-h/2) at the anchor
+        # -> lift +h/2. Mount 'below': top (+h/2) at the anchor -> drop -h/2.
+        half_h = sp_plan["dimensions"]["height"] / 2.0
+        lift = half_h if p["mount"] == "above" else -half_h
+        rot = mathutils.Matrix.Rotation(math.radians(p["rot_z"]), 4, "Z")
+        trans = mathutils.Matrix.Translation(mathutils.Vector(
+            (p["pos"][0], p["pos"][1], p["pos"][2] + lift)))
+        m = trans @ rot
+        for obj in new_objs:
+            obj.matrix_world = m @ obj.matrix_world
+        built += 1
+
+    os.makedirs(out_dir, exist_ok=True)
+    base = os.path.join(out_dir, f"{scope}_fixtures")
+    files = {"glb": f"{scope}_fixtures.glb"}
+    export.export_glb(base + ".glb", coll)
+    if opts.get("save_blend"):
+        files["blend"] = f"{scope}_fixtures.blend"
+        export.save_blend(base + ".blend")
+
+    index = {"tool_version": TOOL_VERSION, "scope_id": scope,
+             "theme": theme, "seed": seed, "space": plan["space"],
+             "counts": plan["counts"], "fixtures_built": built,
+             "skipped": plan["skipped"], "placements": plan["placements"],
+             "files": files}
+    index_file = base + ".built.json"
+    with open(index_file, "w", encoding="utf-8") as fh:
+        json.dump(index, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    return {"scope_id": scope, "theme": theme, "counts": plan["counts"],
+            "fixtures_built": built, "skipped": plan["skipped"],
+            "out_dir": out_dir, "files": files, "index_file": index_file}

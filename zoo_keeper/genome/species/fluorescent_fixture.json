@@ -1,0 +1,89 @@
+{
+  "species": "fluorescent_fixture",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A recessed/surface fluorescent troffer: sheet-metal housing over an emissive prismatic diffuser. Built for the light-anchor pipeline: bottom (diffuser face) sits at the DC anchor point, body fills the 0.1 m gap up to the ceiling."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.6,
+      "max": 2.4,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.2,
+      "max": 0.6,
+      "default": 0.3
+    },
+    "height": {
+      "min": 0.08,
+      "max": 0.2,
+      "default": 0.1
+    }
+  },
+  "parts": [
+    "FluorescentFixture_Housing",
+    "FluorescentFixture_Diffuser"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.86,
+        0.87,
+        0.85
+      ],
+      "wear": 0.12,
+      "bevel": 0.003,
+      "emissive_color": [
+        0.82,
+        0.93,
+        0.87
+      ],
+      "emissive_strength": 2.0
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.8,
+        0.79,
+        0.74
+      ],
+      "wear": 0.28,
+      "bevel": 0.003,
+      "emissive_color": [
+        0.82,
+        0.93,
+        0.87
+      ],
+      "emissive_strength": 2.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 220
+  },
+  "attachments": [],
+  "collision": false,
+  "connectors": {
+    "anchor": {
+      "type": "ceiling"
+    }
+  },
+  "keywords": [
+    "fluorescent fixture",
+    "fluorescent_fixture",
+    "troffer",
+    "shop light",
+    "ceiling light",
+    "tube light"
+  ]
+}

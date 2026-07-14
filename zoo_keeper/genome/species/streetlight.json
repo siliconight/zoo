@@ -1,0 +1,90 @@
+{
+  "species": "streetlight",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A parking-lot / street pole light: anchor base plate, tapering steel pole, shoebox head with an emissive sodium lens on the underside. Built for the light-anchor pipeline: pole TOP sits at the anchor point (Lot writes pole-top anchors at z=6), height stretches so the base reaches grade."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.5,
+      "max": 1.0,
+      "default": 0.7
+    },
+    "depth": {
+      "min": 0.2,
+      "max": 0.5,
+      "default": 0.3
+    },
+    "height": {
+      "min": 3.0,
+      "max": 9.0,
+      "default": 6.0
+    }
+  },
+  "parts": [
+    "Streetlight_Base",
+    "Streetlight_Pole",
+    "Streetlight_Head",
+    "Streetlight_Lens"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.25,
+        0.27,
+        0.26
+      ],
+      "wear": 0.22,
+      "bevel": 0.004,
+      "emissive_color": [
+        1.0,
+        0.62,
+        0.24
+      ],
+      "emissive_strength": 2.5
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.22,
+        0.24,
+        0.22
+      ],
+      "wear": 0.35,
+      "bevel": 0.004,
+      "emissive_color": [
+        1.0,
+        0.62,
+        0.24
+      ],
+      "emissive_strength": 2.5
+    }
+  },
+  "budgets": {
+    "tris_lod0": 480
+  },
+  "attachments": [],
+  "collision": true,
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  },
+  "keywords": [
+    "streetlight",
+    "street light",
+    "street lamp",
+    "lamp post",
+    "pole light",
+    "parking lot light"
+  ]
+}

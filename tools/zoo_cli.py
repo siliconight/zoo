@@ -103,6 +103,21 @@ def parse_args():
                          "Blender). Silhouette breakers for the skyline.")
     ap.add_argument("--density", type=float, default=1.0,
                     help="roof-prop density multiplier (default 1.0)")
+    ap.add_argument("--fixtures",
+                    help="a lights manifest — Deli Counter <name>.lights.json "
+                         "or a Lot-merged site manifest — to BUILD physical "
+                         "light fixtures for (troffer housings, streetlight "
+                         "poles) at the SAME anchors Lux spawns lamps at. "
+                         "Light comes from the sun or from hardware, never "
+                         "from nowhere. Without Blender, prints the pure "
+                         "fixture plan as JSON.")
+    ap.add_argument("--fixture-types", dest="fixture_types",
+                    help="comma list of anchor types to build fixtures for "
+                         "(default: all supported, e.g. "
+                         "'fluorescent,streetlight'). Handy for building only "
+                         "the streetlights out of a merged site manifest "
+                         "whose interior fixtures are already baked "
+                         "per-building.")
     ap.add_argument("--build-kit", dest="build_kit",
                     help="a Deli Counter <name>.slots.json to BUILD the art/zoo "
                          "module GLBs for (center-pivot, exact-fit; needs "
@@ -467,6 +482,45 @@ def roofprops_run(args):
     return 0
 
 
+def fixtures_run(args):
+    import json
+    import os
+    if not os.path.isfile(args.fixtures):
+        print("[zoo] not a file:", args.fixtures)
+        return 1
+    manifest = json.load(open(args.fixtures, encoding="utf-8"))
+    if not str(manifest.get("light_manifest_version", "")).startswith("1."):
+        print("[zoo] not a lights manifest (no light_manifest_version 1.x)")
+        return 1
+    types = None
+    if args.fixture_types:
+        types = [t.strip() for t in args.fixture_types.split(",") if t.strip()]
+
+    if not HAS_BPY:
+        from zoo_keeper.core import fixtures as fixtures_mod
+        print(json.dumps(fixtures_mod.plan(manifest, types=types),
+                         indent=2, sort_keys=True))
+        print("[zoo] bpy not available -> fixture plan only. "
+              "Run inside Blender to build the hardware.")
+        return 0
+
+    from zoo_keeper.bpylayer import build
+    res = build.build_fixtures(
+        manifest, os.path.abspath(args.out), theme=args.theme,
+        options={"save_blend": not args.no_blend, "clear_scene": True,
+                 "seed": args.seed, "types": types})
+
+    summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
+    print(f"[zoo] fixtures built for '{res['scope_id']}' "
+          f"(theme={res['theme']}) -> {res['out_dir']}")
+    print(f"[zoo]   {res['fixtures_built']} fixtures ({summary}); "
+          f"{len(res['skipped'])} anchors skipped")
+    print(f"[zoo]   glb: {res['files']['glb']}   index: {res['index_file']}")
+    print("[zoo] drop the GLB into the scene alongside the building/site; "
+          "Lux's Bake Lights puts the lamps at the same anchors.")
+    return 0
+
+
 def main():
     args = parse_args()
     if args.skins:
@@ -491,6 +545,8 @@ def main():
         return exhibit_run(args)
     if getattr(args, "roof_props", None):
         return roofprops_run(args)
+    if getattr(args, "fixtures", None):
+        return fixtures_run(args)
     if args.dress:
         return dress_run(args)
     if args.build_kit:

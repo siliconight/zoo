@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.28.0] - Light fixtures: hardware for the light-anchor pipeline
+
+Light comes from the sun or from physical fixtures — never from nowhere.
+DC/Lot already say WHERE light belongs (`.lights.json`) and Lux spawns the
+lamps; this release bakes the visible hardware at the SAME anchors, making
+the manifest a two-consumer contract with zero drift.
+
+### Added
+- **`--fixtures <lights.json>`** — build physical light fixtures from a
+  Deli Counter `<building>.lights.json` or a Lot-merged site manifest
+  (same schema, either scope). Exports `<scope>_fixtures.glb` +
+  `.built.json`; drop it into the scene alongside the building/site and
+  Lux's Bake Lights puts the lamps at the same anchors. Without Blender,
+  prints the pure fixture plan as JSON. `--fixture-types` filters anchor
+  types (e.g. streetlights only, out of a site manifest whose interiors
+  are baked per-building).
+- **`core/fixtures.py`** (pure, no bpy): the planner. Anchor `pos` is the
+  emitter; rows expand **centered** along `rot_y` with LuxFluorescentRig's
+  exact `start = -(count-1)/2 * spacing`, so every housing lands on its
+  lamp. Per-kind mounting: `fluorescent` hangs ABOVE the emitter (housing
+  fills DC's 0.1 m ceiling gap, diffuser face at the anchor);
+  `streetlight` hangs BELOW (pole top at the anchor, height stretched —
+  clamped to the genome range — so the base reaches grade at z=0, matching
+  Lot's pole-top-at-6 m anchors). `window`/`sun` are daylight/preset — no
+  hardware; unknown types are reported in `skipped`, never guessed.
+- **Two species**: `fluorescent_fixture` (sheet-metal troffer over an
+  emissive prismatic diffuser; collision: none — it's ceiling hardware)
+  and `streetlight` (base plate, pole, shoebox head, emissive sodium lens
+  floated just above the pole top so the lamp point sits in clear air;
+  collision: pole box → `-colonly` proxy, players bump into poles).
+- **`materials.make_emissive_material(name, color, strength)`** — self-lit
+  faces export as glTF emissive (+ KHR_materials_emissive_strength), which
+  Godot imports as StandardMaterial3D emission. Lux's LEVEL role keeps
+  imported standard materials, so lenses glow under any preset and feed
+  LightmapGI on the pc2000 path. Lit faces are painted wear=0 (a lens
+  doesn't grime; white COLOR_0 keeps the albedo multiply neutral).
+  `make_material`'s signature is untouched.
+- Per-theme lens tinting rides the genome **style block**
+  (`emissive_color` / `emissive_strength`) — data, not code.
+- 12 pure tests (186 total): centered row expansion, rot_y direction
+  convention, mount mapping, daylight/unknown skips, type filter, site
+  scope, pole-height clamping, determinism, alarm-flag passthrough,
+  manifest rejection.
+
+### Notes
+- Pairs with **lux v0.13.1**, which centers LuxStreetlightRig's row the
+  same way (it previously extended from the anchor instead of centering
+  on it — Lot writes path-midpoint anchors, so uncentered rows lit half
+  the path and overshot the end).
+- Standing caveat: the bpy builder needs a Blender walk
+  (`build_fixtures` follows `build_roof_props` verbatim, but no bpy wheel
+  installs in the dev container).
+
 ## [0.27.0] - Skin stage: Pixelcoat packs on compiled assets
 
 ### Added

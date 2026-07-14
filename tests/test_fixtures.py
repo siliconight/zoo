@@ -1,0 +1,134 @@
+"""Tests for the pure light-fixture planner (v0.28)."""
+
+import math
+
+import pytest
+
+from zoo_keeper.core import fixtures
+
+
+def _manifest(anchors, scope=("building_id", "gs")):
+    m = {"light_manifest_version": "1.0.0",
+         "space": "Blender Z-up, meters", "rig_library": "lux",
+         "anchors": anchors}
+    m[scope[0]] = scope[1]
+    return m
+
+
+def _fluoro(aid="sales_ceiling", pos=(0.0, 0.0, 4.1), rot=0.0,
+            count=5, spacing=3.0):
+    return {"id": aid, "type": "fluorescent", "source": "derived",
+            "pos": list(pos), "rot_y": rot,
+            "row": {"count": count, "spacing": spacing},
+            "reacts_to_alarm": True}
+
+
+def _street(aid="site/path_0_lights", pos=(10.0, 0.0, 6.0), rot=90.0,
+            count=4, spacing=10.0):
+    return {"id": aid, "type": "streetlight", "source": "derived",
+            "pos": list(pos), "rot_y": rot,
+            "row": {"count": count, "spacing": spacing},
+            "reacts_to_alarm": False}
+
+
+def test_row_expands_centered_like_lux():
+    # LuxFluorescentRig: start = -(count-1)/2 * spacing. Housings must land
+    # exactly on the lamps.
+    pts = fixtures.row_points(_fluoro(count=5, spacing=3.0))
+    xs = [p[0] for p in pts]
+    assert xs == [-6.0, -3.0, 0.0, 3.0, 6.0]
+    assert all(p[1] == 0.0 and p[2] == 4.1 for p in pts)
+    # centered: mean of the row is the anchor
+    assert abs(sum(xs) / len(xs)) < 1e-9
+
+
+def test_rot_y_direction_convention():
+    # rot_y is degrees about up, 0 == +X (DC convention); 90 runs along +Y.
+    pts = fixtures.row_points(_fluoro(rot=90.0, count=3, spacing=2.0))
+    assert [round(p[1], 4) for p in pts] == [-2.0, 0.0, 2.0]
+    assert all(abs(p[0]) < 1e-9 for p in pts)
+
+
+def test_rowless_anchor_is_single_point():
+    a = _fluoro(count=1, spacing=0.0)
+    assert fixtures.row_points(a) == [[0.0, 0.0, 4.1]]
+    del a["row"]
+    assert fixtures.row_points(a) == [[0.0, 0.0, 4.1]]
+
+
+def test_plan_maps_types_to_species_and_mount():
+    plan = fixtures.plan(_manifest([_fluoro(count=2), _street(count=1)]))
+    by_species = {p["species"]: p for p in plan["placements"]}
+    assert by_species["fluorescent_fixture"]["mount"] == "above"
+    assert by_species["streetlight"]["mount"] == "below"
+    assert plan["counts"] == {"fluorescent_fixture": 2, "streetlight": 1}
+    assert plan["scope_id"] == "gs"
+
+
+def test_daylight_and_unknown_types_skip_with_reason():
+    win = {"id": "wall_S_window_1", "type": "window", "pos": [1, 2, 1.5],
+           "rot_y": 90.0, "size": [1.2, 1.0]}
+    neon = {"id": "bar_neon", "type": "neon", "pos": [0, 0, 3.0]}
+    plan = fixtures.plan(_manifest([win, neon, _fluoro(count=1)]))
+    skipped = {s["id"]: s["reason"] for s in plan["skipped"]}
+    assert "wall_S_window_1" in skipped        # daylight: no hardware
+    assert "bar_neon" in skipped               # honest miss, never guessed
+    assert len(plan["placements"]) == 1
+
+
+def test_types_filter():
+    plan = fixtures.plan(_manifest([_fluoro(count=2), _street(count=3)]),
+                         types=["streetlight"])
+    assert plan["counts"] == {"streetlight": 3}
+    assert any("fixture-types" in s["reason"] for s in plan["skipped"])
+
+
+def test_site_manifest_scope_and_streetlight_row():
+    # A Lot-merged site manifest: scope keys off 'site'; the path row is
+    # centered on the midpoint anchor and runs along rot_y.
+    plan = fixtures.plan(_manifest([_street(count=4, spacing=10.0)],
+                                   scope=("site", "wawa_block")))
+    assert plan["scope_id"] == "wawa_block"
+    ys = sorted(p["pos"][1] for p in plan["placements"])
+    assert ys == [-15.0, -5.0, 5.0, 15.0]
+    assert all(p["pos"][0] == 10.0 and p["pos"][2] == 6.0
+               for p in plan["placements"])
+
+
+def test_pole_height_reaches_grade_clamped():
+    dims = {"min": 3.0, "max": 9.0, "default": 6.0}
+    assert fixtures.pole_height_for(6.0, dims) == 6.0
+    assert fixtures.pole_height_for(2.0, dims) == 3.0     # clamp up
+    assert fixtures.pole_height_for(20.0, dims) == 9.0    # clamp down
+    assert fixtures.pole_height_for(0.0, dims) == 6.0     # malformed: default
+    assert fixtures.pole_height_for(None, dims) == 6.0
+
+
+def test_deterministic_and_unique_seed_offsets():
+    m = _manifest([_fluoro(count=3), _street(count=2)])
+    a, b = fixtures.plan(m), fixtures.plan(m)
+    assert a == b
+    keys = [(p["anchor_id"], p["slot"]) for p in a["placements"]]
+    assert len(keys) == len(set(keys))
+    offs = [p["seed_offset"] for p in a["placements"]]
+    assert len(offs) == len(set(offs))
+
+
+def test_rejects_non_lights_manifest():
+    with pytest.raises(ValueError):
+        fixtures.plan({"slots": []})
+    with pytest.raises(ValueError):
+        fixtures.plan({"light_manifest_version": "1.0.0"})
+
+
+def test_reacts_to_alarm_rides_through():
+    plan = fixtures.plan(_manifest([_fluoro(count=1), _street(count=1)]))
+    flags = {p["species"]: p["reacts_to_alarm"] for p in plan["placements"]}
+    assert flags == {"fluorescent_fixture": True, "streetlight": False}
+
+
+def test_row_direction_matches_rotation_for_any_angle():
+    a = _fluoro(rot=45.0, count=2, spacing=math.sqrt(2.0))
+    p0, p1 = fixtures.row_points(a)
+    assert round(p1[0] - p0[0], 4) == 1.0
+    assert round(p1[1] - p0[1], 4) == 1.0
