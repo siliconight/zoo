@@ -51,6 +51,24 @@ FIXTURES = {
 # anchor types that are light without hardware, by design.
 DAYLIGHT = {"window", "sun"}
 
+# Emitter marker contract (v0.30): every placement's EMITTER point (the
+# anchor pos itself, before any mount lift) is exported into the fixtures
+# GLB as an empty named ``LuxEmit_<type>`` carrying the placement payload
+# as glTF extras (lux_type / lux_anchor_id / lux_slot / lux_reacts_to_alarm),
+# which Godot imports as node metadata. Lux v0.15's LuxFixtureSpawner walks
+# any scene for these markers and puts the matching lamp at each one — so a
+# fixture GLB dragged ANYWHERE (Level Factory or by hand) lights itself,
+# with no manifest in sight. Row expansion happened here, once; markers are
+# per-lamp. Blender dedupes repeat names (.001, .002...); Godot's importer
+# swaps the dot for an underscore — consumers match by PREFIX, and read the
+# type from metadata first, name second.
+MARKER_PREFIX = "LuxEmit"
+
+
+def marker_name(placement: dict) -> str:
+    """The contract name for a placement's emitter marker empty."""
+    return "%s_%s" % (MARKER_PREFIX, placement["type"])
+
 
 def light_anchors(manifest: dict) -> list[dict]:
     """The manifest's anchors, validated just enough to trust.

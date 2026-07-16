@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.30.2] - Run artifacts land in _runs\
+
+- `tools/walkabout.ps1` write run folders and results zips under the factory's `_runs\`
+  directory instead of the factory root — tool repos and the coordination
+  files stay alone at the top level. No behavior change.
+
+## [0.30.1] - Walkabout runner homed in-repo
+
+### Added
+- `tools/walkabout.ps1`: the fixture-pass verification runner (env audit,
+  manifest discovery, pure plan, real-Blender fixture builds, built-index
+  gates incl. the v0.30 `emitter_markers` check, results zip) now lives in
+  the repo and derives every path from its own location — run it from
+  anywhere. Results still land at the factory root as run artifacts.
+
+### Notes
+- TOOL_VERSION bump re-keys per-fixture RNG variation, as with any release.
+  No builder logic changed.
+
+## [0.30.0] - Emitter markers: fixture GLBs light themselves (pairs with lux v0.15.0)
+
+### Added
+- **`LuxEmit_<type>` emitter markers** (`core.fixtures.MARKER_PREFIX` +
+  `marker_name()`): `build_fixtures` now exports one empty per PLACEMENT at
+  the EMITTER point (the anchor pos itself — no mount lift), carrying the
+  placement payload as glTF extras (`lux_type`, `lux_anchor_id`, `lux_slot`,
+  `lux_reacts_to_alarm`). Godot imports extras as node metadata; Lux v0.15's
+  `LuxFixtureSpawner` walks any scene for the prefix and spawns the matching
+  lamp at each marker. Drag a fixtures GLB anywhere — Level Factory or by
+  hand — and it lights itself, no manifest needed. Rows were expanded here,
+  once: markers are per-lamp, the single source of placement truth.
+- `.built.json` index gains `emitter_markers` (count) + `marker_prefix`.
+- glTF export now sets `export_extras=True` (rides custom props out on every
+  build; only marker empties define any).
+
+### Notes
+- Names dedupe in Blender (`.001`) and Godot swaps the dot for an
+  underscore — consumers MUST match by prefix and prefer metadata over
+  name-parsing for the type.
+- Manifest bake path (Lux "Bake Lights") is unchanged and remains the path
+  for daylight (window/sun) anchors, which have no hardware and no markers.
+
+
 ## [0.29.0] - Facade hardware: sign_box + wall_pack (pairs with DC v0.75.0, lux v0.14.0)
 
 ### Added

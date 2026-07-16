@@ -23,7 +23,11 @@ def export_glb(filepath, collection):
     _select_only(objs)
     kwargs = dict(filepath=filepath, export_format="GLB",
                   use_selection=True, export_apply=True,
-                  export_yup=True)
+                  export_yup=True,
+                  # Custom properties ride out as glTF extras; Godot imports
+                  # them as node metadata. Carries the LuxEmit_* emitter
+                  # marker payload (lux_type / lux_anchor_id / ...) (v0.30).
+                  export_extras=True)
     try:
         bpy.ops.export_scene.gltf(**kwargs, export_vertex_color="ACTIVE")
     except TypeError:  # older/newer exporter without that kwarg

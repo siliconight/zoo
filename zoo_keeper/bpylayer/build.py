@@ -443,6 +443,21 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
         m = trans @ rot
         for obj in new_objs:
             obj.matrix_world = m @ obj.matrix_world
+
+        # Emitter marker (v0.30): an empty at the EMITTER point — the anchor
+        # pos itself, NOT the lifted hardware centre — named by the LuxEmit
+        # contract, payload in custom props (exported as glTF extras; Godot
+        # imports them as node metadata). Lux spawns the lamp here.
+        mk = bpy.data.objects.new(fixtures_mod.marker_name(p), None)
+        mk.empty_display_type = "PLAIN_AXES"
+        mk.empty_display_size = 0.15
+        mk["lux_type"] = p["type"]
+        mk["lux_anchor_id"] = p["anchor_id"]
+        mk["lux_slot"] = p["slot"]
+        mk["lux_reacts_to_alarm"] = p["reacts_to_alarm"]
+        coll.objects.link(mk)
+        mk.matrix_world = mathutils.Matrix.Translation(
+            mathutils.Vector(p["pos"])) @ rot
         built += 1
 
     os.makedirs(out_dir, exist_ok=True)
@@ -482,6 +497,11 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     Species with ``collision: true`` genomes get ``-colonly`` proxies
     (players bump into poles; ceiling troffers stay collision-free).
     ``options['types']``: iterable of anchor types to build (default all).
+
+    v0.30: every placement also exports a ``LuxEmit_<type>`` empty at the
+    EMITTER point (anchor pos, no mount lift) carrying the placement payload
+    as glTF extras — Lux's LuxFixtureSpawner spawns the matching lamp at
+    each marker, so the GLB lights itself wherever it's instanced.
     """
     import json
     import math
@@ -549,6 +569,21 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         m = trans @ rot
         for obj in new_objs:
             obj.matrix_world = m @ obj.matrix_world
+
+        # Emitter marker (v0.30): an empty at the EMITTER point — the anchor
+        # pos itself, NOT the lifted hardware centre — named by the LuxEmit
+        # contract, payload in custom props (exported as glTF extras; Godot
+        # imports them as node metadata). Lux spawns the lamp here.
+        mk = bpy.data.objects.new(fixtures_mod.marker_name(p), None)
+        mk.empty_display_type = "PLAIN_AXES"
+        mk.empty_display_size = 0.15
+        mk["lux_type"] = p["type"]
+        mk["lux_anchor_id"] = p["anchor_id"]
+        mk["lux_slot"] = p["slot"]
+        mk["lux_reacts_to_alarm"] = p["reacts_to_alarm"]
+        coll.objects.link(mk)
+        mk.matrix_world = mathutils.Matrix.Translation(
+            mathutils.Vector(p["pos"])) @ rot
         built += 1
 
     os.makedirs(out_dir, exist_ok=True)
@@ -562,6 +597,8 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     index = {"tool_version": TOOL_VERSION, "scope_id": scope,
              "theme": theme, "seed": seed, "space": plan["space"],
              "counts": plan["counts"], "fixtures_built": built,
+             "emitter_markers": built,
+             "marker_prefix": fixtures_mod.MARKER_PREFIX,
              "skipped": plan["skipped"], "placements": plan["placements"],
              "files": files}
     index_file = base + ".built.json"

@@ -175,3 +175,29 @@ def test_facade_anchors_are_rowless_single_points():
     plan = fixtures.plan(_manifest([_sign(), _pack()]))
     assert len(plan["placements"]) == 2
     assert plan["counts"] == {"sign_box": 1, "wall_pack": 1}
+
+
+# --- v0.30 emitter marker contract -----------------------------------------
+
+def test_marker_name_contract():
+    p = {"type": "fluorescent", "anchor_id": "lobby", "slot": 0}
+    assert fixtures.marker_name(p) == "LuxEmit_fluorescent"
+    assert fixtures.marker_name({"type": "wall_pack"}) == "LuxEmit_wall_pack"
+
+
+def test_marker_prefix_is_stable_api():
+    # Lux's LuxFixtureSpawner discovers markers by this prefix; changing it
+    # is a cross-tool breaking change (bump both sides together).
+    assert fixtures.MARKER_PREFIX == "LuxEmit"
+
+
+def test_marker_per_placement_including_rows():
+    m = {"light_manifest_version": "1.1", "building_id": "t",
+         "anchors": [{"id": "a", "type": "fluorescent",
+                      "pos": [0, 0, 3], "rot_y": 0,
+                      "row": {"count": 5, "spacing": 3.0}}]}
+    plan = fixtures.plan(m)
+    # one marker per PLACEMENT (per lamp), not per anchor — rows expanded
+    names = [fixtures.marker_name(p) for p in plan["placements"]]
+    assert len(names) == 5
+    assert set(names) == {"LuxEmit_fluorescent"}
