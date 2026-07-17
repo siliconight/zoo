@@ -86,7 +86,7 @@ def slot_variants(slot: dict, typ: str, global_state: str = None):
 
 
 def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
-             roles=None, state: str = None) -> dict:
+             roles=None, state: str = None, known_species=None) -> dict:
     """From a Deli Counter slots.json manifest, return the distinct Zoo modules
     needed to theme the building.
 
@@ -95,8 +95,14 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     'night' variant) — distinct from per-slot interactive states, which come
     from each slot's `interactive` block (see INTERACTIVES.md).
 
+    known_species: optional collection of species names the library can
+    actually build. When given, any planned module whose backing species is
+    unknown lands in ``missing_modules`` (the production gap report the
+    Production Package requires) instead of crashing at build time.
+
     Returns {building_id, theme, module_count, slot_count, modules:[...],
-    deferred_variants:[...]}, where each module has: stem, type (the slot's
+    deferred_variants:[...], missing_modules:[...]}, where each module has:
+    stem, type (the slot's
     base/role type — drives the filename), species (the geometry actually
     built — differs from type only for state variants like a breached wall),
     state (the interactive state this variant is, or None), width_cm,
@@ -153,6 +159,18 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     modules = sorted(buckets.values(),
                      key=lambda m: (m["type"], m["width_cm"] or 0,
                                     m["state"] or ""))
+    missing = []
+    if known_species is not None:
+        known = set(known_species)
+        buildable = []
+        for m in modules:
+            if m["species"] in known:
+                buildable.append(m)
+            else:
+                missing.append(dict(m, reason=(
+                    f"no '{m['species']}' species in the genome library — "
+                    f"the building cannot be fully dressed until it exists")))
+        modules = buildable
     return {
         "building_id": manifest.get("building_id"),
         "theme": theme,
@@ -163,4 +181,5 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         "slot_count": sum(m["count"] for m in modules),
         "modules": modules,
         "deferred_variants": sorted(deferred.values(), key=lambda d: d["stem"]),
+        "missing_modules": missing,
     }

@@ -210,18 +210,36 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
     ``art/zoo/`` and Deli Counter swaps them in for the greybox boxes.
     """
     plan = kit_mod.plan_kit(manifest, theme=theme, style=style, roles=roles,
-                            state=state)
+                            state=state,
+                            known_species=genome_mod.list_species())
     counts = {m["stem"]: m["count"] for m in plan["modules"]}
     results = [build_module(m, out_dir, theme=theme, style=style,
                             options=options)
                for m in plan["modules"]]
 
+    # Kit index entries carry the full module contract the Production Package
+    # requires: name, category, dimensions, pivot, forward, slot types,
+    # material set, collision, LOD, validation status. Orientation note:
+    # modules are authored center-pivot with their face normal along +Y;
+    # the Deli Counter slot transform (rot about up) owns final facing.
     modules = [{"stem": r["stem"],
                 "type": r["plan"]["module"]["type"],
+                "category": _module_category(r["plan"]["module"]["type"]),
                 "species": r["plan"]["module"]["species"],
                 "state": r["plan"]["module"]["state"],
                 "width_cm": r["plan"]["module"]["width_cm"],
                 "fit": r["plan"]["module"]["fit"],
+                "dims": r["plan"]["module"].get("dims"),
+                "pivot": r["plan"]["module"].get("pivot", "center"),
+                "forward": "+Y",
+                "supported_slot_types": [r["plan"]["module"]["type"]],
+                "material_set": r["plan"].get("material"),
+                "collision": bool(r["facts"].get("collision")
+                                  or r["facts"].get("has_collision")
+                                  or any("col" in str(f).lower()
+                                         for f in r["files"].values())),
+                "lod": bool((options or {}).get("lods",
+                            DEFAULT_OPTIONS.get("lods", False))),
                 "count": counts.get(r["stem"], 1),
                 "status": r["report"]["status"],
                 "files": r["files"]}
@@ -239,15 +257,37 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "slot_count": plan["slot_count"],
         "modules": modules,
         "deferred_variants": plan.get("deferred_variants", []),
+        "missing_modules": plan.get("missing_modules", []),
     }
     index_file = f"{building_id}_kit.built.json"
     meta_mod.write_meta(os.path.join(out_dir, index_file), index)
 
     n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
+    n_missing = len(plan.get("missing_modules", []))
+    if n_missing:
+        print(f"[zoo] WARNING: {n_missing} module(s) MISSING from the genome "
+              f"library (see missing_modules in {index_file}) — the building "
+              f"cannot be fully dressed")
     return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
             "style": int(style), "modules": modules, "n_fail": n_fail,
+            "n_missing": n_missing,
+            "missing_modules": plan.get("missing_modules", []),
             "deferred_variants": plan.get("deferred_variants", []),
             "results": results, "index_file": index_file}
+
+
+def _module_category(typ: str) -> str:
+    """Semantic category taxonomy for the kit index (spec's kit-index field)."""
+    return {
+        "wall": "architecture/wall",
+        "wallEnd": "architecture/wall",
+        "doorway": "architecture/doorway",
+        "window": "architecture/window",
+        "breach": "architecture/breach_state",
+        "roof": "architecture/roof",
+        "skylight": "architecture/roof",
+        "vault_door": "secure/portal",
+    }.get(typ, f"module/{typ}")
 
 
 def _orient_matrix(normal):
@@ -548,6 +588,9 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
                 p["size"][0], genome["dimensions"]["width"])
             sp_plan["dimensions"]["height"] = fixtures_mod.clamp_dim(
                 p["size"][1], genome["dimensions"]["height"])
+        # Recipes with per-anchor resolution needs (sign pack picks) key on
+        # the anchor id — stable across rebuilds, unique across the site.
+        sp_plan["anchor_id"] = p["anchor_id"]
 
         before = set(coll.objects)
         result = recipes.get(species)(sp_plan, streams, coll)

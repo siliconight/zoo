@@ -54,11 +54,48 @@ def build(plan, streams, collection):
     mat = materials.make_material(
         f"M_SignBox_{plan['material']}", plan["color"], plan["material"])
     materials.assign([cabinet, arms], mat)
-    lit = materials.make_emissive_material(
-        "M_SignBox_Face",
-        style.get("emissive_color", [1.0, 0.93, 0.78]),
-        style.get("emissive_strength", 2.2))
+
+    # Branded face when the skin library ships sign packs (Pixelcoat
+    # ``signs_<theme>/``): the pack albedo becomes the lit artwork, picked
+    # deterministically per anchor id so each storefront keeps its sign
+    # across rebuilds. The material name keeps the ``_Face`` suffix — Lux's
+    # emissive binder keys on it, so the power cut kills branded and flat
+    # signs alike. No packs -> the flat acrylic glow, unchanged.
+    pack = None
+    skins_dir, skin_theme = materials.get_skin_library()
+    if skins_dir:
+        from ..core import skins as skinlib
+        pack = skinlib.pick_pack(
+            skinlib.find_sign_packs(skins_dir, skin_theme),
+            str(plan.get("anchor_id", "")))
+    if pack:
+        _planar_uv_fit(face, w, h)
+        lit = materials.make_emissive_textured_material(
+            f"M_SignBox_{pack['id']}_Face", pack,
+            style.get("emissive_strength", 2.2))
+    else:
+        lit = materials.make_emissive_material(
+            "M_SignBox_Face",
+            style.get("emissive_color", [1.0, 0.93, 0.78]),
+            style.get("emissive_strength", 2.2))
     materials.assign([face], lit)
 
     # No collision: it's above head height, on a facade.
     return {"objects": objs, "collision_boxes": [], "attachments": {}}
+
+
+def _planar_uv_fit(obj, width, height):
+    """Fit the face's UVs 0..1 across its panel: cube-projected UVs are
+    meters*texel (tiling — right for brick, wrong for a sign, which would
+    repeat across any face wider than a meter). Local +X is outward, so the
+    panel spans local Y (width) and Z (height); side slivers of the thin box
+    smear edge pixels, which reads as the cabinet lip."""
+    mesh = obj.data
+    uv = mesh.uv_layers.active
+    if uv is None:
+        uv = mesh.uv_layers.new(name="UVMap")
+    for loop in mesh.loops:
+        co = mesh.vertices[loop.vertex_index].co
+        uv.data[loop.index].uv = (
+            (co.y + width / 2.0) / width if width else 0.5,
+            (co.z + height / 2.0) / height if height else 0.5)

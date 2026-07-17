@@ -22,6 +22,13 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
 
     dims = facts.get("dimensions", {})
     scale = plan.get("dim_scale", {})
+    # slot-driven module builds carry exact fit targets; for those the SLOT is
+    # the authority on size (fit_* checks below gate hard) and the genome's
+    # prompt-era dimension ranges are advisory only (warn, don't fail) — a
+    # Deli Counter building may legitimately need a 0.3 m wall return the
+    # prop-range never anticipated.
+    fit_targets = (plan.get("target_dims")
+                   or (plan.get("module") or {}).get("target_dims") or {})
     for name, spec in genome["dimensions"].items():
         if name not in dims:
             continue
@@ -32,7 +39,9 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
         _check(checks, f"dim_{name}", ok,
                f"{name}={v:.3f}m within [{lo:.3f}, {hi:.3f}]m"
                if ok else
-               f"{name}={v:.3f}m OUTSIDE [{lo:.3f}, {hi:.3f}]m")
+               f"{name}={v:.3f}m OUTSIDE [{lo:.3f}, {hi:.3f}]m"
+               + (" (advisory: exact slot fit governs)" if fit_targets else ""),
+               warn_only=bool(fit_targets))
 
     # architectural modules are built to a slot's EXACT dims (Deli Counter
     # never scales them) — verify the built size matches the target, not just

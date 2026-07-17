@@ -44,6 +44,12 @@ def set_skin_library(skins_dir, theme="delco"):
     _SKINS["theme"] = theme
 
 
+def get_skin_library():
+    """(dir, theme) the factory was pointed at — recipes with non-kind
+    resolution needs (sign faces) read the library through this."""
+    return _SKINS["dir"], _SKINS["theme"]
+
+
 def _find_pack(material_kind):
     if not _SKINS["dir"]:
         return None
@@ -120,6 +126,46 @@ def make_emissive_material(name, color, strength=2.0):
             bsdf.inputs["Emission"].default_value = rgba
         except KeyError:
             pass
+    return mat
+
+
+def make_emissive_textured_material(name, pack, strength=2.2):
+    """Sign face from a Pixelcoat sign pack: the albedo drives Base Color
+    AND Emission Color (glTF emissive texture), so the artwork is what
+    glows. Name must keep the ``_Face`` suffix — Lux's emissive binder
+    matches by suffix, and the power cut has to kill branded signs exactly
+    like flat ones. Roughness map linked when the pack ships one. Cached by
+    name; callers make the name unique per pack."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 0.35
+    maps = pack["maps"]
+
+    def tex_node(path, non_color=False):
+        node = tree.nodes.new("ShaderNodeTexImage")
+        node.image = _load_image(path, non_color)
+        node.interpolation = "Closest"
+        node.extension = "EXTEND"          # a sign face never tiles
+        return node
+
+    albedo = tex_node(maps["albedo"])
+    tree.links.new(albedo.outputs["Color"], bsdf.inputs["Base Color"])
+    try:  # Blender 4.x sockets; the flat fallback path mirrors this
+        tree.links.new(albedo.outputs["Color"], bsdf.inputs["Emission Color"])
+        bsdf.inputs["Emission Strength"].default_value = float(strength)
+    except KeyError:
+        try:
+            tree.links.new(albedo.outputs["Color"], bsdf.inputs["Emission"])
+        except KeyError:
+            pass
+    if "roughness" in maps:
+        rough = tex_node(maps["roughness"], non_color=True)
+        tree.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
     return mat
 
 

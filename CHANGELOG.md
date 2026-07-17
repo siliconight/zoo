@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.32.0] - Production kit index + missing-module gap report
+
+### Added
+- **Missing-module report**: `plan_kit(known_species=...)` routes slot
+  roles the genome library cannot build into `missing_modules` (with
+  reasons) instead of crashing at build time; `build_kit` passes the real
+  genome list, warns, and persists the list in the kit index.
+- **Kit index enrichment**: `*_kit.built.json` module entries now carry
+  category, dims, pivot, forward (+Y authoring convention; the DC slot
+  transform owns final facing), supported_slot_types, material_set,
+  collision, lod, and validation status.
+- tests/test_kit_missing.py; COORDINATE_CONTRACT.md (shared, ratified).
+
+### Changed
+- **Slot fit is authoritative**: genome prompt-era dimension ranges demote
+  to warnings when an exact fit target exists (fit_* checks still gate
+  hard) -- a DC building may legitimately need a 0.3 m wall return the
+  prop ranges never anticipated. 199 tests pass.
+
+
+## [0.31.0] - Branded sign faces from Pixelcoat sign packs
+
+### Added
+- **Sign-pack library** (`core.skins.find_sign_packs` / `pick_pack`): a
+  ``signs_<theme>/`` (or ``signs/``) directory under ``--skins`` whose
+  subdirs are Pixelcoat packs — point it straight at a Pixelcoat build
+  --output. Selection is deterministic per anchor id: the pawn shop keeps
+  its sign across every rebuild, and different storefronts spread across
+  the library.
+- **`materials.make_emissive_textured_material`**: the pack albedo drives
+  Base Color AND Emission Color (glTF emissive texture) — the artwork is
+  what glows. Names keep the ``_Face`` suffix so Lux's emissive binder
+  kills branded signs on a power cut exactly like flat ones. EXTEND
+  wrapping (a sign never tiles); pack roughness linked when present.
+- **sign_box recipe**: branded face when the library has sign packs, with
+  the face re-UV'd 0..1 across the panel (`_planar_uv_fit`) — cube-projected
+  meter UVs would tile the artwork across any face wider than a meter.
+  No packs -> the flat acrylic glow, byte-identical to v0.30.
+- Fixtures build threads ``anchor_id`` into every species plan.
+- `materials.get_skin_library()` getter.
+
+### Notes
+- Fixtures mode already accepted ``--skins``; this release is what makes it
+  matter for signs. TOOL_VERSION bump re-keys per-fixture RNG as always.
+
+
 ## [0.30.2] - Run artifacts land in _runs\
 
 - `tools/walkabout.ps1` write run folders and results zips under the factory's `_runs\`

@@ -115,3 +115,40 @@ def library_report(skins_dir: str, theme: str = "delco",
     return {"skins_dir": os.path.abspath(skins_dir), "theme": theme,
             "resolved": {k: v for k, v in resolved.items() if v},
             "flat_fallback": sorted(k for k, v in resolved.items() if not v)}
+
+
+# ------------------------------------------------------------- sign packs
+# Sign faces want VARIETY (three storefronts, three different signs), which
+# kind-level resolution can't express. Convention: a ``signs_<theme>/`` (or
+# theme-less ``signs/``) directory whose SUBDIRS are each one Pixelcoat pack
+# (Pixelcoat's own per-asset output layout — point it straight at the build
+# --output). Selection is deterministic per anchor id, so the pawn shop gets
+# the same sign on every rebuild.
+
+def find_sign_packs(skins_dir: str, theme: str = "delco") -> list[dict]:
+    """All sign packs for a theme, sorted by pack id. Empty list when the
+    library has none — callers fall back to the flat emissive face."""
+    if not skins_dir:
+        return []
+    for name in (f"signs_{theme}", "signs"):
+        root = os.path.join(skins_dir, name)
+        if not os.path.isdir(root):
+            continue
+        packs = []
+        for sub in sorted(os.listdir(root)):
+            d = os.path.join(root, sub)
+            if os.path.isdir(d):
+                pack = load_pack(d)
+                if pack:
+                    packs.append(pack)
+        if packs:
+            return sorted(packs, key=lambda p: p["id"])
+    return []
+
+
+def pick_pack(packs: list[dict], key: str) -> dict | None:
+    """Stable pick: same key (anchor id), same pack, forever."""
+    if not packs:
+        return None
+    import zlib
+    return packs[zlib.crc32(key.encode("utf-8")) % len(packs)]
