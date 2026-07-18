@@ -1,0 +1,77 @@
+{
+ "species": "wallCorner",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. L-shaped corner module joining two wall runs at 90 degrees: leg A along +X, leg B along +Y, sharing the corner column at the pivot. Pivot at the outside corner, ground level."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.3,
+   "max": 3.0,
+   "default": 0.6
+  },
+  "depth": {
+   "min": 0.3,
+   "max": 3.0,
+   "default": 0.6
+  },
+  "height": {
+   "min": 2.0,
+   "max": 4.5,
+   "default": 3.6
+  }
+ },
+ "parts": [
+  "Corner_LegA",
+  "Corner_LegB"
+ ],
+ "params": {
+  "thickness": {
+   "min": 0,
+   "max": 1,
+   "default": 0
+  }
+ },
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.56,
+    0.55,
+    0.53
+   ],
+   "wear": 0.15,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "concrete",
+   "color": [
+    0.5,
+    0.49,
+    0.46
+   ],
+   "wear": 0.35,
+   "bevel": 0.003,
+   "ambient": 0.35
+  }
+ },
+ "budgets": {
+  "tris_lod0": 300
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "wall corner",
+  "corner",
+  "corner wall"
+ ]
+}

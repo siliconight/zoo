@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.33.0] - Phase 1 structural species
+
+### Added
+- **5 structural species** (the vertical-slice visual-gate set):
+  `stair_rail` (posts + stepped top/mid rails following params.rise),
+  `ladder` (rails + cylindrical rungs + standoffs, DC ladder proportions),
+  `wallCorner` (L-corner filler, outside-corner pivot), `shelving`
+  (uprights + N boards + optional back; gondola or racking by proportions),
+  `counter` (body + overhanging top + kick base; the generic sibling of
+  teller_line). All build clean with validation `pass`; 205 tests.
+- Kit taxonomy entries for the new architectural types.
+
 ## [0.32.0] - Production kit index + missing-module gap report
 
 ### Added

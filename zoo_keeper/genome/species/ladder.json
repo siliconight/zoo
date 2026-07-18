@@ -1,0 +1,82 @@
+{
+ "species": "ladder",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Fixed vertical service ladder: two side rails, cylindrical rungs at constant spacing, wall standoffs. Matches Deli Counter ladder proportions (0.5 m wide, 0.3 m rungs)."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.4,
+   "max": 0.8,
+   "default": 0.5
+  },
+  "depth": {
+   "min": 0.1,
+   "max": 0.3,
+   "default": 0.15
+  },
+  "height": {
+   "min": 1.5,
+   "max": 12.0,
+   "default": 3.6
+  }
+ },
+ "parts": [
+  "Ladder_Rail_L",
+  "Ladder_Rail_R",
+  "Ladder_Rung"
+ ],
+ "params": {
+  "rung_spacing": {
+   "min": 0,
+   "max": 1,
+   "default": 0
+  },
+  "standoffs": {
+   "min": 0,
+   "max": 1,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.4,
+    0.41,
+    0.43
+   ],
+   "wear": 0.35,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.33,
+    0.34,
+    0.36
+   ],
+   "wear": 0.55,
+   "bevel": 0.003,
+   "ambient": 0.3
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1600
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "ladder",
+  "service ladder",
+  "roof ladder",
+  "fixed ladder"
+ ]
+}

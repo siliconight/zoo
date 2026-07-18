@@ -287,6 +287,9 @@ def _module_category(typ: str) -> str:
         "roof": "architecture/roof",
         "skylight": "architecture/roof",
         "vault_door": "secure/portal",
+        "wallCorner": "architecture/wall",
+        "stair_rail": "architecture/stair",
+        "ladder": "architecture/ladder",
     }.get(typ, f"module/{typ}")
 
 

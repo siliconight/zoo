@@ -1,0 +1,89 @@
+{
+ "species": "stair_rail",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Guard railing for stairs, landings and catwalks: square posts, a stepped top rail following the rise, optional mid rail. Chunky PS1 read."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.6,
+   "max": 8.0,
+   "default": 3.0
+  },
+  "depth": {
+   "min": 0.04,
+   "max": 0.15,
+   "default": 0.06
+  },
+  "height": {
+   "min": 0.85,
+   "max": 1.15,
+   "default": 1.0
+  }
+ },
+ "parts": [
+  "Rail_Post",
+  "Rail_Top",
+  "Rail_Mid"
+ ],
+ "params": {
+  "posts": {
+   "min": 2,
+   "max": 9,
+   "default": 4
+  },
+  "rise": {
+   "min": 0,
+   "max": 4,
+   "default": 0
+  },
+  "mid_rail": {
+   "min": 0,
+   "max": 1,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "wood"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.35,
+    0.36,
+    0.38
+   ],
+   "wear": 0.3,
+   "bevel": 0.004
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.28,
+    0.3,
+    0.33
+   ],
+   "wear": 0.5,
+   "bevel": 0.004,
+   "ambient": 0.3
+  }
+ },
+ "budgets": {
+  "tris_lod0": 600
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "stair rail",
+  "railing",
+  "handrail",
+  "guardrail",
+  "banister"
+ ]
+}

@@ -1,0 +1,86 @@
+{
+ "species": "shelving",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Freestanding shelf unit: two side uprights, N shelf boards, optional back panel \u2014 reads as store gondola or stockroom racking by proportions."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.6,
+   "max": 2.4,
+   "default": 1.2
+  },
+  "depth": {
+   "min": 0.3,
+   "max": 0.8,
+   "default": 0.5
+  },
+  "height": {
+   "min": 0.9,
+   "max": 2.4,
+   "default": 1.8
+  }
+ },
+ "parts": [
+  "Shelf_Upright_L",
+  "Shelf_Upright_R",
+  "Shelf_Board",
+  "Shelf_Back"
+ ],
+ "params": {
+  "shelves": {
+   "min": 2,
+   "max": 7,
+   "default": 4
+  },
+  "back": {
+   "min": 0,
+   "max": 1,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "wood"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.55,
+    0.56,
+    0.58
+   ],
+   "wear": 0.25,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.45,
+    0.47,
+    0.5
+   ],
+   "wear": 0.45,
+   "bevel": 0.003,
+   "ambient": 0.3
+  }
+ },
+ "budgets": {
+  "tris_lod0": 900
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "shelving",
+  "shelf",
+  "shelves",
+  "rack",
+  "gondola",
+  "stockroom rack"
+ ]
+}
