@@ -36,7 +36,8 @@ MAP_KEYS = ("albedo", "normal", "roughness", "emissive", "height")
 
 # Keep in sync with bpylayer.materials.ROUGHNESS (kind vocabulary).
 KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
-               "canvas", "carbon", "glass", "paper", "concrete", "plaster")
+               "canvas", "carbon", "glass", "paper", "concrete", "plaster",
+               "brick", "tile", "drywall", "ceiling_tile", "carpet", "dirt")
 
 
 def find_pack(skins_dir: str, material_kind: str,
