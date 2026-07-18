@@ -1,0 +1,85 @@
+{
+ "species": "ceiling",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural module: a flat center-pivot ceiling/soffit slab built to a Deli Counter ceiling slot's exact dims (wide/deep, thin). Same solid-slab construction as roof/floor."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.5,
+   "max": 40.0,
+   "default": 4.0
+  },
+  "depth": {
+   "min": 0.5,
+   "max": 40.0,
+   "default": 4.0
+  },
+  "height": {
+   "min": 0.05,
+   "max": 0.3,
+   "default": 0.12
+  }
+ },
+ "parts": [
+  "Ceiling_Panel"
+ ],
+ "params": {},
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "ceiling_tile",
+   "drywall",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [0.6, 0.59, 0.57],
+   "wear": 0.1,
+   "bevel": 0.002
+  },
+  "delco": {
+   "material": "plaster",
+   "color": [0.7, 0.68, 0.64],
+   "wear": 0.2,
+   "bevel": 0.002,
+   "ambient": 0.35
+  },
+  "acoustic": {
+   "material": "ceiling_tile",
+   "color": [0.84, 0.82, 0.77],
+   "wear": 0.1,
+   "bevel": 0.001,
+   "ambient": 0.3
+  },
+  "drywall": {
+   "material": "drywall",
+   "color": [0.79, 0.77, 0.72],
+   "wear": 0.08,
+   "bevel": 0.001,
+   "ambient": 0.3
+  }
+ },
+ "budgets": {
+  "tris_lod0": 400
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "ceiling",
+  "ceiling tile",
+  "drop ceiling",
+  "soffit"
+ ],
+ "prompt_rules": [
+  {"any": ["acoustic", "ceiling tile", "drop ceiling"], "set": {"material": "ceiling_tile", "color": [0.84, 0.82, 0.77]}},
+  {"any": ["drywall", "gypsum", "sheetrock"], "set": {"material": "drywall", "color": [0.79, 0.77, 0.72]}},
+  {"any": ["plaster"], "set": {"material": "plaster", "color": [0.7, 0.68, 0.64]}}
+ ]
+}

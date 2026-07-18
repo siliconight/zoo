@@ -30,7 +30,9 @@ from .geometry import WEAR_LAYER
 
 ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "leather": 0.70, "rubber": 0.85, "canvas": 0.90, "carbon": 0.30,
-             "glass": 0.05, "paper": 0.80, "concrete": 0.92, "plaster": 0.88}
+             "glass": 0.05, "paper": 0.80, "concrete": 0.92, "plaster": 0.88,
+             "brick": 0.90, "tile": 0.35, "drywall": 0.90, "ceiling_tile": 0.92,
+             "carpet": 0.98, "dirt": 0.97}
 METALLIC = {"metal": 0.85, "carbon": 0.30}
 
 _SKINS = {"dir": None, "theme": "delco"}
