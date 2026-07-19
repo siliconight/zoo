@@ -1,6 +1,8 @@
 """Phase 1 structural species (the vertical-slice visual-gate set):
 stair_rail, ladder, wallCorner, shelving, counter. Pure planner tests —
 geometry is proven by building the specimens (bpy)."""
+import pytest
+
 from zoo_keeper import TOOL_VERSION
 from zoo_keeper.core import dna, genome, intent, seeding
 
@@ -61,6 +63,8 @@ def test_structural_plans_deterministic():
 
 
 def test_recipes_registered():
+    pytest.importorskip("bpy")
+    pytest.importorskip("bmesh")
     from zoo_keeper import recipes
     for sp in STRUCTURAL:
         assert recipes.get(sp) is not None, sp
@@ -68,6 +72,7 @@ def test_recipes_registered():
 
 def test_kit_categories_cover_structural():
     """The kit index taxonomy knows the new architectural types."""
+    pytest.importorskip("bpy")
     from zoo_keeper.bpylayer import build as B
     assert B._module_category("stair_rail").startswith("architecture/")
     assert B._module_category("ladder").startswith("architecture/")

@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.34.0] - Surface species + tiling material kinds
+
+### Added
+- **Floor & ceiling species** (`floor`, `ceiling`): solid-slab architectural
+  modules that dress a Deli Counter floor/ceiling slot the way `roof` dresses
+  the cap. Both reuse `build_slab` (wide/deep/thin genome dims) and resolve
+  through the existing arch path -- `arch.void_for()` returns None, so no
+  engine change. Genome `prompt_rules` map surfacing keywords
+  (carpet/tile/concrete/dirt...) onto the chosen material kind.
+- **Six tiling material kinds** registered in `core.skins.KNOWN_KINDS`:
+  `brick`, `tile`, `drywall`, `ceiling_tile`, `carpet`, `dirt` -- the
+  vocabulary a Pixelcoat tiling pack needs to skin walls, floors and
+  ceilings (KNOWN_KINDS now 18). Matching roughness anchors in
+  `bpylayer.materials` (brick .90, tile .35, drywall .90, ceiling_tile .92,
+  carpet .98, dirt .97).
+- Wall-family styles (`wall`, `wallEnd`, `doorway`, `window`, `breach`) gain
+  `brick` / `tiled` / `drywall` style options so prompt- and era-driven
+  plans can select the new kinds.
+
+### Changed
+- `tests/test_genome.py`: `floor` and `ceiling` registered in `ARCH_SPECIES`
+  so the species-set assertion stays exact.
+
+### Fixed
+- `tests/test_structural_species.py`: the two Blender-dependent tests
+  (`test_recipes_registered`, `test_kit_categories_cover_structural`) now
+  `pytest.importorskip("bpy"/"bmesh")`, so a pure system-python
+  `pytest tests` run is green (was 2 failed -> now 203 passed, 2 skipped).
+  Matches Deli Counter's DC_BPY_TESTS opt-in convention; the guarded
+  geometry is proven in-Blender by the floor/ceiling specimen renders.
+
 ## [0.33.0] - Phase 1 structural species
 
 ### Added
