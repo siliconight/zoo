@@ -18,7 +18,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
                 "teller_line", "safe_deposit_boxes", "dress_cover", "roof",
                 # Phase 1 structural set (vertical-slice visual gate)
-                "wallCorner", "stair_rail", "ladder", "shelving", "counter"}
+                "wallCorner", "stair_rail", "ladder", "shelving", "counter",
+                # surface modules (floor/ceiling slab dressing)
+                "floor", "ceiling"}
 
 
 def test_all_species_load_and_validate():
