@@ -138,7 +138,11 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                 d["count"] += 1
                 continue
 
-            key = (typ, width_cm, st, species)
+            # Facade-shell windows carry glazing="facade" (opaque glass); keep it
+            # in the key so they never merge with see-through window modules, and
+            # thread it onto the module for build_module to swap the glass kind.
+            glaze = s.get("glazing")
+            key = (typ, width_cm, st, species, glaze)
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -151,6 +155,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "dims": ([round(dims[0], 4), round(dims[1], 4),
                               round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
                     "pivot": fit.get("pivot", "center"),
+                    "glazing": glaze,
                     "count": 0,
                 }
                 buckets[key] = b

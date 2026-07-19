@@ -30,7 +30,8 @@ from .geometry import WEAR_LAYER
 
 ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "leather": 0.70, "rubber": 0.85, "canvas": 0.90, "carbon": 0.30,
-             "glass": 0.05, "paper": 0.80, "concrete": 0.92, "plaster": 0.88,
+             "glass": 0.05, "glass_facade": 0.08, "paper": 0.80,
+             "concrete": 0.92, "plaster": 0.88,
              "brick": 0.90, "tile": 0.35, "drywall": 0.90, "ceiling_tile": 0.92,
              "carpet": 0.98, "dirt": 0.97}
 METALLIC = {"metal": 0.85, "carbon": 0.30}
@@ -250,6 +251,30 @@ def _textured(name, pack, material_kind):
             bsdf.inputs["Emission Strength"].default_value = 1.0
         except Exception:
             pass
+
+    # See-through glass: honor a Pixelcoat pack's transparency hint
+    # (import_hints.transparency = {opacity, ior}). opacity < 1 sets the
+    # Principled Alpha + a blended surface so the glTF exporter writes
+    # alphaMode=BLEND and Godot imports a transparent material. Facade glass
+    # ships no hint (opaque). The blend-method attribute name varies across
+    # Blender versions, so set both known spellings best-effort.
+    trans = pack.get("transparency")
+    if trans and float(trans.get("opacity", 1.0)) < 1.0:
+        try:
+            bsdf.inputs["Alpha"].default_value = float(trans["opacity"])
+        except Exception:
+            pass
+        try:
+            if "IOR" in bsdf.inputs:
+                bsdf.inputs["IOR"].default_value = float(trans.get("ior", 1.45))
+        except Exception:
+            pass
+        for _attr, _val in (("blend_method", "BLEND"),
+                            ("surface_render_method", "BLENDED")):
+            try:
+                setattr(mat, _attr, _val)
+            except Exception:
+                pass
 
     return mat
 

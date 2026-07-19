@@ -52,9 +52,12 @@ def build_slab(plan, streams, collection, species):
         pane = geometry.bm_to_object(
             bm, f"{root}_Glass", collection, bevel=0.0, texel=1.2,
             rng=rng, wear=wear * 0.25)
+        # Enterable windows glaze see-through "glass"; facade-shell windows
+        # (hollow building) glaze opaque "glass_facade" via plan.glazing_kind.
+        glazing_kind = plan.get("glazing_kind", "glass")
         glass = materials.make_material(
-            "M_Window_glass", plan.get("glass_color", [0.55, 0.66, 0.72]),
-            "glass")
+            f"M_Window_{glazing_kind}",
+            plan.get("glass_color", [0.55, 0.66, 0.72]), glazing_kind)
         materials.assign([pane], glass)
         objs.append(pane)
 

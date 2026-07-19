@@ -36,8 +36,9 @@ MAP_KEYS = ("albedo", "normal", "roughness", "emissive", "height")
 
 # Keep in sync with bpylayer.materials.ROUGHNESS (kind vocabulary).
 KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
-               "canvas", "carbon", "glass", "paper", "concrete", "plaster",
-               "brick", "tile", "drywall", "ceiling_tile", "carpet", "dirt")
+               "canvas", "carbon", "glass", "glass_facade", "paper",
+               "concrete", "plaster", "brick", "tile", "drywall",
+               "ceiling_tile", "carpet", "dirt")
 
 
 def find_pack(skins_dir: str, material_kind: str,
@@ -87,7 +88,8 @@ def load_pack(pack_dir: str) -> dict | None:
                 "dir": os.path.abspath(pack_dir),
                 "maps": maps,
                 "meters_per_tile": float(raw.get("meters_per_tile") or 1.0),
-                "tileable": raw.get("tileable")}
+                "tileable": raw.get("tileable"),
+                "transparency": raw.get("import_hints", {}).get("transparency")}
 
     albedos = sorted(glob.glob(os.path.join(pack_dir, "*_albedo.png")))
     if not albedos:
