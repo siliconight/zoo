@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.35.0] - Glass-facade kind + transparency import + themed glazing routing
+
+### Added
+- `glass_facade` material kind (opaque building-front glazing) registered in
+  `core.skins.KNOWN_KINDS`; roughness anchor .08 in `bpylayer.materials`.
+- Transparency import: `skins.load_pack` surfaces
+  `import_hints.transparency`; `bpylayer.materials` sets BSDF Alpha + IOR and
+  the mesh blend method when opacity < 1, so a Pixelcoat see-through pack
+  renders transparent (glTF alphaMode=BLEND -> Godot transparent).
+- Glazing routing (4 hops): `kit.plan_kit` threads a slot's `glazing` onto
+  the module key/bucket; `bpylayer.build.build_module` maps
+  `glazing=="facade"` -> `glazing_kind="glass_facade"`; `recipes/_arch`
+  window pane resolves `plan.glazing_kind` -- facade windows wear opaque
+  glass, interior windows stay see-through.
+
+### Verified
+- Hardware (Blender 5.1): street kit build skinned `glass <- glass_circles`
+  on real window geometry; imported window GLB pane reads see-through in
+  Material Preview. 13 modules built, 0 failed.
+
 ## [0.34.0] - Surface species + tiling material kinds
 
 ### Added

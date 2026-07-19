@@ -164,6 +164,12 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     plan = dna.resolve_module_plan(module, genome, theme, style, TOOL_VERSION)
     stem = plan["module"]["stem"]
 
+    # Facade-shell windows glaze opaque (hollow building, nothing to see in):
+    # Deli Counter tags the slot glazing="facade" and plan_kit threads it onto
+    # the module, so swap the see-through glass pane for the opaque kind.
+    if module.get("glazing") == "facade":
+        plan["glazing_kind"] = "glass_facade"
+
     if opts["clear_scene"]:
         clear_scene()
     coll = bpy.data.collections.new(stem)
