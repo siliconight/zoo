@@ -68,6 +68,28 @@
    "wear": 0.45,
    "bevel": 0.004,
    "ambient": 0.3
+  },
+  "center_city": {
+   "material": "laminate",
+   "color": [
+    0.56,
+    0.499,
+    0.45
+   ],
+   "wear": 0.158,
+   "bevel": 0.004,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.4142,
+    0.3917,
+    0.3833
+   ],
+   "wear": 0.67,
+   "bevel": 0.004,
+   "ambient": 0.4
   }
  },
  "budgets": {

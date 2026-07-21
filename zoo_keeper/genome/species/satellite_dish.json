@@ -1,77 +1,99 @@
 {
-  "species": "satellite_dish",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. A pole-mounted satellite dish: pole, arm, flattened-ellipsoid dish, feed horn. Faces -Y."
+ "species": "satellite_dish",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A pole-mounted satellite dish: pole, arm, flattened-ellipsoid dish, feed horn. Faces -Y."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.5,
+   "max": 1.1,
+   "default": 0.8
   },
-  "dimensions": {
-    "width": {
-      "min": 0.5,
-      "max": 1.1,
-      "default": 0.8
-    },
-    "depth": {
-      "min": 0.4,
-      "max": 0.9,
-      "default": 0.6
-    },
-    "height": {
-      "min": 0.8,
-      "max": 1.6,
-      "default": 1.2
-    }
+  "depth": {
+   "min": 0.4,
+   "max": 0.9,
+   "default": 0.6
   },
-  "parts": [
-    "SatelliteDish_Pole",
-    "SatelliteDish_Arm",
-    "SatelliteDish_Dish",
-    "SatelliteDish_Feed"
-  ],
-  "params": {},
-  "materials": {
-    "default": "metal",
-    "options": [
-      "metal",
-      "plastic"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "metal",
-      "color": [
-        0.8,
-        0.8,
-        0.78
-      ],
-      "wear": 0.15,
-      "bevel": 0.003
-    },
-    "delco": {
-      "material": "metal",
-      "color": [
-        0.7,
-        0.7,
-        0.66
-      ],
-      "wear": 0.3,
-      "bevel": 0.003
-    }
-  },
-  "budgets": {
-    "tris_lod0": 900
-  },
-  "attachments": [],
-  "collision": false,
-  "connectors": {
-    "anchor": {
-      "type": "roof"
-    }
-  },
-  "keywords": [
-    "satellite dish",
-    "satellite_dish",
-    "dish antenna",
-    "tv dish"
+  "height": {
+   "min": 0.8,
+   "max": 1.6,
+   "default": 1.2
+  }
+ },
+ "parts": [
+  "SatelliteDish_Pole",
+  "SatelliteDish_Arm",
+  "SatelliteDish_Dish",
+  "SatelliteDish_Feed"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
   ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.8,
+    0.8,
+    0.78
+   ],
+   "wear": 0.15,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.7,
+    0.7,
+    0.66
+   ],
+   "wear": 0.3,
+   "bevel": 0.003
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.744,
+    0.765,
+    0.78
+   ],
+   "wear": 0.105,
+   "bevel": 0.003,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.6437,
+    0.6131,
+    0.5993
+   ],
+   "wear": 0.52,
+   "bevel": 0.003,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 900
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "roof"
+  }
+ },
+ "keywords": [
+  "satellite dish",
+  "satellite_dish",
+  "dish antenna",
+  "tv dish"
+ ]
 }

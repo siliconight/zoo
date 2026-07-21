@@ -1,110 +1,132 @@
 {
-  "species": "vending_machine",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. No source meshes, no scraped data."
+ "species": "vending_machine",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. No source meshes, no scraped data."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.7,
+   "max": 1.05,
+   "default": 0.85
   },
-  "dimensions": {
-    "width": {
-      "min": 0.7,
-      "max": 1.05,
-      "default": 0.85
-    },
-    "depth": {
-      "min": 0.6,
-      "max": 0.9,
-      "default": 0.75
-    },
-    "height": {
-      "min": 1.6,
-      "max": 2.0,
-      "default": 1.83
-    }
+  "depth": {
+   "min": 0.6,
+   "max": 0.9,
+   "default": 0.75
   },
-  "parts": [
-    "body",
-    "glass",
-    "panel",
-    "coin_slot",
-    "tray"
-  ],
-  "params": {
-    "lit": {
-      "min": 0,
-      "max": 1,
-      "default": 1
-    }
-  },
-  "materials": {
-    "default": "metal",
-    "options": [
-      "metal",
-      "plastic"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "metal",
-      "color": [
-        0.62,
-        0.14,
-        0.14
-      ],
-      "wear": 0.2,
-      "bevel": 0.005
-    },
-    "1990s": {
-      "material": "metal",
-      "color": [
-        0.58,
-        0.16,
-        0.16
-      ],
-      "wear": 0.28,
-      "bevel": 0.005
-    },
-    "blue": {
-      "material": "metal",
-      "color": [
-        0.14,
-        0.26,
-        0.55
-      ],
-      "wear": 0.24,
-      "bevel": 0.005
-    },
-    "snack": {
-      "material": "metal",
-      "color": [
-        0.18,
-        0.2,
-        0.22
-      ],
-      "wear": 0.26,
-      "bevel": 0.005
-    },
-    "modern": {
-      "material": "metal",
-      "color": [
-        0.12,
-        0.14,
-        0.16
-      ],
-      "wear": 0.06,
-      "bevel": 0.003
-    }
-  },
-  "budgets": {
-    "tris_lod0": 6000
-  },
-  "attachments": [
-    "ATT_tray"
-  ],
-  "keywords": [
-    "vending machine",
-    "vending",
-    "soda machine",
-    "snack machine"
+  "height": {
+   "min": 1.6,
+   "max": 2.0,
+   "default": 1.83
+  }
+ },
+ "parts": [
+  "body",
+  "glass",
+  "panel",
+  "coin_slot",
+  "tray"
+ ],
+ "params": {
+  "lit": {
+   "min": 0,
+   "max": 1,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
   ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.14,
+    0.14
+   ],
+   "wear": 0.2,
+   "bevel": 0.005
+  },
+  "1990s": {
+   "material": "metal",
+   "color": [
+    0.58,
+    0.16,
+    0.16
+   ],
+   "wear": 0.28,
+   "bevel": 0.005
+  },
+  "blue": {
+   "material": "metal",
+   "color": [
+    0.14,
+    0.26,
+    0.55
+   ],
+   "wear": 0.24,
+   "bevel": 0.005
+  },
+  "snack": {
+   "material": "metal",
+   "color": [
+    0.18,
+    0.2,
+    0.22
+   ],
+   "wear": 0.26,
+   "bevel": 0.005
+  },
+  "modern": {
+   "material": "metal",
+   "color": [
+    0.12,
+    0.14,
+    0.16
+   ],
+   "wear": 0.06,
+   "bevel": 0.003
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.6704,
+    0.233,
+    0.26
+   ],
+   "wear": 0.07,
+   "bevel": 0.005,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.315,
+    0.296,
+    0.29
+   ],
+   "wear": 0.42,
+   "bevel": 0.005,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 6000
+ },
+ "attachments": [
+  "ATT_tray"
+ ],
+ "keywords": [
+  "vending machine",
+  "vending",
+  "soda machine",
+  "snack machine"
+ ]
 }

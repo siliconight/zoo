@@ -1,100 +1,122 @@
 {
-  "species": "cheesesteak",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. No source meshes, no scraped data."
+ "species": "cheesesteak",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. No source meshes, no scraped data."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.09,
+   "max": 0.13,
+   "default": 0.11
   },
-  "dimensions": {
-    "width": {
-      "min": 0.09,
-      "max": 0.13,
-      "default": 0.11
-    },
-    "depth": {
-      "min": 0.26,
-      "max": 0.36,
-      "default": 0.32
-    },
-    "height": {
-      "min": 0.07,
-      "max": 0.12,
-      "default": 0.09
-    }
+  "depth": {
+   "min": 0.26,
+   "max": 0.36,
+   "default": 0.32
   },
-  "parts": [
-    "bun",
-    "meat",
-    "cheese",
-    "onion"
-  ],
-  "params": {
-    "meat_chunks": {
-      "min": 6,
-      "max": 18,
-      "default": 12
-    },
-    "onions": {
-      "min": 0,
-      "max": 1,
-      "default": 1
-    }
-  },
-  "materials": {
-    "default": "paper",
-    "options": [
-      "paper"
-    ]
-  },
-  "collision": false,
-  "styles": {
-    "default": {
-      "material": "paper",
-      "color": [
-        0.78,
-        0.58,
-        0.32
-      ],
-      "wear": 0.22,
-      "bevel": 0.003
-    },
-    "1990s": {
-      "material": "paper",
-      "color": [
-        0.76,
-        0.56,
-        0.3
-      ],
-      "wear": 0.28,
-      "bevel": 0.003
-    },
-    "toasted": {
-      "material": "paper",
-      "color": [
-        0.64,
-        0.44,
-        0.22
-      ],
-      "wear": 0.35,
-      "bevel": 0.003
-    }
-  },
-  "budgets": {
-    "tris_lod0": 1500
-  },
-  "attachments": [
-    "ATT_center"
-  ],
-  "keywords": [
-    "philly cheesesteak",
-    "cheesesteak",
-    "cheese steak",
-    "hoagie",
-    "sub sandwich"
-  ],
-  "connectors": {
-    "anchor": {
-      "type": "surface"
-    }
+  "height": {
+   "min": 0.07,
+   "max": 0.12,
+   "default": 0.09
   }
+ },
+ "parts": [
+  "bun",
+  "meat",
+  "cheese",
+  "onion"
+ ],
+ "params": {
+  "meat_chunks": {
+   "min": 6,
+   "max": 18,
+   "default": 12
+  },
+  "onions": {
+   "min": 0,
+   "max": 1,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "paper",
+  "options": [
+   "paper"
+  ]
+ },
+ "collision": false,
+ "styles": {
+  "default": {
+   "material": "paper",
+   "color": [
+    0.78,
+    0.58,
+    0.32
+   ],
+   "wear": 0.22,
+   "bevel": 0.003
+  },
+  "1990s": {
+   "material": "paper",
+   "color": [
+    0.76,
+    0.56,
+    0.3
+   ],
+   "wear": 0.28,
+   "bevel": 0.003
+  },
+  "toasted": {
+   "material": "paper",
+   "color": [
+    0.64,
+    0.44,
+    0.22
+   ],
+   "wear": 0.35,
+   "bevel": 0.003
+  },
+  "center_city": {
+   "material": "paper",
+   "color": [
+    0.8176,
+    0.651,
+    0.44
+   ],
+   "wear": 0.077,
+   "bevel": 0.003,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "paper",
+   "color": [
+    0.536,
+    0.5092,
+    0.498
+   ],
+   "wear": 0.44,
+   "bevel": 0.003,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1500
+ },
+ "attachments": [
+  "ATT_center"
+ ],
+ "keywords": [
+  "philly cheesesteak",
+  "cheesesteak",
+  "cheese steak",
+  "hoagie",
+  "sub sandwich"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "surface"
+  }
+ }
 }

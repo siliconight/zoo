@@ -1,87 +1,12 @@
+## [0.31.0] - Three visual themes across the species set
+
+- **center_city** (polished commercial: low wear, cooler/lighter, clean
+  materials) and **industrial_flats** (port/works: high wear, desaturated
+  iron tones, metal-first) join **delco** in every species genome (46) --
+  deterministic derivations of each species' anchor style, resolved through
+  the standard _pick_style_tag/resolve_module_plan path. 205 tests green.
+
 # Changelog
-
-## [0.35.0] - Glass-facade kind + transparency import + themed glazing routing
-
-### Added
-- `glass_facade` material kind (opaque building-front glazing) registered in
-  `core.skins.KNOWN_KINDS`; roughness anchor .08 in `bpylayer.materials`.
-- Transparency import: `skins.load_pack` surfaces
-  `import_hints.transparency`; `bpylayer.materials` sets BSDF Alpha + IOR and
-  the mesh blend method when opacity < 1, so a Pixelcoat see-through pack
-  renders transparent (glTF alphaMode=BLEND -> Godot transparent).
-- Glazing routing (4 hops): `kit.plan_kit` threads a slot's `glazing` onto
-  the module key/bucket; `bpylayer.build.build_module` maps
-  `glazing=="facade"` -> `glazing_kind="glass_facade"`; `recipes/_arch`
-  window pane resolves `plan.glazing_kind` -- facade windows wear opaque
-  glass, interior windows stay see-through.
-
-### Verified
-- Hardware (Blender 5.1): street kit build skinned `glass <- glass_circles`
-  on real window geometry; imported window GLB pane reads see-through in
-  Material Preview. 13 modules built, 0 failed.
-
-## [0.34.0] - Surface species + tiling material kinds
-
-### Added
-- **Floor & ceiling species** (`floor`, `ceiling`): solid-slab architectural
-  modules that dress a Deli Counter floor/ceiling slot the way `roof` dresses
-  the cap. Both reuse `build_slab` (wide/deep/thin genome dims) and resolve
-  through the existing arch path -- `arch.void_for()` returns None, so no
-  engine change. Genome `prompt_rules` map surfacing keywords
-  (carpet/tile/concrete/dirt...) onto the chosen material kind.
-- **Six tiling material kinds** registered in `core.skins.KNOWN_KINDS`:
-  `brick`, `tile`, `drywall`, `ceiling_tile`, `carpet`, `dirt` -- the
-  vocabulary a Pixelcoat tiling pack needs to skin walls, floors and
-  ceilings (KNOWN_KINDS now 18). Matching roughness anchors in
-  `bpylayer.materials` (brick .90, tile .35, drywall .90, ceiling_tile .92,
-  carpet .98, dirt .97).
-- Wall-family styles (`wall`, `wallEnd`, `doorway`, `window`, `breach`) gain
-  `brick` / `tiled` / `drywall` style options so prompt- and era-driven
-  plans can select the new kinds.
-
-### Changed
-- `tests/test_genome.py`: `floor` and `ceiling` registered in `ARCH_SPECIES`
-  so the species-set assertion stays exact.
-
-### Fixed
-- `tests/test_structural_species.py`: the two Blender-dependent tests
-  (`test_recipes_registered`, `test_kit_categories_cover_structural`) now
-  `pytest.importorskip("bpy"/"bmesh")`, so a pure system-python
-  `pytest tests` run is green (was 2 failed -> now 203 passed, 2 skipped).
-  Matches Deli Counter's DC_BPY_TESTS opt-in convention; the guarded
-  geometry is proven in-Blender by the floor/ceiling specimen renders.
-
-## [0.33.0] - Phase 1 structural species
-
-### Added
-- **5 structural species** (the vertical-slice visual-gate set):
-  `stair_rail` (posts + stepped top/mid rails following params.rise),
-  `ladder` (rails + cylindrical rungs + standoffs, DC ladder proportions),
-  `wallCorner` (L-corner filler, outside-corner pivot), `shelving`
-  (uprights + N boards + optional back; gondola or racking by proportions),
-  `counter` (body + overhanging top + kick base; the generic sibling of
-  teller_line). All build clean with validation `pass`; 205 tests.
-- Kit taxonomy entries for the new architectural types.
-
-## [0.32.0] - Production kit index + missing-module gap report
-
-### Added
-- **Missing-module report**: `plan_kit(known_species=...)` routes slot
-  roles the genome library cannot build into `missing_modules` (with
-  reasons) instead of crashing at build time; `build_kit` passes the real
-  genome list, warns, and persists the list in the kit index.
-- **Kit index enrichment**: `*_kit.built.json` module entries now carry
-  category, dims, pivot, forward (+Y authoring convention; the DC slot
-  transform owns final facing), supported_slot_types, material_set,
-  collision, lod, and validation status.
-- tests/test_kit_missing.py; COORDINATE_CONTRACT.md (shared, ratified).
-
-### Changed
-- **Slot fit is authoritative**: genome prompt-era dimension ranges demote
-  to warnings when an exact fit target exists (fit_* checks still gate
-  hard) -- a DC building may legitimately need a 0.3 m wall return the
-  prop ranges never anticipated. 199 tests pass.
-
 
 ## [0.31.0] - Branded sign faces from Pixelcoat sign packs
 

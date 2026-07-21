@@ -1,22 +1,94 @@
 {
-  "species": "gold_bar",
-  "version": 1,
-  "license": { "construction_knowledge": "CC0", "notes": "Original procedural construction. Heist loot: a single gold ingot." },
-  "dimensions": {
-    "width":  { "min": 0.08, "max": 0.14, "default": 0.10 },
-    "depth":  { "min": 0.04, "max": 0.07, "default": 0.05 },
-    "height": { "min": 0.025, "max": 0.05, "default": 0.03 }
+ "species": "gold_bar",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Heist loot: a single gold ingot."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.08,
+   "max": 0.14,
+   "default": 0.1
   },
-  "parts": ["GoldBar_Ingot"],
-  "params": {},
-  "materials": { "default": "metal", "options": ["metal"] },
-  "styles": {
-    "default": { "material": "metal", "color": [0.83, 0.66, 0.22], "wear": 0.05, "bevel": 0.006 },
-    "delco":   { "material": "metal", "color": [0.80, 0.62, 0.20], "wear": 0.10, "bevel": 0.006 }
+  "depth": {
+   "min": 0.04,
+   "max": 0.07,
+   "default": 0.05
   },
-  "budgets": { "tris_lod0": 400 },
-  "attachments": [],
-  "collision": false,
-  "connectors": { "anchor": { "type": "surface" } },
-  "keywords": ["gold bar", "gold ingot", "bullion"]
+  "height": {
+   "min": 0.025,
+   "max": 0.05,
+   "default": 0.03
+  }
+ },
+ "parts": [
+  "GoldBar_Ingot"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.83,
+    0.66,
+    0.22
+   ],
+   "wear": 0.05,
+   "bevel": 0.006
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.8,
+    0.62,
+    0.2
+   ],
+   "wear": 0.1,
+   "bevel": 0.006
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.836,
+    0.689,
+    0.32
+   ],
+   "wear": 0.035,
+   "bevel": 0.006,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.519,
+    0.4928,
+    0.482
+   ],
+   "wear": 0.32,
+   "bevel": 0.006,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 400
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "surface"
+  }
+ },
+ "keywords": [
+  "gold bar",
+  "gold ingot",
+  "bullion"
+ ]
 }

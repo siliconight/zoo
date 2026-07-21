@@ -1,151 +1,173 @@
 {
-  "species": "helmet",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. No source meshes, no scraped data."
+ "species": "helmet",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. No source meshes, no scraped data."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.2,
+   "max": 0.3,
+   "default": 0.24
   },
-  "dimensions": {
-    "width": {
-      "min": 0.2,
-      "max": 0.3,
-      "default": 0.24
-    },
-    "depth": {
-      "min": 0.24,
-      "max": 0.34,
-      "default": 0.28
-    },
-    "height": {
-      "min": 0.12,
-      "max": 0.22,
-      "default": 0.16
-    }
+  "depth": {
+   "min": 0.24,
+   "max": 0.34,
+   "default": 0.28
   },
-  "parts": [
-    "shell",
-    "brim",
-    "visor"
-  ],
-  "params": {
-    "brim": {
-      "min": 0,
-      "max": 1,
-      "default": 0
-    },
-    "visor": {
-      "min": 0,
-      "max": 1,
-      "default": 0
-    },
-    "segments": {
-      "min": 12,
-      "max": 32,
-      "default": 20
-    }
-  },
-  "materials": {
-    "default": "plastic",
-    "options": [
-      "plastic",
-      "metal",
-      "carbon"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "plastic",
-      "color": [
-        0.75,
-        0.72,
-        0.1
-      ],
-      "wear": 0.2,
-      "bevel": 0.002
-    },
-    "construction": {
-      "material": "plastic",
-      "color": [
-        0.85,
-        0.7,
-        0.05
-      ],
-      "wear": 0.35,
-      "bevel": 0.002
-    },
-    "military": {
-      "material": "metal",
-      "color": [
-        0.22,
-        0.26,
-        0.18
-      ],
-      "wear": 0.5,
-      "bevel": 0.002
-    },
-    "motorcycle": {
-      "material": "carbon",
-      "color": [
-        0.08,
-        0.08,
-        0.1
-      ],
-      "wear": 0.1,
-      "bevel": 0.002
-    },
-    "sports": {
-      "material": "plastic",
-      "color": [
-        0.7,
-        0.1,
-        0.08
-      ],
-      "wear": 0.25,
-      "bevel": 0.002
-    }
-  },
-  "budgets": {
-    "tris_lod0": 4000
-  },
-  "attachments": [
-    "ATT_head_socket"
-  ],
-  "keywords": [
-    "helmet",
-    "hard hat",
-    "hardhat"
-  ],
-  "prompt_rules": [
-    {
-      "any": [
-        "construction",
-        "hard hat",
-        "hardhat",
-        "police",
-        "bobby",
-        "peaked",
-        "cap",
-        "brim",
-        "trooper",
-        "ranger"
-      ],
-      "set": {
-        "params.brim": 1
-      }
-    },
-    {
-      "any": [
-        "visor",
-        "motorcycle"
-      ],
-      "set": {
-        "params.visor": 1
-      }
-    }
-  ],
-  "connectors": {
-    "anchor": {
-      "type": "head"
-    }
+  "height": {
+   "min": 0.12,
+   "max": 0.22,
+   "default": 0.16
   }
+ },
+ "parts": [
+  "shell",
+  "brim",
+  "visor"
+ ],
+ "params": {
+  "brim": {
+   "min": 0,
+   "max": 1,
+   "default": 0
+  },
+  "visor": {
+   "min": 0,
+   "max": 1,
+   "default": 0
+  },
+  "segments": {
+   "min": 12,
+   "max": 32,
+   "default": 20
+  }
+ },
+ "materials": {
+  "default": "plastic",
+  "options": [
+   "plastic",
+   "metal",
+   "carbon"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "plastic",
+   "color": [
+    0.75,
+    0.72,
+    0.1
+   ],
+   "wear": 0.2,
+   "bevel": 0.002
+  },
+  "construction": {
+   "material": "plastic",
+   "color": [
+    0.85,
+    0.7,
+    0.05
+   ],
+   "wear": 0.35,
+   "bevel": 0.002
+  },
+  "military": {
+   "material": "metal",
+   "color": [
+    0.22,
+    0.26,
+    0.18
+   ],
+   "wear": 0.5,
+   "bevel": 0.002
+  },
+  "motorcycle": {
+   "material": "carbon",
+   "color": [
+    0.08,
+    0.08,
+    0.1
+   ],
+   "wear": 0.1,
+   "bevel": 0.002
+  },
+  "sports": {
+   "material": "plastic",
+   "color": [
+    0.7,
+    0.1,
+    0.08
+   ],
+   "wear": 0.25,
+   "bevel": 0.002
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.79,
+    0.784,
+    0.22
+   ],
+   "wear": 0.07,
+   "bevel": 0.002,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.5048,
+    0.4791,
+    0.4687
+   ],
+   "wear": 0.42,
+   "bevel": 0.002,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 4000
+ },
+ "attachments": [
+  "ATT_head_socket"
+ ],
+ "keywords": [
+  "helmet",
+  "hard hat",
+  "hardhat"
+ ],
+ "prompt_rules": [
+  {
+   "any": [
+    "construction",
+    "hard hat",
+    "hardhat",
+    "police",
+    "bobby",
+    "peaked",
+    "cap",
+    "brim",
+    "trooper",
+    "ranger"
+   ],
+   "set": {
+    "params.brim": 1
+   }
+  },
+  {
+   "any": [
+    "visor",
+    "motorcycle"
+   ],
+   "set": {
+    "params.visor": 1
+   }
+  }
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "head"
+  }
+ }
 }

@@ -1,76 +1,98 @@
 {
-  "species": "water_tank",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. A rooftop water tank: four legs, cylindrical tank, stepped cap."
+ "species": "water_tank",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A rooftop water tank: four legs, cylindrical tank, stepped cap."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.2,
+   "max": 2.4,
+   "default": 1.6
   },
-  "dimensions": {
-    "width": {
-      "min": 1.2,
-      "max": 2.4,
-      "default": 1.6
-    },
-    "depth": {
-      "min": 1.2,
-      "max": 2.4,
-      "default": 1.6
-    },
-    "height": {
-      "min": 1.8,
-      "max": 3.4,
-      "default": 2.6
-    }
+  "depth": {
+   "min": 1.2,
+   "max": 2.4,
+   "default": 1.6
   },
-  "parts": [
-    "WaterTank_Legs",
-    "WaterTank_Tank",
-    "WaterTank_Cap"
-  ],
-  "params": {},
-  "materials": {
-    "default": "metal",
-    "options": [
-      "metal",
-      "plastic"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "metal",
-      "color": [
-        0.55,
-        0.5,
-        0.44
-      ],
-      "wear": 0.25,
-      "bevel": 0.006
-    },
-    "delco": {
-      "material": "metal",
-      "color": [
-        0.48,
-        0.42,
-        0.36
-      ],
-      "wear": 0.4,
-      "bevel": 0.006
-    }
-  },
-  "budgets": {
-    "tris_lod0": 1200
-  },
-  "attachments": [],
-  "collision": true,
-  "connectors": {
-    "anchor": {
-      "type": "roof"
-    }
-  },
-  "keywords": [
-    "water tank",
-    "water_tank",
-    "rooftop tank",
-    "cistern"
+  "height": {
+   "min": 1.8,
+   "max": 3.4,
+   "default": 2.6
+  }
+ },
+ "parts": [
+  "WaterTank_Legs",
+  "WaterTank_Tank",
+  "WaterTank_Cap"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
   ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.55,
+    0.5,
+    0.44
+   ],
+   "wear": 0.25,
+   "bevel": 0.006
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.48,
+    0.42,
+    0.36
+   ],
+   "wear": 0.4,
+   "bevel": 0.006
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.5416,
+    0.499,
+    0.48
+   ],
+   "wear": 0.14,
+   "bevel": 0.006,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.417,
+    0.3944,
+    0.386
+   ],
+   "wear": 0.62,
+   "bevel": 0.006,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1200
+ },
+ "attachments": [],
+ "collision": true,
+ "connectors": {
+  "anchor": {
+   "type": "roof"
+  }
+ },
+ "keywords": [
+  "water tank",
+  "water_tank",
+  "rooftop tank",
+  "cistern"
+ ]
 }
