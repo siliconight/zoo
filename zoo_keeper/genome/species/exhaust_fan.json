@@ -1,77 +1,99 @@
 {
-  "species": "exhaust_fan",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. A mushroom exhaust fan: curb, drum body, dome cap."
+ "species": "exhaust_fan",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A mushroom exhaust fan: curb, drum body, dome cap."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.5,
+   "max": 1.0,
+   "default": 0.7
   },
-  "dimensions": {
-    "width": {
-      "min": 0.5,
-      "max": 1.0,
-      "default": 0.7
-    },
-    "depth": {
-      "min": 0.5,
-      "max": 1.0,
-      "default": 0.7
-    },
-    "height": {
-      "min": 0.4,
-      "max": 0.8,
-      "default": 0.55
-    }
+  "depth": {
+   "min": 0.5,
+   "max": 1.0,
+   "default": 0.7
   },
-  "parts": [
-    "ExhaustFan_Curb",
-    "ExhaustFan_Drum",
-    "ExhaustFan_Dome"
-  ],
-  "params": {},
-  "materials": {
-    "default": "metal",
-    "options": [
-      "metal",
-      "plastic"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "metal",
-      "color": [
-        0.66,
-        0.67,
-        0.65
-      ],
-      "wear": 0.2,
-      "bevel": 0.005
-    },
-    "delco": {
-      "material": "metal",
-      "color": [
-        0.56,
-        0.57,
-        0.54
-      ],
-      "wear": 0.33,
-      "bevel": 0.005
-    }
-  },
-  "budgets": {
-    "tris_lod0": 800
-  },
-  "attachments": [],
-  "collision": true,
-  "connectors": {
-    "anchor": {
-      "type": "roof"
-    }
-  },
-  "keywords": [
-    "exhaust fan",
-    "exhaust_fan",
-    "roof fan",
-    "mushroom fan",
-    "extractor fan"
+  "height": {
+   "min": 0.4,
+   "max": 0.8,
+   "default": 0.55
+  }
+ },
+ "parts": [
+  "ExhaustFan_Curb",
+  "ExhaustFan_Drum",
+  "ExhaustFan_Dome"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
   ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.66,
+    0.67,
+    0.65
+   ],
+   "wear": 0.2,
+   "bevel": 0.005
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.56,
+    0.57,
+    0.54
+   ],
+   "wear": 0.33,
+   "bevel": 0.005
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.6152,
+    0.6415,
+    0.66
+   ],
+   "wear": 0.115,
+   "bevel": 0.005,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.5332,
+    0.5065,
+    0.4953
+   ],
+   "wear": 0.55,
+   "bevel": 0.005,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 800
+ },
+ "attachments": [],
+ "collision": true,
+ "connectors": {
+  "anchor": {
+   "type": "roof"
+  }
+ },
+ "keywords": [
+  "exhaust fan",
+  "exhaust_fan",
+  "roof fan",
+  "mushroom fan",
+  "extractor fan"
+ ]
 }

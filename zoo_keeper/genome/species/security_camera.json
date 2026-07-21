@@ -1,22 +1,101 @@
 {
-  "species": "security_camera",
-  "version": 1,
-  "license": { "construction_knowledge": "CC0", "notes": "Original procedural construction. A wall-mounted CCTV camera: mount plate, arm, body, lens, indicator." },
-  "dimensions": {
-    "width":  { "min": 0.12, "max": 0.24, "default": 0.18 },
-    "depth":  { "min": 0.28, "max": 0.46, "default": 0.38 },
-    "height": { "min": 0.14, "max": 0.26, "default": 0.20 }
+ "species": "security_camera",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A wall-mounted CCTV camera: mount plate, arm, body, lens, indicator."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.12,
+   "max": 0.24,
+   "default": 0.18
   },
-  "parts": ["SecurityCamera_Mount", "SecurityCamera_Arm", "SecurityCamera_Body", "SecurityCamera_Lens", "SecurityCamera_LED"],
-  "params": {},
-  "materials": { "default": "plastic", "options": ["plastic", "metal"] },
-  "styles": {
-    "default": { "material": "plastic", "color": [0.82, 0.81, 0.78], "wear": 0.12, "bevel": 0.004 },
-    "delco":   { "material": "plastic", "color": [0.30, 0.30, 0.32], "wear": 0.22, "bevel": 0.004 }
+  "depth": {
+   "min": 0.28,
+   "max": 0.46,
+   "default": 0.38
   },
-  "budgets": { "tris_lod0": 1400 },
-  "attachments": ["ATT_lens"],
-  "collision": true,
-  "connectors": { "anchor": { "type": "wall" } },
-  "keywords": ["security camera", "cctv", "surveillance camera"]
+  "height": {
+   "min": 0.14,
+   "max": 0.26,
+   "default": 0.2
+  }
+ },
+ "parts": [
+  "SecurityCamera_Mount",
+  "SecurityCamera_Arm",
+  "SecurityCamera_Body",
+  "SecurityCamera_Lens",
+  "SecurityCamera_LED"
+ ],
+ "params": {},
+ "materials": {
+  "default": "plastic",
+  "options": [
+   "plastic",
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "plastic",
+   "color": [
+    0.82,
+    0.81,
+    0.78
+   ],
+   "wear": 0.12,
+   "bevel": 0.004
+  },
+  "delco": {
+   "material": "plastic",
+   "color": [
+    0.3,
+    0.3,
+    0.32
+   ],
+   "wear": 0.22,
+   "bevel": 0.004
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.376,
+    0.385,
+    0.44
+   ],
+   "wear": 0.077,
+   "bevel": 0.004,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.3207,
+    0.3015,
+    0.2953
+   ],
+   "wear": 0.44,
+   "bevel": 0.004,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1400
+ },
+ "attachments": [
+  "ATT_lens"
+ ],
+ "collision": true,
+ "connectors": {
+  "anchor": {
+   "type": "wall"
+  }
+ },
+ "keywords": [
+  "security camera",
+  "cctv",
+  "surveillance camera"
+ ]
 }

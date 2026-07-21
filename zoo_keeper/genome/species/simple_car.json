@@ -1,157 +1,179 @@
 {
-  "species": "simple_car",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. No source meshes, no scraped data."
+ "species": "simple_car",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. No source meshes, no scraped data."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.55,
+   "max": 2.0,
+   "default": 1.75
   },
-  "dimensions": {
-    "width": {
-      "min": 1.55,
-      "max": 2.0,
-      "default": 1.75
-    },
-    "depth": {
-      "min": 3.6,
-      "max": 5.2,
-      "default": 4.3
-    },
-    "height": {
-      "min": 1.3,
-      "max": 1.75,
-      "default": 1.45
-    }
+  "depth": {
+   "min": 3.6,
+   "max": 5.2,
+   "default": 4.3
   },
-  "parts": [
-    "body",
-    "cabin",
-    "wheel",
-    "window",
-    "bumper"
+  "height": {
+   "min": 1.3,
+   "max": 1.75,
+   "default": 1.45
+  }
+ },
+ "parts": [
+  "body",
+  "cabin",
+  "wheel",
+  "window",
+  "bumper"
+ ],
+ "params": {
+  "wheels": {
+   "min": 4,
+   "max": 4,
+   "default": 4
+  },
+  "doors": {
+   "min": 2,
+   "max": 4,
+   "default": 4
+  },
+  "body_style": [
+   "sedan",
+   "hatchback",
+   "coupe"
   ],
-  "params": {
-    "wheels": {
-      "min": 4,
-      "max": 4,
-      "default": 4
-    },
-    "doors": {
-      "min": 2,
-      "max": 4,
-      "default": 4
-    },
-    "body_style": [
-      "sedan",
-      "hatchback",
-      "coupe"
-    ],
-    "wheel_segments": {
-      "min": 10,
-      "max": 24,
-      "default": 14
-    }
-  },
-  "materials": {
-    "default": "metal",
-    "options": [
-      "metal",
-      "plastic",
-      "glass"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "metal",
-      "color": [
-        0.55,
-        0.56,
-        0.58
-      ],
-      "wear": 0.2,
-      "bevel": 0.01
-    },
-    "1970s": {
-      "material": "metal",
-      "color": [
-        0.55,
-        0.35,
-        0.1
-      ],
-      "wear": 0.45,
-      "bevel": 0.014
-    },
-    "1980s": {
-      "material": "metal",
-      "color": [
-        0.62,
-        0.1,
-        0.08
-      ],
-      "wear": 0.35,
-      "bevel": 0.012
-    },
-    "1990s": {
-      "material": "metal",
-      "color": [
-        0.3,
-        0.42,
-        0.35
-      ],
-      "wear": 0.3,
-      "bevel": 0.01
-    },
-    "police": {
-      "material": "metal",
-      "color": [
-        0.1,
-        0.1,
-        0.12
-      ],
-      "wear": 0.25,
-      "bevel": 0.01
-    },
-    "racing": {
-      "material": "metal",
-      "color": [
-        0.7,
-        0.08,
-        0.06
-      ],
-      "wear": 0.15,
-      "bevel": 0.01
-    }
-  },
-  "budgets": {
-    "tris_lod0": 12000
-  },
-  "attachments": [
-    "ATT_roof",
-    "ATT_driver_seat",
-    "ATT_trunk"
-  ],
-  "keywords": [
-    "car",
-    "sedan",
-    "hatchback",
-    "coupe",
-    "automobile"
-  ],
-  "prompt_rules": [
-    {
-      "any": [
-        "hatchback"
-      ],
-      "set": {
-        "params.body_style": "hatchback"
-      }
-    },
-    {
-      "any": [
-        "coupe"
-      ],
-      "set": {
-        "params.body_style": "coupe"
-      }
-    }
+  "wheel_segments": {
+   "min": 10,
+   "max": 24,
+   "default": 14
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic",
+   "glass"
   ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.55,
+    0.56,
+    0.58
+   ],
+   "wear": 0.2,
+   "bevel": 0.01
+  },
+  "1970s": {
+   "material": "metal",
+   "color": [
+    0.55,
+    0.35,
+    0.1
+   ],
+   "wear": 0.45,
+   "bevel": 0.014
+  },
+  "1980s": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.1,
+    0.08
+   ],
+   "wear": 0.35,
+   "bevel": 0.012
+  },
+  "1990s": {
+   "material": "metal",
+   "color": [
+    0.3,
+    0.42,
+    0.35
+   ],
+   "wear": 0.3,
+   "bevel": 0.01
+  },
+  "police": {
+   "material": "metal",
+   "color": [
+    0.1,
+    0.1,
+    0.12
+   ],
+   "wear": 0.25,
+   "bevel": 0.01
+  },
+  "racing": {
+   "material": "metal",
+   "color": [
+    0.7,
+    0.08,
+    0.06
+   ],
+   "wear": 0.15,
+   "bevel": 0.01
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.606,
+    0.632,
+    0.7
+   ],
+   "wear": 0.07,
+   "bevel": 0.01,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.5388,
+    0.5119,
+    0.5007
+   ],
+   "wear": 0.42,
+   "bevel": 0.01,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 12000
+ },
+ "attachments": [
+  "ATT_roof",
+  "ATT_driver_seat",
+  "ATT_trunk"
+ ],
+ "keywords": [
+  "car",
+  "sedan",
+  "hatchback",
+  "coupe",
+  "automobile"
+ ],
+ "prompt_rules": [
+  {
+   "any": [
+    "hatchback"
+   ],
+   "set": {
+    "params.body_style": "hatchback"
+   }
+  },
+  {
+   "any": [
+    "coupe"
+   ],
+   "set": {
+    "params.body_style": "coupe"
+   }
+  }
+ ]
 }

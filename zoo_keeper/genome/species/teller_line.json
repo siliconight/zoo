@@ -1,36 +1,133 @@
 {
-  "species": "teller_line",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Architectural interactive module: a bank teller line — a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass."
+ "species": "teller_line",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural interactive module: a bank teller line \u2014 a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.0,
+   "max": 5.0,
+   "default": 2.0
   },
-  "dimensions": {
-    "width":  { "min": 1.0, "max": 5.0, "default": 2.0 },
-    "depth":  { "min": 0.3, "max": 1.0, "default": 0.5 },
-    "height": { "min": 2.0, "max": 4.0, "default": 3.0 }
+  "depth": {
+   "min": 0.3,
+   "max": 1.0,
+   "default": 0.5
   },
-  "parts": ["TellerLine_Counter", "TellerLine_Post_L", "TellerLine_Post_R", "TellerLine_Header", "TellerLine_Glass"],
-  "params": {
-    "counter_h":  { "min": 0.7,  "max": 1.4,  "default": 1.1 },
-    "post":       { "min": 0.05, "max": 0.4,  "default": 0.10 },
-    "header":     { "min": 0.05, "max": 0.5,  "default": 0.20 },
-    "slot_w":     { "min": 0.15, "max": 0.8,  "default": 0.40 },
-    "slot_h":     { "min": 0.08, "max": 0.35, "default": 0.22 },
-    "glass_frac": { "min": 0.06, "max": 0.3,  "default": 0.12 }
+  "height": {
+   "min": 2.0,
+   "max": 4.0,
+   "default": 3.0
+  }
+ },
+ "parts": [
+  "TellerLine_Counter",
+  "TellerLine_Post_L",
+  "TellerLine_Post_R",
+  "TellerLine_Header",
+  "TellerLine_Glass"
+ ],
+ "params": {
+  "counter_h": {
+   "min": 0.7,
+   "max": 1.4,
+   "default": 1.1
   },
-  "materials": {
-    "default": "metal",
-    "options": ["metal", "laminate", "concrete"]
+  "post": {
+   "min": 0.05,
+   "max": 0.4,
+   "default": 0.1
   },
-  "glass_color": [0.60, 0.70, 0.74],
-  "styles": {
-    "default": { "material": "metal", "color": [0.50, 0.51, 0.53], "wear": 0.18, "bevel": 0.004 },
-    "delco":   { "material": "laminate", "color": [0.46, 0.43, 0.38], "wear": 0.32, "bevel": 0.004 }
+  "header": {
+   "min": 0.05,
+   "max": 0.5,
+   "default": 0.2
   },
-  "budgets": { "tris_lod0": 900 },
-  "attachments": [],
-  "collision": true,
-  "match_priority": -1,
-  "keywords": ["teller line", "teller window", "teller counter", "bank counter"]
+  "slot_w": {
+   "min": 0.15,
+   "max": 0.8,
+   "default": 0.4
+  },
+  "slot_h": {
+   "min": 0.08,
+   "max": 0.35,
+   "default": 0.22
+  },
+  "glass_frac": {
+   "min": 0.06,
+   "max": 0.3,
+   "default": 0.12
+  }
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "laminate",
+   "concrete"
+  ]
+ },
+ "glass_color": [
+  0.6,
+  0.7,
+  0.74
+ ],
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.5,
+    0.51,
+    0.53
+   ],
+   "wear": 0.18,
+   "bevel": 0.004
+  },
+  "delco": {
+   "material": "laminate",
+   "color": [
+    0.46,
+    0.43,
+    0.38
+   ],
+   "wear": 0.32,
+   "bevel": 0.004
+  },
+  "center_city": {
+   "material": "laminate",
+   "color": [
+    0.5232,
+    0.5085,
+    0.5
+   ],
+   "wear": 0.112,
+   "bevel": 0.004,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.4198,
+    0.3971,
+    0.3887
+   ],
+   "wear": 0.54,
+   "bevel": 0.004,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 900
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "teller line",
+  "teller window",
+  "teller counter",
+  "bank counter"
+ ]
 }

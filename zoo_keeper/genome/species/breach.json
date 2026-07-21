@@ -44,10 +44,7 @@
   "options": [
    "concrete",
    "plaster",
-   "metal",
-   "brick",
-   "tile",
-   "drywall"
+   "metal"
   ]
  },
  "styles": {
@@ -72,38 +69,27 @@
    "bevel": 0.002,
    "ambient": 0.35
   },
-  "brick": {
-   "material": "brick",
+  "center_city": {
+   "material": "metal",
    "color": [
-    0.5,
-    0.27,
-    0.21
+    0.5416,
+    0.537,
+    0.55
    ],
-   "wear": 0.3,
-   "bevel": 0.003,
-   "ambient": 0.35
-  },
-  "tiled": {
-   "material": "tile",
-   "color": [
-    0.82,
-    0.85,
-    0.83
-   ],
-   "wear": 0.1,
+   "wear": 0.18,
    "bevel": 0.002,
-   "ambient": 0.3
+   "ambient": 0.15
   },
-  "drywall": {
-   "material": "drywall",
+  "industrial_flats": {
+   "material": "metal",
    "color": [
-    0.79,
-    0.77,
-    0.72
+    0.4482,
+    0.4245,
+    0.4153
    ],
-   "wear": 0.1,
+   "wear": 0.7,
    "bevel": 0.002,
-   "ambient": 0.3
+   "ambient": 0.45
   }
  },
  "budgets": {

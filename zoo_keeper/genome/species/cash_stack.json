@@ -1,94 +1,116 @@
 {
-  "species": "cash_stack",
-  "version": 1,
-  "license": {
-    "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. No source meshes, no scraped data."
+ "species": "cash_stack",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. No source meshes, no scraped data."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.155,
+   "max": 0.16,
+   "default": 0.156
   },
-  "dimensions": {
-    "width": {
-      "min": 0.155,
-      "max": 0.16,
-      "default": 0.156
-    },
-    "depth": {
-      "min": 0.06,
-      "max": 0.075,
-      "default": 0.066
-    },
-    "height": {
-      "min": 0.012,
-      "max": 0.14,
-      "default": 0.02
-    }
+  "depth": {
+   "min": 0.06,
+   "max": 0.075,
+   "default": 0.066
   },
-  "parts": [
-    "stack",
-    "band"
-  ],
-  "params": {
-    "stacks": {
-      "min": 1,
-      "max": 12,
-      "default": 1
-    }
-  },
-  "materials": {
-    "default": "paper",
-    "options": [
-      "paper"
-    ]
-  },
-  "styles": {
-    "default": {
-      "material": "paper",
-      "color": [
-        0.62,
-        0.7,
-        0.55
-      ],
-      "wear": 0.15,
-      "bevel": 0.001
-    },
-    "1990s": {
-      "material": "paper",
-      "color": [
-        0.6,
-        0.68,
-        0.54
-      ],
-      "wear": 0.22,
-      "bevel": 0.001
-    },
-    "clean": {
-      "material": "paper",
-      "color": [
-        0.66,
-        0.74,
-        0.58
-      ],
-      "wear": 0.05,
-      "bevel": 0.001
-    }
-  },
-  "budgets": {
-    "tris_lod0": 3000
-  },
-  "attachments": [
-    "ATT_center"
-  ],
-  "collision": false,
-  "keywords": [
-    "cash stack",
-    "stack of cash",
-    "banknotes",
-    "cash",
-    "money",
-    "bills"
-  ],
-  "connectors": {
-    "anchor": {
-      "type": "surface"
-    }
+  "height": {
+   "min": 0.012,
+   "max": 0.14,
+   "default": 0.02
   }
+ },
+ "parts": [
+  "stack",
+  "band"
+ ],
+ "params": {
+  "stacks": {
+   "min": 1,
+   "max": 12,
+   "default": 1
+  }
+ },
+ "materials": {
+  "default": "paper",
+  "options": [
+   "paper"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "paper",
+   "color": [
+    0.62,
+    0.7,
+    0.55
+   ],
+   "wear": 0.15,
+   "bevel": 0.001
+  },
+  "1990s": {
+   "material": "paper",
+   "color": [
+    0.6,
+    0.68,
+    0.54
+   ],
+   "wear": 0.22,
+   "bevel": 0.001
+  },
+  "clean": {
+   "material": "paper",
+   "color": [
+    0.66,
+    0.74,
+    0.58
+   ],
+   "wear": 0.05,
+   "bevel": 0.001
+  },
+  "center_city": {
+   "material": "paper",
+   "color": [
+    0.6704,
+    0.765,
+    0.67
+   ],
+   "wear": 0.052,
+   "bevel": 0.001,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "paper",
+   "color": [
+    0.5898,
+    0.5611,
+    0.5487
+   ],
+   "wear": 0.37,
+   "bevel": 0.001,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 3000
+ },
+ "attachments": [
+  "ATT_center"
+ ],
+ "collision": false,
+ "keywords": [
+  "cash stack",
+  "stack of cash",
+  "banknotes",
+  "cash",
+  "money",
+  "bills"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "surface"
+  }
+ }
 }

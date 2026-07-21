@@ -1,22 +1,105 @@
 {
-  "species": "queue_stanchion",
-  "version": 1,
-  "license": { "construction_knowledge": "CC0", "notes": "Original procedural construction. A rope/belt queue post: weighted base, post, finial, belt hooks." },
-  "dimensions": {
-    "width":  { "min": 0.28, "max": 0.42, "default": 0.35 },
-    "depth":  { "min": 0.28, "max": 0.42, "default": 0.35 },
-    "height": { "min": 0.9, "max": 1.1, "default": 1.0 }
+ "species": "queue_stanchion",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A rope/belt queue post: weighted base, post, finial, belt hooks."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.28,
+   "max": 0.42,
+   "default": 0.35
   },
-  "parts": ["QueueStanchion_Base", "QueueStanchion_Post", "QueueStanchion_Finial", "QueueStanchion_Hook"],
-  "params": {},
-  "materials": { "default": "metal", "options": ["metal"] },
-  "styles": {
-    "default": { "material": "metal", "color": [0.62, 0.55, 0.30], "wear": 0.18, "bevel": 0.004 },
-    "delco":   { "material": "metal", "color": [0.55, 0.56, 0.58], "wear": 0.28, "bevel": 0.004 }
+  "depth": {
+   "min": 0.28,
+   "max": 0.42,
+   "default": 0.35
   },
-  "budgets": { "tris_lod0": 1400 },
-  "attachments": ["ATT_belt"],
-  "collision": true,
-  "connectors": { "anchor": { "type": "floor" }, "sockets": { "ATT_belt": { "type": "grip" } } },
-  "keywords": ["queue stanchion", "rope post", "belt barrier", "crowd post"]
+  "height": {
+   "min": 0.9,
+   "max": 1.1,
+   "default": 1.0
+  }
+ },
+ "parts": [
+  "QueueStanchion_Base",
+  "QueueStanchion_Post",
+  "QueueStanchion_Finial",
+  "QueueStanchion_Hook"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.55,
+    0.3
+   ],
+   "wear": 0.18,
+   "bevel": 0.004
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.55,
+    0.56,
+    0.58
+   ],
+   "wear": 0.28,
+   "bevel": 0.004
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.606,
+    0.632,
+    0.7
+   ],
+   "wear": 0.098,
+   "bevel": 0.004,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.5388,
+    0.5119,
+    0.5007
+   ],
+   "wear": 0.5,
+   "bevel": 0.004,
+   "ambient": 0.1
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1400
+ },
+ "attachments": [
+  "ATT_belt"
+ ],
+ "collision": true,
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  },
+  "sockets": {
+   "ATT_belt": {
+    "type": "grip"
+   }
+  }
+ },
+ "keywords": [
+  "queue stanchion",
+  "rope post",
+  "belt barrier",
+  "crowd post"
+ ]
 }
