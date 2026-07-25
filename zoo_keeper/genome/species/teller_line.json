@@ -3,7 +3,7 @@
  "version": 1,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Architectural interactive module: a bank teller line \u2014 a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass."
+  "notes": "Original procedural construction. Architectural interactive module: a bank teller line — a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass."
  },
  "dimensions": {
   "width": {
@@ -116,6 +116,17 @@
    "wear": 0.54,
    "bevel": 0.004,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.47,
+    0.5049,
+    0.5565
+   ],
+   "wear": 0.32,
+   "bevel": 0.004,
+   "ambient": 0.05
   }
  },
  "budgets": {

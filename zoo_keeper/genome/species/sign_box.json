@@ -100,6 +100,23 @@
    ],
    "emissive_strength": 2.2,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.282,
+    0.297,
+    0.336
+   ],
+   "wear": 0.34,
+   "bevel": 0.003,
+   "ambient": 0.05,
+   "emissive_color": [
+    1.0,
+    0.93,
+    0.78
+   ],
+   "emissive_strength": 2.86
   }
  },
  "budgets": {

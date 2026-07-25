@@ -90,6 +90,17 @@
    "wear": 0.67,
    "bevel": 0.004,
    "ambient": 0.4
+  },
+  "rockay": {
+   "material": "wood",
+   "color": [
+    0.423,
+    0.3366,
+    0.252
+   ],
+   "wear": 0.39,
+   "bevel": 0.004,
+   "ambient": 0.05
   }
  },
  "budgets": {

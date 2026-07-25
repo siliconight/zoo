@@ -3,7 +3,7 @@
  "version": 1,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Freestanding shelf unit: two side uprights, N shelf boards, optional back panel \u2014 reads as store gondola or stockroom racking by proportions."
+  "notes": "Original procedural construction. Freestanding shelf unit: two side uprights, N shelf boards, optional back panel — reads as store gondola or stockroom racking by proportions."
  },
  "dimensions": {
   "width": {
@@ -90,6 +90,17 @@
    "wear": 0.67,
    "bevel": 0.003,
    "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.517,
+    0.5544,
+    0.609
+   ],
+   "wear": 0.39,
+   "bevel": 0.003,
+   "ambient": 0.05
   }
  },
  "budgets": {

@@ -109,6 +109,17 @@
    "wear": 0.34,
    "bevel": 0.002,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "paper",
+   "color": [
+    0.799,
+    0.198,
+    0.189
+   ],
+   "wear": 0.26,
+   "bevel": 0.002,
+   "ambient": 0.05
   }
  },
  "budgets": {

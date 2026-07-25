@@ -79,6 +79,17 @@
    "wear": 0.44,
    "bevel": 0.004,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "plastic",
+   "color": [
+    0.7708,
+    0.8019,
+    0.819
+   ],
+   "wear": 0.26,
+   "bevel": 0.004,
+   "ambient": 0.05
   }
  },
  "budgets": {

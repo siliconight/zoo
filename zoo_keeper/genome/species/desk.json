@@ -135,6 +135,17 @@
    "wear": 0.37,
    "bevel": 0.004,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "laminate",
+   "color": [
+    0.6768,
+    0.6732,
+    0.63
+   ],
+   "wear": 0.29,
+   "bevel": 0.004,
+   "ambient": 0.05
   }
  },
  "budgets": {

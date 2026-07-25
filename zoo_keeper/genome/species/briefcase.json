@@ -104,6 +104,17 @@
    "wear": 0.44,
    "bevel": 0.006,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "leather",
+   "color": [
+    0.1692,
+    0.1188,
+    0.084
+   ],
+   "wear": 0.36,
+   "bevel": 0.006,
+   "ambient": 0.05
   }
  },
  "budgets": {

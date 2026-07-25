@@ -121,10 +121,19 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         typ = slot_typename(role, s.get("size_mod"))
         exact = typ != "wallEnd"
         width_cm = int(round(dims[0] * 100)) if exact else None
+        # Per-slot SKIN STYLE + MATERIAL (Deli Counter >= 0.88): the slot's
+        # own material-driven style wins over the kit-level default, so one
+        # building demands one module family PER MATERIAL ZONE (concrete
+        # exterior, drywall interiors, glass curtain wall, metal service)
+        # instead of funnelling every surface through a single style. Slots
+        # without a style (older manifests) keep the global default --
+        # nothing changes for them.
+        slot_style = int(s.get("style") or style or 1)
+        slot_material = s.get("material")
 
         for species, st, stem_state, is_deferred in slot_variants(s, typ,
                                                                    state):
-            stem = module_stem(typ, theme, style, width_cm, stem_state)
+            stem = module_stem(typ, theme, slot_style, width_cm, stem_state)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -142,7 +151,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             # in the key so they never merge with see-through window modules, and
             # thread it onto the module for build_module to swap the glass kind.
             glaze = s.get("glazing")
-            key = (typ, width_cm, st, species, glaze)
+            key = (typ, width_cm, st, species, glaze, slot_style,
+                   slot_material)
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -151,6 +161,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "species": species,
                     "state": st,
                     "width_cm": width_cm,
+                    "style": slot_style,
+                    "material": slot_material,
                     "fit": "exact" if exact else "unit",
                     "dims": ([round(dims[0], 4), round(dims[1], 4),
                               round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
@@ -162,8 +174,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             b["count"] += 1
 
     modules = sorted(buckets.values(),
-                     key=lambda m: (m["type"], m["width_cm"] or 0,
-                                    m["state"] or ""))
+                     key=lambda m: (m["type"], m.get("style", 1),
+                                    m["width_cm"] or 0, m["state"] or ""))
     missing = []
     if known_species is not None:
         known = set(known_species)

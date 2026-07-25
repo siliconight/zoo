@@ -6,7 +6,7 @@ value comes from a named RNG stream.
 """
 from __future__ import annotations
 
-from . import kit, seeding
+from . import kit, seeding, skins
 
 # Boot construction constants — single source of truth. The DNA hook writes
 # the resolved values into the plan; the recipe executes them verbatim so the
@@ -166,6 +166,17 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     material = style_block.get("material") or genome["materials"]["default"]
     if material not in genome["materials"]["options"]:
         material = genome["materials"]["default"]
+    # Per-slot MATERIAL OVERRIDE (Deli Counter >= 0.88 slots carry the
+    # surface's material): the greybox knows whether this slab is the brick
+    # exterior, a drywall partition or a glass curtain wall, and that beats
+    # the genome's per-theme default. Any known surface KIND is legal for an
+    # architectural slab (the kind vocabulary is skins.KNOWN_KINDS -- wider
+    # than a species' own options list, which describes what the species
+    # defaults to, not what a slot may demand). Unknown values fall back to
+    # the genome default -- older manifests are untouched.
+    override = module.get("material")
+    if override and override in skins.KNOWN_KINDS:
+        material = override
     color = list(style_block.get("color", [0.6, 0.6, 0.6]))
     wear = style_block.get("wear", 0.15)
     ambient = style_block.get("ambient", 0.0)
@@ -175,7 +186,8 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
             "height": round(float(h), 4)}
 
     stem = module.get("stem") or kit.module_stem(
-        module["type"], theme, int(style), module.get("width_cm"))
+        module["type"], theme, int(module.get("style") or style),
+        module.get("width_cm"))
 
     plan = {
         "species": genome["species"],
@@ -203,7 +215,9 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
             "species": module.get("species", module["type"]),
             "state": module.get("state"),
             "theme": theme,
-            "style": int(style),
+            # the slot's own material-driven style (kit.plan_kit) wins over
+            # the kit-level default, matching the stem it was planned under.
+            "style": int(module.get("style") or style),
             "width_cm": module.get("width_cm"),
             "fit": module.get("fit", "exact"),
             "stem": stem,

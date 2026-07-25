@@ -3,7 +3,7 @@
  "version": 1,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Architectural interactive module: a vault-room wall of safe deposit boxes \u2014 a bordered grid of compartments on a metal backing. The intact (default) state; its drilled state reuses the same species art (deferred) until a drilled-boxes art pass."
+  "notes": "Original procedural construction. Architectural interactive module: a vault-room wall of safe deposit boxes — a bordered grid of compartments on a metal backing. The intact (default) state; its drilled state reuses the same species art (deferred) until a drilled-boxes art pass."
  },
  "dimensions": {
   "width": {
@@ -102,6 +102,17 @@
    "wear": 0.52,
    "bevel": 0.003,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.4888,
+    0.5247,
+    0.5775
+   ],
+   "wear": 0.32,
+   "bevel": 0.003,
+   "ambient": 0.05
   }
  },
  "budgets": {

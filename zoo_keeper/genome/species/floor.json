@@ -39,44 +39,79 @@
  "styles": {
   "default": {
    "material": "concrete",
-   "color": [0.5, 0.49, 0.47],
+   "color": [
+    0.5,
+    0.49,
+    0.47
+   ],
    "wear": 0.2,
    "bevel": 0.002
   },
   "delco": {
    "material": "concrete",
-   "color": [0.46, 0.45, 0.43],
+   "color": [
+    0.46,
+    0.45,
+    0.43
+   ],
    "wear": 0.35,
    "bevel": 0.002,
    "ambient": 0.35
   },
   "tiled": {
    "material": "tile",
-   "color": [0.82, 0.85, 0.83],
+   "color": [
+    0.82,
+    0.85,
+    0.83
+   ],
    "wear": 0.1,
    "bevel": 0.002,
    "ambient": 0.3
   },
   "carpet": {
    "material": "carpet",
-   "color": [0.35, 0.18, 0.23],
+   "color": [
+    0.35,
+    0.18,
+    0.23
+   ],
    "wear": 0.2,
    "bevel": 0.001,
    "ambient": 0.3
   },
   "wood": {
    "material": "wood",
-   "color": [0.42, 0.28, 0.16],
+   "color": [
+    0.42,
+    0.28,
+    0.16
+   ],
    "wear": 0.2,
    "bevel": 0.002,
    "ambient": 0.3
   },
   "dirt": {
    "material": "dirt",
-   "color": [0.35, 0.27, 0.19],
+   "color": [
+    0.35,
+    0.27,
+    0.19
+   ],
    "wear": 0.3,
    "bevel": 0.001,
    "ambient": 0.3
+  },
+  "rockay": {
+   "material": "concrete",
+   "color": [
+    0.47,
+    0.4851,
+    0.4935
+   ],
+   "wear": 0.34,
+   "bevel": 0.002,
+   "ambient": 0.05
   }
  },
  "budgets": {
@@ -91,9 +126,63 @@
   "ground floor"
  ],
  "prompt_rules": [
-  {"any": ["carpet", "carpeted"], "set": {"material": "carpet", "color": [0.35, 0.18, 0.23]}},
-  {"any": ["tile", "tiled"], "set": {"material": "tile", "color": [0.82, 0.85, 0.83]}},
-  {"any": ["dirt", "earth", "ground"], "set": {"material": "dirt", "color": [0.35, 0.27, 0.19]}},
-  {"any": ["wood", "wooden", "plank"], "set": {"material": "wood", "color": [0.42, 0.28, 0.16]}}
+  {
+   "any": [
+    "carpet",
+    "carpeted"
+   ],
+   "set": {
+    "material": "carpet",
+    "color": [
+     0.35,
+     0.18,
+     0.23
+    ]
+   }
+  },
+  {
+   "any": [
+    "tile",
+    "tiled"
+   ],
+   "set": {
+    "material": "tile",
+    "color": [
+     0.82,
+     0.85,
+     0.83
+    ]
+   }
+  },
+  {
+   "any": [
+    "dirt",
+    "earth",
+    "ground"
+   ],
+   "set": {
+    "material": "dirt",
+    "color": [
+     0.35,
+     0.27,
+     0.19
+    ]
+   }
+  },
+  {
+   "any": [
+    "wood",
+    "wooden",
+    "plank"
+   ],
+   "set": {
+    "material": "wood",
+    "color": [
+     0.42,
+     0.28,
+     0.16
+    ]
+   }
+  }
  ]
 }

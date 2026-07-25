@@ -39,30 +39,57 @@
  "styles": {
   "default": {
    "material": "concrete",
-   "color": [0.6, 0.59, 0.57],
+   "color": [
+    0.6,
+    0.59,
+    0.57
+   ],
    "wear": 0.1,
    "bevel": 0.002
   },
   "delco": {
    "material": "plaster",
-   "color": [0.7, 0.68, 0.64],
+   "color": [
+    0.7,
+    0.68,
+    0.64
+   ],
    "wear": 0.2,
    "bevel": 0.002,
    "ambient": 0.35
   },
   "acoustic": {
    "material": "ceiling_tile",
-   "color": [0.84, 0.82, 0.77],
+   "color": [
+    0.84,
+    0.82,
+    0.77
+   ],
    "wear": 0.1,
    "bevel": 0.001,
    "ambient": 0.3
   },
   "drywall": {
    "material": "drywall",
-   "color": [0.79, 0.77, 0.72],
+   "color": [
+    0.79,
+    0.77,
+    0.72
+   ],
    "wear": 0.08,
    "bevel": 0.001,
    "ambient": 0.3
+  },
+  "rockay": {
+   "material": "concrete",
+   "color": [
+    0.564,
+    0.5841,
+    0.5985
+   ],
+   "wear": 0.24,
+   "bevel": 0.002,
+   "ambient": 0.05
   }
  },
  "budgets": {
@@ -78,8 +105,48 @@
   "soffit"
  ],
  "prompt_rules": [
-  {"any": ["acoustic", "ceiling tile", "drop ceiling"], "set": {"material": "ceiling_tile", "color": [0.84, 0.82, 0.77]}},
-  {"any": ["drywall", "gypsum", "sheetrock"], "set": {"material": "drywall", "color": [0.79, 0.77, 0.72]}},
-  {"any": ["plaster"], "set": {"material": "plaster", "color": [0.7, 0.68, 0.64]}}
+  {
+   "any": [
+    "acoustic",
+    "ceiling tile",
+    "drop ceiling"
+   ],
+   "set": {
+    "material": "ceiling_tile",
+    "color": [
+     0.84,
+     0.82,
+     0.77
+    ]
+   }
+  },
+  {
+   "any": [
+    "drywall",
+    "gypsum",
+    "sheetrock"
+   ],
+   "set": {
+    "material": "drywall",
+    "color": [
+     0.79,
+     0.77,
+     0.72
+    ]
+   }
+  },
+  {
+   "any": [
+    "plaster"
+   ],
+   "set": {
+    "material": "plaster",
+    "color": [
+     0.7,
+     0.68,
+     0.64
+    ]
+   }
+  }
  ]
 }

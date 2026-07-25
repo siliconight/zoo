@@ -88,6 +88,17 @@
    "wear": 0.57,
    "bevel": 0.002,
    "ambient": 0.1
+  },
+  "rockay": {
+   "material": "concrete",
+   "color": [
+    0.5264,
+    0.5445,
+    0.5565
+   ],
+   "wear": 0.29,
+   "bevel": 0.002,
+   "ambient": 0.05
   }
  }
 }
