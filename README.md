@@ -1,5 +1,17 @@
 # Zoo
 
+
+> **Read [`../PIPELINE_MAP.md`](../PIPELINE_MAP.md) before changing anything here.**
+> It covers every repo's role, the job DAG, where artifacts land, and the two
+> rules everything follows from: the deliverable is a level shell that must work
+> standalone in somebody else's Godot project with none of these tools present,
+> and **these tools are not the authority on gameplay or networking**.
+>
+> This repo owns structural kit modules built to Deli Counter's slot dims, dressing props, and light fixtures.
+> It does not decide the walkable surface. Kit modules carry their own collision and the pipeline deliberately does not use it; dressing covers are collision-free by contract.
+>
+> Live state of the current work: [`../PIPELINE_ROADMAP.md`](../PIPELINE_ROADMAP.md).
+
 Offline procedural game asset compiler. Plain-text prompt in, Godot-ready
 asset out:
 
