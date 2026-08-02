@@ -26,8 +26,26 @@ anchor normal:
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
 ``-colonly`` proxy. The DC greybox collision stays authoritative; covers are
-visual only. UVs are assigned to the order's ``uv_region`` on Patina's trim
-atlas so the strip reads as the right trim piece.
+visual only.
+
+CORRECTED CLAIM. This docstring used to say "UVs are assigned to the order's
+``uv_region`` on Patina's trim atlas so the strip reads as the right trim
+piece." They are not, and never were. UVs come from
+``geometry.bm_to_object(..., texel=1.2)`` -> ``cube_project_uv``, the same
+world-metres box projection every other Zoo mesh gets. ``uv_region`` is read
+from the order and returned in this function's result dict, where nothing
+reads it -- ``build.build_dressing`` uses ``result["objects"]`` only. The
+atlas PNG is likewise recorded into ``<stem>_dressing.built.json`` and never
+opened. Measured on a shipped level: 2255 cover primitives, all carrying
+TEXCOORD_0 from the cube projection, one material, zero images.
+
+That is not a gap to fill here. Pixelcoat "owns the themed skin library that
+Zoo kits resolve against" (its README), and trim sheets are on its own feature
+list -- so a cover gets its surface the same way a wall does, by resolving a
+pack for its material kind through :func:`materials.make_material`. Patina
+places; Pixelcoat skins. The ``uv_region`` field stays in the contract because
+Patina still emits it and a future atlas-based path may want it; it is
+carried, not used.
 """
 from __future__ import annotations
 
