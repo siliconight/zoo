@@ -40,7 +40,11 @@ _COVER = {
     # One panel of a panel field (Patina v0.17 wall_panel orders): a thin
     # proud plate; the field effect comes from many orders in a grid, and
     # the gaps between plates are where the facade gets its shadow lines.
-    "panel_field": {"proud": 0.03, "cross": 1.2, "span": 1.2},
+    # 0.03 -> 0.012: a panel field's proud depth IS its seam. Every cell has
+    # four edge faces, and across 1032 cells those edges draw a lattice on any
+    # sky-dominant ambient -- the "tiles" that kept reading as tiles after the
+    # UV fix, because the seams are geometry and the UV fix was texture.
+    "panel_field": {"proud": 0.012, "cross": 1.2, "span": 1.2},
     # v0.26 facade kit (Patina --frames/--gutters/--pilasters):
     "gutter_run":  {"proud": 0.10, "cross": 0.14, "span": 2.0},
     "pilaster":    {"proud": 0.05, "cross": 0.12, "span": 4.2},

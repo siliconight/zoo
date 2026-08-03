@@ -118,7 +118,9 @@ def test_panel_field_uses_size2_exactly():
     from zoo_keeper.core.dressing import strip_size
     w, d, h = strip_size("panel_field", 0.97, [0.97, 1.02])
     assert (w, h) == (0.97, 1.02)
-    assert d == 0.03
+    # was 0.03. The proud depth of a panel IS the seam a player sees: four
+    # edge faces per cell, 1032 cells, drawing a lattice across the facade.
+    assert d == 0.012
 
 
 def test_panel_field_without_size2_falls_back_square():
