@@ -79,7 +79,8 @@ def build(plan, streams, collection):
     obj = geometry.bm_to_object(
         bm, f"Cover_{cover}", collection,
         bevel=plan.get("bevel", 0.002), texel=1.2, rng=rng,
-        wear=plan.get("wear", 0.15), uv_offset=uv_offset(order))
+        wear=plan.get("wear", 0.15), ambient=plan.get("ambient", 0.0),
+        uv_offset=uv_offset(order))
 
     mat = materials.make_material(
         f"M_Cover_{plan['material']}", plan["color"], plan["material"])

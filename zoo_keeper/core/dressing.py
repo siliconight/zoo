@@ -176,7 +176,15 @@ def _style_block(genome: dict, theme: str):
 
 def dress_plan(order: dict, genome: dict, theme: str, space: str,
                tool_version: str) -> dict:
-    """A build plan for one cover order (consumed by recipes/dress_cover.build)."""
+    """A build plan for one cover order (consumed by recipes/dress_cover.build).
+
+    ``ambient`` is carried like ``wear`` and ``bevel``. It was authored in the
+    style blocks (``rockay`` 0.05, ``industrial_flats`` 0.1) and copied here by
+    nothing, so every cover took ``bm_to_object``'s default of 0.0 and no cover
+    ever got the cool-up / warm-fill-down form tint the styles asked for. That
+    tint is the one variation lever that costs no extra elements: it changes
+    how a surface reads by face orientation rather than by adding geometry.
+    """
     style = _style_block(genome, theme)
     material = style.get("material") or genome["materials"]["default"]
     if material not in genome["materials"]["options"]:
@@ -189,6 +197,7 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
         "material": material,
         "color": [round(float(c), 4) for c in style.get("color", [0.6, 0.6, 0.6])],
         "wear": round(float(style.get("wear", 0.15)), 3),
+        "ambient": round(float(style.get("ambient", 0.0)), 3),
         "bevel": style.get("bevel", 0.002),
         "order": {
             "cover": order.get("cover", "edge_strip"),
