@@ -217,6 +217,21 @@ def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()
+    # Make the wear layer the ACTIVE colour attribute. `export.export_glb`
+    # exports `export_vertex_color="ACTIVE"`, and nothing here ever set which
+    # one that is -- so the wear written above could sit in the mesh and never
+    # reach the file. Measured on a shipped dressing GLB: COLOR_0 was 1.0 on
+    # every vertex of all 2098 covers, zero variation between covers AND zero
+    # within a single cover, while the `rockay` style declares wear 0.29.
+    #
+    # `gather_facts` reports `has_wear_colors` by testing that the layer
+    # EXISTS, which is why nothing caught it: the layer existed, it just was
+    # not the one being exported.
+    try:
+        if WEAR_LAYER in mesh.color_attributes:
+            mesh.color_attributes.active_color = mesh.color_attributes[WEAR_LAYER]
+    except (AttributeError, KeyError, TypeError):
+        pass          # older Blender colour-attribute API; wear still written
     obj = bpy.data.objects.new(name, mesh)
     collection.objects.link(obj)
     return obj

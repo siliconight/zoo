@@ -65,8 +65,19 @@ def gather_facts(collection, root_name):
         tris += len(me.loop_triangles)
         if not me.uv_layers:
             has_uvs = False
+        # Existence is not enough -- export_glb writes the ACTIVE colour
+        # attribute, so a Wear layer that is not active is written into the
+        # mesh and dropped on export. This reported True on a build whose
+        # shipped COLOR_0 was uniformly 1.0.
         if geometry.WEAR_LAYER not in me.color_attributes:
             has_wear = False
+        else:
+            try:
+                act = me.color_attributes.active_color
+                if act is None or act.name != geometry.WEAR_LAYER:
+                    has_wear = False
+            except AttributeError:
+                pass
         for m in me.materials:
             if m:
                 mats.add(m.name)

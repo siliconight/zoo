@@ -27,9 +27,14 @@ DRESSING_SCHEMA = "patina-dressing/1"
 # cover kind -> proud (how far it stands off the surface), cross (its height or
 # width on the surface), span (nominal length along the run). Pure data so the
 # recipe's geometry stays a thin wrapper and sizing is unit-testable.
+# Dressing detail is capped against the surface it sits on: on a 3.7 m storey
+# base_course was 1/11 and pilaster 1/15, coarse enough to read as structure
+# rather than trim. Both halved. The four already finer than 1/20 -- gutter
+# 1/26, curb 1/31, edge_strip 1/37, conduit 1/74 -- are left alone; the
+# instinct that dressing was too chunky was right and pointed at these three.
 _COVER = {
     "edge_strip":  {"proud": 0.06, "cross": 0.10, "span": 2.0},
-    "base_course": {"proud": 0.04, "cross": 0.35, "span": 2.0},
+    "base_course": {"proud": 0.04, "cross": 0.18, "span": 2.0},
     "curb":        {"proud": 0.05, "cross": 0.12, "span": 2.0},
     "conduit_run": {"proud": 0.04, "cross": 0.05, "span": 1.6},
     # One panel of a panel field (Patina v0.17 wall_panel orders): a thin
@@ -38,7 +43,7 @@ _COVER = {
     "panel_field": {"proud": 0.03, "cross": 1.2, "span": 1.2},
     # v0.26 facade kit (Patina --frames/--gutters/--pilasters):
     "gutter_run":  {"proud": 0.10, "cross": 0.14, "span": 2.0},
-    "pilaster":    {"proud": 0.05, "cross": 0.24, "span": 4.2},
+    "pilaster":    {"proud": 0.05, "cross": 0.12, "span": 4.2},
     "frame":       {"proud": 0.05, "cross": 0.12, "span": 1.0},
 }
 
