@@ -299,26 +299,24 @@ def _module_category(typ: str) -> str:
     }.get(typ, f"module/{typ}")
 
 
-def _orient_matrix(normal):
+def _orient_matrix(normal, tangent=None):
     """A rotation placing a local +Z-up strip so its 'proud' (+Y) axis points
-    along ``normal``. For up-normals (roofline/curb) the strip stays flat; for
-    outward horizontal normals (wall base/conduit) it faces out from the wall.
-    """
-    import math
+    along ``normal`` and its LONG (+X) axis runs along ``tangent``.
 
+    The yaw itself lives in :func:`core.dressing.strip_yaw`, which is pure and
+    therefore testable without Blender -- the old version decided it here, in
+    the one layer the test suite cannot reach, and got it wrong for every
+    up-facing strip in the level.
+    """
     import mathutils
+
+    from ..core.dressing import strip_yaw
 
     n = mathutils.Vector(normal)
     if n.length < 1e-6:
         return mathutils.Matrix.Identity(4)
     n.normalize()
-    up = mathutils.Vector((0.0, 0.0, 1.0))
-    if abs(n.z) > 0.99:
-        # normal is (roughly) vertical: strip lies flat, no rotation needed.
-        return mathutils.Matrix.Identity(4)
-    # rotate local +Y (the proud axis) to the horizontal normal about Z.
-    yaw = math.atan2(n.y, n.x) - math.pi / 2.0
-    return mathutils.Matrix.Rotation(yaw, 4, "Z")
+    return mathutils.Matrix.Rotation(strip_yaw(tuple(n), tangent), 4, "Z")
 
 
 def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
@@ -357,7 +355,7 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
                              order["seed_offset"], TOOL_VERSION))
         result = recipes.get("dress_cover")(cplan, streams, coll)
         # place: orient by the anchor normal, then translate to its position.
-        rot = _orient_matrix(order["normal"])
+        rot = _orient_matrix(order["normal"], order.get("tangent"))
         trans = mathutils.Matrix.Translation(mathutils.Vector(order["pos"]))
         m = trans @ rot
         for obj in result["objects"]:
