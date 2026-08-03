@@ -102,6 +102,31 @@ def strip_yaw(normal, tangent=None) -> float:
     return math.atan2(ny, nx) - math.pi / 2.0
 
 
+def uv_offset(order) -> tuple:
+    """Where this cover sits, expressed in its OWN rotated frame.
+
+    Covers are built at the origin and moved afterwards, so
+    ``geometry.cube_project_uv`` -- which reads ``loop.vert.co``, a LOCAL
+    coordinate -- gave all 1374 panel covers on a building the identical UV
+    rect. Every panel then sampled the identical patch of concrete, and the
+    facade read as a grid of stamped tiles. The seams a player sees are not
+    the 3 cm gaps; they are the texture restarting in every cell.
+
+    Adding this offset before projecting makes the projection continuous
+    across covers that share a wall: rotating it back through the cover's own
+    yaw gives exactly the world position, so the projection axes stay local
+    while the COORDINATE is world. Bloodborne's set-dressing writeup calls the
+    underlying technique "mixing tileables with simple inserts" -- inserts only
+    read as inserts when the tileable behind them is continuous.
+    """
+    import math
+    pos = order.get("pos") or (0.0, 0.0, 0.0)
+    px, py, pz = (float(pos[0]), float(pos[1]), float(pos[2]))
+    yaw = strip_yaw(order.get("normal") or (0.0, 1.0, 0.0), order.get("tangent"))
+    c, sn = math.cos(yaw), math.sin(yaw)
+    return (px * c + py * sn, -px * sn + py * c, pz)
+
+
 def load_manifest(path: str) -> dict:
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)

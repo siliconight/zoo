@@ -123,15 +123,25 @@ def bevel_edges(bm, offset, segments=1, angle_min=0.6):
 
 # --- UVs + wear -------------------------------------------------------------
 
-def cube_project_uv(bm, texel=1.0):
+def cube_project_uv(bm, texel=1.0, offset=(0.0, 0.0, 0.0)):
     """Deterministic box projection: each face mapped by dominant normal
-    axis; UVs in world meters * texel so texture density is uniform."""
+    axis; UVs in world meters * texel so texture density is uniform.
+
+    ``offset`` is added to each vertex before projecting. Zoo's kit modules are
+    built in place at world scale, so their local coordinates ARE world ones
+    and the default of zero is right for them. Dressing covers are built at the
+    origin and transformed afterwards -- without an offset every cover projects
+    from the same local box and samples the same patch of texture, which is
+    what makes a wall of panel covers read as stamped tiles.
+    """
     uv = bm.loops.layers.uv.get("UVMap") or bm.loops.layers.uv.new("UVMap")
+    ox, oy, oz = (float(offset[0]), float(offset[1]), float(offset[2]))
     for f in bm.faces:
         n = f.normal
         ax, ay, az = abs(n.x), abs(n.y), abs(n.z)
         for loop in f.loops:
-            co = loop.vert.co
+            co = loop.vert.co.copy()
+            co.x += ox; co.y += oy; co.z += oz
             if az >= ax and az >= ay:
                 u, v = co.x, co.y
             elif ax >= ay:
@@ -195,12 +205,13 @@ def wear_colors(bm, rng, wear, ambient=0.0):
 # --- object plumbing ---------------------------------------------------------
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
-                 texel=1.0, rng=None, wear=0.0, ambient=0.0):
+                 texel=1.0, rng=None, wear=0.0, ambient=0.0,
+                 uv_offset=(0.0, 0.0, 0.0)):
     """Finish a bmesh (bevel -> normals -> UVs -> wear) and link an object."""
     if finish:
         bevel_edges(bm, bevel)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
-        cube_project_uv(bm, texel)
+        cube_project_uv(bm, texel, uv_offset)
         if rng is not None:
             wear_colors(bm, rng, wear, ambient=ambient)
     mesh = bpy.data.meshes.new(name)

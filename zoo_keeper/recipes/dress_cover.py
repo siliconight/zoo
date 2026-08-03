@@ -50,7 +50,7 @@ carried, not used.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core.dressing import frame_strips, strip_size
+from ..core.dressing import frame_strips, strip_size, uv_offset
 
 
 def build(plan, streams, collection):
@@ -79,7 +79,7 @@ def build(plan, streams, collection):
     obj = geometry.bm_to_object(
         bm, f"Cover_{cover}", collection,
         bevel=plan.get("bevel", 0.002), texel=1.2, rng=rng,
-        wear=plan.get("wear", 0.15))
+        wear=plan.get("wear", 0.15), uv_offset=uv_offset(order))
 
     mat = materials.make_material(
         f"M_Cover_{plan['material']}", plan["color"], plan["material"])

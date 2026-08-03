@@ -254,3 +254,45 @@ def test_other_covers_keep_their_span_scaling():
     """The change is scoped to conduit; nothing else shifts."""
     w, _d, _h = dressing.strip_size("edge_strip", 0.6)
     assert w == pytest.approx(2.0)
+
+
+# --------------------------------------------------------------------------- #
+# UV continuity: covers are built at the origin, so a local projection repeats
+# --------------------------------------------------------------------------- #
+
+def test_covers_on_one_wall_get_different_uv_offsets():
+    """The regression: 1374 panels sampling the identical patch of concrete.
+
+    cube_project_uv reads loop.vert.co, a LOCAL coordinate, and every cover is
+    built at the origin and moved afterwards -- so without an offset they all
+    project from the same box. The grid a player sees is the texture
+    restarting per cell, not the 3 cm gaps.
+    """
+    wall = {"cover": "panel_field", "normal": [0.0, 1.0, 0.0]}
+    a = dressing.uv_offset({**wall, "pos": [0.0, 10.0, 2.0]})
+    b = dressing.uv_offset({**wall, "pos": [1.2, 10.0, 2.0]})
+    assert a != b
+    assert b[0] - a[0] == pytest.approx(1.2)   # continuous along the wall
+
+
+def test_the_offset_rotates_back_to_the_world_position():
+    """Projection axes stay local; the COORDINATE becomes world.
+
+    Rotating the offset forward through the cover's own yaw must reproduce the
+    position exactly, or the texture is continuous in the wrong direction.
+    """
+    for normal, tangent in (([0.0, 1.0, 0.0], None),
+                            ([1.0, 0.0, 0.0], None),
+                            ([0.0, 0.0, 1.0], [0.0, 1.0, 0.0])):
+        order = {"cover": "curb", "pos": [7.0, -3.0, 2.5],
+                 "normal": normal, "tangent": tangent}
+        ox, oy, oz = dressing.uv_offset(order)
+        yaw = dressing.strip_yaw(normal, tangent)
+        c, s = math.cos(yaw), math.sin(yaw)
+        assert ox * c - oy * s == pytest.approx(7.0, abs=1e-9)
+        assert ox * s + oy * c == pytest.approx(-3.0, abs=1e-9)
+        assert oz == pytest.approx(2.5)
+
+
+def test_an_order_with_no_position_offsets_nothing():
+    assert dressing.uv_offset({"cover": "curb"}) == (0.0, 0.0, 0.0)
