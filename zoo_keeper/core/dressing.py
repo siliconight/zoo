@@ -60,10 +60,46 @@ def strip_size(cover: str, size_hint: float, size2=None):
     if cover == "gutter_run":
         # spans its wall module exactly (sections join at module seams).
         return (max(size_hint, 0.2), c["proud"], c["cross"])
-    span = max(0.2, c["span"] * max(size_hint, 0.1) / 0.6)
     if cover == "conduit_run":
-        return (c["cross"], c["proud"], span)          # slim, tall
+        # `size` IS the run length (Patina v0.19: ground plane -> fixture), so
+        # it is used as the span directly. It used to be a constant 0.3 hint
+        # that got scaled by span/0.6; when the field's meaning changed and
+        # this did not, a 2.45 m run became a 6.53 m bar centred on the
+        # fixture, spanning -0.82..5.72 -- through the ground and up past the
+        # next storey.
+        return (c["cross"], c["proud"], max(float(size_hint), 0.2))
+    span = max(0.2, c["span"] * max(size_hint, 0.1) / 0.6)
     return (span, c["proud"], c["cross"])              # long, short
+
+
+def strip_yaw(normal, tangent=None) -> float:
+    """Rotation about up, in radians, that orients a cover strip.
+
+    A strip's local shape is (span, proud, cross): LONG in +X, thin in +Y. Two
+    axes have to be pinned -- which way it stands proud, and which way it runs
+    -- and a normal alone pins only one.
+
+    * Horizontal normal (wall base, conduit): yaw local +Y onto the normal.
+      Local +X then lies along the wall for free. Unchanged behaviour.
+    * Vertical normal (roofline, curb): the normal says nothing about yaw. This
+      used to return no rotation at all, so every such strip kept world +X as
+      its run direction no matter which facade it sat on -- on a wall running
+      along Y, 64 capping strips became 64 sticks jutting out of the building.
+      With a tangent, +X runs along the wall as intended.
+
+    ``tangent`` is optional: absent, this reproduces the old result exactly, so
+    a manifest written before Patina emitted one still builds the same way.
+    """
+    import math
+    nx, ny, nz = (float(normal[0]), float(normal[1]), float(normal[2]))
+    if abs(nz) > 0.99:
+        if tangent is None:
+            return 0.0
+        tx, ty = float(tangent[0]), float(tangent[1])
+        if (tx * tx + ty * ty) < 1e-12:      # tangent is vertical: no yaw to take
+            return 0.0
+        return math.atan2(ty, tx)
+    return math.atan2(ny, nx) - math.pi / 2.0
 
 
 def load_manifest(path: str) -> dict:
@@ -128,6 +164,7 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
             "cover": order.get("cover", "edge_strip"),
             "trim_piece": order.get("trim_piece"),
             "uv_region": order.get("uv_region"),
+            "tangent": order.get("tangent"),
             "size": float(order.get("size", 0.6)),
             "pos": order_position(order, space),
             "normal": order_normal(order, space),

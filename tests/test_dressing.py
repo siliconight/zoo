@@ -177,3 +177,80 @@ def test_dress_plan_passes_frame_width():
     plan = dress_plan(order, genome, "delco",
                       "spec/Blender Z-up raw coords", "0.26.0")
     assert plan["order"]["frame_width"] == 0.15
+
+
+# --------------------------------------------------------------------------- #
+# Strip orientation: a normal alone cannot orient a strip
+# --------------------------------------------------------------------------- #
+# A cover's local shape is (span, proud, cross) -- LONG in +X. `_orient_matrix`
+# used to return no rotation at all for a vertical normal, on the grounds that
+# a flat strip needs no tilt. True, and beside the point: the YAW was still
+# unconstrained, so every roofline cap and every curb kept world +X as its run
+# direction regardless of which facade it sat on. On the walls running along Y
+# that turned 64 capping strips into 64 sticks jutting out of the building, and
+# 64 curbs into planks lying across the pavement.
+
+import math
+
+from zoo_keeper.core.dressing import strip_yaw
+
+_UP = (0.0, 0.0, 1.0)
+
+
+def test_up_facing_strip_runs_along_its_wall():
+    """The regression. A curb on a Y-running wall must run along Y."""
+    assert strip_yaw(_UP, (0.0, 1.0, 0.0)) == pytest.approx(math.pi / 2)
+    assert strip_yaw(_UP, (1.0, 0.0, 0.0)) == pytest.approx(0.0)
+    assert strip_yaw(_UP, (-1.0, 0.0, 0.0)) == pytest.approx(math.pi)
+
+
+def test_up_facing_strip_without_a_tangent_is_unchanged():
+    """A manifest written before Patina emitted tangents still builds the same.
+
+    The field is additive; silently changing the geometry of every old manifest
+    would be a worse bug than the one being fixed.
+    """
+    assert strip_yaw(_UP) == 0.0
+    assert strip_yaw(_UP, None) == 0.0
+
+
+def test_horizontal_normals_are_untouched():
+    """Wall base and conduit already worked -- +Y to the normal, +X along the
+    wall for free. This pins that the fix did not disturb them."""
+    for nx, ny, want in ((1.0, 0.0, -math.pi / 2), (0.0, 1.0, 0.0),
+                         (-1.0, 0.0, math.pi / 2)):
+        assert strip_yaw((nx, ny, 0.0)) == pytest.approx(want)
+        # a tangent must not perturb the horizontal branch
+        assert strip_yaw((nx, ny, 0.0), (0.0, 1.0, 0.0)) == pytest.approx(want)
+
+
+def test_a_vertical_tangent_yields_no_yaw():
+    """Degenerate input must not produce NaN or an arbitrary rotation."""
+    assert strip_yaw(_UP, (0.0, 0.0, 1.0)) == 0.0
+
+
+def test_tangent_is_carried_from_order_into_the_plan():
+    man = dict(MANIFEST)
+    man["orders"] = [dict(o) for o in MANIFEST["orders"]]
+    man["orders"][0]["tangent"] = [0.0, 1.0, 0.0]
+    plan = dressing.plan_dressing(man, GENOME, "delco", "Zoo 0.20.0")
+    assert plan["plans"][0]["order"]["tangent"] == [0.0, 1.0, 0.0]
+
+
+def test_conduit_span_is_the_run_length_not_a_scaled_hint():
+    """`size` became the true run length; this consumer had to follow.
+
+    Patina v0.19 made `size` the ground-plane-to-fixture distance. The old
+    scaling (span 1.6 * size / 0.6) then turned a 2.45 m run into 6.53 m,
+    centred on the fixture and reaching from -0.82 to 5.72.
+    """
+    w, d, h = dressing.strip_size("conduit_run", 2.45)
+    assert h == pytest.approx(2.45)
+    assert h != pytest.approx(6.53, abs=0.01)
+    assert w < 0.2 and d < 0.2          # still slim
+
+
+def test_other_covers_keep_their_span_scaling():
+    """The change is scoped to conduit; nothing else shifts."""
+    w, _d, _h = dressing.strip_size("edge_strip", 0.6)
+    assert w == pytest.approx(2.0)
