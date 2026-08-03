@@ -18,9 +18,24 @@ Density: mesh UVs are world meters * texel (geometry.cube_project_uv). A
 Mapping node scales UVs by 1/meters_per_tile from the pack manifest, so a
 pack authored as "one tile = 2 m" repeats every 2 m at texel 1.0 (the
 glTF exporter emits this as KHR_texture_transform, which Godot 4 reads).
-Wear still exports as COLOR_0 and multiplies the albedo texture at
-runtime per the glTF spec; the in-Blender wear-preview mix is skipped on
-textured materials to keep the exporter's texture detection unambiguous.
+
+WEAR AND THE SKIN PATH. This docstring used to say the wear multiply "is
+skipped on textured materials to keep the exporter's texture detection
+unambiguous". Skipping it did not skip a preview -- it silently flattened the
+shipped wear. Measured on Blender 5.1, one cover built twice from the same
+mesh whose ``Wear`` corner attribute held 0.7011-0.9823 both times:
+
+    flat material     (reads vertex colour)  -> COLOR_0  0.7011 .. 0.9823
+    textured material (reads none)           -> COLOR_0  1.0000 .. 1.0000
+
+Same exporter, same ``export_vertex_color="ACTIVE"`` request, same active
+colour attribute, same mesh data. A material that does not read vertex colour
+gets its COLOR_0 written out white -- so every cover on every skinned building
+shipped with no wear at all, which is why 2098 covers measured as one flat
+tone. The multiply is wired on BOTH paths now, and the texture detection it
+was omitted to protect is checked by measurement instead
+(``tools/wear_probe.py`` reports the exported image count and whether
+baseColorTexture survived).
 """
 from __future__ import annotations
 
@@ -182,10 +197,45 @@ def _load_image(path, non_color=False):
     return img
 
 
+def _wear_multiply(tree, color_socket, label):
+    """Insert ``albedo * COLOR_0`` and return the socket for Base Color.
+
+    glTF defines COLOR_0 as a multiplier against baseColorFactor and
+    baseColorTexture, so this node is the Blender spelling of what the runtime
+    does anyway. It is also load-bearing for the export: a material that reads
+    no vertex colour ships COLOR_0 as flat white (see the module docstring).
+
+    On failure this returns the original socket so the texture still links --
+    but it SAYS SO. A silent fallback here is what hid the flat wear for a
+    whole art pass, and the same shape has hidden three other defects in this
+    pipeline.
+    """
+    try:
+        attr = tree.nodes.new("ShaderNodeVertexColor")
+        attr.layer_name = WEAR_LAYER
+        mix = tree.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Factor"].default_value = 1.0
+        tree.links.new(color_socket, mix.inputs[6])            # A: albedo
+        tree.links.new(attr.outputs["Color"], mix.inputs[7])   # B: wear
+        return mix.outputs[2]
+    except Exception as exc:
+        print(f"[zoo] WARNING: {label}: could not wire the wear multiply "
+              f"({type(exc).__name__}: {exc}) -- this material will export "
+              f"COLOR_0 as flat white and its covers will carry no wear")
+        return color_socket
+
+
 def _textured(name, pack, material_kind):
-    """Image-textured Principled from a Pixelcoat pack. Exporter-friendly
-    by construction: plain Image Texture -> socket links the glTF exporter
-    recognizes, nothing clever between texture and Base Color."""
+    """Image-textured Principled from a Pixelcoat pack.
+
+    Image Texture -> MULTIPLY by the wear colour attribute -> Base Color. The
+    multiply used to be omitted here on the theory that anything between the
+    texture and Base Color would confuse the exporter's texture detection;
+    omitting it cost every skinned cover its wear, and the detection is now
+    verified by ``tools/wear_probe.py`` rather than assumed.
+    """
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     tree = mat.node_tree
@@ -223,7 +273,8 @@ def _textured(name, pack, material_kind):
 
     albedo = tex_node(maps["albedo"])
     link_vector(albedo)
-    tree.links.new(albedo.outputs["Color"], bsdf.inputs["Base Color"])
+    tree.links.new(_wear_multiply(tree, albedo.outputs["Color"], name),
+                   bsdf.inputs["Base Color"])
 
     if "roughness" in maps:
         rough = tex_node(maps["roughness"], non_color=True)
