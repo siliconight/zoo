@@ -50,6 +50,53 @@ def _clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
+def authored_void(w: float, h: float, opening, jamb_x0: float, jamb_x1: float):
+    """The void a slot's own ``fit.openings`` entry asks for, or None.
+
+    THE OPENING IS AUTHORED UPSTREAM AND WAS BEING THROWN AWAY. Deli Counter
+    writes the real aperture on every doorway/window/breach slot --
+    ``{"kind": "door", "width": 1.2, "height": 2.2, "sill": 0.0}`` -- and
+    :func:`void_for` never read it, deriving a hole from genome FRACTIONS of
+    the module height instead. On a 3.7 m storey that is not a near miss:
+
+        slot asks          this used to cut     error
+        1.20 x 2.20 @0.00  0.96 x 3.48 @0.00    +1.28 m tall
+        1.50 x 2.20 @0.00  1.26 x 3.60 @0.00    +1.40 m tall   (breach)
+        3.00 x 1.40 @0.80  2.76 x 1.67 @1.29    +0.27 m, +0.49 m up
+
+    A door became a slit running floor to ceiling and every window floated
+    half a metre high, which is what the facade reads as "unconventional
+    window shapes". The fractions stay as the fallback for a module with no
+    authored opening -- a greybox kit, or a species DC does not describe.
+
+    WIDTH IS STILL JAMB-CLAMPED. DC authors the module exactly as wide as its
+    aperture, so honouring the width literally would leave no jamb, and with
+    no jamb nothing in :func:`slab_parts` spans the module's full height and
+    fit-to-exact-dims stops passing by construction. A narrower authored width
+    IS honoured -- a 1.0 m door in a 2.0 m module is a real thing to ask for.
+
+    ONE OPENING PER MODULE. ``slab_parts`` tiles around a single rect, so a
+    slot listing two apertures gets its first; every slot measured so far
+    lists exactly one. Two would want a different tiling, not a loop here.
+    """
+    if not opening:
+        return None
+    oh = float(opening.get("height") or 0.0)
+    if oh <= 0.0:
+        return None                       # nothing authored -> use the genome
+    hh = h / 2.0
+    x0, x1 = jamb_x0, jamb_x1
+    ow = float(opening.get("width") or 0.0)
+    if ow > 0.0:
+        half = min(ow / 2.0, (x1 - x0) / 2.0)
+        x0, x1 = -half, half
+    z0 = -hh + _clamp(float(opening.get("sill") or 0.0), 0.0, h)
+    z1 = min(z0 + oh, hh)
+    if z1 - z0 <= _EPS or x1 - x0 <= _EPS:
+        return None                       # degenerate -> use the genome
+    return {"x0": x0, "x1": x1, "z0": z0, "z1": z1}
+
+
 def void_for(species: str, w: float, h: float, params: dict | None = None):
     """The passable opening for a module, in centered coords, or None (solid).
 
@@ -57,6 +104,10 @@ def void_for(species: str, w: float, h: float, params: dict | None = None):
     opening never touches the outer width edges (jambs always survive), so the
     slab's outer footprint stays exact. Openings that reach the floor use
     ``z0 == -h/2`` (no sill) so a player can walk/see through.
+
+    ``params["opening"]`` is the slot's OWN authored aperture and wins over
+    every per-species rule below -- see :func:`authored_void`. The rules are
+    the fallback, not the contract.
     """
     params = params or {}
     if species in _SOLID or species in PLATE_SPECIES:
@@ -70,6 +121,10 @@ def void_for(species: str, w: float, h: float, params: dict | None = None):
         jamb = 0.02
     x0, x1 = -w / 2.0 + jamb, w / 2.0 - jamb
     hh = h / 2.0
+
+    authored = authored_void(w, h, params.get("opening"), x0, x1)
+    if authored is not None:
+        return authored
 
     if species == "doorway":
         header = min(float(params.get("header", 0.22)), h * 0.40)

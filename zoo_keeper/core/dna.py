@@ -188,7 +188,7 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     stem = module.get("stem") or kit.module_stem(
         module["type"], theme, int(module.get("style") or style),
         module.get("width_cm"), None, module.get("depth_cm"),
-        module.get("voids_tag"))
+        module.get("voids_tag"), module.get("openings_tag"))
 
     plan = {
         "species": genome["species"],
@@ -231,6 +231,15 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     voids = module.get("voids")
     if voids:
         plan["params"]["voids"] = list(voids)
+    # A doorway's or window's APERTURE rides the same road. Without it
+    # `arch.void_for` derives the hole from genome fractions of the storey
+    # height -- a 2.2 m door became a 3.48 m slit floor to ceiling, and every
+    # window sat half a metre above its authored sill. The genome fractions
+    # stay as the fallback for a module the manifest does not describe; see
+    # `arch.authored_void`.
+    openings = module.get("openings")
+    if openings:
+        plan["params"]["opening"] = dict(openings[0])
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan
