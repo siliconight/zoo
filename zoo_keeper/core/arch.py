@@ -26,6 +26,13 @@ from __future__ import annotations
 # species whose slab is solid (no void)
 _SOLID = ("wall", "wallEnd", "roof")
 
+#: Species built as a horizontal PLATE rather than a standing slab. Their holes
+#: are in x/y and are cut by :func:`plate_parts`; ``void_for`` returns None for
+#: them, which it also did by falling off the end -- saying so is the point,
+#: because "solid by accident" is how a ceiling skin ended up capping a
+#: stairwell.
+PLATE_SPECIES = ("floor", "ceiling")
+
 _EPS = 1e-6
 
 # clean part-name prefixes (species.title() would mangle the camelCase wallEnd)
@@ -52,7 +59,7 @@ def void_for(species: str, w: float, h: float, params: dict | None = None):
     ``z0 == -h/2`` (no sill) so a player can walk/see through.
     """
     params = params or {}
-    if species in _SOLID:
+    if species in _SOLID or species in PLATE_SPECIES:
         return None
 
     # symmetric jambs; never let the opening swallow the whole width
@@ -131,6 +138,98 @@ def slab_parts(w: float, d: float, h: float, void: dict | None):
         parts.append(("Header", ((x0 + x1) / 2.0, 0.0, (z1 + hh) / 2.0),
                       (round(ow, 6), round(d, 6), round(ch, 6))))
     return parts
+
+
+#: A plate's voids are inset from its edges by this much so the union's outer
+#: bbox still equals the authored (w, d, h). Same law as the jambs in
+#: :func:`void_for` -- fit-to-exact-dims has to pass by construction, and a
+#: stairwell cut hard against a wall would otherwise shrink the plate. Two
+#: centimetres of rim at the lip of a hole is invisible from below and carries
+#: no collision.
+PLATE_RIM = 0.02
+
+
+def plate_voids(w: float, d: float, voids, rim: float = PLATE_RIM):
+    """Clip rectangular voids to a centered w x d plate, dropping degenerates.
+
+    ``voids`` are dicts with x0/y0/x1/y1 in the plate's own centered coords.
+    Returns a normalised list, sorted, so the tiling below is deterministic.
+    """
+    hw, hd = w / 2.0, d / 2.0
+    lo_x, hi_x = -hw + rim, hw - rim
+    lo_y, hi_y = -hd + rim, hd - rim
+    out = []
+    for v in voids or ():
+        x0 = _clamp(min(float(v["x0"]), float(v["x1"])), lo_x, hi_x)
+        x1 = _clamp(max(float(v["x0"]), float(v["x1"])), lo_x, hi_x)
+        y0 = _clamp(min(float(v["y0"]), float(v["y1"])), lo_y, hi_y)
+        y1 = _clamp(max(float(v["y0"]), float(v["y1"])), lo_y, hi_y)
+        if x1 - x0 <= _EPS or y1 - y0 <= _EPS:
+            continue          # entirely outside the plate, or a sliver
+        out.append({"x0": round(x0, 6), "y0": round(y0, 6),
+                    "x1": round(x1, 6), "y1": round(y1, 6)})
+    return sorted(out, key=lambda v: (v["x0"], v["y0"], v["x1"], v["y1"]))
+
+
+def plate_parts(w: float, d: float, h: float, voids=None):
+    """Boxes tiling a centered w x d x h PLATE around rectangular voids.
+
+    The horizontal counterpart of :func:`slab_parts`. That one cuts a hole in
+    the x/z plane -- a doorway in a standing wall -- and a floor's hole is in
+    x/y, so the two cannot share machinery however similar they read.
+
+    THIS IS WHY IT EXISTS. Deli Counter's slabs are trimesh precisely because
+    stairwells, ramps and hatches boolean-cut holes in them; a floor or ceiling
+    skin laid over one as a plain rectangle caps those holes. Visually you get
+    a ceiling above a staircase, and if the skin carries collision you cannot
+    climb it.
+
+    The tiling is a guillotine grid: every void edge becomes a cut line, cells
+    whose centre lies in a void are dropped, and surviving cells are merged
+    along x. Deterministic, exact, and it handles any number of voids including
+    overlapping ones. Returns ``(name, (cx, cy, cz), (sx, sy, sz))`` like
+    :func:`slab_parts`; with no voids it is a single ``Panel``, byte-identical
+    to the old solid behaviour.
+    """
+    vs = plate_voids(w, d, voids)
+    if not vs:
+        return [("Panel", (0.0, 0.0, 0.0), (round(w, 6), round(d, 6),
+                                            round(h, 6)))]
+    hw, hd = w / 2.0, d / 2.0
+    xs = sorted({-hw, hw} | {v["x0"] for v in vs} | {v["x1"] for v in vs})
+    ys = sorted({-hd, hd} | {v["y0"] for v in vs} | {v["y1"] for v in vs})
+
+    def covered(cx, cy):
+        return any(v["x0"] < cx < v["x1"] and v["y0"] < cy < v["y1"]
+                   for v in vs)
+
+    rects = []
+    for j in range(len(ys) - 1):
+        y0, y1 = ys[j], ys[j + 1]
+        if y1 - y0 <= _EPS:
+            continue
+        cy = (y0 + y1) / 2.0
+        run_x0 = None
+        for i in range(len(xs) - 1):
+            x0, x1 = xs[i], xs[i + 1]
+            if x1 - x0 <= _EPS:
+                continue
+            if covered((x0 + x1) / 2.0, cy):
+                if run_x0 is not None:
+                    rects.append((run_x0, prev_x1, y0, y1))
+                    run_x0 = None
+                continue
+            if run_x0 is None:
+                run_x0 = x0
+            prev_x1 = x1
+        if run_x0 is not None:
+            rects.append((run_x0, prev_x1, y0, y1))
+
+    return [("Plate_%d" % n,
+             (round((r[0] + r[1]) / 2.0, 6), round((r[2] + r[3]) / 2.0, 6),
+              0.0),
+             (round(r[1] - r[0], 6), round(r[3] - r[2], 6), round(h, 6)))
+            for n, r in enumerate(rects)]
 
 
 def parts_bbox(parts):

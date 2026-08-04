@@ -26,6 +26,42 @@ so a Zoo module drops onto a slot transform with no conversion.
 from __future__ import annotations
 
 
+def _void_key(voids):
+    """A hashable, order-independent identity for a plate's holes."""
+    return tuple(sorted(
+        (round(float(v["x0"]), 4), round(float(v["y0"]), 4),
+         round(float(v["x1"]), 4), round(float(v["y1"]), 4))
+        for v in (voids or ())))
+
+
+#: Roles built as a horizontal PLATE. Their footprint varies on BOTH axes, so
+#: width alone does not identify a module -- see :func:`module_stem`.
+PLATE_ROLES = ("floor", "ceiling")
+
+
+def void_tag(voids) -> str | None:
+    """A short, stable tag for a plate's hole set, or None when it has none.
+
+    Two rooms of identical footprint with stairwells in DIFFERENT places are
+    different geometry, and the module key already knows that. The filename did
+    not: `security_office` and `count_room` are both 22x16, planned as two
+    modules, and both were named `floor_rockay_01_w2200_d1600`. One file wins
+    and one room gets the other's holes -- the same class of collision the
+    depth suffix fixed, one level down.
+
+    Formatted, not hashed with repr: both repos compute this and float repr is
+    not a contract. Order-independent, so the same holes listed differently are
+    the same tag.
+    """
+    import hashlib
+    if not voids:
+        return None
+    parts = sorted("%.4f,%.4f,%.4f,%.4f" % (float(v["x0"]), float(v["y0"]),
+                                            float(v["x1"]), float(v["y1"]))
+                   for v in voids)
+    return hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()[:6]
+
+
 def slot_typename(role: str, size_mod: str) -> str:
     """Deli Counter's naming law: a wall remainder is its own 'wallEnd' type."""
     if role == "wall" and size_mod == "end":
@@ -34,12 +70,31 @@ def slot_typename(role: str, size_mod: str) -> str:
 
 
 def module_stem(typ: str, theme: str, style: int,
-                width_cm: int = None, state: str = None) -> str:
+                width_cm: int = None, state: str = None,
+                depth_cm: int = None, voids_tag: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    <type>_<theme>_<style:02d>[_w<cm>][_<state>]."""
+    ``<type>_<theme>_<style:02d>[_w<cm>][_d<cm>][_<state>]``.
+
+    ``depth_cm`` IS ONLY FOR PLATES, and only because width alone stopped
+    identifying a module. A wall varies on one axis -- its width -- while its
+    thickness and the storey height are fixed, so ``_w<cm>`` is a complete key
+    and every existing wall/doorway/window filename is unchanged. A floor or
+    ceiling varies on both: a 44x24 room and a 44x16 room both planned as
+    ``floor_rockay_01_w4400``, one won the name, both rooms resolved to it, and
+    the shorter room got a slab eight metres too deep.
+
+    Deli Counter's ``themed_tscn.module_stem`` is the mirror of this function.
+    NEITHER SIDE PARSES the stem -- both construct it from the same slot -- so
+    the two must be changed together and there is no back-compatibility to
+    preserve beyond leaving non-plate names alone, which this does.
+    """
     base = f"{typ}_{theme}_{style:02d}"
     if width_cm is not None:
         base += f"_w{int(round(width_cm))}"
+    if depth_cm is not None:
+        base += f"_d{int(round(depth_cm))}"
+    if voids_tag:
+        base += f"_v{voids_tag}"
     if state:
         base += f"_{state}"
     return base
@@ -121,6 +176,10 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         typ = slot_typename(role, s.get("size_mod"))
         exact = typ != "wallEnd"
         width_cm = int(round(dims[0] * 100)) if exact else None
+        # Plates vary on both axes; everything else is identified by width.
+        depth_cm = (int(round(dims[1] * 100))
+                    if exact and typ in PLATE_ROLES else None)
+        vtag = void_tag(fit.get("voids")) if typ in PLATE_ROLES else None
         # Per-slot SKIN STYLE + MATERIAL (Deli Counter >= 0.88): the slot's
         # own material-driven style wins over the kit-level default, so one
         # building demands one module family PER MATERIAL ZONE (concrete
@@ -133,7 +192,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
 
         for species, st, stem_state, is_deferred in slot_variants(s, typ,
                                                                    state):
-            stem = module_stem(typ, theme, slot_style, width_cm, stem_state)
+            stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
+                               depth_cm, vtag)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -151,8 +211,23 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             # in the key so they never merge with see-through window modules, and
             # thread it onto the module for build_module to swap the glass kind.
             glaze = s.get("glazing")
+            # The full dims are in the key ONLY when the fit is exact. For a
+            # wall that changes nothing -- same width implies same thickness
+            # and storey height -- and for a plate it is the difference between
+            # one module and two. `voids` likewise: two rooms of identical
+            # footprint with stairwells in different places are different
+            # geometry.
+            #
+            # A UNIT module must not key on dims, and that is a guarantee, not
+            # an oversight. A wallEnd is one 1x1x1 box that Deli Counter scales
+            # per slot, so remainders of 0.30 m and 0.45 m are the SAME module;
+            # keying them on their slot dims split one unit module into two
+            # identical ones. `test_plan_collapses_to_distinct_modules` caught
+            # it, and it was right to.
+            dims_key = (tuple(round(float(v), 4) for v in dims[:3])
+                        if exact else None)
             key = (typ, width_cm, st, species, glaze, slot_style,
-                   slot_material)
+                   slot_material, dims_key, _void_key(fit.get("voids")))
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -161,6 +236,9 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "species": species,
                     "state": st,
                     "width_cm": width_cm,
+                    "depth_cm": depth_cm,
+                    "voids_tag": vtag,
+                    "voids": list(fit.get("voids") or ()),
                     "style": slot_style,
                     "material": slot_material,
                     "fit": "exact" if exact else "unit",

@@ -27,13 +27,32 @@ def build_slab(plan, streams, collection, species):
             bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wr,
             ambient=ambient))
 
-    void = arch.void_for(species, w, h, params)
-    slab = arch.slab_parts(w, d, h, void)
+    if species in arch.PLATE_SPECIES:
+        # A floor or ceiling SKIN. Two things differ from a standing slab and
+        # both were wrong the first time this shipped.
+        #
+        # Its holes are in x/y, not x/z -- a stairwell, not a doorway -- so it
+        # tiles with plate_parts. A plain rectangle lies across the stairwell:
+        # ceiling visible above the stairs, and the stairs unusable.
+        #
+        # And it emits NO collision. Deli Counter's slab is trimesh precisely
+        # so its cut holes stay open, and it stays authoritative; a skin that
+        # added its own boxes would cap every hole in collision even after the
+        # geometry stopped capping them visually. The slot declares
+        # `collision: "none"` and this is the half that honours it -- declaring
+        # it is not the same as respecting it, which is exactly how the stairs
+        # got blocked.
+        void = None
+        slab = arch.plate_parts(w, d, h, params.get("voids"))
+    else:
+        void = arch.void_for(species, w, h, params)
+        slab = arch.slab_parts(w, d, h, void)
     for name, center, size in slab:
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
         part(bm, f"{root}_{name}")
-    cboxes.extend(arch.collision_boxes(slab))
+    if species not in arch.PLATE_SPECIES:
+        cboxes.extend(arch.collision_boxes(slab))
 
     structure = materials.make_material(
         f"M_{root}_{plan['material']}", plan["color"], plan["material"])

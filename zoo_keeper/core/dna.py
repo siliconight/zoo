@@ -187,7 +187,8 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
 
     stem = module.get("stem") or kit.module_stem(
         module["type"], theme, int(module.get("style") or style),
-        module.get("width_cm"))
+        module.get("width_cm"), None, module.get("depth_cm"),
+        module.get("voids_tag"))
 
     plan = {
         "species": genome["species"],
@@ -219,10 +220,17 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
             # the kit-level default, matching the stem it was planned under.
             "style": int(module.get("style") or style),
             "width_cm": module.get("width_cm"),
+            "depth_cm": module.get("depth_cm"),
             "fit": module.get("fit", "exact"),
             "stem": stem,
         },
     }
+    # A plate's holes ride from the slot, through plan_kit, onto the recipe.
+    # Without them a floor or ceiling skin is a plain rectangle and caps every
+    # stairwell, ramp and hatch Deli Counter cut in the slab beneath it.
+    voids = module.get("voids")
+    if voids:
+        plan["params"]["voids"] = list(voids)
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan
