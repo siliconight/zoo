@@ -8,6 +8,15 @@ from __future__ import annotations
 
 from . import kit, seeding, skins
 
+#: See-through kind -> the opaque kind that reads as the same material. Applied
+#: to a STRUCTURAL slab's material only, never to a window pane.
+#:
+#: Only ``glass`` carries a Pixelcoat transparency hint today, so this map has
+#: one entry; it is a map rather than an ``if`` because the rule is "no
+#: structural part is blended", and a second translucent kind (polycarbonate,
+#: frosted panel) must join it here rather than reopen the same hole.
+OPAQUE_FOR = {"glass": "glass_facade"}
+
 # Boot construction constants — single source of truth. The DNA hook writes
 # the resolved values into the plan; the recipe executes them verbatim so the
 # built height and the plan's recorded height can never disagree.
@@ -177,6 +186,22 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     override = module.get("material")
     if override and override in skins.KNOWN_KINDS:
         material = override
+    # A STRUCTURAL SLAB IS NEVER SEE-THROUGH. Measured on the shipped build:
+    # `wall_rockay_02_w200.glb` carried `M_Skin_glass_rockay`, BLEND, alpha
+    # 0.50, doubleSided -- on Wall_Base, Wall_Cap, Wall_Pier_0 and
+    # Wall_Field_0, the entire carved wall. Deli Counter had authored those
+    # slots as a glass curtain-wall material zone, `glass` is a legal kind, and
+    # Zoo built a load-bearing wall out of window glass.
+    #
+    # It is not a look bug. The collider is built from the same slab and stays
+    # solid, so the wall stops a body and not an eye: on a game whose whole
+    # tactical layer is sightlines, that is a wall you scout enemies through,
+    # and DC's own `sightlines.py` is analysing a building nobody renders.
+    #
+    # The opaque counterpart already exists for exactly this -- `glass_facade`
+    # ships no Pixelcoat transparency hint, so it reads as glass and occludes.
+    # The PANE is untouched: it takes `glazing_kind` below, not this.
+    material = OPAQUE_FOR.get(material, material)
     color = list(style_block.get("color", [0.6, 0.6, 0.6]))
     wear = style_block.get("wear", 0.15)
     ambient = style_block.get("ambient", 0.0)
@@ -249,6 +274,20 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     relief = style_block.get("relief")
     if relief:
         plan["params"]["relief"] = dict(relief)
+    # THE WINDOW PANE'S OWN KIND, and it was planned but never delivered.
+    # `kit.plan_kit` reads `glazing` off the slot, keeps it in the module key so
+    # a facade-shell window can never merge with a see-through one, and hangs it
+    # on the module -- and nothing ever put it on the plan, so
+    # `_arch.build_slab` took its `plan.get("glazing_kind", "glass")` fallback
+    # every time and every window in every building glazed see-through.
+    #
+    # A facade-shell window belongs to a building with no interior. Glazing it
+    # see-through shows the player an empty box where a room should be, which
+    # is the one thing the hollow-shell trick cannot survive.
+    glazing = module.get("glazing")
+    if glazing:
+        plan["glazing_kind"] = ("glass_facade" if str(glazing) == "facade"
+                                else str(glazing))
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan
