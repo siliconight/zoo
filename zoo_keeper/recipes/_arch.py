@@ -44,14 +44,39 @@ def build_slab(plan, streams, collection, species):
         # got blocked.
         void = None
         slab = arch.plate_parts(w, d, h, params.get("voids"))
+        visual = slab
     else:
         void = arch.void_for(species, w, h, params)
         slab = arch.slab_parts(w, d, h, void)
-    for name, center, size in slab:
+        # A SOLID WALL IS DRAWN WITH RELIEF AND COLLIDES AS A BOX. The two
+        # tilings are deliberately different objects: `slab` is the structure
+        # (and the collider), `visual` is the same volume with its fields
+        # recessed between a plinth, piers and a cap.
+        #
+        # This is where facade articulation moved TO. It used to be additive
+        # -- Patina emitted panel and pilaster orders, Zoo built each as a box
+        # standing proud of the face -- and a module's collider ends exactly at
+        # its face, so every one of those boxes was non-collision geometry in
+        # space a body walks through. Aiming them inward put 546 panels in
+        # rooms; aiming them outward put the same 546 in the alleys Lot makes
+        # into routes. Carving inward has no such direction to get wrong.
+        #
+        # `wall` only. A `wallEnd` is one unit box that Deli Counter SCALES per
+        # slot, so a 14 cm pier would come out anywhere between 4 cm and 40 cm
+        # wide depending on the remainder it fills; an opening module already
+        # articulates itself with jambs, a sill and a header. Neither wants a
+        # second rhythm laid over it.
+        visual = (arch.relief_parts(w, d, h, params.get("relief"))
+                  if species == "wall" and not void else slab)
+    for name, center, size in visual:
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
         part(bm, f"{root}_{name}")
     if species not in arch.PLATE_SPECIES:
+        # From `slab`, NOT `visual`. The collider is the solid wall it has
+        # always been -- recessing the fields must not carve notches a player
+        # can stand in, and must not change one collision box on any build
+        # before this one.
         cboxes.extend(arch.collision_boxes(slab))
 
     structure = materials.make_material(

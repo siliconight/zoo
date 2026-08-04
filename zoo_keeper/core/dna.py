@@ -240,6 +240,15 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     openings = module.get("openings")
     if openings:
         plan["params"]["opening"] = dict(openings[0])
+    # Facade relief is PER STYLE, and that is the point of putting it here
+    # rather than in `arch.RELIEF`. One bay rhythm and one reveal depth on
+    # every wall of every building is the thing the old panel grid was
+    # criticised for; a style block that carries its own `relief` block gets
+    # its own. Absent, the module falls back to arch's defaults, so no genome
+    # has to be edited for this to work.
+    relief = style_block.get("relief")
+    if relief:
+        plan["params"]["relief"] = dict(relief)
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan

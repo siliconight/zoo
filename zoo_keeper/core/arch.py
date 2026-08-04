@@ -287,6 +287,104 @@ def plate_parts(w: float, d: float, h: float, voids=None):
             for n, r in enumerate(rects)]
 
 
+#: Facade relief defaults. Overridable per style through the genome's params,
+#: which is where the VARIATION belongs -- one rhythm on every wall of every
+#: building is the failure mode this replaces, not a goal.
+RELIEF = {
+    "bay": 2.4,        # target pier-to-pier spacing, metres
+    "pier": 0.14,      # width of the full-depth strip between bays
+    "reveal": 0.05,    # how far each field is recessed, PER FACE
+    "base": 0.45,      # plinth height, full depth
+    "cap": 0.12,       # cornice height, full depth
+    "min_field": 0.40,  # narrower than this and a bay is noise, not rhythm
+}
+
+
+def relief_parts(w: float, d: float, h: float, style: dict | None = None):
+    """A solid wall's visual geometry: plinth, piers, RECESSED fields, cap.
+
+    WHY THIS EXISTS, and why it is not a cover. Facade articulation used to be
+    additive -- Patina emitted ``panel_field`` and ``pilaster`` orders and Zoo
+    built each as a thin box standing PROUD of the wall: 1.2 cm for a panel,
+    5 cm for a pilaster. A module's collider is built from the same slab as its
+    visual, so the wall's collision volume ends exactly at the wall's face, and
+    anything proud of that face is by construction non-collision geometry
+    sitting in space a body can occupy. That is the standing rule -- no
+    dressing in walkable space -- broken by the shape of the solution, not by
+    a placement mistake.
+
+    It cannot be fixed by aiming the covers better. Pointing them into the
+    building put 546 panel fields inside rooms; pointing them out put the same
+    546 into the gaps between buildings, which Lot makes into routes. Both are
+    walkable. There is no third direction.
+
+    So the relief is SUBTRACTIVE and lives inside the module. The plinth, the
+    piers and the cap span the full authored depth; only the fields between
+    them are pulled back, and they are pulled back on BOTH faces. Three
+    consequences, all of them the point:
+
+      * the outer bbox is still exactly ``(w, d, h)`` -- the plinth alone
+        guarantees it -- so fit-to-exact-dims passes as before;
+      * nothing exists outside the collision volume, so the rule cannot be
+        violated rather than merely being checked for;
+      * the module needs no idea which face is the street. A one-sided carve
+        would need one, and the module is instanced at slots of every
+        orientation, so it would be the outward-direction bug again, this time
+        baked into the mesh where no per-slot transform can flip it.
+
+    Returns the same ``(name, center, size)`` shape as :func:`slab_parts`.
+    Collision is NOT derived from this -- the caller keeps using the solid
+    slab, so the collider is unchanged from every previous build.
+    """
+    s = dict(RELIEF)
+    s.update(style or {})
+    hw, hh = w / 2.0, h / 2.0
+    base = _clamp(float(s["base"]), 0.0, h * 0.35)
+    cap = _clamp(float(s["cap"]), 0.0, h * 0.15)
+    fh = h - base - cap
+    pier = float(s["pier"])
+    reveal = _clamp(float(s["reveal"]), 0.0, d * 0.35)
+    n = max(1, int(round(w / float(s["bay"]))))
+    bw = w / n
+    # n bays need n+1 piers, and the two end piers are FLUSH with the module
+    # edges rather than centred on them -- a pier centred on x = -w/2 would
+    # hang half its width into the neighbouring module and double up at every
+    # seam, which is the 6 cm overhang the old pilaster had at 225 slots.
+    if fh <= _EPS or bw - pier < float(s["min_field"]) or reveal <= _EPS:
+        return [("Panel", (0.0, 0.0, 0.0), (round(w, 6), round(d, 6),
+                                            round(h, 6)))]
+
+    parts = []
+    if base > _EPS:
+        parts.append(("Base", (0.0, 0.0, -hh + base / 2.0),
+                      (round(w, 6), round(d, 6), round(base, 6))))
+    if cap > _EPS:
+        parts.append(("Cap", (0.0, 0.0, hh - cap / 2.0),
+                      (round(w, 6), round(d, 6), round(cap, 6))))
+
+    fz = -hh + base + fh / 2.0
+    fd = d - 2.0 * reveal
+    edges = [-hw + bw * i for i in range(n + 1)]
+    for i, x in enumerate(edges):
+        if i == 0:
+            cx, pw = -hw + pier / 2.0, pier
+        elif i == n:
+            cx, pw = hw - pier / 2.0, pier
+        else:
+            cx, pw = x, pier
+        parts.append(("Pier_%d" % i, (round(cx, 6), 0.0, round(fz, 6)),
+                      (round(pw, 6), round(d, 6), round(fh, 6))))
+    for i in range(n):
+        x0 = (-hw + pier) if i == 0 else edges[i] + pier / 2.0
+        x1 = (hw - pier) if i == n - 1 else edges[i + 1] - pier / 2.0
+        if x1 - x0 <= _EPS:
+            continue
+        parts.append(("Field_%d" % i,
+                      (round((x0 + x1) / 2.0, 6), 0.0, round(fz, 6)),
+                      (round(x1 - x0, 6), round(fd, 6), round(fh, 6))))
+    return parts
+
+
 def parts_bbox(parts):
     """Outer (min_xyz, max_xyz) AABB across a list of slab_parts boxes."""
     lo = [1e9, 1e9, 1e9]
