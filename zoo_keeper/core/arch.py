@@ -24,7 +24,13 @@ Coordinates: centered on the origin. x in [-w/2, w/2] (width), y in [-d/2, d/2]
 from __future__ import annotations
 
 # species whose slab is solid (no void)
-_SOLID = ("wall", "wallEnd", "roof")
+#: Species with no passable opening, EVER. Listed rather than left to fall
+#: off the end of `void_for`, because "solid by accident" is how a ceiling
+#: skin ended up capping a stairwell -- see PLATE_SPECIES below.
+#: `prop` is a vault, a counter, a desk, a crate stack: a solid object
+#: built to a Deli Counter volume's exact dims. It is not architecture and
+#: nothing walks through it.
+_SOLID = ("wall", "wallEnd", "roof", "prop")
 
 #: Species built as a horizontal PLATE rather than a standing slab. Their holes
 #: are in x/y and are cut by :func:`plate_parts`; ``void_for`` returns None for
