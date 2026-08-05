@@ -137,9 +137,26 @@ def _apply_prompt_rules(plan, rules, text):
 # it straight in.
 
 def _pick_style_tag(genome: dict, tag: str | None) -> tuple[str, dict]:
+    """Choose a style block by theme name, walking up the theme's FAMILY.
+
+    A theme like ``rockay_retail`` is a variant of ``rockay``: it differs in the
+    Pixelcoat material curation, not in the geometry's colour, wear, ambient or
+    relief. Exact-match-or-default missed ``styles["rockay"]`` entirely and
+    landed on ``default`` -- which is how three shipped themes lost their tuning
+    in all 48 species genomes at once, silently, because falling back to a valid
+    style is not an error.
+
+    Walking ``a_b_c -> a_b -> a`` means a variant inherits its family's style
+    and only authors a block where it genuinely differs. The full name is always
+    tried first, so no existing theme changes behaviour.
+    """
     styles = genome["styles"]
-    if tag and tag in styles:
-        return tag, styles[tag]
+    if tag:
+        parts = str(tag).split("_")
+        for n in range(len(parts), 0, -1):
+            name = "_".join(parts[:n])
+            if name in styles:
+                return name, styles[name]
     if "default" in styles:
         return "default", styles["default"]
     name = sorted(styles)[0]

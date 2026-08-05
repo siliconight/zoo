@@ -87,7 +87,10 @@
    ],
    "wear": 0.29,
    "bevel": 0.003,
-   "ambient": 0.05
+   "ambient": 0.05,
+   "relief": {
+    "reveal": 0.0
+   }
   }
  },
  "budgets": {
