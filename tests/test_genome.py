@@ -20,7 +20,16 @@ ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
                 # Phase 1 structural set (vertical-slice visual gate)
                 "wallCorner", "stair_rail", "ladder", "shelving", "counter",
                 # surface modules (floor/ceiling slab dressing)
-                "floor", "ceiling"}
+                "floor", "ceiling",
+                # volume module: a DC `role: "prop"` slot -- the vault, the
+                # teller counter, a desk, a crate stack. It belongs HERE and
+                # not in PROP_SPECIES above despite the name, and the collision
+                # is worth stating: PROP_SPECIES are individually-modelled
+                # objects with their own silhouettes, while this is the
+                # exact-dims box Deli Counter authored, skinned by the theme.
+                # The species name is forced -- `kit.slot_typename` returns the
+                # slot's role verbatim, so a `prop` slot needs a `prop` species.
+                "prop"}
 
 
 def test_all_species_load_and_validate():
