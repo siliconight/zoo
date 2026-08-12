@@ -51,7 +51,7 @@ def _opening_key(openings):
 
 #: Roles built as a horizontal PLATE. Their footprint varies on BOTH axes, so
 #: width alone does not identify a module -- see :func:`module_stem`.
-PLATE_ROLES = ("floor", "ceiling")
+PLATE_ROLES = ("floor", "ceiling", "roof")
 
 #: Roles whose geometry is a hole in a standing slab, cut to the slot's own
 #: ``fit.openings``. Their WIDTH is already in the filename; the aperture is

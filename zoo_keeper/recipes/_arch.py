@@ -72,7 +72,14 @@ def build_slab(plan, streams, collection, species):
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
         part(bm, f"{root}_{name}")
-    if species not in arch.PLATE_SPECIES:
+    if species not in arch.PLATE_SPECIES or species in arch.PLATE_COLLIDES:
+        # PLATE-NESS AND COLLISION ARE TWO FACTS, and this line used to test
+        # one for the other. A floor or ceiling skin emits none because Deli
+        # Counter's trimesh slab under it is authoritative and already holed;
+        # a ROOF is a plate by geometry and still has to be stood on, and its
+        # slot says `collision: "trimesh"`. Tiling comes from `plate_parts`
+        # above, so these boxes now go around the void instead of over it.
+        #
         # From `slab`, NOT `visual`. The collider is the solid wall it has
         # always been -- recessing the fields must not carve notches a player
         # can stand in, and must not change one collision box on any build

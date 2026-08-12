@@ -166,3 +166,102 @@ def test_voids_ride_onto_the_module():
                         theme="rockay")
     assert plan["modules"][0]["voids"] == v
     assert plan["modules"][0]["depth_cm"] == 800
+
+
+# --------------------------------------------------------------------------- #
+# THE ROOF IS A PLATE TOO (2026-08-09)
+#
+# It was in `_SOLID` beside `wall` and `prop`, so it got no void tiling, no
+# depth in its stem and no void tag -- and it emitted collision, which is what
+# made it a wall rather than a cosmetic fault. Measured on `bank_branch_a04`:
+# DC cut the ladder's through-hole in `slab_col_2-colonly` (corners 15.45 /
+# 16.55 / -10.90) and Zoo laid a solid 40 x 30 `roof_rockay_01_w4000.glb` over
+# it carrying `Roof-colonly`. The walk bot stalled against a collider named
+# `Roof` at the slab underside.
+# --------------------------------------------------------------------------- #
+
+def test_a_roof_is_a_plate_and_not_a_standing_slab():
+    """Its holes are in x/y -- a hatch, not a doorway."""
+    assert "roof" in arch.PLATE_SPECIES
+    assert "roof" not in arch._SOLID
+    assert arch.void_for("roof", 40.0, 0.3) is None      # no x/z opening
+
+
+def test_a_roof_still_collides_and_a_ceiling_still_does_not():
+    """The two facts `PLATE_SPECIES` used to conflate, asserted apart. A
+    ceiling skin declares `collision: none`; a roof slot declares `trimesh`."""
+    assert "roof" in arch.PLATE_COLLIDES
+    assert "ceiling" not in arch.PLATE_COLLIDES
+    assert "floor" not in arch.PLATE_COLLIDES
+
+
+def test_a_roof_tiles_around_its_void_instead_of_over_it():
+    parts = arch.plate_parts(40.0, 30.0, 0.3,
+                             [{"x0": 15.45, "y0": 10.9,
+                               "x1": 16.55, "y1": 12.2}])
+    assert len(parts) > 1, "a solid panel is exactly the bug"
+    # nothing survives over the hole
+    for _n, c, s in parts:
+        over_x = c[0] - s[0] / 2 < 16.0 < c[0] + s[0] / 2
+        over_y = c[1] - s[1] / 2 < 11.55 < c[1] + s[1] / 2
+        assert not (over_x and over_y), "a part still covers the ladder"
+    # and the plate's outer footprint is still exact
+    assert _area(parts) < 40.0 * 30.0
+
+
+def test_the_clean_roof_is_still_one_panel_byte_for_byte():
+    """THE CASE THAT MUST NOT CHANGE. Every roof without a hatch has to come
+    out of this exactly as it did before -- "it cut the hole in the broken
+    building" cannot tell you it did not also punch one in the other 133."""
+    assert arch.plate_parts(40.0, 30.0, 0.3, None) == [
+        ("Panel", (0.0, 0.0, 0.0), (40.0, 30.0, 0.3))]
+    assert arch.plate_parts(40.0, 30.0, 0.3, []) == [
+        ("Panel", (0.0, 0.0, 0.0), (40.0, 30.0, 0.3))]
+
+
+def test_two_roofs_of_one_width_are_no_longer_the_same_module():
+    """`roof_rockay_01_w4000` was the stem for a 40x30 roof AND a 40x20 one:
+    plates were keyed on both axes, and `roof` was not a plate. That is the
+    `module_stem` width-only collision this repo has already paid for twice.
+    Latent while `roof_mode` is `footprint` (one roof per building); live the
+    moment a building roofs `per_room`."""
+    plan = kit.plan_kit({"slots": [_slot("roof", [40.0, 30.0, 0.3]),
+                                   _slot("roof", [40.0, 20.0, 0.3])]},
+                        theme="rockay")
+    stems = {m["stem"] for m in plan["modules"]}
+    assert len(stems) == 2, stems
+    assert "roof_rockay_01_w4000_d3000" in stems
+    assert "roof_rockay_01_w4000_d2000" in stems
+
+
+def test_two_roofs_with_different_hatches_get_different_filenames():
+    hatch_n = [{"x0": -1.0, "y0": -1.0, "x1": 0.1, "y1": 0.3}]
+    hatch_e = [{"x0": 15.45, "y0": 10.9, "x1": 16.55, "y1": 12.2}]
+    plan = kit.plan_kit({"slots": [_slot("roof", [40.0, 30.0, 0.3], hatch_n),
+                                   _slot("roof", [40.0, 30.0, 0.3], hatch_e)]},
+                        theme="rockay")
+    stems = sorted(m["stem"] for m in plan["modules"])
+    assert len(set(stems)) == 2, stems
+    assert all("_v" in s for s in stems), stems
+
+
+def test_the_bank_branch_ladder_reaches_the_roof(): 
+    """THE REGRESSION, with the shipped numbers. 40 x 30 roof, ladder at spec
+    (16, 12) width 0.5 facing S, so `ladder_geom.through_hole` puts the cut at
+    x 15.45..16.55, y 10.90..12.20. The climb column the capsule needs is
+    CLIMB_STANDOFF +/- its radius off the face."""
+    void = {"x0": 15.45, "y0": 10.9, "x1": 16.55, "y1": 12.2}
+    plan = kit.plan_kit({"slots": [_slot("roof", [40.0, 30.0, 0.3], [void])]},
+                        theme="rockay")
+    m = plan["modules"][0]
+    assert m["voids"] == [void]
+    assert m["voids_tag"], "no void tag means two hatches share one filename"
+    parts = arch.plate_parts(40.0, 30.0, 0.3, m["voids"])
+    standoff, capsule_r = 0.5, 0.35
+    for x in (16.0 - 0.25, 16.0, 16.0 + 0.25):
+        for y in (12.0 - (standoff + capsule_r), 12.0 - standoff,
+                  12.0 - (standoff - capsule_r)):
+            for _n, c, s in parts:
+                assert not (c[0] - s[0] / 2 < x < c[0] + s[0] / 2
+                            and c[1] - s[1] / 2 < y < c[1] + s[1] / 2), \
+                    f"the roof still covers the climb column at ({x}, {y})"

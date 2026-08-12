@@ -30,14 +30,34 @@ from __future__ import annotations
 #: `prop` is a vault, a counter, a desk, a crate stack: a solid object
 #: built to a Deli Counter volume's exact dims. It is not architecture and
 #: nothing walks through it.
-_SOLID = ("wall", "wallEnd", "roof", "prop")
+_SOLID = ("wall", "wallEnd", "prop")
 
 #: Species built as a horizontal PLATE rather than a standing slab. Their holes
 #: are in x/y and are cut by :func:`plate_parts`; ``void_for`` returns None for
 #: them, which it also did by falling off the end -- saying so is the point,
 #: because "solid by accident" is how a ceiling skin ended up capping a
 #: stairwell.
-PLATE_SPECIES = ("floor", "ceiling")
+PLATE_SPECIES = ("floor", "ceiling", "roof")
+
+#: Plates that STILL emit collision. `PLATE_SPECIES` used to carry two
+#: independent facts at once -- "its holes are in x/y" and "it emits no
+#: collision" -- because floors and ceilings happen to be both. A roof is the
+#: first species that is a plate AND collides, and the conflation had nowhere
+#: to put it, so `roof` sat in `_SOLID` instead and got neither the void
+#: tiling nor a way to say it wanted collision.
+#:
+#: Measured 2026-08-09 on `bank_branch_a04`: Deli Counter cut the ladder's
+#: through-hole in its own roof slab (`slab_col_2-colonly`, corners 15.45 /
+#: 16.55 / -10.90) and Zoo laid `roof_rockay_01_w4000.glb` over it as one
+#: solid 40 x 30 panel carrying `Roof-colonly`. The walk bot stalled against a
+#: collider named `Roof` at the slab underside -- a ladder climbing a full
+#: storey into roof. That is the same failure `plate_parts` was written for,
+#: one surface up.
+#:
+#: A floor or ceiling skin declares `collision: "none"` and means it; the roof
+#: slot declares `collision: "trimesh"` and now gets it, tiled around the void
+#: rather than over it.
+PLATE_COLLIDES = ("roof",)
 
 _EPS = 1e-6
 
