@@ -1,6 +1,22 @@
 # Changelog
 
-## [0.33.0] - Architecture becomes plates and modules, and the covers stop lying about their UVs
+## [0.36.0] - Plates, modules, honest cover UVs, and three visual themes
+
+NUMBERING. This jumps 0.31.0 -> 0.36.0. Tags `v0.32.0` through `v0.35.0`
+exist and point at real releases -- `v0.32.0` is the enriched kit index
+and slot-fit authority, `v0.33.0` is the Phase 1 structural species
+(stair_rail, ladder, wallCorner, shelving, counter) -- but their
+CHANGELOG entries did not survive a version reset that took VERSION
+backwards to 0.31.0. Today's work therefore starts above all of them
+rather than landing on numbers that already mean something. The two
+entries written on 2026-08-14 under 0.32.0 and 0.33.0 are both here.
+
+### Themes
+- **center_city** (polished commercial: low wear, cooler/lighter, clean
+  materials) and **industrial_flats** (port/works: high wear, desaturated
+  iron tones, metal-first) join **delco** in every species genome (46) --
+  deterministic derivations of each species' anchor style, resolved through
+  the standard _pick_style_tag/resolve_module_plan path. 205 tests green.
 
 ### Changed
 - **Floor and ceiling skins build as plates**, carrying the slab's holes in
@@ -39,14 +55,6 @@ VERSION last moved, after `verify-manifest` reported zoo STALE. One commit in
 that range is not represented above: `5bbe380`, "checkpoint: uncommitted
 working tree", which says nothing about itself. It is the same shape that is
 currently holding `pipeline` at STALE.
-
-## [0.32.0] - Three visual themes across the species set
-
-- **center_city** (polished commercial: low wear, cooler/lighter, clean
-  materials) and **industrial_flats** (port/works: high wear, desaturated
-  iron tones, metal-first) join **delco** in every species genome (46) --
-  deterministic derivations of each species' anchor style, resolved through
-  the standard _pick_style_tag/resolve_module_plan path. 205 tests green.
 
 ## [0.31.0] - Branded sign faces from Pixelcoat sign packs
 
