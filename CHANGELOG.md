@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.33.0] - Architecture becomes plates and modules, and the covers stop lying about their UVs
+
+### Changed
+- **Floor and ceiling skins build as plates**, carrying the slab's holes in
+  them (`a03617a`).
+- **Openings cut the slot's authored aperture** instead of genome fractions,
+  and tag it in the stem (`b919677`). The authored number is the one someone
+  decided; a fraction of a genome is one nobody did.
+- **Facade relief carves into the wall module** instead of standing boxes
+  proud of it (`56a1fc6`).
+- **A prop species is a solid themed box at a DC volume's exact dims**
+  (`13b8b2a`), and `test_genome` treats prop as an ARCH species -- DC
+  slot-driven, not a modelled prop (`0b61689`).
+- **A structural slab is never see-through**, and the planned glazing kind is
+  delivered to the pane rather than assumed (`d2a8ff3`).
+- **Theme styles resolve by family prefix**, and the rockay wall relief is
+  quieted (`cf8c3e8`).
+- **`panel_field` proud 0.03 -> 0.012** (`5f7b898`).
+
+### Fixed
+- Covers orient by the anchor tangent, not the normal alone (`e2c6160`).
+- Dressing carries ambient from the style block into the cover build
+  (`f7ee3e2`).
+- Skinned covers exported `COLOR_0` as flat white (`26728c7`).
+- The wear layer was computed and never exported (`c26670a`).
+- Every cover projected its UVs from the same local box (`3f18b6a`).
+- Conduit span still scaled a hint that had become a measurement (`ad9b111`).
+
+### Docs
+- `dress_cover` claimed its UVs came from `uv_region`; they come from a cube
+  projection (`ebdb924`).
+- README points at `PIPELINE_MAP.md` and states what this repo owns
+  (`abbe1db`).
+
+Assembled on 2026-08-14 from this repo's own commits, seventeen of them since
+VERSION last moved, after `verify-manifest` reported zoo STALE. One commit in
+that range is not represented above: `5bbe380`, "checkpoint: uncommitted
+working tree", which says nothing about itself. It is the same shape that is
+currently holding `pipeline` at STALE.
+
 ## [0.32.0] - Three visual themes across the species set
 
 - **center_city** (polished commercial: low wear, cooler/lighter, clean
