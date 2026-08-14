@@ -1,12 +1,12 @@
-## [0.31.0] - Three visual themes across the species set
+# Changelog
+
+## [0.32.0] - Three visual themes across the species set
 
 - **center_city** (polished commercial: low wear, cooler/lighter, clean
   materials) and **industrial_flats** (port/works: high wear, desaturated
   iron tones, metal-first) join **delco** in every species genome (46) --
   deterministic derivations of each species' anchor style, resolved through
   the standard _pick_style_tag/resolve_module_plan path. 205 tests green.
-
-# Changelog
 
 ## [0.31.0] - Branded sign faces from Pixelcoat sign packs
 
