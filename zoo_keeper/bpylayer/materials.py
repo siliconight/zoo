@@ -43,12 +43,20 @@ import bpy
 
 from .geometry import WEAR_LAYER
 
+# THE KIND VOCABULARY. Keep in sync with core.skins.KNOWN_KINDS -- and now
+# actually enforced by tests/test_kind_vocabulary.py, which also checks that
+# every kind a genome names appears here. `tar` was missing from both lists
+# since the roof species shipped, so roofs silently took the 0.6 default below.
 ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "leather": 0.70, "rubber": 0.85, "canvas": 0.90, "carbon": 0.30,
              "glass": 0.05, "glass_facade": 0.08, "paper": 0.80,
              "concrete": 0.92, "plaster": 0.88,
              "brick": 0.90, "tile": 0.35, "drywall": 0.90, "ceiling_tile": 0.92,
-             "carpet": 0.98, "dirt": 0.97}
+             "carpet": 0.98, "dirt": 0.97, "tar": 0.90,
+             # Layer 3 surface dressing: loose stone and plant matter, both
+             # fully matte -- a dressing scatter that catches a specular
+             # highlight reads as wet plastic at every viewing angle.
+             "gravel": 0.95, "vegetation": 0.85}
 METALLIC = {"metal": 0.85, "carbon": 0.30}
 
 _SKINS = {"dir": None, "theme": "delco"}

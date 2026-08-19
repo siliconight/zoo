@@ -32,9 +32,17 @@ ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
                 "prop"}
 
 
+# Layer 3 surface dressing -- collisionless micro detail scattered over an
+# assembled site (docs/SURFACE_DRESSING.md). A third category on purpose:
+# these are neither individually-modelled props with their own silhouettes nor
+# Deli Counter slot-driven modules. Nothing places them by slot and nothing
+# places them by name; they are scattered, and the scatter is the unit.
+DRESSING_SPECIES = {"pebble", "rubble_frag", "weed_tuft", "litter_scrap"}
+
+
 def test_all_species_load_and_validate():
     species = genome.list_species()
-    assert set(species) == PROP_SPECIES | ARCH_SPECIES
+    assert set(species) == PROP_SPECIES | ARCH_SPECIES | DRESSING_SPECIES
     for s in species:
         g = genome.load_species(s)
         assert genome.validate_genome(g) == []

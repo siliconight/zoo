@@ -38,6 +38,12 @@ def parse_args():
         argv = argv[1:]
     ap = argparse.ArgumentParser(prog="zoo_cli")
     ap.add_argument("--prompt", help="plain-text asset prompt")
+    ap.add_argument("--species",
+                    help="name the species outright, skipping prompt keyword "
+                         "matching. --prompt stays optional and, when given, "
+                         "still supplies material/colour/wear/size/era. This "
+                         "is the door a program uses; wallCorner and wallEnd "
+                         "have no other one.")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--count", type=int, default=1,
                     help="build N variant siblings (seeds base..base+N-1)")
@@ -194,7 +200,7 @@ def dry_run(args):
     from zoo_keeper import TOOL_VERSION
     from zoo_keeper.core import dna, genome, intent, seeding
 
-    it = intent.parse(args.prompt, seed=args.seed)
+    it = intent.parse(args.prompt, seed=args.seed, species=args.species)
     out = {"intent": it.to_dict()}
     if it.species:
         g = genome.load_species(it.species)
@@ -248,7 +254,8 @@ def full_build(args):
         return 0 if fam["n_fail"] == 0 else 2
 
     result = build.build_specimen(
-        args.prompt, os.path.abspath(args.out), seed=args.seed, options=opts)
+        args.prompt, os.path.abspath(args.out), seed=args.seed, options=opts,
+        species=args.species)
     print(f"[zoo] specimen: {result['specimen_id']}")
     print(f"[zoo] out:      {result['out_dir']}")
     for kind, fname in result["files"].items():
@@ -553,8 +560,9 @@ def main():
         return build_kit_run(args)
     if args.kit:
         return kit_run(args)
-    if not args.prompt:
-        print("error: --prompt is required (or use --species-list)")
+    if not args.prompt and not args.species:
+        print("error: --prompt or --species is required "
+              "(or use --species-list)")
         return 1
     if args.habitat:
         if args.plan or not HAS_BPY:

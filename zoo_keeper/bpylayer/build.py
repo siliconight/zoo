@@ -34,12 +34,21 @@ def clear_scene():
 
 
 def build_specimen(prompt: str, out_dir: str, seed: int = 0,
-                   options: dict | None = None) -> dict:
+                   options: dict | None = None,
+                   species: str | None = None) -> dict:
+    """Build one specimen.
+
+    `species` names the species outright and skips prompt keyword matching --
+    the door a program uses. See `core.intent.parse` for why a prompt is the
+    wrong interface for one (two species in the library cannot be reached
+    through a prompt at all). The prompt is still parsed for material, colour,
+    wear, size and era, so styling survives.
+    """
     opts = dict(DEFAULT_OPTIONS)
     if options:
         opts.update(options)
 
-    intent = intent_mod.parse(prompt, seed=seed)
+    intent = intent_mod.parse(prompt, seed=seed, species=species)
     if intent.species is None:
         known = ", ".join(genome_mod.list_species())
         raise ValueError(

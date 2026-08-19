@@ -1,0 +1,112 @@
+{
+ "species": "rubble_frag",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Layer 3 low debris: angular broken fragments, built from jittered boxes so the fracture reads. Placed at damage as an environmental cause marker. Height max is 0.10 m, under the 0.117 m unassisted_step_max derived in lot/site_steps.py for this stack's 0.4 m capsule -- so a body steps over it anyway and passing through it is not a false traversal promise. Collisionless by construction. See docs/SURFACE_DRESSING.md. TRANSPARENCY: opaque."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "rubble",
+  "debris",
+  "fragment",
+  "surface dressing",
+  "damage"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 0.05,
+   "max": 0.35,
+   "default": 0.16
+  },
+  "depth": {
+   "min": 0.05,
+   "max": 0.35,
+   "default": 0.14
+  },
+  "height": {
+   "min": 0.01,
+   "max": 0.1,
+   "default": 0.06
+  }
+ },
+ "parts": [
+  "Dress_RubbleFrag"
+ ],
+ "params": {
+  "chunks": 4,
+  "cuts": 4,
+  "rough": 0.3
+ },
+ "materials": {
+  "default": "gravel",
+  "options": [
+   "gravel",
+   "concrete",
+   "brick",
+   "dirt"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 320
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "gravel",
+   "color": [
+    0.56,
+    0.55,
+    0.53
+   ],
+   "wear": 0.15,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "gravel",
+   "color": [
+    0.5,
+    0.49,
+    0.46
+   ],
+   "wear": 0.35,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "gravel",
+   "color": [
+    0.55,
+    0.55,
+    0.56
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "gravel",
+   "color": [
+    0.47,
+    0.45,
+    0.44
+   ],
+   "wear": 0.57,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "gravel",
+   "color": [
+    0.53,
+    0.54,
+    0.56
+   ],
+   "wear": 0.29,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}

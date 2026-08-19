@@ -1,0 +1,114 @@
+{
+ "species": "weed_tuft",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Layer 3 ground cover: a clump of tapered blades marking cracks, moisture, shade and edges. Solid tapered spikes rather than crossed quads -- a single-sided plane is the class of surface this pipeline already spent a session chasing. Height max is 0.10 m, under the 0.117 m unassisted_step_max derived in lot/site_steps.py for this stack's 0.4 m capsule -- so a body steps over it anyway and passing through it is not a false traversal promise. Collisionless by construction. See docs/SURFACE_DRESSING.md. TRANSPARENCY: opaque. Solid tapered blades, no alpha -- the first kit is opaque end to end so density and coverage can be tuned without overdraw or sort order as confounds. An alpha_cutout card variant is the intended next step for denser foliage, per 'coverage first, alpha cutouts second, true transparency only when the material calls for it'."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "weed",
+  "grass",
+  "tuft",
+  "ground cover",
+  "surface dressing",
+  "growth"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 0.05,
+   "max": 0.3,
+   "default": 0.12
+  },
+  "depth": {
+   "min": 0.05,
+   "max": 0.3,
+   "default": 0.12
+  },
+  "height": {
+   "min": 0.02,
+   "max": 0.1,
+   "default": 0.08
+  }
+ },
+ "parts": [
+  "Dress_WeedTuft"
+ ],
+ "params": {
+  "blades": 7,
+  "blade_thickness": 0.005,
+  "blade_width": 0.011,
+  "stations": 4,
+  "root_spread": 0.12,
+  "lean": 0.34,
+  "lean_scatter": 0.85
+ },
+ "materials": {
+  "default": "vegetation",
+  "options": [
+   "vegetation"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 300
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "vegetation",
+   "color": [
+    0.32,
+    0.4,
+    0.22
+   ],
+   "wear": 0.2,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "vegetation",
+   "color": [
+    0.3,
+    0.38,
+    0.2
+   ],
+   "wear": 0.3,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "vegetation",
+   "color": [
+    0.28,
+    0.34,
+    0.21
+   ],
+   "wear": 0.35,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "vegetation",
+   "color": [
+    0.31,
+    0.33,
+    0.19
+   ],
+   "wear": 0.55,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "vegetation",
+   "color": [
+    0.29,
+    0.37,
+    0.23
+   ],
+   "wear": 0.32,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}

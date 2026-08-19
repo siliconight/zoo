@@ -3,6 +3,30 @@
 Rule-based, fully offline, sensible defaults, no blocking questions for
 common requests. Anything the parser can't resolve lands in
 Intent.unresolved and downstream falls back to genome defaults.
+
+A SPECIES CAN ALSO BE NAMED OUTRIGHT. `parse(prompt, species="pebble")` skips
+keyword matching entirely and takes the species as given, because a prompt is
+the right interface for a person and the wrong one for a program.
+
+Two reasons, both measured rather than argued:
+
+  * `wallCorner` and `wallEnd` cannot be requested AT ALL through a prompt.
+    `parse("wall corner")` returns species None -- their keyword sets do not
+    cover their own names -- and until now a prompt was the only door in. Two
+    species have been unreachable for their whole lives.
+  * Layer 3 surface dressing (docs/SURFACE_DRESSING.md) needs a placement
+    layer to ask for `pebble` several thousand times and get a pebble every
+    time. `parse("pebble")` happens to work today; it works because a keyword
+    table currently has no better match, which is a coincidence and not a
+    contract. Adding a species whose keywords collide would silently change
+    what a level is dressed with.
+
+Naming the species does NOT switch the rest of the parser off: material,
+colour, wear, size and era are still read from whatever prompt is supplied, so
+a caller can say species="pebble", prompt="wet mossy" and get the species it
+requires with the styling it wants. With no prompt the species name becomes
+the canonical prompt, which keeps `seeding.root_key` stable for repeated
+requests of the same species.
 """
 from __future__ import annotations
 
@@ -94,6 +118,10 @@ class Intent:
     prompt: str
     prompt_norm: str
     species: str | None = None
+    # "keyword" when the parser inferred it from the prompt, "explicit" when a
+    # caller named it. Recorded because a specimen's provenance should say
+    # whether a human's words or a program's argument chose the species.
+    species_source: str | None = None
     era: str | None = None                    # e.g. "1990s"
     style_tags: list[str] = field(default_factory=list)
     material: str | None = None
@@ -110,6 +138,7 @@ class Intent:
             "prompt": self.prompt,
             "prompt_norm": self.prompt_norm,
             "species": self.species,
+            "species_source": self.species_source,
             "era": self.era,
             "style_tags": list(self.style_tags),
             "material": self.material,
@@ -153,16 +182,39 @@ def _find_counts(text: str) -> dict[str, int]:
     return counts
 
 
-def parse(prompt: str, seed: int = 0) -> Intent:
+def parse(prompt: str, seed: int = 0, species: str | None = None) -> Intent:
     """Parse a plain-text prompt into an Asset Intent Spec.
 
     Never raises on vague prompts; unknowns fall back to genome defaults
     downstream and are listed in Intent.unresolved.
+
+    `species`, when given, is taken as the answer and keyword matching is
+    skipped. An unknown name RAISES -- this is the programmatic door, and a
+    caller that asks for a species which does not exist has a bug that should
+    surface here rather than as a quietly different asset three stages later.
     """
+    prompt = prompt or ""
+    if species is not None:
+        known = _genome_mod.list_species()
+        if species not in known:
+            raise ValueError(
+                f"No species named {species!r}. Known species: "
+                + ", ".join(known))
+        # With no prompt the species name IS the prompt, so repeated requests
+        # for the same species hash to the same seeding.root_key instead of
+        # depending on whatever empty string a caller happened to pass.
+        if not prompt.strip():
+            prompt = species
+
     norm = normalize(prompt)
     intent = Intent(prompt=prompt, prompt_norm=norm, seed=seed)
 
-    intent.species = _find_species(norm)
+    if species is not None:
+        intent.species = species
+        intent.species_source = "explicit"
+    else:
+        intent.species = _find_species(norm)
+        intent.species_source = "keyword" if intent.species else None
     if intent.species is None:
         intent.unresolved.append("species")
 

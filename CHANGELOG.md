@@ -1,5 +1,129 @@
 # Changelog
 
+## [0.38.0] - A species can be asked for by name
+
+The only way to request a species was to describe it in a prompt and hope
+keyword matching landed on the right one. That is the right interface for a
+person and the wrong one for a program, and it had already failed twice
+without anything noticing.
+
+### Added
+- **`intent.parse(prompt, species=...)`, `build.build_specimen(..., species=...)`
+  and `zoo_cli --species`.** Naming the species skips keyword matching. An
+  unknown name raises and lists the alternatives, because a program asking for
+  a species that does not exist has a bug that should surface at the call
+  rather than as a quietly different asset three stages later.
+  The prompt is still parsed for material, colour, wear, size and era, so a
+  caller can have the species it requires with the styling it wants:
+  `--species pebble --prompt "wet mossy"`.
+  With no prompt the species name becomes the prompt, so repeated requests for
+  one species hash to one `seeding.root_key` instead of inheriting whichever
+  empty string the caller passed.
+- **`Intent.species_source`** — `"keyword"` or `"explicit"`, carried into
+  `to_dict()`. A specimen's provenance should record whether a human's words
+  or a program's argument chose the species.
+- **`tests/test_species_by_name.py`** (10 tests), including a round trip over
+  every species in the library.
+
+### Fixed
+- **`wallCorner` and `wallEnd` were unrequestable.** `intent.parse("wall
+  corner")` returns species None — their keyword sets never covered their own
+  names — and a prompt was the only door in. Both have been in the library,
+  passing `test_genome`, and impossible to build for their whole lives. They
+  are reachable now by name, and
+  `test_two_species_are_unreachable_by_prompt` pins the set so the number
+  cannot grow quietly. Their keyword sets are left alone deliberately: this
+  release adds the door, and rewriting matching rules is a separate change
+  with its own blast radius.
+
+### Notes
+- This is the first piece of the Layer 3 placement chain
+  (`docs/SURFACE_DRESSING.md` §2). A placement layer must be able to ask for
+  `pebble` several thousand times per site and get a pebble every time;
+  `parse("pebble")` happened to work, but only because no other keyword
+  currently beats it. Patina's manifest producer, the level_factory job, and
+  the Presentation consumer are still to come.
+
+## [0.37.0] - Layer 3 shapes that are measured, and the vocabulary nobody was checking
+
+The first surface-dressing kit was reviewed from four renders and shipped. A
+render can show that something looks wrong; it cannot say why, and every
+explanation offered for these was a guess. So this release starts with a ruler
+and then follows what the ruler said.
+
+### Added
+- **`tools/shape_metrics.py`** — measures the SHAPE of a built GLB, not just
+  its size, with no Blender and no dependencies. Per specimen: sorted extents
+  and Zingg class, bbox occupancy, `normal_regions_80` (how many facing
+  directions cover 80% of the surface), up-facing area share, plan-view
+  silhouette, `base_contact_ratio`, welded open/non-manifold edge counts. Per
+  patch: Clark-Evans R, which is `docs/SURFACE_DRESSING.md`'s "no obvious
+  uniform scatter pattern" as a number. `--selftest` includes falsification
+  cases: a sphere must not score like a cube, a square lattice must give
+  R = 2.000, removing one triangle must open exactly three edges.
+  It also reads POSITION accessor min/max — the height measurement
+  `glb_nodes.py` could never make, since that tool reads NODE translations and
+  a dressing GLB has one node at the origin.
+- **`geometry.subdivide` / `displace_lobes` / `fracture` / `flatten_base` /
+  `add_blade` / `zingg_radii`** — operations that ADD faces rather than move
+  them, because irregularity is bounded above by face count.
+- **`tests/test_kind_vocabulary.py`** — asserts `KNOWN_KINDS` and `ROUGHNESS`
+  agree, and that every material kind any genome names is in them. Reads
+  `materials.py` with `ast` instead of importing it, since that module imports
+  bpy and this suite runs without Blender — which is precisely why the check
+  never existed.
+- **`preview_specimen.py --view patch`** plus a ground plane and a 0.117 m
+  scale post in every frame.
+
+### Fixed
+- **`tar` was in neither kind list.** The `roof` species has declared it since
+  it shipped, so every roof fell through to `make_material`'s 0.6 default
+  roughness and could never resolve a skin pack. Nothing failed; it was
+  quietly wrong for the life of the species. `gravel` and `vegetation` had
+  drifted the same way. All three are now in both lists and the new test holds
+  them there.
+- **`status=WARN` on the dressing kit was never about triangles.**
+  `validate.py` reads `budgets["tris_lod0"]`, defaulting to 0; five genomes
+  declared `tris_max`, so their budget resolved to zero and any triangle count
+  exceeded it. Swept across all 53 species: 48 `tris_lod0`, 5 `tris_max`
+  (the four dressing species and `dress_cover`, whose 400-triangle budget had
+  therefore never been enforced). Renamed in those five.
+- **`test_genome.test_all_species_load_and_validate` was red**: it asserts
+  exact equality against the species folder and the four dressing species were
+  never declared. Added as `DRESSING_SPECIES`, a third category alongside
+  PROP and ARCH — neither modelled props nor slot-driven modules.
+
+### Changed
+- **The four Layer 3 species are rebuilt.** Measured before and after, same
+  tool, same seed:
+
+  | species | tris/budget | regions | base contact | closed |
+  |---|---|---|---|---|
+  | pebble | 334/260 -> 192/260 | 12 -> 15 | 0.000 -> 0.31 | yes |
+  | rubble_frag | 176/320 -> 76/320 | 7 -> 8 | 0.001 -> 0.98 | yes |
+  | weed_tuft | 60/300 -> 154/300 | 6 -> 3 | 0.785 -> 0.43 | yes |
+  | litter_scrap | 24/200 -> 96/200 | 4 -> 2 | 0.929 -> 0.55 | yes |
+
+  `rubble_frag` is built by slicing with half-space planes and capping the
+  cuts, because broken rock IS an intersection of half-spaces; jittering a
+  cube's eight corners only ever produced a parallelepiped. `weed_tuft` blades
+  have stations along their length so they can curve, which a cone cannot.
+  `pebble` draws its three extents as a proportion (Zingg 1935) instead of
+  independently, so the population lands where real gravel lands rather than
+  defaulting to equant lumps.
+- **`pebble` and `rubble_frag` bevel to 0 in every style.** Measured on
+  pebble, the bevel cost 238 of 430 triangles and changed `normal_regions_80`
+  by zero — it was spending 55% of the budget on edges that carry no
+  silhouette at two metres.
+
+### Notes
+- `validate.py` still defaults a missing triangle budget to 0. Whether an
+  unbudgeted species should warn or hard-fail is a policy call and is left
+  open rather than decided silently here.
+- `dim_width` printing `0.045m within [0.050, 0.300]m` as a PASS is the
+  `tol = 0.02` grace at `validate.py:21`, not a broken check. The message is
+  what misleads. Left alone.
+
 ## [0.36.0] - Plates, modules, honest cover UVs, and three visual themes
 
 NUMBERING. This jumps 0.31.0 -> 0.36.0. Tags `v0.32.0` through `v0.35.0`

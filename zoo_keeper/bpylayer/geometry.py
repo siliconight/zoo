@@ -9,6 +9,8 @@ Design rules:
 """
 from __future__ import annotations
 
+import math
+
 import bmesh
 import bpy
 from mathutils import Matrix, Vector
@@ -119,6 +121,242 @@ def bevel_edges(bm, offset, segments=1, angle_min=0.6):
     if edges:
         bmesh.ops.bevel(bm, geom=edges, offset=offset, segments=segments,
                         profile=0.7, affect="EDGES", clamp_overlap=True)
+
+
+# --- shape helpers (Layer 3 surface dressing) -------------------------------
+#
+# WHY THESE EXIST.  `jitter_verts` moves the vertices of a primitive but not
+# its FACES: jittering the 8 corners of a cube yields a parallelepiped, and
+# jittering a 6x4 ellipsoid yields a lumpy ball with the same 24 facets it
+# started with.  Measured on the first dressing kit with `tools/shape_metrics.py`,
+# a rubble fragment needed only 7 distinct facing directions to account for 80%
+# of its surface area -- it was still a box, however far the corners travelled.
+# Irregularity is bounded above by face count, so the fix has to add faces
+# (subdivide, fracture) rather than move the ones already there.
+#
+# Everything here takes the recipe's own `rng` so builds stay deterministic.
+
+def subdivide(bm, verts, cuts=1):
+    """Subdivide every edge whose ends are both in `verts`.
+
+    Returns the enlarged vertex set, so a recipe can keep operating on "this
+    chunk" while the shared bmesh holds several.
+    """
+    if cuts < 1:
+        return list(verts)
+    vs = set(verts)
+    edges = [e for e in bm.edges if e.verts[0] in vs and e.verts[1] in vs]
+    if not edges:
+        return list(verts)
+    ret = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=cuts,
+                                    use_grid_fill=True)
+    # `use_grid_fill` REBUILDS the face interiors, which invalidates the
+    # original corner vertices -- measured: all 8 verts of a subdivided cube
+    # come back `is_valid == False`. Returning them produces a
+    # "BMesh data of type BMVert has been removed" ReferenceError several
+    # operations later, a long way from the cause. So the caller's list is
+    # rebuilt from the op's own output and filtered, never merged blindly.
+    out = {v for v in verts if v.is_valid}
+    for key in ("geom", "geom_split", "geom_inner"):
+        for g in ret.get(key, []):
+            if isinstance(g, bmesh.types.BMVert) and g.is_valid:
+                out.add(g)
+    return list(out)
+
+
+def _unit(rng):
+    """Uniform random direction on the sphere (Marsaglia)."""
+    while True:
+        x, y = rng.random() * 2 - 1, rng.random() * 2 - 1
+        s = x * x + y * y
+        if s < 1.0:
+            f = 2.0 * math.sqrt(1.0 - s)
+            return Vector((x * f, y * f, 1.0 - 2.0 * s))
+
+
+def displace_lobes(bm, verts, rng, amount, lobes=3, sharpness=2.0,
+                   grain=0.25, center=(0.0, 0.0, 0.0)):
+    """Two-frequency displacement along the vertex normal.
+
+    LOW frequency: a few broad lobes, so the solid gains asymmetric bulges the
+    way a worn stone does.  HIGH frequency: a small per-vertex grain on top.
+    Uniform per-vertex noise alone (what `jitter_verts` does) is
+    scale-invariant hash -- it roughens a surface without ever changing the
+    silhouette, which is the thing that actually reads at two metres.
+
+    `amount` is the low-frequency amplitude in metres; `grain` is the
+    high-frequency amplitude as a fraction of it.
+    """
+    if amount <= 0 or not verts:
+        return list(verts)
+    bm.normal_update()
+    c = Vector(center)
+    dirs = [(_unit(rng), amount * (0.45 + rng.random() * 0.9))
+            for _ in range(max(1, lobes))]
+    for v in verts:
+        if not v.is_valid:
+            continue
+        rel = v.co - c
+        if rel.length > 1e-9:
+            u = rel.normalized()
+            off = 0.0
+            for d, amp in dirs:
+                w = u.dot(d)
+                if w > 0.0:
+                    off += amp * (w ** sharpness)
+            off += (rng.random() * 2.0 - 1.0) * amount * grain
+            n = v.normal if v.normal.length > 1e-9 else u
+            v.co += n * off
+    return list(verts)
+
+
+def fracture(bm, verts, rng, cuts=3, near=0.30, far=0.85,
+             center=(0.0, 0.0, 0.0), radius=1.0, steep=0.0):
+    """Slice a solid with random half-space planes, capping each cut.
+
+    This is what makes a fragment ANGULAR for real: broken rock IS the
+    intersection of half-spaces, so cutting the solid produces flat facets of
+    unequal size meeting at sharp dihedrals -- which is the read `rubble_frag`
+    claims in its docstring and did not have.  Each cut adds one face, so the
+    triangle cost is a few tris per cut and the caller controls it directly.
+
+    `near`/`far` bound how far off `center` a cutting plane may sit, as a
+    fraction of `radius`: a plane through the centre halves the fragment, so
+    the useful range shaves corners instead.
+
+    `steep` (0..1) biases the cutting planes toward VERTICAL.  A dressing
+    fragment is a flat thing lying on the ground, so a randomly oriented plane
+    usually shaves the top or the bottom, where nothing can see it -- measured,
+    four random cuts left the plan-view outline 98% as boxy as the box it
+    started from.  The cuts that change what you see from standing height are
+    the ones that cut the plan silhouette, and those are the vertical ones.
+    """
+    verts = [v for v in verts if v.is_valid]
+    c = Vector(center)
+    for _ in range(max(0, cuts)):
+        if len(verts) < 4:
+            break
+        no = _unit(rng)
+        if steep > 0.0:
+            no.z *= max(0.0, 1.0 - steep)
+            if no.length < 1e-6:
+                no = Vector((1.0, 0.0, 0.0))
+            no.normalize()
+        co = c + no * (radius * (near + rng.random() * max(0.0, far - near)))
+        vs = set(verts)
+        geom = list(vs)
+        geom += [e for e in bm.edges if e.verts[0] in vs and e.verts[1] in vs]
+        geom += [f for f in bm.faces if all(v in vs for v in f.verts)]
+        res = bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-7,
+                                     plane_co=co, plane_no=no,
+                                     clear_outer=True)
+        cut = [g for g in res.get("geom_cut", []) if g.is_valid]
+        if cut:
+            bmesh.ops.contextual_create(bm, geom=cut)
+        verts = [g for g in res.get("geom", []) if g.is_valid
+                 and isinstance(g, bmesh.types.BMVert)]
+        verts += [g for g in cut if isinstance(g, bmesh.types.BMVert)]
+        verts = list(set(verts))
+    return verts
+
+
+def flatten_base(verts, tol_frac=0.15, plane_z=None):
+    """Shave the underside flat, giving the solid a real footprint.
+
+    An object with no contact face rests on a point or hovers, and both read as
+    pasted on rather than lying there.  `tools/shape_metrics.py` reports this
+    as `base_contact_ratio`, which measured 0.000 on the first pebble kit and
+    0.001 on the first rubble kit -- neither species touched the ground it was
+    dressing.
+
+    Cuts at `lo + tol_frac * height` unless `plane_z` names an absolute plane.
+    RETURNS the resulting base z, so the caller can translate the solid to sit
+    on (or slightly under) the surface without measuring it again.
+    """
+    live = [v for v in verts if v.is_valid]
+    if not live:
+        return 0.0
+    lo = min(v.co.z for v in live)
+    hi = max(v.co.z for v in live)
+    cut = (lo + (hi - lo) * tol_frac) if plane_z is None else plane_z
+    for v in live:
+        if v.co.z < cut:
+            v.co.z = cut
+    return cut
+
+
+def zingg_radii(rng, base, equant=0.12, rod=0.22, disc=0.36):
+    """Draw (rx, ry, rz) multipliers with the proportions real gravel has.
+
+    Zingg (1935) classifies clasts by b/a and c/b at 2/3; measured river and
+    talus populations sit mostly in blade and disc, and only rarely in equant.
+    A generator that draws its three extents independently emits equant lumps
+    far more often than nature does, and an equant lump is the single most
+    "procedural" silhouette available.  The remaining probability after the
+    three named classes is blade.
+    """
+    r = rng.random()
+    if r < equant:
+        ba, cb = rng.uniform(0.75, 0.95), rng.uniform(0.72, 0.92)
+    elif r < equant + rod:
+        ba, cb = rng.uniform(0.35, 0.62), rng.uniform(0.72, 0.95)
+    elif r < equant + rod + disc:
+        ba, cb = rng.uniform(0.72, 0.95), rng.uniform(0.28, 0.60)
+    else:
+        ba, cb = rng.uniform(0.40, 0.64), rng.uniform(0.32, 0.62)
+    a = base
+    b = a * ba
+    c = b * cb
+    return a, b, c
+
+
+def add_blade(bm, base, height, width, thickness, bend=(0.0, 0.0),
+              stations=4, taper=1.6, curl=0.0):
+    """One tapered, CURVED blade of vegetation as a closed triangular prism.
+
+    Built directly rather than from `add_cylinder`, because a cone has no
+    stations along its length and therefore cannot bend: the first weed_tuft
+    kit was five straight tapered spikes, which is why it rendered as paper
+    slivers rather than grass.  A blade that reads has three properties a
+    straight spike cannot have -- it curves, it is widest near the base, and it
+    ends in a point.
+
+    Solid, not a card: a crossed-quad blade is a single-sided plane, and this
+    repo has already spent a session chasing one of those.  A card variant with
+    an alpha cutout is the right answer for dense foliage later, per "coverage
+    first, alpha cutouts second"; it is a different species, not this one.
+
+    `bend` is the horizontal displacement at the tip, applied quadratically so
+    the blade leaves the ground vertical and leans as it rises.  `curl` adds a
+    cubic term, which is what makes a long blade fold over rather than lean.
+    """
+    stations = max(2, int(stations))
+    ring = []
+    for i in range(stations):
+        t = i / float(stations)
+        w = max(1e-5, width * 0.5 * (1.0 - t ** taper))
+        th = max(1e-5, thickness * (1.0 - t * 0.75))
+        z = height * t
+        dx = bend[0] * t * t + curl * (t ** 3) * bend[0]
+        dy = bend[1] * t * t + curl * (t ** 3) * bend[1]
+        ring.append([bm.verts.new((base[0] + dx - w, base[1] + dy, base[2] + z)),
+                     bm.verts.new((base[0] + dx + w, base[1] + dy, base[2] + z)),
+                     bm.verts.new((base[0] + dx, base[1] + dy + th,
+                                   base[2] + z))])
+    tip = bm.verts.new((base[0] + bend[0] * (1.0 + curl),
+                        base[1] + bend[1] * (1.0 + curl),
+                        base[2] + height))
+    for i in range(stations - 1):
+        a, b = ring[i], ring[i + 1]
+        for k in range(3):
+            k2 = (k + 1) % 3
+            bm.faces.new((a[k], a[k2], b[k2], b[k]))
+    last = ring[-1]
+    for k in range(3):
+        bm.faces.new((last[k], last[(k + 1) % 3], tip))
+    bm.faces.new((ring[0][2], ring[0][1], ring[0][0]))
+    verts = [v for r in ring for v in r] + [tip]
+    return verts
 
 
 # --- UVs + wear -------------------------------------------------------------

@@ -43,7 +43,7 @@
   ]
  },
  "budgets": {
-  "tris_max": 400
+  "tris_lod0": 400
  },
  "attachments": [],
  "styles": {

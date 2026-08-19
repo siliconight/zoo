@@ -1,0 +1,110 @@
+{
+ "species": "litter_scrap",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Layer 3 litter: flat crumpled scraps for wall bases and traffic edges. Height max is 0.03 m -- nowhere near the 0.117 m unassisted_step_max, so it cannot be argued about. Collisionless by construction. See docs/SURFACE_DRESSING.md. TRANSPARENCY: opaque."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "litter",
+  "trash",
+  "paper",
+  "scrap",
+  "surface dressing"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 0.04,
+   "max": 0.3,
+   "default": 0.12
+  },
+  "depth": {
+   "min": 0.04,
+   "max": 0.3,
+   "default": 0.1
+  },
+  "height": {
+   "min": 0.004,
+   "max": 0.03,
+   "default": 0.012
+  }
+ },
+ "parts": [
+  "Dress_LitterScrap"
+ ],
+ "params": {
+  "scraps": 2,
+  "crumple": 0.55,
+  "cuts": 1
+ },
+ "materials": {
+  "default": "paper",
+  "options": [
+   "paper",
+   "plastic"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 200
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "paper",
+   "color": [
+    0.72,
+    0.7,
+    0.65
+   ],
+   "wear": 0.4,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "paper",
+   "color": [
+    0.68,
+    0.66,
+    0.6
+   ],
+   "wear": 0.55,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "paper",
+   "color": [
+    0.75,
+    0.74,
+    0.71
+   ],
+   "wear": 0.35,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "paper",
+   "color": [
+    0.62,
+    0.6,
+    0.55
+   ],
+   "wear": 0.7,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "paper",
+   "color": [
+    0.7,
+    0.69,
+    0.66
+   ],
+   "wear": 0.5,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}

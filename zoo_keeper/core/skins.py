@@ -34,11 +34,25 @@ import os
 PACK_SCHEMA = "pixelcoat-pack/1"
 MAP_KEYS = ("albedo", "normal", "roughness", "emissive", "height")
 
-# Keep in sync with bpylayer.materials.ROUGHNESS (kind vocabulary).
+# THE KIND VOCABULARY. Keep in sync with bpylayer.materials.ROUGHNESS.
+#
+# That instruction sat here as a comment with nothing enforcing it, and three
+# kinds drifted out of the pair before anyone noticed. `tar` -- declared by the
+# `roof` species since it shipped -- was in NEITHER list, so every roof took
+# `make_material`'s 0.6 default roughness and could never resolve a skin pack,
+# silently and for its whole life. `gravel` and `vegetation` arrived with the
+# Layer 3 dressing kit and went the same way.
+#
+# `tests/test_kind_vocabulary.py` now asserts the two lists agree AND that
+# every kind any genome names is in them. It reads materials.py with `ast`
+# rather than importing it, because that module imports bpy and the zoo test
+# suite runs without Blender -- which is the reason this check did not exist.
 KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "canvas", "carbon", "glass", "glass_facade", "paper",
                "concrete", "plaster", "brick", "tile", "drywall",
-               "ceiling_tile", "carpet", "dirt")
+               "ceiling_tile", "carpet", "dirt", "tar",
+               # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
+               "gravel", "vegetation")
 
 
 def find_pack(skins_dir: str, material_kind: str,
