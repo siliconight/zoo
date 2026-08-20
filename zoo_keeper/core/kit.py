@@ -53,6 +53,19 @@ def _opening_key(openings):
 #: width alone does not identify a module -- see :func:`module_stem`.
 PLATE_ROLES = ("floor", "ceiling", "roof")
 
+#: Roles built as a free-standing VOLUME, whose extent varies on ALL THREE
+#: axes. A wall's thickness and storey height are fixed by the building, so
+#: width identifies it; a prop is a vault, a counter, a cabinet or a crate
+#: stack (see ``recipes/prop.py``) and is free on every axis, so width alone
+#: names two different solids the same thing.
+#:
+#: Measured before it was believed: over 52 of the 136 shipped `slots.json`
+#: manifests, 15 buildings (28%) planned two or more DISTINCT prop modules onto
+#: one filename. `cr_gas` put ``[0.9, 10.0, 1.8]`` and ``[0.9, 0.9, 1.0]`` on
+#: `prop_delco_04_w90` -- a 9.1 m difference in depth between a long counter
+#: and a small cube. One won the name and the other rendered as it.
+VOLUME_ROLES = ("prop",)
+
 #: Roles whose geometry is a hole in a standing slab, cut to the slot's own
 #: ``fit.openings``. Their WIDTH is already in the filename; the aperture is
 #: not, which is what :func:`opening_tag` fixes.
@@ -118,17 +131,25 @@ def slot_typename(role: str, size_mod: str) -> str:
 def module_stem(typ: str, theme: str, style: int,
                 width_cm: int = None, state: str = None,
                 depth_cm: int = None, voids_tag: str = None,
-                openings_tag: str = None) -> str:
+                openings_tag: str = None, height_cm: int = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    ``<type>_<theme>_<style:02d>[_w<cm>][_d<cm>][_v<hash>][_o<hash>][_<state>]``.
+    ``<type>_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_v<hash>][_o<hash>][_<state>]``.
 
-    ``depth_cm`` IS ONLY FOR PLATES, and only because width alone stopped
-    identifying a module. A wall varies on one axis -- its width -- while its
-    thickness and the storey height are fixed, so ``_w<cm>`` is a complete key
-    and every existing wall/doorway/window filename is unchanged. A floor or
-    ceiling varies on both: a 44x24 room and a 44x16 room both planned as
-    ``floor_rockay_01_w4400``, one won the name, both rooms resolved to it, and
-    the shorter room got a slab eight metres too deep.
+    ``depth_cm`` IS FOR PLATES AND VOLUMES, and only because width alone
+    stopped identifying a module. A wall varies on one axis -- its width --
+    while its thickness and the storey height are fixed, so ``_w<cm>`` is a
+    complete key and every existing wall/doorway/window filename is unchanged.
+    A floor or ceiling varies on both: a 44x24 room and a 44x16 room both
+    planned as ``floor_rockay_01_w4400``, one won the name, both rooms resolved
+    to it, and the shorter room got a slab eight metres too deep.
+
+    ``height_cm`` IS ONLY FOR VOLUMES, and it is the same defect one axis
+    further on. When `prop` was added it inherited the wall's argument --
+    "width is a complete key" -- which is false for a solid that is free on
+    every axis. `night_deli` planned a 4.0x1.2x0.9 counter and a 4.0x1.4x2.2
+    cabinet, both as ``prop_delco_04_w400``; adding depth alone would have
+    separated that pair by luck, and left 4.0x1.2x0.9 against 4.0x1.2x2.2
+    still colliding. The key has to name every axis the role is free on.
 
     Deli Counter's ``themed_tscn.module_stem`` is the mirror of this function.
     NEITHER SIDE PARSES the stem -- both construct it from the same slot -- so
@@ -140,6 +161,8 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_w{int(round(width_cm))}"
     if depth_cm is not None:
         base += f"_d{int(round(depth_cm))}"
+    if height_cm is not None:
+        base += f"_h{int(round(height_cm))}"
     if voids_tag:
         base += f"_v{voids_tag}"
     if openings_tag:
@@ -227,7 +250,9 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         width_cm = int(round(dims[0] * 100)) if exact else None
         # Plates vary on both axes; everything else is identified by width.
         depth_cm = (int(round(dims[1] * 100))
-                    if exact and typ in PLATE_ROLES else None)
+                    if exact and typ in PLATE_ROLES + VOLUME_ROLES else None)
+        height_cm = (int(round(dims[2] * 100))
+                     if exact and typ in VOLUME_ROLES else None)
         vtag = void_tag(fit.get("voids")) if typ in PLATE_ROLES else None
         otag = (opening_tag(fit.get("openings"))
                 if typ in OPENING_ROLES else None)
@@ -244,7 +269,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         for species, st, stem_state, is_deferred in slot_variants(s, typ,
                                                                    state):
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
-                               depth_cm, vtag, otag)
+                               depth_cm, vtag, otag, height_cm)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:

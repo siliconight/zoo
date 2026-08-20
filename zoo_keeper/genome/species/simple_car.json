@@ -52,16 +52,16 @@
   }
  },
  "materials": {
-  "default": "metal",
+  "default": "metal_painted",
   "options": [
-   "metal",
+   "metal_painted",
    "plastic",
    "glass"
   ]
  },
  "styles": {
   "default": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.55,
     0.56,
@@ -71,7 +71,7 @@
    "bevel": 0.01
   },
   "1970s": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.55,
     0.35,
@@ -81,7 +81,7 @@
    "bevel": 0.014
   },
   "1980s": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.62,
     0.1,
@@ -91,7 +91,7 @@
    "bevel": 0.012
   },
   "1990s": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.3,
     0.42,
@@ -101,7 +101,7 @@
    "bevel": 0.01
   },
   "police": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.1,
     0.1,
@@ -111,7 +111,7 @@
    "bevel": 0.01
   },
   "racing": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.7,
     0.08,
@@ -121,7 +121,7 @@
    "bevel": 0.01
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.606,
     0.632,
@@ -132,7 +132,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.5388,
     0.5119,
@@ -143,7 +143,7 @@
    "ambient": 0.1
   },
   "rockay": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.517,
     0.5544,

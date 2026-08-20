@@ -13,3 +13,5 @@ dist/
 *.pre_*
 
 _preview_dressing/
+_preview_*/
+_probe/

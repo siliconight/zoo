@@ -52,7 +52,19 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "concrete", "plaster", "brick", "tile", "drywall",
                "ceiling_tile", "carpet", "dirt", "tar",
                # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
-               "gravel", "vegetation")
+               "gravel", "vegetation",
+               # PROP METAL vs ARCHITECTURAL METAL. `metal` is theme-owned:
+               # a rusted storefront facade and a corrugated wall belong to
+               # the building, and a tintable pack in that slot would repaint
+               # them by their greybox colour. These two are OBJECT-owned --
+               # the mesh supplies the hue and the pack supplies the surface.
+               # They are separate kinds and not one, because METALLIC is a
+               # per-kind lookup and paint is a dielectric (0.0) while bare
+               # metal is a conductor. Measured before splitting: of the 42
+               # species that can wear `metal`, only 12 declare a style colour
+               # with chroma >= 0.10; the other 30 are already near-grey and
+               # correctly keep `metal`.
+               "metal_painted", "metal_bare")
 
 
 def find_pack(skins_dir: str, material_kind: str,
@@ -103,6 +115,11 @@ def load_pack(pack_dir: str) -> dict | None:
                 "maps": maps,
                 "meters_per_tile": float(raw.get("meters_per_tile") or 1.0),
                 "tileable": raw.get("tileable"),
+                # ACHROMATIC-BY-INTENT (Pixelcoat >= 0.13). The pack says its
+                # albedo is a surface and not a paint job, so the consumer is
+                # expected to supply the hue. Absent key -> False: every pack
+                # written before 0.13 keeps today's behaviour exactly.
+                "tintable": bool(raw.get("tintable")),
                 "transparency": raw.get("import_hints", {}).get("transparency")}
 
     albedos = sorted(glob.glob(os.path.join(pack_dir, "*_albedo.png")))
@@ -115,7 +132,7 @@ def load_pack(pack_dir: str) -> dict | None:
         if os.path.isfile(path):
             maps[key] = os.path.abspath(path)
     return {"id": stem, "dir": os.path.abspath(pack_dir), "maps": maps,
-            "meters_per_tile": 1.0, "tileable": None}
+            "meters_per_tile": 1.0, "tileable": None, "tintable": False}
 
 
 def library_report(skins_dir: str, theme: str = "delco",

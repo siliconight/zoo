@@ -56,8 +56,16 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # Layer 3 surface dressing: loose stone and plant matter, both
              # fully matte -- a dressing scatter that catches a specular
              # highlight reads as wet plastic at every viewing angle.
-             "gravel": 0.95, "vegetation": 0.85}
-METALLIC = {"metal": 0.85, "carbon": 0.30}
+             "gravel": 0.95, "vegetation": 0.85,
+             # Prop metal (see skins.KNOWN_KINDS). Semi-gloss enamel sits
+             # duller than the bare sheet it covers; brushed/polished stock
+             # sits tighter than the generic `metal` average.
+             "metal_painted": 0.45, "metal_bare": 0.28}
+# `metal_painted` is listed at 0.0 rather than left to the .get() default:
+# the whole reason it is a separate kind from `metal_bare` is this number, and
+# a value that matters should not be inferred from an omission.
+METALLIC = {"metal": 0.85, "carbon": 0.30,
+            "metal_painted": 0.0, "metal_bare": 0.90}
 
 _SKINS = {"dir": None, "theme": "delco"}
 
@@ -91,12 +99,25 @@ def make_material(name, base_color, material_kind):
     the pack's job)."""
     pack = _find_pack(material_kind)
     if pack:
+        # A TINTABLE pack is achromatic on purpose: it carries grain, wear and
+        # sheen, and the mesh supplies the hue. Such a material CANNOT be
+        # shared across colours, so the cache key carries the colour and one
+        # material exists per (kind, theme, colour). A normal pack still
+        # collapses to one material per (kind, theme) -- which is the whole
+        # point for a wall, and the reason the docstring above says the
+        # genome's colour rides only the flat path. It now also rides the
+        # textured path, but ONLY when the pack asked for it.
+        tint = _tint_key(base_color) if pack.get("tintable") else None
         skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}"
+        if tint is not None:
+            skin_name += "_" + tint
         mat = bpy.data.materials.get(skin_name)
         if mat:
             return mat
-        print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})")
-        return _textured(skin_name, pack, material_kind)
+        print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})"
+              + (f"  tinted #{tint}" if tint else ""))
+        return _textured(skin_name, pack, material_kind,
+                         tint=(tuple(base_color) if tint else None))
 
     mat = bpy.data.materials.get(name)
     if mat:
@@ -205,6 +226,55 @@ def _load_image(path, non_color=False):
     return img
 
 
+def _tint_key(base_color):
+    """Stable 6-hex cache key for a base colour. Pure; unit-testable without
+    bpy, which is why it is not inlined into `make_material`."""
+    return "".join("%02x" % max(0, min(255, int(round(float(c) * 255.0))))
+                   for c in tuple(base_color)[:3])
+
+
+def _tint_multiply(tree, color_socket, tint, label):
+    """Insert ``albedo * tint`` for an achromatic pack and return the socket.
+
+    VERIFIED AT THE EXPORT BOUNDARY on Blender 5.1.1 (hash b70da489d7f4).
+    glTF computes base colour as ``baseColorFactor * baseColorTexture *
+    COLOR_0``. This node is the Blender spelling of the FACTOR term, and the
+    exporter has to fold it back into one. It does. `tools/tint_probe.py`
+    exported two materials off one tintable pack and read the GLB back:
+
+        M_Probe_red   baseColorFactor [0.620, 0.140, 0.140, 1.000]  texture yes
+        M_Probe_blue  baseColorFactor [0.140, 0.260, 0.550, 1.000]  texture yes
+
+    Those are the genome colours to three decimals, and baseColorTexture
+    survived the extra node. This was written down as UNKNOWN until it was
+    measured, because the failure mode -- exporter silently drops the factor,
+    every tinted prop renders in the pack own near-white, nothing logs -- is
+    the same shape that hid the flat wear for a whole art pass.
+
+    RE-RUN THE PROBE ON A BLENDER UPGRADE. The fold is the exporter choice,
+    not a guarantee of the format. If a future version drops it, the fallback
+    is to multiply the tint into the loaded image pixels once per colour --
+    slower and heavier, but a plain texture cannot be dropped.
+
+    On failure this returns the original socket and SAYS SO, rather than
+    leaving a half-wired graph.
+    """
+    try:
+        mix = tree.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Factor"].default_value = 1.0
+        tree.links.new(color_socket, mix.inputs[6])            # A: albedo
+        mix.inputs[7].default_value = (float(tint[0]), float(tint[1]),
+                                       float(tint[2]), 1.0)    # B: tint
+        return mix.outputs[2]
+    except Exception as exc:
+        print(f"[zoo] WARNING: {label}: could not wire the tint multiply "
+              f"({type(exc).__name__}: {exc}) -- this material will render in "
+              f"the pack's own colour and ignore the genome")
+        return color_socket
+
+
 def _wear_multiply(tree, color_socket, label):
     """Insert ``albedo * COLOR_0`` and return the socket for Base Color.
 
@@ -235,7 +305,7 @@ def _wear_multiply(tree, color_socket, label):
         return color_socket
 
 
-def _textured(name, pack, material_kind):
+def _textured(name, pack, material_kind, tint=None):
     """Image-textured Principled from a Pixelcoat pack.
 
     Image Texture -> MULTIPLY by the wear colour attribute -> Base Color. The
@@ -281,7 +351,10 @@ def _textured(name, pack, material_kind):
 
     albedo = tex_node(maps["albedo"])
     link_vector(albedo)
-    tree.links.new(_wear_multiply(tree, albedo.outputs["Color"], name),
+    color_socket = albedo.outputs["Color"]
+    if tint is not None:
+        color_socket = _tint_multiply(tree, color_socket, tint, name)
+    tree.links.new(_wear_multiply(tree, color_socket, name),
                    bsdf.inputs["Base Color"])
 
     if "roughness" in maps:

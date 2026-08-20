@@ -6,6 +6,15 @@ Run inside Blender (see tools/preview_dressing.ps1):
         --prompt "carpet floor" --seed 1999 --out _preview \
         --render _preview/floor_carpet.png [--skins <dir> --theme delco]
 
+`--species <name>` names the species OUTRIGHT and skips keyword matching --
+the door a program uses, already open in `build.build_specimen` and until now
+not wired to this tool. `core.intent.parse` explains why it matters: two
+species in the library could not be reached through a prompt at all, and a
+prompt that resolves today does so because no better keyword match exists yet,
+which is a coincidence rather than a contract. A preview script naming seven
+species by prompt is seven coincidences. The prompt is still parsed for
+material, colour, wear, size and era, so styling survives.
+
 Builds the specimen with the normal Zoo pipeline, then frames it and renders a
 PNG with Cycles CPU (reliable headless). With --skins it shows the Pixelcoat
 texture; without, the flat style colour + baked wear. Prints the build status so
@@ -135,6 +144,7 @@ def main():
     patch_n = int(_arg("--patch", "45"))
     patch_extent = float(_arg("--patch-extent", "1.15"))
     no_ground = _flag("--no-ground")
+    species = _arg("--species", None)
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if repo not in sys.path:
@@ -147,10 +157,11 @@ def main():
         print(f"[preview] skins: {skins} (theme={theme})")
 
     res = build.build_specimen(
-        prompt, out, seed=seed,
+        prompt, out, seed=seed, species=species,
         options={"collision": None, "lods": False,
                  "save_blend": False, "clear_scene": True})
-    print(f"[preview] prompt='{prompt}' -> specimen={res['specimen_id']} "
+    asked = f"species={species!r}" if species else f"prompt={prompt!r}"
+    print(f"[preview] {asked} -> specimen={res['specimen_id']} "
           f"status={res['report']['status'].upper()}")
 
     import bpy

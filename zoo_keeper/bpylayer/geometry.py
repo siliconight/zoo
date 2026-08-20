@@ -111,6 +111,86 @@ def solidify(bm, thickness):
     bmesh.ops.solidify(bm, geom=list(bm.faces), thickness=thickness)
 
 
+#: A fold TIGHTER than this stays smooth; anything sharper becomes a hard
+#: edge. 50 degrees is not a preference, it is arithmetic: `bevel_edges` runs
+#: `segments=1`, so a chamfer on a 90-degree corner meets each neighbour at
+#: exactly 45 degrees. The usual hard-surface default of 30 would mark every
+#: chamfer sharp and the whole change would do nothing -- the bevels would
+#: still read as facets, which is what they did before this existed.
+SMOOTH_ANGLE_DEG = 50.0
+
+
+def shade_by_angle(bm, angle_deg=SMOOTH_ANGLE_DEG):
+    """Smooth shading with hard creases, decided per edge from the geometry.
+
+    WHY THIS IS DONE ON THE BMESH. Blender 4.1 removed `mesh.use_auto_smooth`,
+    and its replacement is an operator that adds a Smooth-by-Angle modifier.
+    Zoo builds headless, deterministically, with no operators and no modifier
+    stack, so neither is available. The same answer is computable directly:
+    smooth every face, then mark an edge sharp when its two faces disagree by
+    more than `angle_deg`.
+
+    WHAT IT BUYS, in order of how visible it is:
+
+      * Cylinders stop being faceted. `add_cylinder` runs 10-24 segments, so
+        neighbouring side faces meet at 15-36 degrees and now blend, while the
+        90-degree rim where the side meets the cap stays crisp. A 14-segment
+        water tank was reading as a dodecagon.
+      * Every bevel becomes a highlight roll-off instead of a facet, which is
+        the entire reason `bevel_edges` exists. A bevel on a flat-shaded mesh
+        buys geometry and no shading.
+      * Box corners stay sharp, because 90 is well clear of the threshold.
+
+    TRIANGLE COUNT IS UNCHANGED, which is what makes this safe to apply to
+    every species at once: `validate.evaluate` checks `budgets.tris_lod0`, and
+    nothing here adds a face. The exported VERTEX count usually falls, because
+    smooth shading lets a corner share one normal where flat shading needed
+    three.
+    """
+    limit = math.cos(math.radians(angle_deg))
+    bm.normal_update()
+    for f in bm.faces:
+        f.smooth = True
+    for e in bm.edges:
+        faces = e.link_faces
+        if len(faces) != 2:
+            # A boundary or non-manifold edge has no second face to average
+            # with. Leaving it hard is the honest answer; smoothing it would
+            # blend against a normal that is not there.
+            e.smooth = False
+            continue
+        e.smooth = faces[0].normal.dot(faces[1].normal) >= limit
+
+
+def taper_z(verts, top_scale, bottom_scale=1.0):
+    """Scale X and Y by height: `bottom_scale` at the lowest vertex,
+    `top_scale` at the highest, linearly between.
+
+    A frustum rather than a box, in one call, on whatever primitive is in
+    hand. Manufactured things are rarely prisms -- a car's greenhouse narrows
+    toward the roof, a bin tapers so it stacks, a dumpster's sides lean so the
+    lid clears. Faking it by stacking two boxes leaves a 90-degree step that
+    `shade_by_angle` correctly keeps sharp, so it reads as two boxes; a real
+    taper leaves one continuous face.
+
+    Operates on the verts `add_box` / `add_cylinder` return, matching
+    `jitter_verts` and `flatten_base`. A flat set of verts (no height) is left
+    alone rather than divided by zero.
+    """
+    if not verts:
+        return
+    zs = [v.co.z for v in verts]
+    lo, hi = min(zs), max(zs)
+    span = hi - lo
+    if span <= 1e-9:
+        return
+    for v in verts:
+        t = (v.co.z - lo) / span
+        k = bottom_scale + (top_scale - bottom_scale) * t
+        v.co.x *= k
+        v.co.y *= k
+
+
 def bevel_edges(bm, offset, segments=1, angle_min=0.6):
     """Bevel sharp edges (dihedral angle above angle_min radians)."""
     if offset <= 0:
@@ -445,10 +525,13 @@ def wear_colors(bm, rng, wear, ambient=0.0):
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
                  texel=1.0, rng=None, wear=0.0, ambient=0.0,
                  uv_offset=(0.0, 0.0, 0.0)):
-    """Finish a bmesh (bevel -> normals -> UVs -> wear) and link an object."""
+    """Finish a bmesh (bevel -> normals -> shading -> UVs -> wear) and link."""
     if finish:
         bevel_edges(bm, bevel)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+        # AFTER recalc, because the decision reads face normals, and BEFORE
+        # the UV projection, which does not care either way.
+        shade_by_angle(bm)
         cube_project_uv(bm, texel, uv_offset)
         if rng is not None:
             wear_colors(bm, rng, wear, ambient=ambient)

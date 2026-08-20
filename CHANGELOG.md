@@ -1,5 +1,395 @@
 # Changelog
 
+## [0.44.0] - batch 1: the four painted-metal species
+
+The first four species whose metal is unambiguously paint, taken from the
+chroma measurement in 0.43.0:
+
+    simple_car        chroma 0.64    9 styles
+    helmet            chroma 0.57    3 styles
+    vending_machine   chroma 0.48    8 styles
+    queue_stanchion   chroma 0.32    5 styles
+
+All four already pass `plan["material"]` straight into `make_material`, so no
+recipe changed. This is genome data only.
+
+### Changed
+- Each species swaps `metal` for `metal_painted` in `materials.options`, in
+  `materials.default` where that was `metal` (all but helmet, whose default is
+  `plastic`), and in every style block whose `material` was `metal`.
+
+`metal` is REMOVED from these four rather than left alongside `metal_painted`.
+Left in, a prompt naming "metal" would resolve the theme-owned pack and ignore
+the genome colour -- the exact defect this split exists to fix. Removed, that
+prompt falls through to the species default, which is now the painted kind.
+
+### Added
+- `tests/test_material_options_closed.py`. It asserts, for ALL 53 genomes and
+  not just these four, that every `styles[*].material` and the `default` are
+  present in `materials.options`.
+
+### Why that test is the point of this batch
+`dna.resolve_plan` does this, with no warning:
+
+    if material not in genome["materials"]["options"]:
+        material = genome["materials"]["default"]
+
+A style naming a kind missing from `options` is DISCARDED and the species
+quietly renders in its default. So every species edit is two places, and the
+failure mode is a render that looks untouched -- which is unfalsifiable by
+eye. The first attempt at generating this patch hit exactly that class of bug
+from the other side: a substring rewrite of `"metal",` also matched inside
+`"material": "metal",`, so queue_stanchion had its styles rewritten and its
+options list left alone. The genomes are byte-exact `json.dumps(indent=1)`
+output, so the edit is now structural and the generated diff is asserted to
+touch no line that does not mention metal.
+
+### Still on plain `metal`
+38 species. Eight are the remaining coloured ones: chair, filing_cabinet,
+water_tank, flat_top_grill, shelving, atm, vault_door -- plus gold_bar, which
+is chroma 0.61 but is BARE metal and wants `metal_bare`, not paint. The other
+30 are already near-grey and correctly keep `metal`; ten of those are
+architecture and must.
+
+NOTE for batch 2: `shelving.json` is NOT byte-exact indent=1 round-trippable,
+unlike every other genome checked. It needs an anchored edit or a deliberate
+reformat, not a structural re-dump.
+
+## [0.43.0] - two new kinds, and the measurement that scoped them
+
+The skinned vending-machine render made the case: `plastic` trim took its own
+red correctly, and the BODY came out galvanized grey, because the body is
+`metal` and `metal` is theme-owned. Every ATM, HVAC unit, filing cabinet and
+car body had the same defect -- 42 species sharing one grey.
+
+Before splitting, the size of the problem was measured rather than assumed.
+For each species that can wear `metal`, the chroma of every style colour whose
+material is `metal`:
+
+    chroma >= 0.25   5 species   simple_car 0.64, gold_bar 0.61, helmet 0.57,
+                                 vending_machine 0.48, queue_stanchion 0.32
+    0.10 - 0.25      7 species   chair, filing_cabinet, water_tank,
+                                 flat_top_grill, shelving, atm, vault_door
+    < 0.10          30 species   streetlight 0.038, hvac_unit 0.058, ...
+
+Thirty species need no change at all: their metal colours are already grey, so
+the theme's metal is a fair answer. Ten of those thirty are architecture --
+wall, wallCorner, wallEnd, window, doorway, breach, prop, dress_cover, ceiling,
+roof -- and MUST stay theme-owned. That is the measured reason the kind could
+not simply be made tintable.
+
+### Added
+- `metal_painted` and `metal_bare` in `skins.KNOWN_KINDS`, `ROUGHNESS`
+  (0.45 / 0.28) and `METALLIC` (0.0 / 0.90).
+
+Two kinds and not one because METALLIC is a per-kind lookup. Paint is a
+dielectric; bare metal is a conductor. Folding them together would have put a
+metallic sheen on matte paint, or killed the specular on a gold bar.
+
+`metal_painted` is written as an explicit 0.0 rather than left to the `.get()`
+default, because that number is the entire reason the two kinds are separate
+and a value that load-bearing should not be inferred from an omission.
+
+### Note
+Nothing renders differently. No genome names either kind yet.
+
+WATCH OUT when the genomes are edited. `dna.resolve_plan` does:
+
+    if material not in genome["materials"]["options"]:
+        material = genome["materials"]["default"]
+
+silently. A style that says `"material": "metal_painted"` is DISCARDED unless
+the kind is also added to that species' `materials.options`. Every species edit
+is two places, and the failure mode is a render that looks unchanged.
+
+## [0.42.1] - the export boundary was measured, so the note comes down
+
+0.42.0 shipped `_tint_multiply` with an `### UNVERIFIED` block: the shader
+graph gained a node between the image and Base Color, and the glTF exporter
+was free to drop the resulting baseColorFactor silently. That was the honest
+state of knowledge, and it is no longer the state of knowledge.
+
+### Verified
+`tools/tint_probe.py`, Blender 5.1.1 (hash b70da489d7f4), two materials built
+from one tintable pack and read back out of the exported GLB:
+
+    M_Probe_red   baseColorFactor [0.620, 0.140, 0.140, 1.000]  texture yes
+    M_Probe_blue  baseColorFactor [0.140, 0.260, 0.550, 1.000]  texture yes
+
+The genome colours to three decimals, both textures intact, and the two did
+not collapse into one material. The pixel-bake fallback is not needed.
+
+### Changed
+- The docstring on `_tint_multiply` now records the measurement instead of the
+  doubt, and says to re-run the probe on a Blender upgrade -- the fold is the
+  exporter's choice, not a guarantee of the format.
+
+## [0.42.0] - a pack can ask to be painted, and the mesh answers
+
+`make_material`'s own docstring said it: "the genome's per-specimen color
+rides only the flat path; textured paint jobs are the pack's job". Measured,
+that means every object of a kind in a skinned build shares ONE cached
+material, modulated only by COLOR_0, which carries greyscale wear. All 42
+species that can wear `metal` collapse into one galvanized grey; simple_car's
+police black, racing red and 1970s brown collapse with them.
+
+That is correct for a brick wall and wrong for a bumper, and the distinction
+is not the KIND -- `metal` serves a rusted storefront facade and 42 props.
+It is the PACK. Pixelcoat 0.13 lets a grammar declare `tintable`; this reads
+it.
+
+### Added
+- `skins.load_pack` surfaces `tintable`. Absent key -> False, so every pack
+  written before Pixelcoat 0.13 -- which is all of them -- behaves exactly as
+  it does today. Verified by `test_pack_written_before_0_13_defaults_to_not_tintable`.
+- `materials._tint_key`: a pure 6-hex cache key, kept out of `make_material`
+  so it can be tested without bpy.
+- `materials._tint_multiply`: `albedo * tint` for a tintable pack only.
+- `tools/tint_probe.py`: exports a specimen and reads `baseColorFactor` and
+  `baseColorTexture` back out of the GLB.
+
+### Changed
+- A tintable pack's material cache key is now `(kind, theme, colour)` instead
+  of `(kind, theme)`. A non-tintable pack still collapses to one material,
+  which is the point for walls.
+
+### UNVERIFIED
+The shader graph now has one more node between the image and Base Color than
+it had when `tools/wear_probe.py` verified the texture still exported. glTF
+folds `baseColorFactor * baseColorTexture * COLOR_0`; the exporter may give up
+on the extra multiply and drop the factor SILENTLY, which would render every
+tinted prop in the pack's own near-white with no error anywhere. This is the
+same failure shape that hid the flat wear for a whole art pass, so it is
+written down as unknown rather than assumed working. Run `tools/tint_probe.py`
+before mapping any tintable pack into a theme. If the factor is dropped, the
+fallback is to multiply the tint into the loaded image pixels once per colour.
+
+### Note
+Nothing renders differently yet. No pack on disk sets `tintable`, and no theme
+maps a kind that would.
+
+## [0.41.0] - the car, rewritten after looking at it
+
+The first `simple_car` had the right dimensions and the wrong assembly. A
+0.64 m wheel and a 2.75 m wheelbase are both within a few centimetres of a
+real sedan; rendered, it read as a toy pickup. Nothing here changes a
+dimension.
+
+### Fixed
+- **The body was one unbroken slab**, full width from 0.27 to 0.94 m. It is now
+  a rocker, a body and a shoulder. The rocker is narrow and low; the body is
+  the widest point; the shoulder tapers in to meet the greenhouse. The bands
+  overlap rather than butt, because an overlap is one solid after
+  `shade_by_angle` and a butt joint is a seam that catches light along its
+  whole length.
+- **The cabin sat on the body with a 12.3 cm step per side.** The shoulder now
+  tapers to 0.93 of the width and the cabin starts at 0.90, so the step is
+  **2.6 cm** and reads as a beltline instead of a box balanced on a plank.
+- **The greenhouse is tapered**, 0.90 of the width at the beltline to 0.88 at
+  the roof, using the new `geometry.taper_z`. Stacking two boxes would leave a
+  90-degree step that `shade_by_angle` correctly keeps sharp -- so it would
+  read as two boxes.
+- **Wheels sat 4 cm inboard of the widest point with no arch.** They are now
+  tucked 11 cm under an overhanging shoulder. **That IS the wheel arch**: there
+  is no boolean and none is needed. A wheel under an overhang reads as arched;
+  a wheel flush with the side does not, whatever else is true about it.
+- **The cabin was centred**, so hood and deck were the same length and every
+  body style read as a cab-over truck. `CABIN` now shifts it rearward:
+  **hood 1.38 m against a 0.77 m deck** on the default sedan.
+- **Glazing stood proud of the cabin faces**, which reads as a sticker. It is
+  now inset 1.5 cm and the side glass is shortened to leave pillars.
+
+### Added
+- **`geometry.taper_z(verts, top_scale, bottom_scale=1.0)`** -- scale X and Y
+  by height, giving a frustum from any primitive in one call. Manufactured
+  things are rarely prisms: a greenhouse narrows to the roof, a bin tapers so
+  it stacks, a dumpster's sides lean so the lid clears. Operates on the verts
+  `add_box` / `add_cylinder` return, matching `jitter_verts` and
+  `flatten_base`. A flat vert set is left alone rather than divided by zero.
+
+### Changed
+- Material assignment matches on a name PREFIX rather than hunting for
+  `"Body" in name`. The body is four objects now, and a substring match would
+  have quietly handed the rocker and the shoulder to the rubber material.
+- Collision is still two boxes -- body shell and cabin -- so the gameplay
+  volume a car brings is unchanged in kind, and now matches the art it is
+  under rather than a slab that was wider than the silhouette.
+
+### Notes
+- Triangle cost is a few hundred against a 12,000 budget. Three extra boxes.
+- **This is a silhouette and assembly pass, not a detail pass.** No wheel
+  arch cut, no door lines, no lights, no mirrors. Those are the next tier, and
+  the honest place for most of them is texture rather than geometry.
+- Everything above is judged from renders of the previous build. There is no
+  `_skins` pack in this tree, so the car has still never been seen with a
+  Pixelcoat texture on it.
+
+## [0.40.0] - Zoo shades its geometry
+
+Every mesh Zoo has ever built was flat-shaded. `bm_to_object` ran bevel ->
+recalc normals -> UV -> wear and stopped; there is no `shade_smooth`, no
+auto-smooth and no weighted-normal step anywhere in `bpylayer`. So a
+14-segment water tank read as a dodecagon and every bevel bought geometry
+without buying shading, which is most of what a bevel is for.
+
+### Added
+- **`geometry.shade_by_angle(bm, angle_deg=SMOOTH_ANGLE_DEG)`** -- smooth
+  shading with hard creases, decided per edge from the geometry: smooth every
+  face, then mark an edge sharp when its two faces disagree by more than the
+  threshold. Called from `bm_to_object` after `recalc_face_normals` (it reads
+  face normals) and before the UV projection (which does not care).
+
+- **`SMOOTH_ANGLE_DEG = 50.0`, and the number is arithmetic rather than
+  taste.** `bevel_edges` runs `segments=1`, so a chamfer on a 90-degree corner
+  meets each neighbour at exactly 45 degrees. The usual hard-surface default
+  of 30 would have marked every chamfer sharp and this whole change would have
+  done nothing. 50 sits above 45 and well below 90, so:
+
+      fold                                smooth?
+      coplanar                    0 deg   yes
+      24-segment wheel side      15 deg   yes
+      14-segment cylinder      25.7 deg   yes
+      10-segment cylinder        36 deg   yes
+      1-segment chamfer          45 deg   yes
+      just over threshold        51 deg   no
+      box corner                 90 deg   no
+      boundary edge (1 face)         --   no
+
+  Every one of those was checked against the function before it shipped.
+
+### Why this is safe to apply to all 57 species at once
+- **Triangle count is unchanged.** Nothing here adds a face, so
+  `validate.evaluate`'s `budgets.tris_lod0` check is untouched. The exported
+  VERTEX count usually falls, because smooth shading lets a corner share one
+  normal where flat shading needed three.
+- **Blender 4.1 removed `mesh.use_auto_smooth`** and replaced it with an
+  operator that adds a Smooth-by-Angle modifier. Zoo builds headless,
+  deterministically, with no operators and no modifier stack, so neither was
+  available. Doing it on the bmesh needs neither and bakes into the export.
+- A boundary or non-manifold edge is left hard. There is no second face to
+  average with, and smoothing against a normal that is not there is how you
+  get a seam that looks like a crack.
+
+### Changed
+- `tools/preview_street_solids.ps1` picks up a Pixelcoat pack from
+  `zoo/_skins` when one exists, matching `preview_floor_ceiling.ps1`, and says
+  so when it does not. **There is no `_skins` directory in this tree**, so
+  every preview so far -- dressing included -- has been flat style colour plus
+  baked vertex wear, judging silhouette and shading alone. Worth knowing before
+  judging an asset.
+
+### Not done
+- **Weighted normals.** The modifier weights a corner normal by face area so a
+  narrow bevel strip stops dominating. There is no bmesh equivalent, and adding
+  a modifier stack to a build that has deliberately avoided one is a bigger
+  decision than this. With `segments=1` bevels the overlap with correct
+  sharp-edge marking is large; revisit if bevels ever go multi-segment.
+- **Bevel segments stay at 1.** Two would give a rounder roll-off and roughly
+  double bevel geometry, against budgets that are already checked and were
+  already exceeded once by a pebble.
+
+## [0.39.1] - a preview can name its species, and street solids get a preview
+
+### Added
+- **`tools/preview_street_solids.ps1`** -- the sibling of
+  `preview_dressing.ps1`, for the species that could stand in for a gameplay
+  solid outdoors: `simple_car`, `prop`, `hvac_unit`, `water_tank`,
+  `vending_machine`, `sign_box`, `streetlight`. Builds, renders and measures
+  each one.
+
+  **It asks one question the dressing preview does not need to.** Surface
+  dressing is collisionless by definition; these exist BECAUSE of the volume
+  they occupy. So the script reads the collision back out of every built GLB
+  and prints it beside the shape metrics, using
+  `level_factory/packages/validation/glb_collision.py` -- which walks the
+  container and the node tree and needs neither Blender nor Godot. Zoo ships
+  collision as a `-colonly` sibling mesh (`bpylayer/collision.py`), so this is
+  Zoo's own output read back through an independent implementation rather than
+  trusted from the build log.
+
+### Changed
+- **`tools/preview_specimen.py` accepts `--species`.** `build.build_specimen`
+  has taken a `species=` argument since 0.38.0 -- "the door a program uses" --
+  and this tool was still knocking with a prompt. `core.intent.parse` is blunt
+  about the cost: two species in the library could not be reached through a
+  prompt at all, and a prompt that resolves today does so because no better
+  keyword match exists yet, which is a coincidence rather than a contract. A
+  preview script naming seven species by prompt is seven coincidences waiting
+  on the next species to be added.
+
+  The prompt still rides along for material, colour, wear, size and era, so
+  styling is unchanged. `--prompt` alone behaves exactly as before.
+
+- The build line now prints which way it was asked --
+  `species='simple_car'` or `prompt='weathered sedan'` -- so the console says
+  whether keyword matching was involved.
+
+### Notes
+- A car already ships with collision: `recipes/simple_car.py` returns two
+  `collision_boxes` (body and cabin), not a triangle hull and not a crude
+  bounding box. That is the "art mesh does not introduce unnecessarily complex
+  collision" rule already satisfied, one asset at a time.
+- Nothing here places anything. These are assets and a way to look at them.
+
+## [0.39.0] - a prop's filename now names every axis a prop is free on
+
+The plate bug, one axis further on, found while surveying for the outdoor
+proxy work and measured before it was believed.
+
+### Fixed
+- **`prop` modules collided on filename.** `module_stem` keyed non-plate roles
+  on width alone, justified at the time by an argument about walls: *"a wall
+  varies on one axis -- its width -- while its thickness and the storey height
+  are fixed, so `_w<cm>` is a complete key."* True for a wall. `prop` was added
+  later and `recipes/prop.py` describes it as *"a vault, a teller counter, a
+  desk, a cabinet, a crate stack"* -- free on all three axes. It inherited an
+  argument that was never about it.
+
+  `plan_kit` bucketed correctly (its key carries `dims_key`), so the planner
+  saw two distinct modules and named them the same file. One won; the other
+  was built over it and every slot resolved to the survivor.
+
+  **Measured over 52 of the 136 shipped `slots.json` manifests: 15 buildings
+  (28%) planned two or more distinct prop modules onto one filename, 48 of
+  1,486 modules affected.** Worst case `cr_gas`, where `prop_delco_04_w90` was
+  claimed by both `[0.9, 10.0, 1.8]` and `[0.9, 0.9, 1.0]` -- a 9.1 m
+  difference in depth between a long counter and a small cube.
+  `cbp_town_finale` had one stem claimed by four distinct modules.
+
+- **`VOLUME_ROLES = ("prop",)`** joins `PLATE_ROLES`. Volumes take `_d<cm>` and
+  `_h<cm>`; plates keep `_d<cm>` and gain nothing; walls, doorways and windows
+  are untouched. Verified against the corpus: exactly 84 filenames change
+  across the sampled buildings, and every one has `role == "prop"` -- asserted
+  in the check, not assumed.
+
+### Changed
+- `module_stem` gains a trailing `height_cm` argument. The stem is now
+  `<type>_<theme>_<style>[_w][_d][_h][_v][_o][_state]`.
+- **`deli_counter/themed_tscn.py` changes in the same patch.** Its
+  `module_stem` is a deliberate mirror and its docstring says the two "must be
+  changed together"; neither side parses a stem, both construct it. Checked
+  over every slot in the corpus: **9,185 of 9,185 slots produce identical
+  stems on both sides.**
+
+### Tests
+- `tests/test_volume_stem.py` -- 11 tests, including a pair differing ONLY in
+  height. Every real collision in the sample differed on depth as well, so
+  adding `_d<cm>` alone would have separated all of them and looked complete.
+  The key names every axis rather than the ones that happened to be measured.
+- Mutation-tested: removing the height key, emptying `VOLUME_ROLES`, never
+  computing height, and leaving depth plate-only. All four die.
+
+### Notes
+- **Already-built `prop` GLBs stop resolving and fall back to greybox** until
+  rebuilt. That is the progressive art path working as designed, and it is
+  visible rather than silent -- unlike the defect it replaces.
+- **A SECOND collision is NOT fixed here and is reported separately.** Plates
+  with identical dims and different materials share a filename:
+  `floor_delco_01_w2700_d3200` is claimed by both a `tile` and a `concrete`
+  floor. `dna.resolve_module_plan` reads `module["material"]` as an override,
+  so those build differently. Fixing it renames far more files and is a
+  decision, not a cleanup.
+
 ## [0.38.0] - A species can be asked for by name
 
 The only way to request a species was to describe it in a prompt and hope
