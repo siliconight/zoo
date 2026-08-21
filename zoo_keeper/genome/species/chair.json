@@ -44,7 +44,7 @@
   "default": "wood",
   "options": [
    "wood",
-   "metal",
+   "metal_painted",
    "plastic",
    "leather"
   ]
@@ -101,7 +101,7 @@
    "bevel": 0.003
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.4864,
     0.366,
@@ -112,7 +112,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.3008,
     0.2823,

@@ -27,14 +27,14 @@
  ],
  "params": {},
  "materials": {
-  "default": "metal",
+  "default": "metal_bare",
   "options": [
-   "metal"
+   "metal_bare"
   ]
  },
  "styles": {
   "default": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.83,
     0.66,
@@ -44,7 +44,7 @@
    "bevel": 0.006
   },
   "delco": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.8,
     0.62,
@@ -54,7 +54,7 @@
    "bevel": 0.006
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.836,
     0.689,
@@ -65,7 +65,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.519,
     0.4928,
@@ -76,7 +76,7 @@
    "ambient": 0.1
   },
   "rockay": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.7802,
     0.6534,

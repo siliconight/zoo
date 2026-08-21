@@ -1,4 +1,4 @@
-"""The material-options invariant, and batch 1 of the metal split.
+"""The material-options invariant, and the metal split by batch.
 
 `dna.resolve_plan` and `dna.resolve_module_plan` both do this, silently:
 
@@ -22,7 +22,13 @@ from zoo_keeper.core import skins
 
 SPECIES_DIR = os.path.join(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))), "zoo_keeper", "genome", "species")
-BATCH1 = ("vending_machine", "simple_car", "helmet", "queue_stanchion")
+
+# Batch 1 (0.44.0) and batch 2 (0.45.0). Split painted/bare because METALLIC
+# is a per-kind lookup: paint is a dielectric, bare metal a conductor.
+PAINTED = ("vending_machine", "simple_car", "helmet", "queue_stanchion",
+           "chair", "filing_cabinet", "atm")
+BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door")
+MOVED = PAINTED + BARE
 
 
 def _genomes():
@@ -75,12 +81,11 @@ def test_every_named_kind_is_in_the_vocabulary(g):
                                                         sorted(unknown))
 
 
-@pytest.mark.parametrize("sp", BATCH1)
-def test_batch1_species_are_on_painted_metal(sp):
+@pytest.mark.parametrize("sp", MOVED)
+def test_moved_species_no_longer_offer_raw_metal(sp):
     g = json.load(open(os.path.join(SPECIES_DIR, sp + ".json"),
                        encoding="utf-8"))
     opts = g["materials"]["options"]
-    assert "metal_painted" in opts, "%s did not gain metal_painted" % sp
     assert "metal" not in opts, (
         "%s still offers raw `metal`; a prompt naming it would resolve the "
         "theme-owned pack and ignore the genome colour" % sp)
@@ -89,11 +94,50 @@ def test_batch1_species_are_on_painted_metal(sp):
             "%s style %r was left on raw metal" % (sp, name)
 
 
-def test_batch1_is_the_only_thing_that_moved():
-    """The other 49 genomes must still be on plain `metal`. When batch 2 lands
-    this list changes deliberately, not by surprise."""
+@pytest.mark.parametrize("sp", PAINTED)
+def test_painted_species_are_on_metal_painted(sp):
+    g = json.load(open(os.path.join(SPECIES_DIR, sp + ".json"),
+                       encoding="utf-8"))
+    assert "metal_painted" in g["materials"]["options"], sp
+
+
+@pytest.mark.parametrize("sp", BARE)
+def test_bare_species_are_on_metal_bare(sp):
+    g = json.load(open(os.path.join(SPECIES_DIR, sp + ".json"),
+                       encoding="utf-8"))
+    assert "metal_bare" in g["materials"]["options"], sp
+
+
+def test_nothing_else_moved():
+    """The remaining 41 genomes stay on plain `metal`. When batch 3 lands this
+    list changes deliberately, not by surprise."""
     moved = [g["species"] for g in _genomes()
-             if "metal_painted" in g["materials"].get("options", [])]
-    assert sorted(moved) == sorted(BATCH1), (
-        "species on metal_painted: %s\nexpected exactly batch 1: %s"
-        % (sorted(moved), sorted(BATCH1)))
+             if {"metal_painted", "metal_bare"} & set(
+                 g["materials"].get("options", []))]
+    assert sorted(moved) == sorted(MOVED), (
+        "on a split kind: %s\nexpected: %s" % (sorted(moved), sorted(MOVED)))
+
+
+def test_no_species_is_both_painted_and_bare():
+    """One object, one metal. A species offering both would let a prompt pick
+    the conductor value for a painted surface."""
+    for g in _genomes():
+        opts = set(g["materials"].get("options", []))
+        assert not ({"metal_painted", "metal_bare"} <= opts), \
+            "%s offers BOTH metal_painted and metal_bare" % g["species"]
+
+
+RECIPE_DIR = os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "zoo_keeper", "recipes")
+
+
+@pytest.mark.parametrize("sp", ("flat_top_grill", "vault_door"))
+def test_recipes_no_longer_hardcode_the_kind(sp):
+    """THE DEFECT THAT MADE A GENOME EDIT INERT. flat_top_grill passed the
+    literal "metal" to all three of its make_material calls, so editing its
+    genome changed nothing at all -- silently. vault_door hard-coded only its
+    hub, which would have split one door across two kinds."""
+    src = open(os.path.join(RECIPE_DIR, sp + ".py"), encoding="utf-8").read()
+    assert '"metal")' not in src, (
+        "%s.py still passes the literal \"metal\" to make_material; its "
+        "genome would be ignored" % sp)

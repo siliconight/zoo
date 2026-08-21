@@ -78,11 +78,16 @@ def build(plan, streams, collection):
                                   leg_h / 2), (0.05, 0.05, leg_h))
             part(bm, f"Grill_Leg_{i}")
 
-    steel = materials.make_material("M_Grill_steel", plan["color"], "metal")
+    # plan["material"], not the literal "metal". These three were hard-coded,
+    # which made this species' genome INERT: editing materials.default or a
+    # style's material changed nothing at all, silently. A grill is stainless,
+    # so its genome now says metal_bare and these follow it.
+    kind = plan["material"]
+    steel = materials.make_material("M_Grill_steel", plan["color"], kind)
     top = materials.make_material("M_Grill_cooktop",
-                                  _darker(plan["color"], 0.4), "metal")
+                                  _darker(plan["color"], 0.4), kind)
     dark = materials.make_material("M_Grill_trim",
-                                   _darker(plan["color"], 0.6), "metal")
+                                   _darker(plan["color"], 0.6), kind)
     for o in objs:
         if "Cooktop" in o.name or "GreaseTrap" in o.name:
             materials.assign([o], top)

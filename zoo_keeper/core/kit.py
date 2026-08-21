@@ -345,8 +345,48 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     f"no '{m['species']}' species in the genome library — "
                     f"the building cannot be fully dressed until it exists")))
         modules = buildable
+    # STEM COLLISION -- two modules, one filename.
+    #
+    # The bucket key above carries slot_material; `module_stem` does not. So
+    # two buckets can be two DISTINCT modules with ONE stem: they build
+    # differently (dna.resolve_module_plan reads module["material"] as an
+    # override) and one overwrites the other on disk. Deli Counter's resolver
+    # then hands both zones whichever file won.
+    #
+    # Measured 2026-08-21 over 280 manifests: 19 stems across 17 buildings,
+    # every one floor or ceiling.
+    #
+    # THE ROOT CAUSE IS UPSTREAM AND THIS DOES NOT FIX IT. `carpet`, `tile`
+    # and `ceiling_tile` are absent from every spec's `materials` list, so
+    # Deli Counter's skin_style.style_for falls through to `default_material`
+    # and hands all of them one style -- 410 of 574 (building, plate material)
+    # pairs are style 1. Identical style means identical Pixelcoat pack AND
+    # identical stem. Adding material to the stem would separate the
+    # filenames and leave carpet still wearing concrete's skin.
+    #
+    # What this does is stop the collision being SILENT. It was producing two
+    # buckets and one name and saying nothing at all.
+    by_stem: dict = {}
+    for _m in modules:
+        by_stem.setdefault(_m["stem"], []).append(_m)
+    stem_collisions = [
+        {"stem": _s,
+         "type": _g[0]["type"],
+         "materials": sorted({str(_x.get("material")) for _x in _g}),
+         "styles": sorted({_x.get("style") for _x in _g}),
+         "dims": [_x.get("dims") for _x in _g],
+         "count": len(_g)}
+        for _s, _g in sorted(by_stem.items()) if len(_g) > 1
+    ]
+    for _c in stem_collisions:
+        print("[zoo] STEM COLLISION %s: %d modules share this filename, "
+              "materials=%s style=%s -- one will overwrite the other"
+              % (_c["stem"], _c["count"], ",".join(_c["materials"]),
+                 ",".join(str(_v) for _v in _c["styles"])))
+
     return {
         "building_id": manifest.get("building_id"),
+        "stem_collisions": stem_collisions,
         "theme": theme,
         "style": style,
         "state": state,

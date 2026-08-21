@@ -76,8 +76,12 @@ def build(plan, streams, collection):
     body_mat = materials.make_material(
         f"M_VaultDoor_{plan['material']}", plan["color"], plan["material"])
     materials.assign(objs[:-1], body_mat)
+    # plan["material"], not the literal "metal": the body above already reads
+    # the genome, and a hard-coded hub would leave one door split across two
+    # material kinds the moment the genome moved off `metal`.
     hub_mat = materials.make_material(
-        "M_VaultDoor_hub", [c * 0.75 for c in plan["color"]], "metal")
+        "M_VaultDoor_hub", [c * 0.75 for c in plan["color"]],
+        plan["material"])
     materials.assign([objs[-1]], hub_mat)
 
     return {"objects": objs, "collision_boxes": cboxes, "attachments": {}}

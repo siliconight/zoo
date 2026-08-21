@@ -1,5 +1,89 @@
 # Changelog
 
+## [0.46.0] - two modules with one filename now say so
+
+`plan_kit` builds its bucket key from (type, width, state, species, glaze,
+style, MATERIAL, dims, voids, openings). `module_stem` builds the filename
+from everything in that list EXCEPT material. So two buckets can be two
+distinct modules with one stem: they build differently, because
+`dna.resolve_module_plan` reads `module["material"]` as an override, and one
+overwrites the other on disk.
+
+Measured over 280 manifests: 19 stems across 17 buildings, every one floor or
+ceiling.
+
+### Added
+- `plan_kit` returns `stem_collisions` and prints one line per collision.
+
+### THIS DOES NOT FIX THE COLLISION, and adding material to the stem would have been the wrong fix
+Six hypotheses were tested before this landed. The root cause is upstream in
+Deli Counter: `carpet`, `tile` and `ceiling_tile` are absent from every
+spec's `materials` list, so `skin_style.style_for` falls through to
+`default_material` and hands all of them one style. 410 of 574
+(building, plate material) pairs resolve to style 1.
+
+Style is what selects the Pixelcoat pack AND what goes in the filename. So
+`_m<material>` in the stem would have separated 1,677 filenames while leaving
+a carpet floor still wearing concrete's skin -- fixing the visible 3% and
+entrenching the other 97%. What was wrong was never the naming law.
+
+Ruled out along the way, each by reading rather than reasoning: manifests
+predating per-slot style (all 1,677 plate slots carry one); `skin_style`
+never written (it exists); `style_for` never called (floors.py:231, :240,
+roofs.py:81); the wiring being incomplete (it is complete).
+
+## [0.45.0] - batch 2: the rest of the coloured metal, and two inert genomes
+
+Eight species off raw `metal`. Three take paint, five take bare metal --
+which is NOT the 7/1 split the batch-1 notes predicted, because that grouping
+ranked by chroma rather than by what the material is.
+
+    metal_painted   filing_cabinet  putty/beige office steel   chroma 0.150
+                    chair           warm brown frame                  0.216
+                    atm             dark cool housing                 0.104
+
+    metal_bare      gold_bar        gold                              0.610
+                    water_tank      warm brown -- that is RUST        0.120
+                    flat_top_grill  bright cool -- stainless          0.111
+                    shelving        cool grey-blue steel              0.106
+                    vault_door      cool steel                        0.100
+
+The hue decides it, not the magnitude. `flat_top_grill` at
+[0.677, 0.723, 0.787] is the blue cast of stainless, not a colour anyone
+chose; `filing_cabinet` at [0.450, 0.420, 0.300] is unmistakably paint; and
+`water_tank`'s warm brown is weathering, so painting it would have been
+wrong in a way no test would catch.
+
+### Fixed -- two genomes that were INERT
+- **`flat_top_grill.py` passed the literal `"metal"` to all three of its
+  `make_material` calls.** Its genome's `materials.default`, `options` and
+  every style's `material` were read by nothing. Editing that genome changed
+  NOTHING, silently, and would have looked like the split failing.
+- **`vault_door.py` hard-coded only its hub.** The body read `plan["material"]`
+  already, so the moment the genome moved off `metal` the door would have
+  rendered across two material kinds.
+
+Both now pass `plan["material"]`, and
+`test_recipes_no_longer_hardcode_the_kind` asserts the literal is gone.
+
+### Corrected
+The batch-1 notes recorded `shelving.json` as the one genome that is not
+byte-exact `json.dumps(indent=1)` round-trippable, needing an anchored edit.
+That was wrong. It carries an em dash in `notes`, and the CHECK used the
+default `ensure_ascii=True`, which escapes it to `\u2014`. With
+`ensure_ascii=False` all 53 genomes round-trip and every edit here is
+structural.
+
+### Changed
+- `tests/test_material_options_closed.py` now tracks PAINTED and BARE sets
+  rather than a single batch list, asserts no species offers both (one
+  object, one metal), and keeps the all-53 sweep of the options invariant.
+
+### Still on plain `metal`
+30 species, every one of them measured at chroma < 0.10 -- already near-grey,
+so the theme-owned kind is the right answer. Ten are architecture and must
+keep it.
+
 ## [0.44.0] - batch 1: the four painted-metal species
 
 The first four species whose metal is unambiguously paint, taken from the

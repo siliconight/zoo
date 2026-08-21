@@ -38,15 +38,15 @@
   }
  },
  "materials": {
-  "default": "metal",
+  "default": "metal_painted",
   "options": [
-   "metal",
+   "metal_painted",
    "plastic"
   ]
  },
  "styles": {
   "default": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.3,
     0.32,
@@ -56,7 +56,7 @@
    "bevel": 0.005
   },
   "1990s": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.34,
     0.34,
@@ -66,7 +66,7 @@
    "bevel": 0.005
   },
   "bodega": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.2,
     0.22,
@@ -76,7 +76,7 @@
    "bevel": 0.005
   },
   "modern": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.14,
     0.15,
@@ -86,7 +86,7 @@
    "bevel": 0.003
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.376,
     0.404,
@@ -97,7 +97,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.3377,
     0.3179,
@@ -108,7 +108,7 @@
    "ambient": 0.1
   },
   "rockay": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.282,
     0.3168,

@@ -38,14 +38,14 @@
   }
  },
  "materials": {
-  "default": "metal",
+  "default": "metal_bare",
   "options": [
-   "metal"
+   "metal_bare"
   ]
  },
  "styles": {
   "default": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.72,
     0.73,
@@ -55,7 +55,7 @@
    "bevel": 0.004
   },
   "1990s": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.68,
     0.69,
@@ -65,7 +65,7 @@
    "bevel": 0.004
   },
   "greasy": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.55,
     0.55,
@@ -75,7 +75,7 @@
    "bevel": 0.004
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.7624,
     0.7935,
@@ -86,7 +86,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.6833,
     0.6513,
@@ -97,7 +97,7 @@
    "ambient": 0.1
   },
   "rockay": {
-   "material": "metal",
+   "material": "metal_bare",
    "color": [
     0.6768,
     0.7227,
