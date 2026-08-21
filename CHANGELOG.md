@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.47.0] - 2026-08-21
+
+### Added
+- `tests/test_recipe_reads_its_genome.py` sweeps every recipe module and fails
+  when one builds materials but never reads a `material` key -- the defect that
+  made `flat_top_grill`'s genome inert. `cheesesteak` is exempt with a written
+  reason, and the test also fails if an exempt recipe starts reading its genome,
+  so the exemption cannot go stale unnoticed.
+
+### Corrected
+- The 0.45.0 entry states that with `ensure_ascii=False` all 53 genomes
+  round-trip. That is wrong. 49 of 53 do; `litter_scrap`, `pebble`,
+  `rubble_frag` and `weed_tuft` do not. The selftest that measured it was
+  written after that entry was published. The 0.45.0 text is left standing and
+  corrected here, matching how the batch-1 note was corrected in 0.45.0 itself.
+
+### Notes
+- Measured, not assumed: 53 recipe modules, 79 `make_material` calls. Exactly
+  one recipe (`cheesesteak`) never consults its genome. Every inert genome
+  offers a single option, so nothing renders wrong today; the exposure is that
+  a second option would be ignored in silence.
+- An earlier pass flagged 7 literals as shadowing their genome. 6 were false
+  positives: the body already passed `plan["material"]` and the literal was a
+  sub-part with its own fixed colour -- a bottle cap, a safe's trim, the paper
+  boat under the fries. Replacing those would have tinted the boat with the fry
+  colour. Sub-part literals are correct and this test says nothing about them.
+- Ten material kinds became resolvable this release via pixelcoat 0.16.0: canvas,
+  carbon, dirt, gravel, laminate, leather, paper, rubber, tar, vegetation. All
+  ten resolve through `skins.find_pack` in all five built themes.
+
 ## [0.46.0] - two modules with one filename now say so
 
 `plan_kit` builds its bucket key from (type, width, state, species, glaze,
