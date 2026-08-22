@@ -499,22 +499,17 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
         m = trans @ rot
         for obj in new_objs:
             obj.matrix_world = m @ obj.matrix_world
-
-        # Emitter marker (v0.30): an empty at the EMITTER point — the anchor
-        # pos itself, NOT the lifted hardware centre — named by the LuxEmit
-        # contract, payload in custom props (exported as glTF extras; Godot
-        # imports them as node metadata). Lux spawns the lamp here.
-        mk = bpy.data.objects.new(fixtures_mod.marker_name(p), None)
-        mk.empty_display_type = "PLAIN_AXES"
-        mk.empty_display_size = 0.15
-        mk["lux_type"] = p["type"]
-        mk["lux_anchor_id"] = p["anchor_id"]
-        mk["lux_slot"] = p["slot"]
-        mk["lux_reacts_to_alarm"] = p["reacts_to_alarm"]
-        coll.objects.link(mk)
-        mk.matrix_world = mathutils.Matrix.Translation(
-            mathutils.Vector(p["pos"])) @ rot
         built += 1
+        # No LuxEmit marker here, deliberately. A v0.30 copy of
+        # build_fixtures' marker block sat in this loop and could never
+        # have run: `fixtures_mod` was not imported in this function
+        # (NameError at the first placement — measured, not inferred),
+        # and roofprops placements carry none of the keys it reads
+        # (type / anchor_id / slot / reacts_to_alarm). Both facts say the
+        # same thing: an HVAC unit or a water tank is hardware that emits
+        # no light, so it has no emitter point for Lux to spawn a lamp
+        # at. Light-emitting roof hardware belongs in the lights.json ->
+        # build_fixtures path, which owns the marker contract.
 
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, f"{building_id}_roofprops")

@@ -112,7 +112,10 @@ grey boxes — missing modules keep the box, so the art pass stays progressive.
 agree on are handled as replicable state machines — see
 [`INTERACTIVES.md`](INTERACTIVES.md). A slot's `interactive` block expands into
 per-state art variants (`wall_delco_01_w200` + `_breached`), so a breachable
-wall is the *breached state of a wall slot*, not a separate module. The state
+wall is the *breached state of a wall slot*, not a separate module. A
+breakable window works the same way: `window_broken` is the `broken`
+state of a window slot, and `glass_shard` builds the cosmetic debris the
+game flings when it breaks. The state
 machine + replication live in `gameplay.json` / the game, network-solution
 agnostic; Zoo only builds the art each state points at.
 
@@ -268,7 +271,7 @@ lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
 
 **Props (31):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`, `security_camera`, `queue_stanchion`, `drop_safe`, `gold_bar`, `hvac_unit`, `water_tank`, `vent_stack`, `exhaust_fan`, `skylight`, `satellite_dish`, `fluorescent_fixture`, `streetlight`, `sign_box`, `wall_pack`
 
-**Architectural modules (8):** `wall`, `wallEnd`, `doorway`, `window`, `breach`, `vault_door`, `teller_line`, `safe_deposit_boxes` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
+**Architectural modules (9):** `wall`, `wallEnd`, `doorway`, `window`, `window_broken`, `breach`, `vault_door`, `teller_line`, `safe_deposit_boxes` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
 
 ## Install (Blender 4.2+ / 5.x)
 

@@ -1,0 +1,114 @@
+{
+ "species": "glass_shard",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Cosmetic glass debris: flat angular fragments fractured from thin plates, ONE OBJECT PER SHARD so a game can fling each piece separately -- the art leg of the replicated-destructible pattern, where shards are local cosmetics and never networked state. Scattered footprint reads as fallen glass under a broken pane. Collisionless by construction, like the other dressing debris: a sliver of glass must never block a route or a beam. TRANSPARENCY: rides the glass kind's Pixelcoat pack hint; the flat fallback is opaque vertex color, matching the window pane's own fallback."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "glass shard",
+  "glass shards",
+  "shattered glass",
+  "broken glass",
+  "glass debris"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 0.15,
+   "max": 1.6,
+   "default": 0.7
+  },
+  "depth": {
+   "min": 0.15,
+   "max": 1.6,
+   "default": 0.7
+  },
+  "height": {
+   "min": 0.004,
+   "max": 0.05,
+   "default": 0.012
+  }
+ },
+ "parts": [
+  "GlassShard"
+ ],
+ "params": {
+  "shards": {
+   "min": 3,
+   "max": 24,
+   "default": 9
+  },
+  "cuts": 3,
+  "spread": 0.55
+ },
+ "materials": {
+  "default": "glass",
+  "options": [
+   "glass",
+   "glass_facade"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 700
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "glass",
+   "color": [
+    0.55,
+    0.66,
+    0.72
+   ],
+   "wear": 0.1,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "glass",
+   "color": [
+    0.55,
+    0.66,
+    0.72
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "glass",
+   "color": [
+    0.58,
+    0.66,
+    0.74
+   ],
+   "wear": 0.12,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "glass",
+   "color": [
+    0.52,
+    0.6,
+    0.63
+   ],
+   "wear": 0.3,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "glass",
+   "color": [
+    0.55,
+    0.66,
+    0.72
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}

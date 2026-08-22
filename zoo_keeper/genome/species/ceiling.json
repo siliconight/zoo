@@ -3,7 +3,7 @@
  "version": 1,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Architectural module: a flat center-pivot ceiling/soffit slab built to a Deli Counter ceiling slot's exact dims (wide/deep, thin). Same solid-slab construction as roof/floor."
+  "notes": "Original procedural construction. Architectural module: a flat center-pivot ceiling/soffit slab built to a Deli Counter ceiling slot's exact dims (wide/deep, thin). Same solid-slab construction as roof/floor. COLLISION: false, and this is a statement of fact rather than a choice -- the plate recipe deliberately emits no collision boxes (Deli Counter's holed trimesh slab underneath stays authoritative, which is what keeps stairwells open), so a genome saying true was a mirror the validator believed: every floor/ceiling module in every kit build failed its collision check, 28 per building measured on cr_deli. A roof is the plate that DOES collide and keeps true."
  },
  "dimensions": {
   "width": {
@@ -96,7 +96,7 @@
   "tris_lod0": 400
  },
  "attachments": [],
- "collision": true,
+ "collision": false,
  "match_priority": -1,
  "keywords": [
   "ceiling",

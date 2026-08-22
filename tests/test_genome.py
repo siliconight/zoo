@@ -16,6 +16,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
+                # the broken STATE of a window slot (INTERACTIVES.md
+                # state_geometry), as breach is to a breachable wall
+                "window_broken",
                 "teller_line", "safe_deposit_boxes", "dress_cover", "roof",
                 # Phase 1 structural set (vertical-slice visual gate)
                 "wallCorner", "stair_rail", "ladder", "shelving", "counter",
@@ -37,7 +40,10 @@ ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
 # these are neither individually-modelled props with their own silhouettes nor
 # Deli Counter slot-driven modules. Nothing places them by slot and nothing
 # places them by name; they are scattered, and the scatter is the unit.
-DRESSING_SPECIES = {"pebble", "rubble_frag", "weed_tuft", "litter_scrap"}
+DRESSING_SPECIES = {"pebble", "rubble_frag", "weed_tuft", "litter_scrap",
+                    # cosmetic glass debris (one object per shard, so the
+                    # game can fling the pieces of a broken pane)
+                    "glass_shard"}
 
 
 def test_all_species_load_and_validate():

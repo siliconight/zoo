@@ -1,0 +1,132 @@
+{
+ "species": "window_broken",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. Architectural module: the broken STATE of a window slot (see INTERACTIVES.md). Same center-pivot slab, jambs, sill and header as window at the same dims -- the frame the players learned stays where it was -- with the pane gone and clean remnant glass strips left in the frame. A jagged/shattered remnant look is a later art pass, exactly as breach ships the clean cutout. Built as state art for state_geometry {broken: window_broken}; the resolver's naming law suffixes the window stem with _broken and falls back to the intact window until this is built."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.4,
+   "max": 4.0,
+   "default": 1.3
+  },
+  "depth": {
+   "min": 0.05,
+   "max": 0.6,
+   "default": 0.3
+  },
+  "height": {
+   "min": 0.5,
+   "max": 3.0,
+   "default": 1.5
+  }
+ },
+ "parts": [
+  "WindowBroken_Jamb_L",
+  "WindowBroken_Jamb_R",
+  "WindowBroken_Sill",
+  "WindowBroken_Header",
+  "WindowBroken_Remnant"
+ ],
+ "params": {
+  "jamb": {
+   "min": 0.02,
+   "max": 0.4,
+   "default": 0.12
+  },
+  "sill": {
+   "min": 0.05,
+   "max": 0.7,
+   "default": 0.35
+  },
+  "head": {
+   "min": 0.05,
+   "max": 0.7,
+   "default": 0.2
+  },
+  "remnant_rise": 0.14,
+  "remnant_hang": 0.09
+ },
+ "materials": {
+  "default": "concrete",
+  "options": [
+   "concrete",
+   "plaster",
+   "metal"
+  ]
+ },
+ "glass_color": [
+  0.55,
+  0.66,
+  0.72
+ ],
+ "styles": {
+  "default": {
+   "material": "concrete",
+   "color": [
+    0.56,
+    0.55,
+    0.53
+   ],
+   "wear": 0.15,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "concrete",
+   "color": [
+    0.5,
+    0.49,
+    0.46
+   ],
+   "wear": 0.35,
+   "bevel": 0.003,
+   "ambient": 0.35
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.56,
+    0.5655,
+    0.58
+   ],
+   "wear": 0.122,
+   "bevel": 0.003,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.4708,
+    0.4463,
+    0.4367
+   ],
+   "wear": 0.57,
+   "bevel": 0.003,
+   "ambient": 0.45
+  },
+  "rockay": {
+   "material": "concrete",
+   "color": [
+    0.5264,
+    0.5445,
+    0.5565
+   ],
+   "wear": 0.29,
+   "bevel": 0.003,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1000
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": -1,
+ "keywords": [
+  "broken window",
+  "window broken",
+  "shattered window",
+  "smashed window"
+ ]
+}

@@ -1,5 +1,66 @@
 # Changelog
 
+## [0.48.0] - 2026-08-22
+
+### Added
+- `glass_shard`: cosmetic glass debris for the breakable-glass destructible
+  pattern -- flat angular fragments cut by `geometry.fracture` from plates at
+  pane thickness, ONE OBJECT PER SHARD. Litter and rubble merge their chunks
+  into a single mesh; a game that flings debris needs each piece addressable
+  (the lasertag addon wraps every shard mesh in its own rigid body and gives
+  it a seeded impulse). Kind `glass`, so the SAME Pixelcoat pack that skins a
+  window module's pane lands on every shard at uniform world density; the
+  genome tints match `window.glass_color`, so the flat fallback matches too.
+  Collisionless by construction, like the rest of the dressing debris.
+- `window_broken`: the broken STATE of a window slot per INTERACTIVES.md --
+  same slab, jambs, sill and header at the same dims (the void is
+  `arch.void_for`'s answer for `window`, deliberately, so the hole cannot
+  move between states), the pane replaced by clean remnant strips in the
+  frame. Declared on a slot as `state_geometry {"intact": "window",
+  "broken": "window_broken"}` and built as
+  `window_<theme>_<style>_w<cm>_broken.glb`; the resolver falls back to the
+  intact window until the variant is built. Clean strips on purpose: breach
+  ships the clean cutout, and the jagged shatter edge is the same later art
+  pass.
+- `tests/test_glass_debris.py`: the prompt door, kit expansion (mirroring
+  the breachable-wall tests slot for slot), the module plan at exact slot
+  dims, and the shard/pane kind + tint agreement.
+
+### Fixed
+- `floor` and `ceiling` genomes no longer claim `collision: true`. The plate
+  recipe deliberately emits no collision boxes (Deli Counter's holed trimesh
+  slab underneath stays authoritative -- the stairwell rule), so the claim
+  was a mirror the validator believed: `build_module` reads its collision
+  expectation from the genome, and every floor/ceiling module in every kit
+  build has FAILED its collision check since plates stopped emitting.
+  Measured on cr_deli: 28 of 70 modules failed, exactly the building's 14
+  floor + 14 ceiling plates, every one of whose slots declares
+  `collision: "none"`; after the genome edit the same build is 0 failed,
+  with plates at WARN on the pre-existing thin-height advisory. `roof` is
+  the plate that DOES collide and keeps `collision: true`.
+- `build_roof_props` crashed with NameError at its first placement: a v0.30
+  copy of build_fixtures' LuxEmit marker block referenced `fixtures_mod`
+  without importing it, and roofprops placements carry none of the keys the
+  block reads (type / anchor_id / slot / reacts_to_alarm). The block is
+  REMOVED rather than repaired: an HVAC unit or a water tank is hardware
+  that emits no light, so there is no emitter point for Lux here -- that
+  contract lives on the lights.json -> build_fixtures path, which keeps it.
+  Reproduced before the fix (NameError, build.py:507, first placement) and
+  rebuilt after it (18 props on a 20x15 test roof). Because the block could
+  never have completed one placement, no shipped GLB ever contained these
+  markers and no output changes.
+
+### Notes
+- The species rosters in `tests/test_genome.py` grew deliberately:
+  `glass_shard` joins DRESSING_SPECIES, `window_broken` joins ARCH_SPECIES.
+- `window_broken` carries the keyword "window broken" so the species' own
+  name resolves through the prompt door; the prompt-unreachable set stays
+  exactly {wallCorner, wallEnd}.
+- Consumed by lasertag's `LT_Destructible` (`debris_scenes` + the `_broken`
+  state visual): the game owns the state machine and its replication; these
+  species own only what a break looks like, per the ownership table in
+  INTERACTIVES.md. Zoo stays offline and deterministic.
+
 ## [0.47.0] - 2026-08-21
 
 ### Added
