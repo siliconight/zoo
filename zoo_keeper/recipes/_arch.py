@@ -44,7 +44,15 @@ def build_slab(plan, streams, collection, species):
         # got blocked.
         void = None
         slab = arch.plate_parts(w, d, h, params.get("voids"))
-        visual = slab
+        # ...and the VISUAL is the same plate cut to light-budget-sized tiles
+        # (roadmap 54). Godot budgets positional lights PER MESH (engine
+        # default 8), and each part here becomes its own object, so a 52 m
+        # roof panel was one budget for a whole building -- the reason
+        # level_factory has to ship a per-object light cap at all. Tiling is
+        # visual-only: collision below is built from `slab`, exactly the
+        # split the wall path already makes between structure and relief.
+        visual = arch.tile_parts(
+            slab, float(params.get("plate_tile", arch.PLATE_TILE)))
     else:
         void = arch.void_for(species, w, h, params)
         slab = arch.slab_parts(w, d, h, void)

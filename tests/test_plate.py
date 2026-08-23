@@ -245,7 +245,110 @@ def test_two_roofs_with_different_hatches_get_different_filenames():
     assert all("_v" in s for s in stems), stems
 
 
-def test_the_bank_branch_ladder_reaches_the_roof(): 
+# --------------------------------------------------------------------------- #
+# THE PLATE IS CUT TO LIGHT-BUDGET TILES (2026-08-23, roadmap 54)
+#
+# Godot's GL Compatibility renderer lights at most `max_lights_per_object`
+# positional lights per MESH (engine default 8). Every part build_slab emits
+# is its own object, so a 52 x 32 m roof panel was ONE light budget for a
+# whole building: 111 meshes over 8 across lot_demo_001's five buildings,
+# worst at 36 lights, and level_factory ships a per-object cap purely to
+# paper over it. arch.tile_parts cuts the plate VISUAL into <=PLATE_TILE
+# pieces; collision keeps coming from the untiled plate_parts list.
+# --------------------------------------------------------------------------- #
+
+def _tiles(w, d, voids=None, tile=arch.PLATE_TILE):
+    return arch.tile_parts(arch.plate_parts(w, d, 0.3, voids), tile)
+
+
+def test_no_tile_exceeds_the_budget_edge():
+    # + 1 mm: interior cut lines snap to whole millimetres so the 6-decimal
+    # center/size rounding is lossless; a cell can be up to half a millimetre
+    # wider than the equal division.
+    for _n, _c, s in _tiles(52.0, 32.0):
+        assert s[0] <= arch.PLATE_TILE + 1e-3
+        assert s[1] <= arch.PLATE_TILE + 1e-3
+
+
+def _round_bbox(bb):
+    return tuple(tuple(round(v, 6) for v in corner) for corner in bb)
+
+
+def test_tiling_conserves_area_and_the_outer_bbox():
+    parts = arch.plate_parts(52.0, 32.0, 0.3, None)
+    tiles = arch.tile_parts(parts)
+    assert round(_area(tiles), 6) == round(_area(parts), 6)
+    assert _round_bbox(arch.parts_bbox(tiles)) == \
+        _round_bbox(arch.parts_bbox(parts))
+
+
+def test_a_small_plate_passes_through_byte_identical():
+    """Every plate already inside the tile must not change AT ALL -- name,
+    center, size. 'It tiled the big roof' cannot tell you it did not also
+    renumber every 4 m closet ceiling in the library."""
+    parts = arch.plate_parts(4.0, 4.0, 0.02, None)
+    assert arch.tile_parts(parts) == parts
+    holed = arch.plate_parts(7.5, 6.0, 0.02,
+                             [{"x0": -1, "y0": -1, "x1": 1, "y1": 1}])
+    assert arch.tile_parts(holed) == holed
+
+
+def test_an_exactly_tile_sized_plate_is_one_tile():
+    parts = arch.plate_parts(arch.PLATE_TILE, arch.PLATE_TILE, 0.3, None)
+    assert arch.tile_parts(parts) == parts
+
+
+def test_no_sliver_tiles():
+    """Equal division, not fixed strides: an 8.05 m plate is two ~4 m tiles,
+    never an 8 m tile plus a 5 cm strip. Item 41 is the counter-pressure --
+    fragmentation is the failure this must not trade into."""
+    for _n, _c, s in _tiles(8.05, 3.0):
+        assert s[0] > 1.0
+    assert len(_tiles(8.05, 3.0)) == 2
+
+
+def test_tiles_still_leave_the_stairwell_open():
+    void = {"x0": 15.45, "y0": 10.9, "x1": 16.55, "y1": 12.2}
+    for _n, c, s in _tiles(40.0, 30.0, [void]):
+        over_x = c[0] - s[0] / 2 < 16.0 < c[0] + s[0] / 2
+        over_y = c[1] - s[1] / 2 < 11.55 < c[1] + s[1] / 2
+        assert not (over_x and over_y), "a tile covers the ladder column"
+
+
+def test_tile_names_are_unique_and_deterministic():
+    tiles = _tiles(52.0, 32.0)
+    names = [n for n, _c, _s in tiles]
+    assert len(names) == len(set(names))
+    assert tiles == _tiles(52.0, 32.0)
+
+
+def test_abutting_tiles_share_their_edge_exactly():
+    """No cracks: neighbours must meet at the same rounded coordinate."""
+    tiles = _tiles(52.0, 32.0)
+    edges_x = sorted({round(c[0] - s[0] / 2, 6) for _n, c, s in tiles} |
+                     {round(c[0] + s[0] / 2, 6) for _n, c, s in tiles})
+    # 52 / 8 -> 7 columns -> 8 distinct x edges; any crack would add one
+    assert len(edges_x) == 8, edges_x
+
+
+def test_collision_is_built_from_the_untiled_plate():
+    """The contract build_slab relies on: tiling the visual list must leave
+    collision_boxes over the plate_parts list untouched -- the collider count
+    on every shipped roof stays exactly what it was."""
+    parts = arch.plate_parts(52.0, 32.0, 0.3, None)
+    assert arch.collision_boxes(parts) == [((-26.0, -16.0, -0.15),
+                                            (26.0, 16.0, 0.15))]
+    assert len(arch.collision_boxes(parts)) == 1
+    assert len(arch.tile_parts(parts)) == 28          # 7 x 4 visual tiles
+
+
+def test_zero_or_negative_tile_disables_tiling():
+    parts = arch.plate_parts(52.0, 32.0, 0.3, None)
+    assert arch.tile_parts(parts, 0) == parts
+    assert arch.tile_parts(parts, -1) == parts
+
+
+def test_the_bank_branch_ladder_reaches_the_roof():
     """THE REGRESSION, with the shipped numbers. 40 x 30 roof, ladder at spec
     (16, 12) width 0.5 facing S, so `ladder_geom.through_hole` puts the cut at
     x 15.45..16.55, y 10.90..12.20. The climb column the capsule needs is

@@ -313,6 +313,76 @@ def plate_parts(w: float, d: float, h: float, voids=None):
             for n, r in enumerate(rects)]
 
 
+#: Largest edge a plate's VISUAL part may have, in metres. Roadmap item 54:
+#: Godot's GL Compatibility renderer lights at most 8 positional lights per
+#: MESH (`max_lights_per_object`, engine default 8), and a mesh is an object,
+#: so a 52 x 32 m roof panel is one light budget for a whole building --
+#: measured across lot_demo_001's five buildings as 111 meshes over 8, worst
+#: one at 36 lights, showing up as a hard brightness step where two slabs
+#: meet. Splitting the visual into tiles gives every ~8 m patch its own
+#: budget, which is how walls (2 m modules, 6 lights or fewer) never had the
+#: problem. Eight metres is a starting value the per-mesh light census
+#: (tools/mesh_light_census.py) has to confirm; item 41 measures the opposite
+#: failure (1389-node fragmentation), so the answer is "as few tiles as the
+#: census allows", not "smaller is safer".
+PLATE_TILE = 8.0
+
+
+def tile_parts(parts, tile: float = PLATE_TILE):
+    """Split any part wider than ``tile`` (in x or y) into a grid of tiles.
+
+    Input and output are ``(name, center, size)`` lists in the shape
+    :func:`slab_parts` / :func:`plate_parts` emit, so this composes after
+    either. VISUAL-ONLY BY CONTRACT: the caller keeps building collision from
+    the untiled list (the same split `relief_parts` already has -- `slab` is
+    the structure and the collider, `visual` is what the renderer sees), so
+    no collision box on any existing build moves by a millimetre.
+
+    The grid divides the part into equal cells (``ceil(extent / tile)`` per
+    axis) rather than walking fixed strides, so there is never a sliver tile
+    at one edge -- an 8.05 m part becomes two 4.025 m tiles, not an 8 m tile
+    and a 5 cm strip that item 41 would rightly call noise. Cell edges are
+    computed once and shared between neighbours, so abutting tiles meet at
+    the same coordinate and the union's outer bbox stays exactly the part's
+    own. A part already inside the tile on both axes passes through
+    UNTOUCHED, name included -- every wall, jamb, sill and small plate is
+    byte-identical to what it was before this function existed.
+    """
+    if not tile or tile <= 0.0:
+        return list(parts)
+
+    def edges(lo, extent, n):
+        # INTERIOR cut lines are snapped to whole millimetres; the OUTER two
+        # are the part's own bounds, untouched. The snap is what makes the
+        # 6-decimal rounding below LOSSLESS: an equal division of 52 m into 7
+        # puts cuts at repeating decimals, and rounding each tile's center
+        # and size independently then disagrees with its neighbour's at the
+        # sixth decimal -- a micron crack, invisible on screen but a lie in
+        # the data, and `parts_bbox` no longer returns the authored dims.
+        # Cells differ from equal by at most half a millimetre, which no
+        # census or fit check can see.
+        return ([lo] + [round(lo + extent * k / n, 3) for k in range(1, n)]
+                + [lo + extent])
+
+    out = []
+    for name, c, s in parts:
+        nx = int((s[0] - _EPS) // tile) + 1 if s[0] > tile + _EPS else 1
+        ny = int((s[1] - _EPS) // tile) + 1 if s[1] > tile + _EPS else 1
+        if nx == 1 and ny == 1:
+            out.append((name, c, s))
+            continue
+        xe = edges(c[0] - s[0] / 2.0, s[0], nx)
+        ye = edges(c[1] - s[1] / 2.0, s[1], ny)
+        for j in range(ny):
+            for i in range(nx):
+                out.append((f"{name}_t{j}_{i}",
+                            (round((xe[i] + xe[i + 1]) / 2.0, 6),
+                             round((ye[j] + ye[j + 1]) / 2.0, 6), c[2]),
+                            (round(xe[i + 1] - xe[i], 6),
+                             round(ye[j + 1] - ye[j], 6), s[2])))
+    return out
+
+
 #: Facade relief defaults. Overridable per style through the genome's params,
 #: which is where the VARIATION belongs -- one rhythm on every wall of every
 #: building is the failure mode this replaces, not a goal.

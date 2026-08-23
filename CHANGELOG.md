@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.49.0] - 2026-08-23
+
+Roadmap item 54 -- one mesh should not span a room. Godot's GL Compatibility
+renderer budgets positional lights PER MESH (`max_lights_per_object`, engine
+default 8), and a plate module is one mesh: a 52 x 32 m roof was one light
+budget for a whole building. Measured across lot_demo_001's five buildings as
+111 meshes over 8 (worst at 36), which is the entire reason level_factory
+ships a per-object light cap and its shader cost. Walls never had the
+problem -- 2 m modules sit at 6 lights or fewer -- so plates now follow the
+same law: no visual mesh wider than a light budget's reach.
+
+### Added
+- `core/arch.PLATE_TILE` (8.0 m) and `core/arch.tile_parts`: cut any plate
+  part wider than the tile (x or y) into a grid of equal cells -- never
+  fixed strides, so there is no sliver tile at an edge (item 41's
+  fragmentation counter-pressure, answered rather than traded into).
+  Interior cut lines snap to whole millimetres so the house 6-decimal
+  rounding of each tile's center and size is lossless: neighbours meet at
+  the same coordinate and `parts_bbox` still returns the authored dims
+  exactly. Parts already inside the tile pass through byte-identical, name
+  included -- every wall, jamb and small plate in the library is untouched.
+- `recipes/_arch.build_slab` runs the plate VISUAL through `tile_parts`
+  (genome `plate_tile` overrides the default). VISUAL ONLY: collision keeps
+  coming from the untiled `plate_parts` list -- the same structure/visual
+  split the wall path already makes for relief -- so no collision box on
+  any existing build moves. Proven in-session on the arena-class case: a
+  52 x 32 m roof with the bank-branch ladder void builds as 43 tiles, every
+  edge <= 7.429 m, 4 collision boxes exactly as before, outer bbox exact,
+  ladder column open.
+- `tests/test_plate.py`: the tiling section -- budget edge, area and bbox
+  conservation, byte-identical pass-through (small plate, holed plate,
+  exactly-tile-sized plate), no slivers, stairwell stays open, unique
+  deterministic names, shared edges at 6 decimals, collision from the
+  untiled plate, tile <= 0 disables.
+
+The tile size is a starting value the per-mesh light census
+(`tools/mesh_light_census.py`, factory root) has to confirm; the item closes
+when the census shows zero meshes over the engine default of 8 and
+level_factory deletes `PER_OBJECT_CEILING`.
+
 ## [0.48.0] - 2026-08-22
 
 ### Added
