@@ -1,0 +1,140 @@
+{
+ "species": "pendant_fixture",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A bare-bulb pendant: cord from the slab, socket, exposed incandescent bulb. Built for the light-anchor pipeline's below-grade rule (DC >= 0.98 'pendant' anchors): the anchor is the BULB point 0.6 m below the ceiling, so the bottom (bulb) sits at the anchor and the cord rises to the slab."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.08,
+   "max": 0.16,
+   "default": 0.12
+  },
+  "depth": {
+   "min": 0.08,
+   "max": 0.16,
+   "default": 0.12
+  },
+  "height": {
+   "min": 0.4,
+   "max": 1.4,
+   "default": 0.82
+  }
+ },
+ "parts": [
+  "Pendant_Cord",
+  "Pendant_Socket",
+  "Pendant_Bulb"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.28,
+    0.27,
+    0.26
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.85,
+    0.62
+   ],
+   "emissive_strength": 2.4
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.24,
+    0.22,
+    0.2
+   ],
+   "wear": 0.38,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.83,
+    0.58
+   ],
+   "emissive_strength": 2.4
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.32,
+    0.32,
+    0.33
+   ],
+   "wear": 0.15,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.87,
+    0.66
+   ],
+   "emissive_strength": 2.2
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.22,
+    0.21,
+    0.2
+   ],
+   "wear": 0.5,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "emissive_strength": 2.6,
+   "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.26,
+    0.25,
+    0.24
+   ],
+   "wear": 0.3,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.84,
+    0.6
+   ],
+   "emissive_strength": 2.5,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 260
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "ceiling"
+  }
+ },
+ "keywords": [
+  "pendant fixture",
+  "pendant_fixture",
+  "bare bulb",
+  "hanging bulb",
+  "basement light",
+  "cord light"
+ ]
+}

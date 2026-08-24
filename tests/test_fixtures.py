@@ -201,3 +201,37 @@ def test_marker_per_placement_including_rows():
     names = [fixtures.marker_name(p) for p in plan["placements"]]
     assert len(names) == 5
     assert set(names) == {"LuxEmit_fluorescent"}
+
+
+# --------------------------------------------------------------------------- #
+# v0.50: the marker path is the shipping path, so it carries what the
+# manifest knows (roadmap 54/57). `drop` rides every per-lamp placement, and
+# the below-grade `pendant` type gets hardware instead of a silent skip --
+# a skipped anchor emits no marker, and no marker means a dark basement.
+# --------------------------------------------------------------------------- #
+
+def test_pendant_anchors_get_hardware_not_a_skip():
+    p = fixtures.plan(_manifest([
+        {"id": "cellar_bulbs", "type": "pendant", "pos": [0, 0, 2.7],
+         "row": {"count": 2, "spacing": 5.0}, "drop": 3.3}]))
+    assert not p["skipped"]
+    assert len(p["placements"]) == 2
+    for pl in p["placements"]:
+        assert pl["species"] == "pendant_fixture"
+        assert pl["mount"] == "above"
+
+
+def test_drop_rides_every_lamp_placement():
+    p = fixtures.plan(_manifest([
+        {"id": "hall_ceiling", "type": "fluorescent", "pos": [0, 0, 5.6],
+         "row": {"count": 3, "spacing": 10.0}, "drop": 5.6},
+        {"id": "old_row", "type": "fluorescent", "pos": [0, 0, 3.2],
+         "row": {"count": 1}}]))
+    drops = {pl["anchor_id"]: pl["drop"] for pl in p["placements"]}
+    assert drops["hall_ceiling"] == 5.6
+    # a pre-0.97 manifest without drop stays honest at 0.0 (the rig's
+    # fallback range), never a crash and never a guess
+    assert drops["old_row"] == 0.0
+    per_lamp = [pl["drop"] for pl in p["placements"]
+                if pl["anchor_id"] == "hall_ceiling"]
+    assert per_lamp == [5.6, 5.6, 5.6]

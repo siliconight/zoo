@@ -12,7 +12,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "security_camera",
                 "hvac_unit", "water_tank", "vent_stack", "exhaust_fan",
                 "skylight", "satellite_dish",
-                "fluorescent_fixture", "streetlight", "sign_box", "wall_pack"}
+                "fluorescent_fixture", "streetlight", "sign_box", "wall_pack",
+                # the below-grade bare bulb (DC >= 0.98 `pendant` anchors --
+                # basements and objective rooms; roadmap 57's 90s palette)
+                "pendant_fixture"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

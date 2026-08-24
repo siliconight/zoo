@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.50.0] - 2026-08-24
+
+The marker path is the shipping path. Lux's fixture spawner -- not the
+manifest bake -- is how every interior light reaches a composed site, and
+two facts got lost on the way there: DC's new `drop` (the lamp's distance
+to its room's floor) never rode the markers, so every fluorescent fell to
+the range fallback and the arena's 5.6 m hall had a lit ceiling over a
+pitch-black floor; and DC's new `pendant` type had no fixture species, so
+it was skipped -- and a skipped anchor emits NO marker, which means every
+basement and vault room was silently dark.
+
+### Added
+- `pendant_fixture`: the below-grade bare bulb (genome + recipe + the
+  FIXTURES row). Cord from the slab, socket, faceted low-poly bulb; mount
+  'above' puts the bulb exactly at DC's anchor (0.6 m below the ceiling)
+  and the cord rises the rest of the way. Bulb carries `M_Pendant_Lens`,
+  so the emissive binder and `set_fixtures_powered` treat it like every
+  other lamp face.
+- Every per-lamp placement (and its exported marker) carries the anchor's
+  `drop` as `lux_drop` (core/fixtures.py `plan()`, bpylayer/build.py).
+  Lux >= 0.21 reads it on the spawn path; a pre-0.97 manifest without
+  drop stamps an honest 0.0 (the rig's fallback), never a guess.
+- `tests/test_fixtures.py`: pendants get hardware not a skip; drop rides
+  every lamp of a row; dropless manifests stay at 0.0.
+
+### Fixed
+- Plate visual tiles are UNBEVELED (`recipes/_arch.py`). Every box edge
+  got a chamfer from the style bevel, and where two tiles abut the two
+  chamfers form a V-groove that catches light differently than the flat
+  face -- the thin bright/dark lines walked on the arena ceiling
+  2026-08-24, at tile boundaries the census had already cleared of any
+  budget defect. A flat plate's chamfer carries no information (its rim
+  meets walls and parapets); walls and opening modules keep theirs --
+  their chamfers sit on real corners. Proven in-session: 20 x 12 ceiling
+  and 52 x 32 roof rebuild to pure 8-vert tile boxes, roof collision
+  still one box.
+
 ## [0.49.0] - 2026-08-23
 
 Roadmap item 54 -- one mesh should not span a room. Godot's GL Compatibility

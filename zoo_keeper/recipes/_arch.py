@@ -22,10 +22,10 @@ def build_slab(plan, streams, collection, species):
     root = arch.root_name(species)
     objs, cboxes = [], []
 
-    def part(bm, name, wr=wear):
+    def part(bm, name, wr=wear, bv=None):
         objs.append(geometry.bm_to_object(
-            bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wr,
-            ambient=ambient))
+            bm, name, collection, bevel=(bevel if bv is None else bv),
+            texel=1.2, rng=rng, wear=wr, ambient=ambient))
 
     if species in arch.PLATE_SPECIES:
         # A floor or ceiling SKIN. Two things differ from a standing slab and
@@ -76,10 +76,20 @@ def build_slab(plan, streams, collection, species):
         # second rhythm laid over it.
         visual = (arch.relief_parts(w, d, h, params.get("relief"))
                   if species == "wall" and not void else slab)
+    # PLATE TILES ARE UNBEVELED (walked 2026-08-24, arena ceiling). Every
+    # box edge gets a chamfer from the style's bevel, and where two tiles
+    # abut, the two chamfers form a V-groove a few centimetres wide that
+    # catches light differently than the flat face -- a thin bright/dark
+    # line drawn along every internal tile seam, worst near a fixture. The
+    # census exonerated the light budget for those tiles, so the groove is
+    # the whole line. A flat plate's chamfer carries no information (its
+    # rim meets walls and parapets), so plates drop it entirely; walls and
+    # opening modules keep theirs -- their chamfers sit on real corners.
+    plate_bevel = 0.0 if species in arch.PLATE_SPECIES else None
     for name, center, size in visual:
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
-        part(bm, f"{root}_{name}")
+        part(bm, f"{root}_{name}", bv=plate_bevel)
     if species not in arch.PLATE_SPECIES or species in arch.PLATE_COLLIDES:
         # PLATE-NESS AND COLLISION ARE TWO FACTS, and this line used to test
         # one for the other. A floor or ceiling skin emits none because Deli

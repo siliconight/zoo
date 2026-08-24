@@ -46,6 +46,14 @@ FIXTURES = {
     # from the building.
     "sign": {"species": "sign_box", "mount": "center"},
     "wall_pack": {"species": "wall_pack", "mount": "above"},
+    # v0.50, the below-grade rule (DC >= 0.98, roadmap 57's 90s palette):
+    # basements and objective rooms derive `pendant` anchors. The anchor is
+    # the BULB point 0.6 m below the ceiling; mount 'above' puts the
+    # recipe's bottom (the bulb) at the anchor and the cord rises to the
+    # slab. Before this row existed the type was skipped as "no fixture
+    # species" -- and a skipped anchor emits NO MARKER, so on the marker
+    # path (the one this pipeline ships) every basement was silently dark.
+    "pendant": {"species": "pendant_fixture", "mount": "above"},
 }
 
 # anchor types that are light without hardware, by design.
@@ -174,6 +182,14 @@ def plan(manifest: dict, types=None) -> dict:
                 "pos": p,
                 "rot_z": float(a.get("rot_y", 0.0)) % 360.0,
                 "reacts_to_alarm": bool(a.get("reacts_to_alarm", False)),
+                # The lamp's distance down to its own room's floor (DC >=
+                # 0.97). Rides every per-lamp marker as `lux_drop`, because
+                # THE MARKER PATH IS THE SHIPPING PATH: the manifest chain
+                # carried `drop` end to end while LuxFixtureSpawner handed
+                # the tuning table only {type, id} -- measured on
+                # lot_demo_001 as every fluorescent at the 4.5 fallback and
+                # the arena's 5.6 m hall lit-ceiling-over-black-floor.
+                "drop": float(a.get("drop", 0.0) or 0.0),
                 "seed_offset": _seed_offset(aid, j),
             }
             size = a.get("size")

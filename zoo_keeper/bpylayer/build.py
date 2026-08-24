@@ -635,6 +635,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         mk["lux_anchor_id"] = p["anchor_id"]
         mk["lux_slot"] = p["slot"]
         mk["lux_reacts_to_alarm"] = p["reacts_to_alarm"]
+        # v0.50: the lamp's drop to its room's floor rides the marker --
+        # the spawner path is how lights actually ship, and a rig without
+        # this guesses its range (see core/fixtures.py, the placement).
+        mk["lux_drop"] = float(p.get("drop", 0.0))
         coll.objects.link(mk)
         mk.matrix_world = mathutils.Matrix.Translation(
             mathutils.Vector(p["pos"])) @ rot
