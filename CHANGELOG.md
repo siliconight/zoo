@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.51.0] - 2026-08-29
+
+Walked a themed level and it read as machine-made Lego. The relief was
+drawing the bricks.
+
+### Changed
+- `genome/species/wall.json`: the `delco` style now carries its own
+  `relief` block -- `pier` 0.14 -> 0.02, `reveal` 0.05 -> 0.015, plinth
+  and cornice unchanged.
+
+  WHY, measured rather than guessed. Deli Counter tiles every solid span
+  into whole modules of `DC_MODULE` (default 2.00 m) and puts the
+  remainder in a `wallEnd` (`deli_counter.py:756`, `_wall_span`); the
+  shipped art directory for `bank_block_001` seed 7003 confirms it from
+  the other end, containing exactly two wall meshes, `wall_delco_01_w30`
+  and `wall_delco_01_w200`. So a 20 m facade is ten copies of one panel.
+
+  `relief_parts` puts a pier flush with each module edge, which is
+  correct -- centring one on the edge would double it at every seam. But
+  two flush 0.14 m piers meet at each seam, so what the eye actually gets
+  is a 0.28 m wide, 3.03 m tall, full-depth strip standing 0.05 m proud
+  of the field, repeating at EXACTLY the module pitch, all the way along
+  the building. The articulation meant to break up a facade was instead
+  drawing its module grid in relief. At 0.02 that seam strip is 0.04 m
+  and 0.015 m proud: present, no longer the loudest line on the wall.
+
+  Base and cap are deliberately kept. They are the same height on every
+  module, so they run continuous ACROSS the seams -- horizontal bands
+  are the cue that reads as one building, and they cost nothing here.
+
+  Nothing structural moves. The stem (`kit.module_stem`) does not carry
+  relief, so Deli Counter's resolver sees the same filenames; the
+  collider is built from `slab` and not from `visual` (`recipes/_arch.py`),
+  so no collision box changes; and `relief_parts` guarantees the outer
+  bbox stays exactly (w, d, h), so exact-fit still passes. Only the GLB
+  bytes change.
+
+  This is a first reading, not a settled value. `{"reveal": 0.0}` (what
+  `rockay` uses) flattens the wall to a single panel and removes the
+  plinth and cornice with it; the numbers here keep them.
+
+### Known, not fixed here
+- Every instance of a stem is byte-identical art: the wear RNG is keyed
+  on the stem with a hardcoded seed 0 (`bpylayer/build.py:187`), and
+  Pixelcoat builds one texture pack per material kind per MISSION, so
+  every `concrete_delco_albedo.png` in a level is the same file. Relief
+  cannot touch this -- there is one GLB per stem and it is instanced, so
+  no build-time knob can vary two instances of it. `cube_project_uv`'s
+  `uv_offset` is NOT the fix it looks like for the same reason: it would
+  shift all instances together. The per-instance mechanisms that do exist
+  (Patina `--slot-variation` + `instances.json`; Pixelcoat gen-7
+  `variations`) are both implemented and neither is wired in.
+
 ## [0.50.0] - 2026-08-24
 
 The marker path is the shipping path. Lux's fixture spawner -- not the
