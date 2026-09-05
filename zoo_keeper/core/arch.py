@@ -442,10 +442,27 @@ def relief_parts(w: float, d: float, h: float, style: dict | None = None):
     reveal = _clamp(float(s["reveal"]), 0.0, d * 0.35)
     n = max(1, int(round(w / float(s["bay"]))))
     bw = w / n
-    # n bays need n+1 piers, and the two end piers are FLUSH with the module
-    # edges rather than centred on them -- a pier centred on x = -w/2 would
-    # hang half its width into the neighbouring module and double up at every
-    # seam, which is the 6 cm overhang the old pilaster had at 225 slots.
+    # n bays need n+1 piers. The two END piers are flush with the module edges
+    # AND HALF WIDTH; every interior pier is full width, centred on its bay
+    # line. Both halves of that sentence are load-bearing.
+    #
+    # Flush, because a pier centred on x = -w/2 hangs half its width into the
+    # neighbouring module -- the 6 cm overhang the old pilaster had at 225
+    # slots.
+    #
+    # Half width, because flush-and-full-width was the same bug wearing the
+    # other mask. Two abutting modules each put a full pier inside their
+    # shared edge, so every module seam carried a DOUBLE-width strip and no
+    # other line on the wall did. The relief added to disguise the module grid
+    # was drawing it at exactly the module pitch, in the one width that
+    # appears nowhere else. At half width the two halves sum to precisely one
+    # interior pier, and a seam becomes geometrically indistinguishable from a
+    # bay line.
+    #
+    # This only bites when `bay` is small enough to yield interior piers at
+    # all. It was not: delco shipped `bay: 2.4` against a 2.00 m module, so
+    # `round(2.00 / 2.4)` is 1 and EVERY wall in every build had exactly two
+    # end piers and no bay. The parameter was inert from the day it landed.
     if fh <= _EPS or bw - pier < float(s["min_field"]) or reveal <= _EPS:
         return [("Panel", (0.0, 0.0, 0.0), (round(w, 6), round(d, 6),
                                             round(h, 6)))]
@@ -463,16 +480,16 @@ def relief_parts(w: float, d: float, h: float, style: dict | None = None):
     edges = [-hw + bw * i for i in range(n + 1)]
     for i, x in enumerate(edges):
         if i == 0:
-            cx, pw = -hw + pier / 2.0, pier
+            cx, pw = -hw + pier / 4.0, pier / 2.0
         elif i == n:
-            cx, pw = hw - pier / 2.0, pier
+            cx, pw = hw - pier / 4.0, pier / 2.0
         else:
             cx, pw = x, pier
         parts.append(("Pier_%d" % i, (round(cx, 6), 0.0, round(fz, 6)),
                       (round(pw, 6), round(d, 6), round(fh, 6))))
     for i in range(n):
-        x0 = (-hw + pier) if i == 0 else edges[i] + pier / 2.0
-        x1 = (hw - pier) if i == n - 1 else edges[i + 1] - pier / 2.0
+        x0 = (-hw + pier / 2.0) if i == 0 else edges[i] + pier / 2.0
+        x1 = (hw - pier / 2.0) if i == n - 1 else edges[i + 1] - pier / 2.0
         if x1 - x0 <= _EPS:
             continue
         parts.append(("Field_%d" % i,

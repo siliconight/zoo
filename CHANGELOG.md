@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.53.0] - 2026-08-29
+
+The relief that exists to disguise the module grid was drawing it.
+
+### Fixed
+- `relief_parts` end piers are HALF WIDTH. Two abutting modules each put a
+  full-width pier inside their shared edge, so every module seam carried a
+  double-width strip and no other line on the wall did -- a vertical rhythm
+  at exactly the module pitch, in a width that appears nowhere else on the
+  facade. At half width the two halves sum to precisely one interior pier,
+  and a seam is geometrically indistinguishable from a bay line.
+
+  Flushness is unchanged and still tested: nothing overhangs into the
+  neighbouring module, so the 6 cm pilaster bug stays fixed. The outer bbox
+  is still exactly `(w, d, h)`, and collision still comes from `slab_parts`,
+  so no collider on any previous build moves.
+
+### Changed
+- `wall.json` delco `relief.bay` 2.4 -> 1.0. THE PARAMETER WAS INERT. Every
+  wall module this facade builds is `w200` (2.00 m) or `w30` (0.30 m), and
+  `n = max(1, round(w / bay))` with `bay: 2.4` is 1 for both -- so no wall in
+  any build ever got an interior pier, and the relief could only ever trace
+  the module outline. At 1.0 a 2.00 m module gets two bays and a real pier at
+  its midpoint; `w30` still falls through `min_field` to a flat panel.
+
+  Together these give a uniform 2 cm pilaster every 1.0 m along a run, with
+  no width discontinuity marking where one mesh ends. The 2 m module grid
+  reads as a 1 m authored rhythm.
+
+### Known
+- `RELIEF`'s own default `bay` is still 2.4, so `center_city` and
+  `industrial_flats` -- which declare no `relief` block and inherit the
+  defaults -- remain inert in the same way, at `pier: 0.14`. Not changed
+  here: it moves the look of themes this pass was not measured against.
+- Articulation is still module-periodic BY CONSTRUCTION. `relief_parts` sees
+  only `(w, d, h)`; it never learns where the module sits in the run, so it
+  can change the rhythm's frequency but never its phase. Breaking that needs
+  the slot index to cross the Deli Counter -> Zoo boundary. Roadmap 79.
+
 ## [0.52.0] - 2026-08-29
 
 A flat wall was being shaded as a dome, on every instance, by a 3 mm chamfer.

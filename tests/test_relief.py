@@ -26,6 +26,8 @@ def _volume_outside(parts, w, d, h):
                 hi[0] - w / 2.0, hi[1] - d / 2.0, hi[2] - h / 2.0])
 
 
+_DELCO = {'pier': 0.02, 'reveal': 0.015, 'base': 0.45, 'cap': 0.12, 'bay': 1.0}
+
 def test_nothing_stands_proud_of_the_authored_depth():
     """THE WHOLE POINT. A cover was 1.2 cm to 10 cm outside this box; every
     part of a relief wall is inside it or exactly on it."""
@@ -121,3 +123,32 @@ def test_collision_is_unchanged_because_it_comes_from_the_solid_slab():
 
 def test_deterministic():
     assert arch.relief_parts(W, D, H) == arch.relief_parts(W, D, H)
+
+
+def test_a_seam_reads_exactly_like_a_bay_line():
+    """Two abutting modules must not draw a wider pier than the wall's own
+    bay lines. Flush end piers at FULL width made every module seam a
+    double-width strip that appeared nowhere else on the facade -- so the
+    relief added to disguise the module grid was drawing it, at exactly the
+    module pitch. Half-width ends sum to one interior pier across a seam."""
+    parts = _by_name(arch.relief_parts(W, D, H))
+    interior = parts["Pier_1"][1][0]
+    seam = parts["Pier_0"][1][0] + parts["Pier_2"][1][0]
+    assert round(seam, 6) == round(interior, 6)
+
+
+def test_every_field_on_a_run_is_the_same_width():
+    """The eye compares field widths, not pier widths. With half-width ends
+    the first and last field of a module match its interior fields, so a
+    tiled run has ONE field width all the way along."""
+    widths = {round(s[0], 6) for n, _c, s in arch.relief_parts(12.0, D, H)
+              if n.startswith("Field")}
+    assert len(widths) == 1
+
+
+def test_a_delco_wall_module_actually_gets_a_bay():
+    """delco shipped `bay: 2.4` against a 2.00 m module, so round(2.0/2.4)
+    is 1: every wall in every build had two end piers and no bay, and the
+    parameter was inert from the day it landed."""
+    parts = arch.relief_parts(2.0, 0.30, 3.6, _DELCO)
+    assert sum(1 for n, _c, _s in parts if n.startswith("Field")) >= 2
