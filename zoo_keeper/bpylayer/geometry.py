@@ -524,14 +524,36 @@ def wear_colors(bm, rng, wear, ambient=0.0):
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
                  texel=1.0, rng=None, wear=0.0, ambient=0.0,
-                 uv_offset=(0.0, 0.0, 0.0)):
-    """Finish a bmesh (bevel -> normals -> shading -> UVs -> wear) and link."""
+                 uv_offset=(0.0, 0.0, 0.0), smooth_angle=SMOOTH_ANGLE_DEG):
+    """Finish a bmesh (bevel -> normals -> shading -> UVs -> wear) and link.
+
+    `smooth_angle` is the crease threshold, exposed because the default is
+    right for a prop and wrong for a wall. `bevel_edges` cuts a one-segment
+    chamfer that sits about 45 degrees off each face it touches, and 45 is
+    under the 50-degree default -- so the chamfer is SMOOTHED INTO the face.
+    On a 10 cm bracket that is the intended highlight roll-off. On a 2 m x 3 m
+    wall panel it is a disaster, because a box face has no interior vertices:
+    every normal it owns is a corner, every corner gets splayed toward the
+    chamfer, and there is nothing left to hold the middle flat.
+
+    MEASURED on the shipped `wall_delco_01_w200`: not one vertex on the front
+    face carried the face normal. All fifteen sat 28.9 degrees off it, at
+    (+/-0.342, -0.876, +/-0.342) -- pointing at their own corners. The panel is
+    therefore shaded as a dome, and the interpolation across the quad's two
+    triangles draws a diagonal wedge. Identical on all 66 instances, because it
+    is baked into one shared mesh. That is the "stamped diagonal shadow" a
+    walkthrough kept reporting and four other mechanisms failed to explain.
+
+    Pass 0.0 for a mesh built from boxes: every edge stays hard, the faces read
+    flat, and the chamfer becomes a crisp 3 mm highlight instead of a 2 m
+    gradient.
+    """
     if finish:
         bevel_edges(bm, bevel)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
         # AFTER recalc, because the decision reads face normals, and BEFORE
         # the UV projection, which does not care either way.
-        shade_by_angle(bm)
+        shade_by_angle(bm, smooth_angle)
         cube_project_uv(bm, texel, uv_offset)
         if rng is not None:
             wear_colors(bm, rng, wear, ambient=ambient)

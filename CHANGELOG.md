@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.52.0] - 2026-08-29
+
+A flat wall was being shaded as a dome, on every instance, by a 3 mm chamfer.
+
+### Fixed
+- `bm_to_object` takes a `smooth_angle`, and `recipes/_arch.py` passes 0.0 --
+  every architectural module now shades flat.
+
+  `bevel_edges` cuts a one-segment chamfer sitting ~45 degrees off each face
+  it touches; `SMOOTH_ANGLE_DEG` is 50, so the chamfer was SMOOTHED INTO the
+  face. On a prop that is the highlight roll-off the bevel exists for. On a
+  wall panel it is ruinous, because a box face has no interior vertices -- so
+  every normal the face owns is a corner, every corner is splayed toward the
+  chamfer, and nothing holds the middle flat.
+
+  MEASURED on the shipped `wall_delco_01_w200.glb`: of the 15 vertices on the
+  front face, NONE carried the face normal. Every one sat 28.9 degrees off it,
+  at (+/-0.342, -0.876, +/-0.342) -- each pointing at its own corner. The panel
+  shades as a cushion, and interpolating that across the quad's two triangles
+  draws a diagonal wedge that repeats identically on all 66 placements because
+  it is baked into one shared mesh.
+
+  This is the artefact four other investigations failed to explain the same
+  day: it survives world-space triplanar (it is normals, not UVs), survives
+  `wear: 0.0` (not vertex colour -- that layer never reaches the renderer at
+  all, roadmap 84), and survives deleting every fixture light (it is the sun).
+
+  Scoped to `_arch.py` on purpose. Cylinders still need the 50-degree default:
+  a 14-segment water tank at 25.7 degrees per segment reads as a dodecagon
+  without it.
+
 ## [0.51.0] - 2026-08-29
 
 Walked a themed level and it read as machine-made Lego. The relief was

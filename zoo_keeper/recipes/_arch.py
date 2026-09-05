@@ -22,10 +22,21 @@ def build_slab(plan, streams, collection, species):
     root = arch.root_name(species)
     objs, cboxes = [], []
 
+    #: FLAT, and this is not a style choice. Every architectural module is
+    #: built from boxes, and `shade_by_angle`'s 50-degree default smooths the
+    #: bevel's ~45-degree chamfer into the face it cuts -- which on a box means
+    #: into the ONLY vertices the face has. See `bm_to_object`: the shipped
+    #: 2 m wall panel had every front-face normal 28.9 degrees off flat,
+    #: splayed at its own corners, so it shaded as a dome and drew a diagonal
+    #: across every instance. Zero keeps every edge hard: flat faces, and the
+    #: chamfer reads as the 3 mm highlight it is.
+    _WALL_SMOOTH = 0.0
+
     def part(bm, name, wr=wear, bv=None):
         objs.append(geometry.bm_to_object(
             bm, name, collection, bevel=(bevel if bv is None else bv),
-            texel=1.2, rng=rng, wear=wr, ambient=ambient))
+            texel=1.2, rng=rng, wear=wr, ambient=ambient,
+            smooth_angle=_WALL_SMOOTH))
 
     if species in arch.PLATE_SPECIES:
         # A floor or ceiling SKIN. Two things differ from a standing slab and
