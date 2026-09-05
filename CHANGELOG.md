@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.54.0] - 2026-08-29
+
+The bay rhythm was geometrically correct and 1.3 pixels wide.
+
+### Changed
+- `wall.json` delco `relief.pier` 0.02 -> 0.1 and `reveal` 0.015 -> 0.04.
+
+  0.53.0 gave the facade a uniform pilaster every 1.0 m with no width
+  discontinuity at module seams. MEASURED on the shipped elevation, that
+  rhythm carries spectral power 500 against a 1836 peak -- present, and far
+  too quiet to do the cohesion job it exists for. The reason is scale, not
+  correctness: `look_shots` frames this building at 66.7 px/m, so a 2 cm pier
+  is 1.3 PIXELS and a 1.5 cm reveal casts a shadow below what reads as an
+  edge at street distance. delco was running at about a seventh of `RELIEF`'s
+  own defaults (`pier: 0.14`, `reveal: 0.05`).
+
+  Full-width end piers are what made a large pier dangerous before -- size
+  showed up only at seams, so the bigger the pier the louder the module grid.
+  0.53.0 removed that coupling, so the pier can now be sized for legibility
+  instead of for damage control. At 0.1 it is 6.7 px in the same frame.
+
+  Geometry checked before shipping: a 2.00 m module gives piers 0.05 / 0.10 /
+  0.05 and two 0.90 m fields, seam total 0.10 exactly equal to the interior
+  pier; `w30` still fails `min_field` and stays a flat panel; the bbox is
+  still exactly (w, d, h) and collision still comes from `slab_parts`.
+
+### Measured
+- The 2 m module signature has three contributors, separated by holding one
+  variable at a time on the north elevation (P = spectral power at that
+  period, wall band only):
+
+      bay 2.4, full piers, vertex colour ON    P(2m) 1548
+      bay 1.0, half piers, vertex colour ON    P(2m) 1044
+      bay 1.0, half piers, vertex colour off   P(2m)  278
+
+  Relief geometry alone is a 33% reduction. The vertex-colour layer alone is
+  a 73% reduction -- about 2.2x the geometry's effect.
+
+  ROADMAP 84 CONSEQUENCE. The shipped build is the vertex-colour-off row;
+  `--vertex-colors force` is a probe. Turning that layer on as currently
+  baked MULTIPLIES the module signature by 3.8x, because the wear is baked
+  per module and so repeats per module by construction. 84 is still real --
+  the layer is dead weight today -- but it cannot be switched on as baked.
+
+  The fourth cell (old geometry, vertex colour off) was not built, so the
+  relief change's effect in the SHIPPED configuration is not on record.
+
 ## [0.53.0] - 2026-08-29
 
 The relief that exists to disguise the module grid was drawing it.
