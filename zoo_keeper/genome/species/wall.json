@@ -55,13 +55,7 @@
    "wear": 0.35,
    "bevel": 0.003,
    "ambient": 0.35,
-   "relief": {
-    "pier": 0.1,
-    "reveal": 0.04,
-    "base": 0.45,
-    "cap": 0.12,
-    "bay": 1.0
-   }
+   "relief": {"reveal": 0.0}
   },
   "center_city": {
    "material": "metal",

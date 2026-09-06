@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.56.0] - 2026-09-06
+
+Quiet geometry. `CONTRAST_DIRECTION.md`'s step 0, run and answered.
+
+### Changed
+- `genome/species/wall.json` style `delco` `relief`
+  `{pier: 0.1, reveal: 0.04, base: 0.45, cap: 0.12, bay: 1.0}` ->
+  `{reveal: 0.0}`, which is the form `rockay` already ships.
+
+  THIS IS STEP 0 OF A WRITTEN PLAN, not a preference. That document opens its
+  ordering with: "`relief: {reveal: 0}` on one archetype's style, rebuild,
+  look at it. Zero code. It is the A/B that tells us whether 'quiet geometry,
+  loud texture' is the right direction BEFORE we build anything to support it.
+  If the plain walls look worse, everything below changes." They did not look
+  worse. The reporter compared the interior station in both builds and
+  preferred the flat one.
+
+  WHAT IT COSTS THE GEOMETRY. `wall_delco_01_w200.glb` drops from 8 meshes and
+  2064 VEC3 to 2 and 336. Across `precinct_yard_001`, kit surfaces fall
+  3554 -> 1002 on 543 exterior and 142 interior wall instances, and the kit
+  GLB payload 10.57 -> 10.26 MB. Package size is unchanged at 19 MB.
+
+  WHAT IT COSTS THE LOOK, and the honest number is smaller than the geometry
+  suggests. Above `shot_diff`'s 8/255 visible threshold: elev_W 0.00%,
+  elev_E 0.09%, elev_N 3.43%, spawn 2.11%, and the interior station 28.50%.
+  More than 90% of pixels move in EVERY frame, but by at most 7 codes on the
+  west elevation -- the relief was doing something everywhere and almost
+  nothing visibly at facade distance. Figure-ground is untouched:
+  `tools/shot_contrast.py` reads 0.529 -> 0.532, and `tools/texel_density.gd`
+  confirms density held at 0.500 / 1.000 at 1.0x, so nothing else moved.
+
+  IT SUPERSEDES 0.54.0's DIRECTION AND THAT IS WORTH SAYING PLAINLY. That
+  release raised `pier` 0.02 -> 0.1 and `reveal` 0.015 -> 0.04 because "the bay
+  rhythm was geometrically correct and 1.3 pixels wide". The rhythm was real
+  and the fix was right for the problem as posed; what this measurement adds is
+  that even at five times the depth it moves a facade by less than one visible
+  step at the distance the elevations frame. If the bay rhythm is wanted back,
+  the evidence says it should come from the texture, not the mesh.
+
+### Known: this is half a change by design
+The same ordering says step 3 -- "separated value clusters ... an explicit
+bevel band set (edge / field / seam / recess / highlight) so a surface can
+express depth" -- "is what pays back step 0's geometry, and without it step 0
+just produces flatter flat walls." Nothing in Pixelcoat expresses a bevel band
+today; 22 of 51 grammars have all their value mass in a single contiguous run.
+So this ships a cheaper, quieter wall and does NOT yet ship the depth that is
+supposed to replace the relief.
+
 ## [0.55.0] - 2026-09-06
 
 Every architectural surface shipped 1.2x finer than the density the art
