@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.55.0] - 2026-09-06
+
+Every architectural surface shipped 1.2x finer than the density the art
+direction targets, and the multiplier doing it was in this repo.
+
+### Changed
+- `recipes/_arch.py` `texel` 1.2 -> 1.0, on both the main part builder and the
+  glass pane. `_arch.py` is the shared builder for wall, wallEnd, window,
+  doorway, breach, ceiling, floor, roof and prop, so this is every
+  architectural surface in every building.
+- `recipes/dress_cover.py` `texel` 1.2 -> 1.0, swept in the same pass.
+
+  THE ARITHMETIC, and it closes exactly. `cube_project_uv` lays UVs down as
+  world-metres x `texel`, and `bpylayer/materials.py` drives the Mapping node
+  at `1 / meters_per_tile`, so on-screen density is
+  `size x texel / meters_per_tile`. At the shipped settings that was
+  `256 x 1.2 / 2.0 = 153.6` px/m against the 128 px/m target
+  `pixelcoat/docs/CONTRAST_DIRECTION.md` 6.3 sets. At `texel=1.0` it lands on
+  128.0. Measured on the re-exported `precinct_yard_001` with
+  `tools/texel_density.gd`: concrete, metal and drywall read `uv1_scale` 0.500
+  and glass 1.000 -- every skin exactly 128 px/m, worst mismatch 1.0x.
+
+  WHY BOTH FILES MOVED TOGETHER. That document flagged `dress_cover.py`'s 1.2
+  for putting covers at 20% higher density than the wall behind them, and
+  asked for a sweep of other non-1.0 values. The walls carried the same 1.2,
+  so they in fact MATCHED -- moving only the architecture to 1.0 would have
+  created the break the document was describing.
+
+  WHAT IT MEANS DOWNSTREAM. `meters_per_tile` now means what it says: a
+  grammar authored at 2.0 m repeats every 2.0 metres in world space. It
+  repeated every 1.67 m before this and every 0.83 m before Level Factory
+  0.58.0, so three separate defects were stacked on that one number. This was
+  the last of them and the only one living in Zoo.
+
+  IT IS ALSO THE 1.2 FROM THE PROJECTION WORK. Level Factory roadmap 88 and
+  104 both turn on a measured UV density of 1.2 that appeared on every skin
+  regardless of its `meters_per_tile`, and both wrote it down as "Zoo's texel
+  constant" without locating it. A mesh built here at `texel=1.2` reports
+  |dUV|/|dPOS| = 1.2 whatever the material asks for, which is exactly what
+  `zoo_worldskin.gd` measures. 104's fix is unaffected.
+
+  A LIBRARY-WIDE ART CHANGE, shipped as one. Every architectural surface in
+  every level is 20% coarser. `CONTRAST_DIRECTION.md` argues for that
+  direction -- "the library is authored 1.3-16x finer than the aesthetic calls
+  for", against Quake II reference points of 32 / 64 / 128 px/m -- and the
+  result was walked and approved before this landed. Full geometry rebuild on
+  `precinct_yard_001`, structural checks passed, `portability-test` PASS.
+
 ## [0.54.0] - 2026-08-29
 
 The bay rhythm was geometrically correct and 1.3 pixels wide.

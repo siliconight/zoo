@@ -31,7 +31,7 @@ visual only.
 CORRECTED CLAIM. This docstring used to say "UVs are assigned to the order's
 ``uv_region`` on Patina's trim atlas so the strip reads as the right trim
 piece." They are not, and never were. UVs come from
-``geometry.bm_to_object(..., texel=1.2)`` -> ``cube_project_uv``, the same
+``geometry.bm_to_object(..., texel=1.0)`` -> ``cube_project_uv``, the same
 world-metres box projection every other Zoo mesh gets. ``uv_region`` is read
 from the order and returned in this function's result dict, where nothing
 reads it -- ``build.build_dressing`` uses ``result["objects"]`` only. The
@@ -78,7 +78,12 @@ def build(plan, streams, collection):
         geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))
     obj = geometry.bm_to_object(
         bm, f"Cover_{cover}", collection,
-        bevel=plan.get("bevel", 0.002), texel=1.2, rng=rng,
+        # Swept with the architecture in the same pass -- see roadmap 108.
+        # CONTRAST_DIRECTION.md 6.3 flagged this 1.2 for putting covers at
+        # 20% higher density than the wall behind them. The walls carried
+        # the same 1.2, so they in fact MATCHED; moving only the walls to
+        # 1.0 would have created the break the document was describing.
+        bevel=plan.get("bevel", 0.002), texel=1.0, rng=rng,
         wear=plan.get("wear", 0.15), ambient=plan.get("ambient", 0.0),
         uv_offset=uv_offset(order))
 

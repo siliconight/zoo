@@ -35,7 +35,17 @@ def build_slab(plan, streams, collection, species):
     def part(bm, name, wr=wear, bv=None):
         objs.append(geometry.bm_to_object(
             bm, name, collection, bevel=(bevel if bv is None else bv),
-            texel=1.2, rng=rng, wear=wr, ambient=ambient,
+            # TEXEL 1.0, NOT 1.2 -- roadmap 108, and it is a density
+            # target rather than a preference. On-screen density is
+            # `size * texel / meters_per_tile`, so a 1.2 here multiplied
+            # every architectural surface in the library by 1.2 against
+            # the 128 px/m target `pixelcoat/docs/CONTRAST_DIRECTION.md`
+            # 6.3 sets: 256 * 1.2 / 2.0 = 153.6. At 1.0 it lands on
+            # 128.0. That document's whole argument is that the library
+            # is authored far finer than the aesthetic wants, and this
+            # multiplier was quietly undoing a fifth of every step taken
+            # toward it in `meters_per_tile`.
+            texel=1.0, rng=rng, wear=wr, ambient=ambient,
             smooth_angle=_WALL_SMOOTH))
 
     if species in arch.PLATE_SPECIES:
@@ -130,7 +140,7 @@ def build_slab(plan, streams, collection, species):
         geometry.add_box(bm, (cx, 0.0, cz),
                          (pane_w * 0.98, d * 0.15, pane_h * 0.98))
         pane = geometry.bm_to_object(
-            bm, f"{root}_Glass", collection, bevel=0.0, texel=1.2,
+            bm, f"{root}_Glass", collection, bevel=0.0, texel=1.0,
             rng=rng, wear=wear * 0.25)
         # Enterable windows glaze see-through "glass"; facade-shell windows
         # (hollow building) glaze opaque "glass_facade" via plan.glazing_kind.
