@@ -45,6 +45,16 @@
    "wear": 0.12,
    "bevel": 0.002
   },
+  "delco": {
+   "material": "plastic",
+   "color": [
+    0.68,
+    0.13,
+    0.11
+   ],
+   "wear": 0.28,
+   "bevel": 0.002
+  },
   "center_city": {
    "material": "plastic",
    "color": [

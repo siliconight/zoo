@@ -59,6 +59,16 @@
    "wear": 0.3,
    "bevel": 0.003
   },
+  "delco": {
+   "material": "leather",
+   "color": [
+    0.24,
+    0.16,
+    0.09
+   ],
+   "wear": 0.45,
+   "bevel": 0.003
+  },
   "combat": {
    "material": "leather",
    "color": [

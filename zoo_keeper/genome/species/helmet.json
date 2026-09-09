@@ -63,6 +63,16 @@
    "wear": 0.2,
    "bevel": 0.002
   },
+  "delco": {
+   "material": "plastic",
+   "color": [
+    0.68,
+    0.64,
+    0.11
+   ],
+   "wear": 0.35,
+   "bevel": 0.002
+  },
   "construction": {
    "material": "plastic",
    "color": [

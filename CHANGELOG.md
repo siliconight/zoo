@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.57.0] - 2026-09-09
+
+A theme name reaches the style a species already carries.
+
+### Fixed
+- `build.py` asked `if theme in genome["styles"]` at both prop sites and took
+  a miss as "no style at all", so a theme Zoo did not carry VERBATIM produced
+  nothing and the prop came out flat. The prompt path never had that problem:
+  `dna._pick_style` has resolved era, then style tags, then default, since it
+  was written. `dna.theme_style` gives the theme path the same courtesy --
+  exact name, then the name minus a trailing qualifier, then that qualifier
+  read as a decade -- and returns None rather than guessing, so the caller
+  keeps whatever `resolve_plan` chose.
+
+  WHAT IT COST, measured on cold run 9003. Zoo carries `delco` on 39 of 56
+  species and `1990s` on 14. `delco_1997` is those two axes in one string, a
+  place and a period, and it resolved on ZERO of 56 -- the look was authored,
+  only the spelling was missing. With the resolver: 53 of 56, 39 through
+  `delco` and 14 through `1990s`, from content that was already there.
+
+### Added
+- `delco` styles for `boots`, `condiment_bottle` and `helmet`, taking
+  `delco_1997` to 56 of 56. These three were a real gap rather than the other
+  axis: they carried `center_city`, `industrial_flats` and `rockay` and
+  neither `delco` nor `1990s`, so the resolver had nothing to reach.
+  `condiment_bottle` is the pointed one -- the brief that exposed all of this
+  is a restaurant row. Each follows the shipped pattern (same material, a
+  darker colour, wear raised 0.10-0.15 over default) and each material is
+  inside the species' own `materials.options`.
+
+- `tests/test_theme_style_resolution.py` -- resolution order, the None cases,
+  a corpus check that every species reaches `delco_1997`, and a regression
+  guard that every shipped style name still resolves to itself, so this cannot
+  move a theme that already had an exact match.
+
+### Not done, deliberately
+- The other 14 species carry no `delco` style, and that is NOT a gap. Every
+  one of them carries `1990s` instead: the library splits place props
+  (`delco`) from period and interior props (`1990s`), and after the three
+  additions above every species carries one or the other. Authoring `delco`
+  onto the 14 would flatten a distinction their authors made on purpose. The
+  resolver is what bridges the two axes.
+
 ## [0.56.0] - 2026-09-06
 
 Quiet geometry. `CONTRAST_DIRECTION.md`'s step 0, run and answered.

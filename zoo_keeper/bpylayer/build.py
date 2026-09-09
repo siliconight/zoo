@@ -474,9 +474,14 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
             f"{building_id}_roof_{i}", species, p["seed_offset"],
             TOOL_VERSION))
         sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
-        if theme in genome.get("styles", {}):
-            style = genome["styles"][theme]
-            sp_plan["style"] = theme
+        # RESOLVED, not exact-matched. `dna.theme_style` falls back from a
+        # theme name to the place or the decade inside it, so `delco_1997`
+        # reaches the `delco` or `1990s` style a species already carries
+        # instead of returning nothing and leaving the prop flat.
+        resolved = dna.theme_style(genome, theme)
+        if resolved is not None:
+            style_name, style = resolved
+            sp_plan["style"] = style_name
             sp_plan["material"] = style.get("material", sp_plan["material"])
             sp_plan["color"] = list(style.get("color", sp_plan["color"]))
             sp_plan["wear"] = style.get("wear", sp_plan["wear"])
@@ -582,9 +587,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         streams = seeding.RNGStreams(seeding.root_key(
             f"{scope}_fixture_{i}", species, p["seed_offset"], TOOL_VERSION))
         sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
-        if theme in genome.get("styles", {}):
-            style = genome["styles"][theme]
-            sp_plan["style"] = theme
+        resolved = dna.theme_style(genome, theme)
+        if resolved is not None:
+            style_name, style = resolved
+            sp_plan["style"] = style_name
             sp_plan["style_block"] = dict(style)
             sp_plan["material"] = style.get("material", sp_plan["material"])
             sp_plan["color"] = list(style.get("color", sp_plan["color"]))

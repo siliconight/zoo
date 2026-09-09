@@ -44,6 +44,49 @@ def _pick_style(genome: dict, intent) -> tuple[str, dict]:
     return name, styles[name]
 
 
+def theme_style(genome: dict, theme: str) -> tuple[str, dict] | None:
+    """The style block a THEME name should get from this species, or None.
+
+    `_pick_style` above resolves a prompt -- era, then style tags, then
+    default. The theme path had no such thing: `build.py` asked
+    `if theme in genome["styles"]` and took the miss as "no style", so a theme
+    whose name Zoo did not carry verbatim produced nothing at all.
+
+    THAT IS WHAT `delco_1997` HIT. Zoo carries `delco` on 39 of 56 species and
+    `1990s` on 14, and `delco_1997` is those two axes in one string -- a place
+    and a period. The content existed; only the name did not, so the kit fell
+    back to flat colour on a library that had the look already authored.
+    Measured on cold run 9003, where the Pixelcoat half of the same theme gap
+    was a wall and this half was the quieter failure beside it.
+
+    Resolution, widest first, and it returns None rather than guessing:
+
+      1. the exact name, which is every theme that already worked;
+      2. the name minus a trailing qualifier -- `delco_1997` -> `delco`;
+      3. the trailing qualifier read as a DECADE -- `_1997` -> `1990s` --
+         which is how `intent.era` already spells one.
+
+    None means "this species has nothing for that theme", and the caller keeps
+    whatever `resolve_plan` already chose. That is a real answer and is not the
+    same as flat colour.
+    """
+    styles = (genome or {}).get("styles") or {}
+    name = (theme or "").strip()
+    if not name or not styles:
+        return None
+    if name in styles:
+        return name, styles[name]
+    head, _, tail = name.rpartition("_")
+    if head:
+        if head in styles:
+            return head, styles[head]
+        if tail.isdigit() and len(tail) == 4:
+            decade = f"{int(tail) // 10 * 10}s"
+            if decade in styles:
+                return decade, styles[decade]
+    return None
+
+
 def _resolve_dimensions(genome: dict, intent, streams) -> dict:
     """default * size_hint, +/-2% deterministic jitter, clamped to range."""
     rng = streams.stream("dims")
