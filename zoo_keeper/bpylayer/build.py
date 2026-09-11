@@ -261,6 +261,15 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
                for r in results]
 
     building_id = plan.get("building_id")
+    # Both counts go INTO the index, not only into the return value. Level
+    # Factory's `ZOO_PARTIAL_BUILD` finding reads `n_fail` off this file and
+    # the file never carried it -- measured 2026-09-11 over 37 shipped
+    # indexes: 98 modules with status "fail", zero findings, because the key
+    # the reader asked for was only ever returned to a caller that does not
+    # exist outside this process. The per-module `status` was always there;
+    # the count is now beside it so the reader need not re-derive it.
+    n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
+    n_missing = len(plan.get("missing_modules", []))
     index = {
         "zoo": {"tool_version": TOOL_VERSION},
         "building_id": building_id,
@@ -273,16 +282,18 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "modules": modules,
         "deferred_variants": plan.get("deferred_variants", []),
         "missing_modules": plan.get("missing_modules", []),
+        "n_fail": n_fail,
+        "n_missing": n_missing,
     }
     index_file = f"{building_id}_kit.built.json"
     meta_mod.write_meta(os.path.join(out_dir, index_file), index)
 
-    n_fail = sum(1 for r in results if r["report"]["status"] == "fail")
-    n_missing = len(plan.get("missing_modules", []))
+    for line in kit_mod.capability_gaps(plan):
+        print(line)
     if n_missing:
-        print(f"[zoo] WARNING: {n_missing} module(s) MISSING from the genome "
-              f"library (see missing_modules in {index_file}) — the building "
-              f"cannot be fully dressed")
+        print(f"[zoo] {n_missing} module(s) the genome library cannot build "
+              f"(listed above as {kit_mod.GAP_TAG}, and in missing_modules of "
+              f"{index_file}) -- the building cannot be fully dressed")
     return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
             "style": int(style), "modules": modules, "n_fail": n_fail,
             "n_missing": n_missing,

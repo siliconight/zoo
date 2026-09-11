@@ -25,6 +25,46 @@ so a Zoo module drops onto a slot transform with no conversion.
 """
 from __future__ import annotations
 
+import difflib
+
+#: The capability-gap signal (USING_THE_FACTORY.md, roadmap 62): one tag, on
+#: stdout and in the artifact, naming what was asked, the nearest thing that
+#: exists, and the repo that owns growing the real one. A skip with a reason
+#: is an answer; a silent skip is a defect.
+GAP_TAG = "CAPABILITY_GAP"
+GAP_OWNER = "zoo"
+
+
+def nearest_species(species: str, known) -> list[str]:
+    """The known species closest in spelling to an unknown one, best first.
+
+    Empty when nothing is close, which is itself information: a typo has a
+    neighbour, a genuinely new species has none.
+    """
+    return difflib.get_close_matches(str(species), sorted(known), n=3,
+                                     cutoff=0.6)
+
+
+def capability_gaps(plan: dict) -> list[str]:
+    """One ``CAPABILITY_GAP`` line per module the library cannot build.
+
+    Pure text off ``plan["missing_modules"]``; both the dry plan and the
+    Blender build print these, so the two paths cannot drift apart on what a
+    gap looks like.
+    """
+    out = []
+    for m in plan.get("missing_modules", []):
+        near = m.get("nearest") or []
+        out.append(
+            "[zoo] %s asked=%s for=%s (slot type %s, x%d) nearest=%s "
+            "owner=%s -- add zoo_keeper/genome/species/%s.json and a recipe "
+            "in zoo_keeper/recipes/%s.py; the greybox box stands in until then"
+            % (GAP_TAG, m.get("species"), m.get("stem"), m.get("type"),
+               int(m.get("count") or 0), ",".join(near) if near else "none",
+               m.get("owner") or GAP_OWNER, m.get("species"),
+               m.get("species")))
+    return out
+
 
 def _void_key(voids):
     """A hashable, order-independent identity for a plate's holes."""
@@ -343,7 +383,9 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             else:
                 missing.append(dict(m, reason=(
                     f"no '{m['species']}' species in the genome library — "
-                    f"the building cannot be fully dressed until it exists")))
+                    f"the building cannot be fully dressed until it exists"),
+                    nearest=nearest_species(m["species"], known),
+                    owner=GAP_OWNER))
         modules = buildable
     # STEM COLLISION -- two modules, one filename.
     #

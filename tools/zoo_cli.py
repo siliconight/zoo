@@ -367,11 +367,24 @@ def kit_run(args):
         print("[zoo] not a file:", args.kit)
         return 1
     manifest = json.load(open(args.kit, encoding="utf-8"))
-    plan = kit.plan_kit(manifest, theme=args.theme, style=args.style)
+    # The dry plan is armed the same way the Blender build has been since
+    # 0.32.0 (`build.build_kit` passes `known_species`): a species the genome
+    # library does not carry lands in `missing_modules` and is SAID, rather
+    # than planned as if it would build. This is the pre-build gate Level
+    # Factory runs, so it is the place the gap has to be visible.
+    from zoo_keeper.core import genome
+    plan = kit.plan_kit(manifest, theme=args.theme, style=args.style,
+                        known_species=genome.list_species())
     print(f"[zoo] kit for '{plan['building_id']}' "
           f"(theme={plan['theme']}, style={plan['style']:02d}):")
     print(f"[zoo]   {plan['module_count']} distinct modules dress "
           f"{plan['slot_count']} slots")
+    for line in kit.capability_gaps(plan):
+        print(line)
+    if plan["missing_modules"]:
+        print(f"[zoo]   {len(plan['missing_modules'])} module(s) the library "
+              f"cannot build -- listed above as {kit.GAP_TAG}, and in "
+              f"missing_modules of the written plan")
     for m in plan["modules"]:
         w, d, h = m["dims"]
         note = ("unit box, scaled per-slot" if m["fit"] == "unit"

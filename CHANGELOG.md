@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.58.0] - 2026-09-11
+
+A species the library cannot build is said, in one shape, on both paths.
+
+### Fixed
+- `zoo_cli.py --kit` never passed `known_species` to `kit.plan_kit`, so the
+  dry plan -- the pre-build gate Level Factory runs -- planned an unknown
+  species as if it would build. It is armed with `genome.list_species()`
+  now, as `build.build_kit` has been since 0.32.0. Roadmap 62 recorded the
+  CLI as the planner's ONLY caller; it was the only UNARMED one.
+- `build_kit` returned `n_fail` to its caller and never wrote it into the
+  index. Level Factory's `ZOO_PARTIAL_BUILD` finding reads the index, so it
+  never fired: measured 2026-09-11 over 37 shipped kit indexes, 98 modules
+  with status `fail` (90 in `lot-demo-ws`, 8 in `unlit-3b-ws`, none in any
+  cold run), zero findings. `n_fail` and `n_missing` are in the index now.
+
+### Added
+- `kit.capability_gaps(plan)`: one `CAPABILITY_GAP` line per missing module
+  -- what was asked, the nearest species the library does carry
+  (`difflib`, so a typo names its neighbour and a new species names none),
+  and the owner -- printed by the dry plan and the Blender build alike, so
+  the two cannot drift on what a gap looks like. `missing_modules` entries
+  carry `nearest` and `owner` for the reader that wants the fields.
+- `tests/test_capability_gap.py`, six cases, including the CLI against the
+  real genome library.
+
+### Seen, not touched
+- `zoo_keeper.TOOL_VERSION` is the literal `"0.31.0"` and stamps every
+  index as `zoo.tool_version`. It is also a component of every seeding root
+  key, so correcting it re-rolls every asset Zoo builds; that is a decision,
+  not a typo fix, and it is not made here.
+
 ## [0.57.0] - 2026-09-09
 
 A theme name reaches the style a species already carries.
