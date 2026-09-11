@@ -38,6 +38,25 @@ def test_module_stem_matches_deli_counter_convention():
         "doorway_delco_02_w110_damaged"
 
 
+def test_a_corner_is_keyed_on_every_axis_it_is_free_on():
+    """Roadmap 64's second precondition. A corner's width and depth are the
+    wall thickness and its height is the storey, so `_w30` alone named
+    fourteen different solids in the shipped library (950 posts across 17
+    (thickness, height) pairs on 2026-09-11). Keyed like a prop instead."""
+    def corner(t, h):
+        return {"role": "wallCorner", "size_mod": "full",
+                "fit": {"dims": [t, t, h], "pivot": "corner"}}
+    plan = kit.plan_kit({"building_id": "c", "slots": [
+        corner(0.3, 3.3), corner(0.3, 3.3), corner(0.3, 5.2), corner(0.35, 3.0)]},
+        theme="delco", style=1)
+    stems = sorted(m["stem"] for m in plan["modules"])
+    assert stems == ["wallCorner_delco_01_w30_d30_h330",
+                     "wallCorner_delco_01_w30_d30_h520",
+                     "wallCorner_delco_01_w35_d35_h300"]
+    assert all(m["fit"] == "exact" for m in plan["modules"])
+    assert plan["slot_count"] == 4
+
+
 def test_plan_collapses_to_distinct_modules():
     plan = kit.plan_kit(MANIFEST, theme="delco", style=1)
     stems = {m["stem"]: m for m in plan["modules"]}

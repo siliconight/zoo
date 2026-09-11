@@ -106,6 +106,15 @@ PLATE_ROLES = ("floor", "ceiling", "roof")
 #: and a small cube. One won the name and the other rendered as it.
 VOLUME_ROLES = ("prop",)
 
+#: The corner, exact-fit and free on every axis a wall is not. A wall's
+#: thickness and storey height are fixed by the building, so `_w<cm>` names
+#: it; a corner's width and depth ARE the thickness and its height is the
+#: storey, so `_w30` names fourteen different solids in today's library --
+#: measured 2026-09-11 over 128 manifests: 950 corner posts across 17
+#: distinct (thickness, height) pairs, 3.15 m at 0.25 through 6.2 m at 0.30
+#: (roadmap 64's second precondition). Keyed on all three, the way a prop is.
+CORNER_ROLES = ("wallCorner",)
+
 #: Roles whose geometry is a hole in a standing slab, cut to the slot's own
 #: ``fit.openings``. Their WIDTH is already in the filename; the aperture is
 #: not, which is what :func:`opening_tag` fixes.
@@ -290,9 +299,10 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         width_cm = int(round(dims[0] * 100)) if exact else None
         # Plates vary on both axes; everything else is identified by width.
         depth_cm = (int(round(dims[1] * 100))
-                    if exact and typ in PLATE_ROLES + VOLUME_ROLES else None)
+                    if exact and typ in PLATE_ROLES + VOLUME_ROLES + CORNER_ROLES
+                    else None)
         height_cm = (int(round(dims[2] * 100))
-                     if exact and typ in VOLUME_ROLES else None)
+                     if exact and typ in VOLUME_ROLES + CORNER_ROLES else None)
         vtag = void_tag(fit.get("voids")) if typ in PLATE_ROLES else None
         otag = (opening_tag(fit.get("openings"))
                 if typ in OPENING_ROLES else None)

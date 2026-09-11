@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.60.0] - 2026-09-11
+
+The corner module can be asked for.
+
+Roadmap 64: `wallCorner` had a recipe and a genome since 2026-07-14 and
+nothing had ever requested one. Two of the three preconditions the item
+measured are paid here; the third (the gap report armed) closed under
+roadmap 62 in 0.58.0.
+
+### Fixed
+- `wallCorner`'s genome declared height 2.0-4.5 m, which excluded 252 of the
+  988 corners in the shipped library (storeys of 4.7, 5.1, 5.2, 5.7 and
+  6.2 m). Measured 2026-09-11 over 128 manifests: 950 corner posts across 17
+  (thickness, height) pairs, 0.25/0.30/0.35 m thick, 2.7-6.2 m tall. Height
+  is 2.0-6.5 and width/depth reach down to 0.25; the ranges and their
+  measurement are written into the genome.
+- `kit.plan_kit` keyed a corner on width alone, and a corner's width IS the
+  wall thickness -- so `wallCorner_<theme>_<style>_w30` would have named
+  fourteen different solids and one file would have won. `CORNER_ROLES`
+  keys it on all three axes, like a prop: `_w30_d30_h330`. Deli Counter
+  0.114.0 mirrors it in `themed_tscn.module_stem`; the same literal is
+  pinned in both suites.
+
+### Not done here
+- Deli Counter still seats a `wallEnd` unit post at every corner (its
+  0.102.0 answer to roadmap 58, zero new modules). Promoting those slots to
+  `wallCorner` costs one exact module per (thickness, height) per building
+  and buys nothing visible until the corner has art a post does not -- so
+  it waits for that art, as the item said it should.
+
 ## [0.59.0] - 2026-09-11
 
 The stamp says which tool wrote the file; the seed does not move with it.

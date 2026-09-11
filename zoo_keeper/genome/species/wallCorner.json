@@ -7,21 +7,22 @@
  },
  "dimensions": {
   "width": {
-   "min": 0.3,
+   "min": 0.25,
    "max": 3.0,
    "default": 0.6
   },
   "depth": {
-   "min": 0.3,
+   "min": 0.25,
    "max": 3.0,
    "default": 0.6
   },
   "height": {
    "min": 2.0,
-   "max": 4.5,
+   "max": 6.5,
    "default": 3.6
   }
  },
+ "dimensions_note": "Ranges measured against the shipped Deli Counter library on 2026-09-11 (roadmap 64): 950 corner posts across 17 (thickness, height) pairs, thickness 0.25/0.30/0.35 m, storeys 2.7 to 6.2 m. The old height max of 4.5 excluded 252 of 988 corners; 6.5 covers the tallest shipped storey with a half-metre to spare. Width and depth are the wall thickness for a post-shaped corner and the leg lengths for an L.",
  "parts": [
   "Corner_LegA",
   "Corner_LegB"
