@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.59.0] - 2026-09-11
+
+The stamp says which tool wrote the file; the seed does not move with it.
+
+### Fixed
+- `zoo_keeper.TOOL_VERSION` was the literal `"0.31.0"` since July while the
+  tool went to 0.58.0, so `zoo.tool_version` in every kit, fixture, dressing
+  and habitat index -- 37 kit indexes across 13 workspaces on 2026-09-11 --
+  named a version 27 releases stale. It is read from `VERSION` now.
+- It could not simply be corrected, because the same string is folded into
+  every specimen's root key (`seeding.root_key`, `habitat.habitat_id`,
+  `variants.family_id`) and correcting it would have re-rolled every asset in
+  every workspace. The two meanings are split (roadmap 136): `SEED_EPOCH`,
+  frozen at `"0.31.0"`, is what the seeds read; `TOOL_VERSION` is what the
+  stamps carry. No vertex moves: the ids Zoo built that morning on cold run
+  9005 (`pebble_bb64e4`, `habitat_a49078`, theme `delco_1997`, seed 9005)
+  reproduce exactly under `SEED_EPOCH`, and a test pins them. A static test
+  refuses any seed call that reads the stamp.
+
+### Seen, not touched
+- `bl_info["version"]` is `(0, 20, 0)`; it is Blender's add-on registry
+  entry and nothing in the pipeline reads it.
+
 ## [0.58.0] - 2026-09-11
 
 A species the library cannot build is said, in one shape, on both paths.

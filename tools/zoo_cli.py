@@ -155,19 +155,19 @@ def _collision_opt(args):
 
 
 def habitat_preview(args):
-    from zoo_keeper import TOOL_VERSION
+    from zoo_keeper import SEED_EPOCH
     from zoo_keeper.core import genome, habitat, intent, seeding
 
     species_list = habitat.resolve_species(args.habitat,
                                            genome.list_species())
     hid = habitat.habitat_id(args.prompt or "", species_list, args.seed,
-                             TOOL_VERSION)
+                             SEED_EPOCH)
     members = []
     for sp in species_list:
         prompt = habitat.species_prompt(args.prompt or "", sp)
         it = intent.parse(prompt, seed=args.seed)
         root = seeding.root_key(it.prompt_norm, it.species, args.seed,
-                                TOOL_VERSION)
+                                SEED_EPOCH)
         members.append({"species": sp, "prompt": prompt,
                         "specimen_id": "{}_{}".format(
                             it.species, seeding.short_hash(root))})
@@ -197,7 +197,7 @@ def habitat_build(args):
 
 
 def dry_run(args):
-    from zoo_keeper import TOOL_VERSION
+    from zoo_keeper import SEED_EPOCH, TOOL_VERSION
     from zoo_keeper.core import dna, genome, intent, seeding
 
     it = intent.parse(args.prompt, seed=args.seed, species=args.species)
@@ -205,7 +205,7 @@ def dry_run(args):
     if it.species:
         g = genome.load_species(it.species)
         root = seeding.root_key(it.prompt_norm, it.species, args.seed,
-                                TOOL_VERSION)
+                                SEED_EPOCH)
         streams = seeding.RNGStreams(root)
         out["plan"] = dna.resolve_plan(it, g, streams, TOOL_VERSION)
         out["specimen_id"] = f"{it.species}_{seeding.short_hash(root)}"
@@ -213,7 +213,7 @@ def dry_run(args):
             from zoo_keeper.core import variants
             seeds = variants.variant_seeds(args.seed, args.count)
             fid = variants.family_id(it.prompt_norm, it.species, args.seed,
-                                     args.count, TOOL_VERSION)
+                                     args.count, SEED_EPOCH)
             out["family"] = {
                 "family_id": fid,
                 "count": args.count,
@@ -224,7 +224,7 @@ def dry_run(args):
                     {"seed": s, "specimen_id": "{}_{}".format(
                         it.species, seeding.short_hash(
                             seeding.root_key(it.prompt_norm, it.species, s,
-                                             TOOL_VERSION)))}
+                                             SEED_EPOCH)))}
                     for s in seeds],
             }
     print(json.dumps(out, indent=2, sort_keys=True))

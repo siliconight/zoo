@@ -9,7 +9,8 @@ import os
 
 import bpy
 
-from .. import TOOL_VERSION
+# TOOL_VERSION stamps; SEED_EPOCH seeds. See zoo_keeper/__init__.py.
+from .. import SEED_EPOCH, TOOL_VERSION
 from ..core import dna, genome as genome_mod, intent as intent_mod
 from ..core import kit as kit_mod
 from ..core import arch as arch_mod
@@ -61,7 +62,7 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
     if opts["collision"] is None:
         opts["collision"] = bool(genome.get("collision", True))
     root = seeding.root_key(intent.prompt_norm, intent.species, seed,
-                            TOOL_VERSION)
+                            SEED_EPOCH)
     streams = seeding.RNGStreams(root)
     plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
 
@@ -137,7 +138,7 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
                  for s, r in zip(seeds, results)]
 
     fid = variants_mod.family_id(intent.prompt_norm, species, base_seed,
-                                 count, TOOL_VERSION)
+                                 count, SEED_EPOCH)
     manifest = variants_mod.build_family_manifest(
         TOOL_VERSION, fid, prompt, species, base_seed, count, shared,
         specimens)
@@ -185,7 +186,7 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     bpy.context.scene.collection.children.link(coll)
 
     streams = seeding.RNGStreams(
-        seeding.root_key(stem, build_species, 0, TOOL_VERSION))
+        seeding.root_key(stem, build_species, 0, SEED_EPOCH))
     result = recipes.get(build_species)(plan, streams, coll)
     root_name = arch_mod.root_name(build_species)
 
@@ -372,7 +373,7 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
         order = cplan["order"]
         streams = seeding.RNGStreams(
             seeding.root_key(f"{building_id}_cover_{i}", "dress_cover",
-                             order["seed_offset"], TOOL_VERSION))
+                             order["seed_offset"], SEED_EPOCH))
         result = recipes.get("dress_cover")(cplan, streams, coll)
         # place: orient by the anchor normal, then translate to its position.
         rot = _orient_matrix(order["normal"], order.get("tangent"))
@@ -433,7 +434,7 @@ def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,
         members.append({"species": sp, "specimen_id": r["specimen_id"],
                         "status": r["report"]["status"], "files": r["files"]})
 
-    hid = habitat_mod.habitat_id(theme, species_list, seed, TOOL_VERSION)
+    hid = habitat_mod.habitat_id(theme, species_list, seed, SEED_EPOCH)
     manifest = habitat_mod.build_habitat_manifest(
         TOOL_VERSION, hid, theme, species_list, seed, members)
     manifest_file = f"{hid}.habitat.json"
@@ -483,7 +484,7 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
         intent = intent_mod.parse(species.replace("_", " "), seed=seed)
         streams = seeding.RNGStreams(seeding.root_key(
             f"{building_id}_roof_{i}", species, p["seed_offset"],
-            TOOL_VERSION))
+            SEED_EPOCH))
         sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
         # RESOLVED, not exact-matched. `dna.theme_style` falls back from a
         # theme name to the place or the decade inside it, so `delco_1997`
@@ -596,7 +597,7 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         genome = genome_mod.load_species(species)
         intent = intent_mod.parse(species.replace("_", " "), seed=seed)
         streams = seeding.RNGStreams(seeding.root_key(
-            f"{scope}_fixture_{i}", species, p["seed_offset"], TOOL_VERSION))
+            f"{scope}_fixture_{i}", species, p["seed_offset"], SEED_EPOCH))
         sp_plan = dna.resolve_plan(intent, genome, streams, TOOL_VERSION)
         resolved = dna.theme_style(genome, theme)
         if resolved is not None:

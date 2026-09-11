@@ -177,7 +177,7 @@ def main():
                          "  blender --background --python tools/wear_probe.py\n")
         return 2
 
-    from zoo_keeper import TOOL_VERSION, recipes
+    from zoo_keeper import SEED_EPOCH, TOOL_VERSION, recipes
     from zoo_keeper.bpylayer import build as build_mod, export, geometry
     from zoo_keeper.bpylayer import materials
     from zoo_keeper.core import dressing as dressing_mod
@@ -218,7 +218,7 @@ def main():
     coll = bpy.data.collections.new("probe")
     bpy.context.scene.collection.children.link(coll)
     streams = seeding.RNGStreams(
-        seeding.root_key("probe_cover_0", "dress_cover", 12345, TOOL_VERSION))
+        seeding.root_key("probe_cover_0", "dress_cover", 12345, SEED_EPOCH))
     result = recipes.get("dress_cover")(plan, streams, coll)
     obj = result["objects"][0]
     mesh = obj.data
