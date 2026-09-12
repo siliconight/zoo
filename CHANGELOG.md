@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.69.0] - 2026-09-13
+
+`street_tree`'s crown is cutout cards: four vertical planes crossed at
+45 degrees and two horizontal ones, each the slot's width, wearing the new
+`foliage` kind -- Pixelcoat 0.32.0's leaf-cluster pack whose alpha is a
+cutout. `materials._textured` honours a pack's `alpha_mode: scissor`: the
+albedo's alpha is fed through a Math > Greater Than 0.5 into the
+Principled Alpha, which is the node the glTF exporter's `detect_alpha_clip`
+reads as alphaMode MASK (measured on Blender 5.1.1: the tree's foliage
+material exports MASK, double-sided), and Godot imports MASK as alpha
+scissor. `foliage` joins KNOWN_KINDS and ROUGHNESS. Without a foliage pack
+the cards are flat green planes.
+
 ## [0.68.1] - 2026-09-13
 
 `bench` and `bus_shelter` carry their own triangle budgets (300, 400): the

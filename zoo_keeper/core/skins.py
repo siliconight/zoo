@@ -53,6 +53,8 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "ceiling_tile", "carpet", "dirt", "tar",
                # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
                "gravel", "vegetation",
+               # a leaf-cluster cutout for a tree's crown cards (roadmap 153)
+               "foliage",
                # PROP METAL vs ARCHITECTURAL METAL. `metal` is theme-owned:
                # a rusted storefront facade and a corrugated wall belong to
                # the building, and a tintable pack in that slot would repaint

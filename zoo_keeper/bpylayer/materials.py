@@ -57,6 +57,9 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # fully matte -- a dressing scatter that catches a specular
              # highlight reads as wet plastic at every viewing angle.
              "gravel": 0.95, "vegetation": 0.85,
+             # foliage: a leaf-cluster CUTOUT for a tree's crown cards; the
+             # pack's alpha is tested, not blended (see `_textured`)
+             "foliage": 0.85,
              # Prop metal (see skins.KNOWN_KINDS). Semi-gloss enamel sits
              # duller than the bare sheet it covers; brushed/polished stock
              # sits tighter than the generic `metal` average.
@@ -391,7 +394,31 @@ def _textured(name, pack, material_kind, tint=None):
     # ships no hint (opaque). The blend-method attribute name varies across
     # Blender versions, so set both known spellings best-effort.
     trans = pack.get("transparency")
-    if trans and float(trans.get("opacity", 1.0)) < 1.0:
+    # A CUTOUT pack (road paint, foliage: `alpha_mode: scissor`) carries its
+    # alpha in the albedo and asks to be tested, not blended. The glTF
+    # exporter writes alphaMode=MASK when the Alpha socket is fed through a
+    # Math > Greater Than against a constant (its `detect_alpha_clip`), so
+    # that is the node placed here; Godot imports MASK as alpha scissor.
+    if trans and trans.get("alpha_mode") == "scissor":
+        try:
+            clip = tree.nodes.new("ShaderNodeMath")
+            clip.operation = "GREATER_THAN"
+            clip.inputs[1].default_value = 0.5
+            tree.links.new(albedo.outputs["Alpha"], clip.inputs[0])
+            tree.links.new(clip.outputs["Value"], bsdf.inputs["Alpha"])
+        except Exception:
+            pass
+        for _attr, _val in (("blend_method", "CLIP"),
+                            ("surface_render_method", "DITHERED")):
+            try:
+                setattr(mat, _attr, _val)
+            except Exception:
+                pass
+        try:
+            mat.use_backface_culling = False       # a card reads from both sides
+        except Exception:
+            pass
+    elif trans and float(trans.get("opacity", 1.0)) < 1.0:
         try:
             bsdf.inputs["Alpha"].default_value = float(trans["opacity"])
         except Exception:
