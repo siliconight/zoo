@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.67.0] - 2026-09-13
+
+Three kerb-line species minted for the street (roadmap 153): `fire_hydrant`
+(0.35 x 0.35 x 0.75, painted), `litter_bin` (0.6 x 0.6 x 1.0, painted),
+`sign_post` (0.1 x 0.1 x 2.4, bare metal). Placeholder boxes at their
+authored dims, centred, with collision, the real thing described in each
+genome's reference. Lot 0.62.0 places them along every sidewalk band with
+the existing `streetlight`, and the site kit builds them like any prop.
+
 ## [0.66.2] - 2026-09-12
 
 The pivot check judges slot-fit modules only. Cold run 9020, the first

@@ -1,5 +1,8 @@
 [
   "box_truck",
   "cargo_container",
-  "pump"
+  "fire_hydrant",
+  "litter_bin",
+  "pump",
+  "sign_post"
 ]

@@ -1,0 +1,104 @@
+{
+  "species": "sign_post",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A regulatory sign on a post: a 0.1 m galvanised steel post 2.4 m tall with a 0.75 m octagonal stop plate at the top facing the road (the plate is the thing to draw; the post is the placeholder). Roadmap 153: at each crossing, facing the spur."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.09,
+      "max": 0.125,
+      "default": 0.1
+    },
+    "depth": {
+      "min": 0.09,
+      "max": 0.125,
+      "default": 0.1
+    },
+    "height": {
+      "min": 2.16,
+      "max": 3.0,
+      "default": 2.4
+    }
+  },
+  "parts": [
+    "SignPost_Body"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_bare",
+    "options": [
+      "metal_bare",
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "sign post",
+    "stop sign",
+    "street sign",
+    "sign_post"
+  ]
+}
