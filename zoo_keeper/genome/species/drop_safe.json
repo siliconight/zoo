@@ -1,117 +1,117 @@
 {
- "species": "drop_safe",
- "version": 1,
- "license": {
-  "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. A small floor/drop safe: body, recessed door, dial, handle, drop slot."
- },
- "dimensions": {
-  "width": {
-   "min": 0.4,
-   "max": 0.6,
-   "default": 0.5
+  "species": "drop_safe",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. A small floor/drop safe: body, recessed door, dial, handle, drop slot."
   },
-  "depth": {
-   "min": 0.4,
-   "max": 0.6,
-   "default": 0.5
+  "dimensions": {
+    "width": {
+      "min": 0.4,
+      "max": 1.2,
+      "default": 0.5
+    },
+    "depth": {
+      "min": 0.4,
+      "max": 1.0,
+      "default": 0.5
+    },
+    "height": {
+      "min": 0.4,
+      "max": 1.5,
+      "default": 0.6
+    }
   },
-  "height": {
-   "min": 0.4,
-   "max": 0.75,
-   "default": 0.6
-  }
- },
- "parts": [
-  "DropSafe_Body",
-  "DropSafe_Door",
-  "DropSafe_Dial",
-  "DropSafe_Handle",
-  "DropSafe_Slot"
- ],
- "params": {
-  "dial": {
-   "min": 0,
-   "max": 1,
-   "default": 1
-  }
- },
- "materials": {
-  "default": "metal",
-  "options": [
-   "metal"
+  "parts": [
+    "DropSafe_Body",
+    "DropSafe_Door",
+    "DropSafe_Dial",
+    "DropSafe_Handle",
+    "DropSafe_Slot"
+  ],
+  "params": {
+    "dial": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    }
+  },
+  "materials": {
+    "default": "metal",
+    "options": [
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.24,
+        0.25,
+        0.28
+      ],
+      "wear": 0.25,
+      "bevel": 0.005
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.2,
+        0.21,
+        0.23
+      ],
+      "wear": 0.4,
+      "bevel": 0.005
+    },
+    "center_city": {
+      "material": "metal",
+      "color": [
+        0.284,
+        0.2995,
+        0.35
+      ],
+      "wear": 0.14,
+      "bevel": 0.005,
+      "ambient": 0
+    },
+    "industrial_flats": {
+      "material": "metal",
+      "color": [
+        0.2413,
+        0.2249,
+        0.2207
+      ],
+      "wear": 0.62,
+      "bevel": 0.005,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "metal",
+      "color": [
+        0.2256,
+        0.2475,
+        0.294
+      ],
+      "wear": 0.39,
+      "bevel": 0.005,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1200
+  },
+  "attachments": [
+    "ATT_dial"
+  ],
+  "collision": true,
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  },
+  "keywords": [
+    "drop safe",
+    "floor safe",
+    "deposit safe"
   ]
- },
- "styles": {
-  "default": {
-   "material": "metal",
-   "color": [
-    0.24,
-    0.25,
-    0.28
-   ],
-   "wear": 0.25,
-   "bevel": 0.005
-  },
-  "delco": {
-   "material": "metal",
-   "color": [
-    0.2,
-    0.21,
-    0.23
-   ],
-   "wear": 0.4,
-   "bevel": 0.005
-  },
-  "center_city": {
-   "material": "metal",
-   "color": [
-    0.284,
-    0.2995,
-    0.35
-   ],
-   "wear": 0.14,
-   "bevel": 0.005,
-   "ambient": 0
-  },
-  "industrial_flats": {
-   "material": "metal",
-   "color": [
-    0.2413,
-    0.2249,
-    0.2207
-   ],
-   "wear": 0.62,
-   "bevel": 0.005,
-   "ambient": 0.1
-  },
-  "rockay": {
-   "material": "metal",
-   "color": [
-    0.2256,
-    0.2475,
-    0.294
-   ],
-   "wear": 0.39,
-   "bevel": 0.005,
-   "ambient": 0.05
-  }
- },
- "budgets": {
-  "tris_lod0": 1200
- },
- "attachments": [
-  "ATT_dial"
- ],
- "collision": true,
- "connectors": {
-  "anchor": {
-   "type": "floor"
-  }
- },
- "keywords": [
-  "drop safe",
-  "floor safe",
-  "deposit safe"
- ]
 }

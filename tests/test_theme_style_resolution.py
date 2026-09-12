@@ -20,6 +20,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from zoo_keeper.core import genome
 from zoo_keeper.core.dna import theme_style
 
 _SPECIES = os.path.join(os.path.dirname(__file__), "..", "zoo_keeper",
@@ -100,7 +101,14 @@ def test_delco_1997_reaches_every_species():
     """0 of 56 before the resolver, 53 after it, 56 after the three styles."""
     missing = {n for n, g in _genomes().items() if theme_style(g, "delco_1997") is None}
     assert missing == _NO_DELCO_1997, sorted(missing ^ _NO_DELCO_1997)
-    assert len(_genomes()) == 56, len(_genomes())
+    # 56 hand-authored species, plus whatever tools/new_species.py has
+    # minted (genome/minted.json, roadmap 150) -- a minted species copies
+    # its template's styles, so it resolves the theme the template does.
+    import json as _json
+    import os as _os
+    _minted_path = _os.path.join(_os.path.dirname(genome.genome_dir()), "minted.json")
+    _minted = _json.load(open(_minted_path, encoding="utf-8")) if _os.path.exists(_minted_path) else []
+    assert len(_genomes()) == 56 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

@@ -285,6 +285,7 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "missing_modules": plan.get("missing_modules", []),
         # Hinted volumes built as the box, with the reason (roadmap 44).
         "species_fallbacks": plan.get("species_fallbacks", []),
+        "species_alternates": plan.get("species_alternates", []),
         "n_fail": n_fail,
         "n_missing": n_missing,
     }
@@ -293,6 +294,10 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
 
     for line in kit_mod.capability_gaps(plan):
         print(line)
+    for al in plan.get("species_alternates", []):
+        print("[zoo] SPECIES ALTERNATE %s: asked '%s' at %s, built as '%s' -- %s"
+              % (al.get("slot_id"), al.get("hint"), "x".join(str(v) for v in al.get("dims", [])),
+                 al.get("built_as"), al.get("reason")))
     for fb in plan.get("species_fallbacks", []):
         # Said out loud: a placement named for a thing and built as a box
         # is the defect roadmap 44 is about, and a silent one stays one.

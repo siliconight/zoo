@@ -229,6 +229,13 @@ def module_stem(typ: str, theme: str, style: int,
     return base
 
 
+#: When the hinted species does not fit, the next of the same family to try
+#: before the box (roadmap 44). Measured 2026-09-12: 21 "desks" in the specs
+#: stand 1.1-1.2 m tall -- front desks, check-in desks, manager desks -- and
+#: those are counters by any name.
+ALTERNATE_SPECIES = {"desk": ("counter",)}
+
+
 def _species_fit(hint: str, dims, genome_dir: str = None):
     """(species, None) when the hinted species can be built at ``dims``
     (width, depth, height inside its genome's ranges), else (None, why).
@@ -336,6 +343,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     buckets = {}
     deferred = {}
     fallbacks = []
+    alternates = []
     for s in manifest.get("slots", []):
         role = s.get("role")
         if role is None or (roles and role not in roles):
@@ -374,10 +382,25 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         # whole item is about.
         hint = None
         if typ in VOLUME_ROLES and exact and s.get("species"):
-            hint, why = _species_fit(str(s.get("species")), dims)
+            asked = str(s.get("species"))
+            hint, why = _species_fit(asked, dims)
+            if hint is None:
+                # AN ALTERNATE OF THE SAME FAMILY before the box: a "desk"
+                # 1.1 m tall is a counter (front desks, check-in desks,
+                # manager desks -- 21 placements on 2026-09-12), and a
+                # counter at those dims is closer to what the name meant
+                # than a slab is.
+                for alt in ALTERNATE_SPECIES.get(asked, ()):
+                    hint, _w2 = _species_fit(alt, dims)
+                    if hint is not None:
+                        alternates.append({"slot_id": s.get("slot_id"),
+                                           "hint": asked, "built_as": alt,
+                                           "dims": [round(float(v), 4) for v in dims[:3]],
+                                           "reason": why})
+                        break
             if hint is None:
                 fallbacks.append({"slot_id": s.get("slot_id"),
-                                  "hint": str(s.get("species")),
+                                  "hint": asked,
                                   "dims": [round(float(v), 4) for v in dims[:3]],
                                   "built_as": typ, "reason": why})
 
@@ -518,4 +541,6 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         "missing_modules": missing,
         # Hinted volumes built as the box, each with the reason (roadmap 44).
         "species_fallbacks": fallbacks,
+        # Hinted volumes built as an alternate of the same family instead.
+        "species_alternates": alternates,
     }

@@ -70,10 +70,49 @@ def test_the_runs_the_library_authors_now_plan_as_their_species():
 
 
 def test_what_still_falls_back_says_why():
+    """A 1.2 m tall bench is no chair (1.1 max); a 5 x 1.6 x 1.2 "boss desk"
+    is no desk either, and is a counter by the alternate rule."""
     plan = kit.plan_kit({"building_id": "t", "slots": [
         _prop("bench", (5.0, 1.4, 1.2), "chair"),
         _prop("boss_desk", (5.0, 1.6, 1.2), "desk"),
     ]}, theme="delco", style=1)
     reasons = {f["slot_id"]: f["reason"] for f in plan["species_fallbacks"]}
-    assert "bench" in reasons and "boss_desk" in reasons
-    assert "depth 1.60 outside" in reasons["boss_desk"]
+    assert list(reasons) == ["bench"] and "height 1.20 outside" in reasons["bench"]
+    (alt,) = plan["species_alternates"]
+    assert alt["slot_id"] == "boss_desk" and alt["built_as"] == "counter"
+    assert "depth 1.60 outside" in alt["reason"]
+
+
+def test_tables_and_seating_run_in_bays_and_a_tall_desk_is_a_counter():
+    """The 179 that still fell back on 2026-09-12, by the shapes measured."""
+    plan = kit.plan_kit({"building_id": "t", "slots": [
+        _prop("count_table", (4.0, 2.0, 0.9), "table"),
+        _prop("kitchen_prep_table", (4.0, 1.2, 0.9), "table"),
+        _prop("waiting_seats", (5.0, 2.0, 0.6), "chair"),
+        _prop("bench_row", (2.8, 1.0, 0.9), "chair"),
+        _prop("booth_seating_a", (2.0, 1.2, 1.1), "chair"),
+        _prop("rack", (16.0, 1.4, 4.4), "shelving"),
+        _prop("server_rack_cluster", (4.0, 1.4, 2.2), "shelving"),
+        _prop("office_safe", (1.2, 1.0, 1.5), "drop_safe"),
+        _prop("tank", (3.0, 3.0, 4.4), "water_tank"),
+        _prop("exec_desk", (2.4, 1.1, 0.8), "desk"),
+        _prop("coffee_island", (3.0, 2.0, 1.1), "counter"),
+        _prop("front_desk", (6.0, 0.9, 1.1), "desk"),       # a counter by any name
+        _prop("checkin_desk", (4.0, 1.4, 1.2), "desk"),
+    ]}, theme="delco", style=1)
+    assert plan["species_fallbacks"] == [], plan["species_fallbacks"]
+    by = {m["stem"].split("_delco")[0]: m["species"] for m in plan["modules"]}
+    assert by["prop_table_delco_01_w400_d200_h90".split("_delco")[0]] == "table"
+    assert {m["species"] for m in plan["modules"] if m["dims"][0] == 6.0} == {"counter"}
+    alts = {a["slot_id"]: a["built_as"] for a in plan["species_alternates"]}
+    assert alts == {"front_desk": "counter", "checkin_desk": "counter"}
+    assert "height 1.10 outside" in [a["reason"] for a in plan["species_alternates"]][0]
+
+
+def test_what_is_a_region_not_a_thing_still_falls_back():
+    plan = kit.plan_kit({"building_id": "t", "slots": [
+        _prop("cubicles_w", (8.0, 6.0, 1.2), "desk"),
+        _prop("gaming_tables", (12.0, 6.0, 1.0), "table"),
+    ]}, theme="delco", style=1)
+    assert {f["slot_id"] for f in plan["species_fallbacks"]} == {"cubicles_w", "gaming_tables"}
+    assert plan["species_alternates"] == []

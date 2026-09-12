@@ -262,6 +262,72 @@ def _say_texture(kind: str, theme: str | None) -> None:
           f"--like <template profile> --colors '#..,#..,#..' --theme {theme}")
 
 
+def cmd_style(args) -> int:
+    """Mint a style row for a THEME across the species that lack one.
+
+    `dna._pick_style_tag` walks a theme's family (`delco_1997` -> `delco`) and
+    lands on `default` when no ancestor is authored -- measured 2026-09-12:
+    43 of 57 species resolve `delco_1997` to `delco`, 14 to `default`, and
+    those 14 wear the genome's uncoloured default in a delco level. `report`
+    (no --write) says which; `--write` copies each species' `--like` block
+    (default: the theme's nearest authored ancestor, else `default`) under
+    the theme's own name, with any overrides given. A copied row is the
+    ancestor's look under a new name, which is the honest state of a style
+    nobody has tuned; the genome's `styles` block is where the tuning goes.
+    """
+    theme = args.theme.strip().lower()
+    genome_dir = os.path.abspath(args.genome_dir)
+    only = {s.strip() for s in args.species.split(",")} if args.species else None
+    overrides = {}
+    if args.material:
+        overrides["material"] = args.material
+    if args.wear is not None:
+        overrides["wear"] = float(args.wear)
+    if args.ambient is not None:
+        overrides["ambient"] = float(args.ambient)
+    if args.color:
+        overrides["color"] = [float(v) for v in args.color.split(",")]
+    sys.path.insert(0, REPO)
+    from zoo_keeper.core import dna
+    lacking, exact, written = [], [], []
+    for p in sorted(glob.glob(os.path.join(genome_dir, "*.json"))):
+        with open(p, encoding="utf-8") as f:
+            g = json.load(f)
+        sp = g.get("species")
+        if only and sp not in only:
+            continue
+        name, _block = dna._pick_style_tag(g, theme)
+        if name == theme:
+            exact.append(sp)
+            continue
+        lacking.append((sp, name))
+        if not args.write:
+            continue
+        src = args.like or name
+        if src not in g.get("styles", {}):
+            print(f"  {sp}: no style '{src}' to copy from; skipped", file=sys.stderr)
+            continue
+        row = dict(g["styles"][src])
+        row.update(overrides)
+        g["styles"][theme] = row
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(g, f, indent=2)
+            f.write("\n")
+        written.append((sp, src))
+    print(f"theme '{theme}': {len(exact)} species carry it by name, "
+          f"{len(lacking)} resolve elsewhere")
+    for sp, name in lacking:
+        print(f"  {sp:22s} -> {name}" + ("   (the uncoloured default)" if name == "default" else ""))
+    if args.write:
+        print(f"wrote '{theme}' rows into {len(written)} genome(s)"
+              + (f" from {args.like}" if args.like else " from each one's nearest ancestor")
+              + (f" with {overrides}" if overrides else ""))
+    elif lacking:
+        print("pass --write to mint the rows (each a copy of the ancestor it resolves to, "
+              "or --like <style> for one source; --material/--wear/--ambient/--color override)")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -287,6 +353,17 @@ def main(argv=None) -> int:
     n.add_argument("--tests-dir", default=os.path.join(REPO, "tests"))
     n.add_argument("--minted", default=os.path.join(REPO, "zoo_keeper", "genome", "minted.json"))
     n.set_defaults(func=cmd_new)
+    st = sub.add_parser("style", help="which species lack a style for a theme; --write mints rows")
+    st.add_argument("theme")
+    st.add_argument("--write", action="store_true")
+    st.add_argument("--like", default=None, help="style name to copy from (default: nearest ancestor)")
+    st.add_argument("--species", default=None, help="comma-separated species to limit to")
+    st.add_argument("--material", default=None)
+    st.add_argument("--wear", type=float, default=None)
+    st.add_argument("--ambient", type=float, default=None)
+    st.add_argument("--color", default=None, help="r,g,b in 0..1")
+    st.add_argument("--genome-dir", default=os.path.join(REPO, "zoo_keeper", "genome", "species"))
+    st.set_defaults(func=cmd_style)
     args = ap.parse_args(argv)
     return args.func(args)
 

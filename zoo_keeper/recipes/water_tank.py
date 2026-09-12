@@ -28,9 +28,14 @@ def build(plan, streams, collection):
     part(bm, "WaterTank_Legs")
 
     tank_h = h * 0.62
+    # EXACT FIT (roadmap 44): a 14-gon's flat-to-flat width is 2r cos(pi/14)
+    # = 0.975 x 2r, so a 3.0 m tank slot came out 2.925 wide and failed
+    # `fit_width`. Sixteen segments put a vertex on both axes and the
+    # tank's extents ARE 2r; a free-standing tank keeps its fourteen.
+    segs = 16 if plan.get("fit_exact") else 14
     bm = geometry.new_bm()
     geometry.add_cylinder(bm, (0.0, 0.0, z0 + leg_h + tank_h / 2),
-                          r, tank_h, segments=14)
+                          r, tank_h, segments=segs)
     part(bm, "WaterTank_Tank")
     cboxes.append(((-r, -r, z0), (r, r, z0 + leg_h + tank_h)))
 

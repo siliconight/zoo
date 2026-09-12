@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.64.0] - 2026-09-12
+
+The 179 that still fell back, and a style for a theme that has none.
+
+### Changed
+- Tables and seating run in bays (`bay_max` 2.4 and 0.6): a 4 x 2 count
+  table is two tables under one top, a 5 x 2 x 0.6 waiting bench a row of
+  joined seats whose seat height follows the authored height. Ranges opened
+  by measurement over the 179 placements that still fell back on
+  2026-09-12: shelving to 20 x 1.4 x 4.5 (warehouse racks 14-16 m, 4.0-4.4
+  tall; server rack clusters 1.4 deep), table 8 x 2.0 x 0.95, chair 12 x
+  2.0 from 0.5 tall, drop_safe 1.2 x 1.0 x 1.5 (office and count safes),
+  water_tank 3 x 3 x 4.5 (rooftop tanks), desk 1.2 deep (executive desks),
+  counter 2.0 deep (coffee islands).
+- `plan_kit` tries an ALTERNATE of the same family before the box:
+  `desk` -> `counter`. Twenty-one "desks" in the specs stand 1.1-1.2 m
+  tall -- front desks, check-in desks, manager desks -- and are counters
+  by any name; each is reported in the plan's and the index's
+  `species_alternates`, and printed. What stays a box is a region wearing
+  a furniture name: an 8 x 6 cubicle block, 12 x 6 of gaming tables.
+- `tools/new_species.py style <theme> [--write] [--like] [--species]
+  [--material/--wear/--ambient/--color]` (roadmap 150, the style half):
+  which species resolve a theme to the uncoloured `default` (14 of 57 for
+  `delco_1997`), and with `--write` a style row under the theme's own
+  name, copied from the ancestor each resolves to or from `--like`, with
+  overrides. A copied row is the ancestor's look under a new name, which
+  is the honest state of a style nobody has tuned.
+- `water_tank` under `fit_exact` builds its cylinder with sixteen segments
+  so its extents are the slot's (a 14-gon's flat width is 0.975 x 2r; the
+  first 3.0 m tank came out 2.925 and failed `fit_width`). Built through
+  Blender: a 4 x 2 count table, a 5 x 2 x 0.6 waiting bench, a front desk
+  that became a counter, a 16 x 1.4 x 4.4 rack, a 3 x 3 x 4.4 tank, a
+  1.2 x 1.0 x 1.5 safe, the minted pump; 7 of 7 pass.
+
 ## [0.63.1] - 2026-09-12
 
 - `tools/new_species.py new` says whether the theme (`--theme`, default
