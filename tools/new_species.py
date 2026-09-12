@@ -236,7 +236,30 @@ def cmd_new(args) -> int:
     print("route Deli Counter's placements to it -- add to "
           "deli_counter/prop_species.py PROP_SPECIES, before any broader keyword:")
     print(f"    (({', '.join(repr(k) for k in keywords)},), \"{sp}\"),")
+    _say_texture(g["materials"]["default"], args.theme)
     return 0
+
+
+def _say_texture(kind: str, theme: str | None) -> None:
+    """A species wears a KIND; a theme with no profile for it renders flat.
+    Say which, and the pixelcoat command that mints one (roadmap 150, the
+    texture half). Reads the sibling repo when it is there; silent if not."""
+    themes = os.path.join(os.path.dirname(REPO), "pixelcoat", "profiles", "themes")
+    if not theme or not os.path.isdir(themes):
+        return
+    tpath = os.path.join(themes, f"{theme}.json")
+    if not os.path.isfile(tpath):
+        print(f"texture: no theme '{theme}' in pixelcoat/profiles/themes; nothing checked")
+        return
+    with open(tpath, encoding="utf-8") as f:
+        mats = json.load(f).get("materials", {})
+    if kind in mats:
+        print(f"texture: theme {theme} dresses '{kind}' with '{mats[kind]}'")
+        return
+    print(f"texture: theme {theme} has NO profile for '{kind}' -- the species renders "
+          f"flat there. Mint one:")
+    print(f"    python ../pixelcoat/tools/new_material.py new {kind}_{theme} --kind {kind} "
+          f"--like <template profile> --colors '#..,#..,#..' --theme {theme}")
 
 
 def main(argv=None) -> int:
@@ -256,6 +279,8 @@ def main(argv=None) -> int:
     n.add_argument("--max-scale", type=float, default=2.0)
     n.add_argument("--material", default=None)
     n.add_argument("--keywords", default=None, help="comma-separated placement-name keywords")
+    n.add_argument("--theme", default="delco_1997",
+                   help="theme whose Pixelcoat profile for the material is checked")
     n.add_argument("--date", default=__import__("datetime").date.today().isoformat())
     n.add_argument("--genome-dir", default=os.path.join(REPO, "zoo_keeper", "genome", "species"))
     n.add_argument("--recipes-dir", default=os.path.join(REPO, "zoo_keeper", "recipes"))

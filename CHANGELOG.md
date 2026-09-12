@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.63.1] - 2026-09-12
+
+- `tools/new_species.py new` says whether the theme (`--theme`, default
+  `delco_1997`) has a Pixelcoat profile for the species' material, and
+  prints the `pixelcoat/tools/new_material.py` command when it does not
+  -- a minted prop with no pack is a flat box, and the two mints are one
+  request (roadmap 150).
+
 ## [0.63.0] - 2026-09-12
 
 A new person can mint a species.
