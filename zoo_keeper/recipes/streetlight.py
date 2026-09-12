@@ -31,23 +31,33 @@ def build(plan, streams, collection):
     geometry.add_cylinder(bm, (0.0, 0.0, z0 + 0.03), 0.16, 0.06, segments=10)
     part(bm, "Streetlight_Base")
 
-    # Pole: grade to the anchor point at +h/2.
-    pole_h = h - 0.06
+    # TWO PLACEMENTS, ONE RECIPE. The light-anchor pipeline (fixtures) puts
+    # the pole TOP at the anchor and wants the lamp point at exactly +h/2 in
+    # clear air, so the head floats above it and the module is 0.18 m taller
+    # than h. A SLOT (the site kit, roadmap 153) wants the module exactly h
+    # tall -- `fit_height` failed 6.18 against 6.00 on cold run 9024 and Lot
+    # 0.63.0 stood 13 green boxes instead of lamps. When the plan is an
+    # exact fit, the head's top is +h/2 and the lamp point sits under the
+    # lens 0.19 m lower, which is where a lens is.
+    exact = bool(plan.get("fit_exact"))
+    top = h / 2.0 - (0.18 if exact else 0.0)          # the pole's top
+    # Pole: grade to the top.
+    pole_h = (top - z0) - 0.06
     bm = geometry.new_bm()
     geometry.add_cylinder(bm, (0.0, 0.0, z0 + 0.06 + pole_h / 2.0),
                           0.06, pole_h, segments=8)
     pole = part(bm, "Streetlight_Pole")
-    cboxes.append(((-0.08, -0.08, z0), (0.08, 0.08, h / 2.0)))
+    cboxes.append(((-0.08, -0.08, z0), (0.08, 0.08, top)))
 
     # Shoebox head, floated just above the pole top so the lamp point
-    # (exactly at +h/2) sits in clear air under the lens.
+    # (exactly at the top) sits in clear air under the lens.
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, h / 2.0 + 0.02 + 0.08), (w, d, 0.16))
+    geometry.add_box(bm, (0.0, 0.0, top + 0.02 + 0.08), (w, d, 0.16))
     head = part(bm, "Streetlight_Head")
 
     # Lens: emissive underside, protruding a touch below the head.
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, h / 2.0 + 0.015),
+    geometry.add_box(bm, (0.0, 0.0, top + 0.015),
                      (w * 0.8, d * 0.75, 0.02))
     lens_obj = geometry.bm_to_object(
         bm, "Streetlight_Lens", collection, bevel=0.0, texel=1.0,

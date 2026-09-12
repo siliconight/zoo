@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.67.3] - 2026-09-13
+
+`streetlight` fits its slot when the plan is an exact fit. The recipe
+floats its head above the lamp point it puts at +h/2 for the light-anchor
+pipeline, which places the pole top at the anchor -- so as a kit module it
+was 6.18 m against a 6.00 m slot, failed `fit_height`, and Lot 0.63.0
+stood 13 green boxes on cold run 9025's sidewalks where the lamps go. On
+an exact-fit plan the head's top is now +h/2 and the lamp point sits under
+the lens 0.18 m lower; the fixtures pipeline builds exactly what it built.
+
 ## [0.67.2] - 2026-09-13
 
 `simple_car`'s bumpers sit within its length: they stood 0.03 m proud at
