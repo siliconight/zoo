@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.69.1] - 2026-09-13
+
+`weed_tuft` spans its own width whatever the seed. The blades' bases and
+leans are drawn, and a draw where they all lean one way from a tight root
+built a clump narrower than the genome's floor: cold run 9030 (seed 9030)
+measured 0.028 m against a 0.050 m minimum, the habitat FAILED and the
+package was refused. The clump is now spread in plan, about its root,
+until it fills nine tenths of the plan's width and depth -- never shrunk.
+Rebuilt at seed 9030: PASS.
+
 ## [0.69.0] - 2026-09-13
 
 `street_tree`'s crown is cutout cards: four vertical planes crossed at

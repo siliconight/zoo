@@ -92,6 +92,21 @@ def build(plan, streams, collection):
                            bend=bend, stations=stations, taper=taper_i,
                            curl=rng.random() * 0.6)
 
+    # THE TUFT SPANS ITS WIDTH. The blades' bases and leans are drawn, and
+    # a draw where they all lean one way from a tight root builds a clump
+    # narrower than the genome's floor: cold run 9030 (seed 9030) measured
+    # 0.028 m against a 0.050 m minimum and the habitat FAILED. The clump
+    # is spread in plan, about its root, until it fills nine tenths of
+    # the plan's width and depth -- never shrunk, so a wide draw stays.
+    xs = [v.co.x for v in bm.verts]
+    ys = [v.co.y for v in bm.verts]
+    ex, ey = (max(xs) - min(xs)) or 1e-6, (max(ys) - min(ys)) or 1e-6
+    k = max(1.0, 0.9 * w / ex, 0.9 * d / ey)
+    if k > 1.0:
+        for v in bm.verts:
+            v.co.x *= k
+            v.co.y *= k
+
     tuft = geometry.bm_to_object(bm, "Dress_WeedTuft", collection,
                                  bevel=bevel, texel=8.0, rng=rng, wear=wear)
     materials.assign([tuft], materials.make_material(
