@@ -1,126 +1,127 @@
 {
- "species": "counter",
- "version": 1,
- "license": {
-  "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line."
- },
- "dimensions": {
-  "width": {
-   "min": 0.8,
-   "max": 4.0,
-   "default": 2.0
+  "species": "counter",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line."
   },
-  "depth": {
-   "min": 0.5,
-   "max": 0.9,
-   "default": 0.65
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 12.0,
+      "default": 2.0
+    },
+    "depth": {
+      "min": 0.5,
+      "max": 1.4,
+      "default": 0.65
+    },
+    "height": {
+      "min": 0.85,
+      "max": 1.2,
+      "default": 0.95
+    }
   },
-  "height": {
-   "min": 0.85,
-   "max": 1.15,
-   "default": 0.95
-  }
- },
- "parts": [
-  "Counter_Body",
-  "Counter_Top",
-  "Counter_Base"
- ],
- "params": {
-  "overhang": {
-   "min": 0,
-   "max": 1,
-   "default": 1
+  "parts": [
+    "Counter_Body",
+    "Counter_Top",
+    "Counter_Base"
+  ],
+  "params": {
+    "overhang": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    "shelf": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    "bay_max": 4.0
   },
-  "shelf": {
-   "min": 0,
-   "max": 1,
-   "default": 1
-  }
- },
- "materials": {
-  "default": "wood",
-  "options": [
-   "wood",
-   "laminate",
-   "metal"
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood",
+      "laminate",
+      "metal"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.45,
+        0.34,
+        0.24
+      ],
+      "wear": 0.25,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "laminate",
+      "color": [
+        0.5,
+        0.42,
+        0.33
+      ],
+      "wear": 0.45,
+      "bevel": 0.004,
+      "ambient": 0.3
+    },
+    "center_city": {
+      "material": "laminate",
+      "color": [
+        0.56,
+        0.499,
+        0.45
+      ],
+      "wear": 0.158,
+      "bevel": 0.004,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal",
+      "color": [
+        0.4142,
+        0.3917,
+        0.3833
+      ],
+      "wear": 0.67,
+      "bevel": 0.004,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.423,
+        0.3366,
+        0.252
+      ],
+      "wear": 0.39,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 500
+  },
+  "attachments": [
+    {
+      "name": "ATT_register",
+      "pos": [
+        0.3,
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "collision": true,
+  "keywords": [
+    "counter",
+    "service counter",
+    "shop counter",
+    "checkout"
   ]
- },
- "styles": {
-  "default": {
-   "material": "wood",
-   "color": [
-    0.45,
-    0.34,
-    0.24
-   ],
-   "wear": 0.25,
-   "bevel": 0.004
-  },
-  "delco": {
-   "material": "laminate",
-   "color": [
-    0.5,
-    0.42,
-    0.33
-   ],
-   "wear": 0.45,
-   "bevel": 0.004,
-   "ambient": 0.3
-  },
-  "center_city": {
-   "material": "laminate",
-   "color": [
-    0.56,
-    0.499,
-    0.45
-   ],
-   "wear": 0.158,
-   "bevel": 0.004,
-   "ambient": 0.15
-  },
-  "industrial_flats": {
-   "material": "metal",
-   "color": [
-    0.4142,
-    0.3917,
-    0.3833
-   ],
-   "wear": 0.67,
-   "bevel": 0.004,
-   "ambient": 0.4
-  },
-  "rockay": {
-   "material": "wood",
-   "color": [
-    0.423,
-    0.3366,
-    0.252
-   ],
-   "wear": 0.39,
-   "bevel": 0.004,
-   "ambient": 0.05
-  }
- },
- "budgets": {
-  "tris_lod0": 500
- },
- "attachments": [
-  {
-   "name": "ATT_register",
-   "pos": [
-    0.3,
-    0.0,
-    1.0
-   ]
-  }
- ],
- "collision": true,
- "keywords": [
-  "counter",
-  "service counter",
-  "shop counter",
-  "checkout"
- ]
 }

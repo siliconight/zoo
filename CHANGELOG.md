@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.62.0] - 2026-09-12
+
+A run species fills a run, in bays.
+
+Roadmap 44, step 3. Measured 2026-09-12 over the 1,443 placements: of the
+721 that name a species, 579 are longer than any single unit of it, and
+every `teller_counter` (38) is a 1.0 m counter that no `teller_line`
+barrier (2.0 m minimum) could be. Deli Counter authors runs; Zoo built
+units.
+
+### Changed
+- `recipes/_bays.py`: `bays(width, bay_max)` divides a width into equal
+  bays of at most `bay_max`, never a sliver. `counter`, `shelving`,
+  `filing_cabinet` and `desk` declare `bay_max` in their genome params
+  (4.0 / 2.4 / 0.5 / 2.2) and open their width to 12.0 (4.0 for the
+  cabinet): a counter run is one body and top with a shelf and a register
+  attachment per bay; a shelf run shares an upright at every bay boundary
+  with boards and back per bay; a cabinet bank runs one body and base with
+  a drawer stack per bay; a desk row is one top on a leg set, pedestal and
+  modesty panel per bay. One bay is the unit each recipe always built.
+- Ranges opened to what the specs author, by measurement: counter depth
+  1.4 and height 1.2 (nurse stations, bars); shelving depth 1.2 and height
+  3.5 (double-sided gondolas, warehouse racks); filing_cabinet depth 0.9
+  and height 2.1 (lockers); desk height 1.0; hvac_unit 4.0 x 3.0 x 1.5
+  (rooftop units); table height 0.8 (card tables). `tests/test_bays.py`
+  plans the measured shapes verbatim with no fallback.
+- `filing_cabinet` under `fit_exact` gives the body up to the 0.05 m its
+  drawer fronts and pulls stand proud, so a locker bank is its slot's
+  depth (the first 3.0 x 0.8 x 2.0 bank came out 0.840 and failed
+  `fit_depth`). Built through Blender: an 8 m counter (two shelves, two
+  registers), a 6 x 1.0 shelf run (three bays, four uprights), a 3 m
+  locker bank (six drawer stacks), a 4.4 m desk row (two desks under one
+  top), a 4 x 3 rooftop unit; 5 of 5 pass.
+- Deli Counter 0.118.0 routes `teller` and `workbench` to `counter`, adds
+  `chair`, and records a hinted volume long side first (turned 90 when its
+  long side is y), so a 1.0 x 6.0 aisle plans as a 6.0 m run.
+
 ## [0.61.0] - 2026-09-12
 
 A hinted volume is built as what it is, when it fits.

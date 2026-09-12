@@ -7,6 +7,7 @@ generic sibling of the bank teller_line — same posture, no security barrier.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
+from ._bays import bay_max_of, bays
 
 
 def _darker(c, f=0.6):
@@ -60,12 +61,22 @@ def build(plan, streams, collection):
                      (top_w, d, top_t))
     part(bm, "Counter_Top")
 
-    # staff-side under-shelf
-    if shelf:
-        bm = geometry.new_bm()
-        geometry.add_box(bm, (0.0, body_y + body_d * 0.3, base_h + body_h * 0.5),
-                         (body_w * 0.9, body_d * 0.35, 0.03))
-        part(bm, "Counter_Shelf")
+    # BAYS (roadmap 44): a counter run is one continuous body and top -- a
+    # 10 m bar is a 10 m bar -- so the bays only decide where the staff-side
+    # shelves and the register attachment points stand: one per bay of at
+    # most `bay_max` (genome params), so an 8 m teller counter has two
+    # stations, not one register at 1.2 m from the end.
+    runs = bays(w, bay_max_of(plan))
+    attachments = {}
+    for bi, (bx, bw) in enumerate(runs):
+        tag = "" if len(runs) == 1 else f"_B{bi + 1}"
+        if shelf:
+            bm = geometry.new_bm()
+            geometry.add_box(bm, (bx, body_y + body_d * 0.3, base_h + body_h * 0.5),
+                             (bw * 0.9 - (2 * lip if exact else 0.0), body_d * 0.35, 0.03))
+            part(bm, f"Counter_Shelf{tag}")
+        attachments[f"ATT_register{tag}"] = (bx + bw * 0.15, 0.0, h)
+    attachments["ATT_counter_front"] = (0.0, -d / 2, h)
 
     cboxes.append(((-w / 2, -d / 2, 0.0), (w / 2, d / 2, h)))
 
@@ -86,5 +97,4 @@ def build(plan, streams, collection):
             materials.assign([o], body)
 
     return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_register": (w * 0.15, 0.0, h),
-                            "ATT_counter_front": (0.0, -d / 2, h)}}
+            "attachments": attachments}
