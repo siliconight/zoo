@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.68.0] - 2026-09-13
+
+Three species for the waiting places (roadmap 153), minted by
+`tools/new_species.py` and shaped: `bus_shelter` (four posts under a flat
+roof, glazed back and ends from a knee-high sill, open along the kerb;
+posts and panes collide, the roof does not), `bench` (three slats on two
+cast end frames, no back, the whole block collides), and `street_tree` (a
+tapered trunk from a 1.2 m iron grate at grade, a two-frustum crown in the
+vegetation grammar filling the slot's width at its waist; ONLY THE TRUNK
+collides -- a body walks under a crown). All centre-pivot at exactly the
+slot's dims. The tree is the honest first state of the alpha-cutout
+foliage the contract names: a faceted volume, not cards.
+
 ## [0.67.3] - 2026-09-13
 
 `streetlight` fits its slot when the plan is an exact fit. The recipe

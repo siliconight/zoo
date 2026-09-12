@@ -1,8 +1,11 @@
 [
+  "bench",
   "box_truck",
+  "bus_shelter",
   "cargo_container",
   "fire_hydrant",
   "litter_bin",
   "pump",
-  "sign_post"
+  "sign_post",
+  "street_tree"
 ]

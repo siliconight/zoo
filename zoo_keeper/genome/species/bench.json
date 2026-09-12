@@ -1,0 +1,105 @@
+{
+  "species": "bench",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A street bench: three wood slats along its length on two cast-iron end frames, no back, seat 0.45 m up, 1.8 m long. Stands inside the bus shelter against its back. Roadmap 153, the waiting places."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.9,
+      "max": 3.6,
+      "default": 1.8
+    },
+    "depth": {
+      "min": 0.25,
+      "max": 1.0,
+      "default": 0.5
+    },
+    "height": {
+      "min": 0.225,
+      "max": 0.9,
+      "default": 0.45
+    }
+  },
+  "parts": [
+    "Bench_Body"
+  ],
+  "params": {},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "concrete",
+      "metal",
+      "wood",
+      "plaster"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "bench",
+    "park bench",
+    "street bench"
+  ]
+}
