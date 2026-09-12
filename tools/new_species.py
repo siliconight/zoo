@@ -185,10 +185,20 @@ def cmd_new(args) -> int:
     g = json.loads(json.dumps(like))
     g["species"] = sp
     g["version"] = 1
+    # LOOK AT THE REAL THING FIRST (the walker, 2026-09-12: "simple google
+    # searches of the zoo species can inform the design before we hit
+    # Blender"). `--reference` is where that looking is written down --
+    # what the thing is made of, its proportions, the parts a photograph
+    # shows -- so the recipe's author starts from a description and not
+    # from a box. It rides in the genome's licence notes, beside the mint.
+    ref = (args.reference or "").strip()
     g["license"] = {"construction_knowledge": "CC0",
                     "notes": (f"Minted {args.date} by tools/new_species.py from "
                               f"'{args.like}': a placeholder box at the authored "
-                              f"dims until the recipe is shaped.")}
+                              f"dims until the recipe is shaped."
+                              + (f" REFERENCE: {ref}" if ref else
+                                 " NO REFERENCE GIVEN: look at ten photographs "
+                                 "of one before drawing it."))}
     g["dimensions"] = {k: {"min": round(v * args.min_scale, 3),
                            "max": round(v * args.max_scale, 3),
                            "default": round(v, 3)}
@@ -347,6 +357,9 @@ def main(argv=None) -> int:
     n.add_argument("--keywords", default=None, help="comma-separated placement-name keywords")
     n.add_argument("--theme", default="delco_1997",
                    help="theme whose Pixelcoat profile for the material is checked")
+    n.add_argument("--reference", default=None,
+                   help="what the real thing looks like (parts, proportions, a URL); "
+                        "written into the genome so the recipe starts from it")
     n.add_argument("--date", default=__import__("datetime").date.today().isoformat())
     n.add_argument("--genome-dir", default=os.path.join(REPO, "zoo_keeper", "genome", "species"))
     n.add_argument("--recipes-dir", default=os.path.join(REPO, "zoo_keeper", "recipes"))

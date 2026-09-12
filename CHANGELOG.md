@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.65.0] - 2026-09-12
+
+The teller line has a window per station.
+
+### Changed
+- `recipes/teller_line.py` builds in bays (`bay_max` 2.0, width to 12.0,
+  depth to 1.2): the counter and the header run the full line, a post
+  stands at every station boundary, and each station's glass carries its
+  own service opening -- a pass-through at the counter, tray-wide -- with
+  a tray attachment per station. Drawn from the walker's references (a
+  Chase branch line, a bank service window, a teller window under
+  construction); the recipe's docstring says what it is a drawing of.
+  Built through Blender: a 12 x 0.8 x 2.4 line, seven posts, six windows,
+  PASS; a 3.2 x 1.2 x 2.4 bank-tower teller; an 8 x 0.8 x 1.0 teller
+  still at counter height falls to `counter` (`ALTERNATE_SPECIES`).
+- `tools/new_species.py new --reference "..."`: what the real thing looks
+  like, written into the genome beside the mint, so the recipe starts from
+  a description and not from a box; without it the genome says so.
+
 ## [0.64.0] - 2026-09-12
 
 The 179 that still fell back, and a style for a theme that has none.

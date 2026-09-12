@@ -233,7 +233,10 @@ def module_stem(typ: str, theme: str, style: int,
 #: before the box (roadmap 44). Measured 2026-09-12: 21 "desks" in the specs
 #: stand 1.1-1.2 m tall -- front desks, check-in desks, manager desks -- and
 #: those are counters by any name.
-ALTERNATE_SPECIES = {"desk": ("counter",)}
+ALTERNATE_SPECIES = {"desk": ("counter",),
+                     # a teller volume still authored at counter height
+                     # (roadmap 44): the counter, not the box
+                     "teller_line": ("counter",)}
 
 
 def _species_fit(hint: str, dims, genome_dir: str = None):

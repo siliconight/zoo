@@ -28,15 +28,26 @@ def test_a_desk_that_fits_is_planned_as_a_desk_under_the_prop_stem():
     assert plan["species_fallbacks"] == []
 
 
-def test_a_run_the_species_cannot_be_is_built_as_the_box_and_said():
-    """An 8 m teller counter against teller_line's 1.0..5.0 m width."""
-    plan = _plan(_prop("teller_counter", (8.0, 0.8, 1.0), "teller_line"))
+def test_a_shape_no_species_can_be_is_built_as_the_box_and_said():
+    """A 12 x 6 m block of gaming tables is a region, not a table (0.64.0
+    opened widths to runs, so the old 8 m teller example is now a counter
+    by the alternate rule -- see test_bays)."""
+    plan = _plan(_prop("gaming_tables", (12.0, 6.0, 1.0), "table"))
     (m,) = plan["modules"]
     assert m["species"] == "prop"
-    assert m["stem"] == "prop_delco_01_w800_d80_h100"
+    assert m["stem"] == "prop_delco_01_w1200_d600_h100"
     (fb,) = plan["species_fallbacks"]
-    assert fb["slot_id"] == "teller_counter" and fb["hint"] == "teller_line"
-    assert fb["built_as"] == "prop" and "width 8.00 outside 1.00..5.00" in fb["reason"]
+    assert fb["slot_id"] == "gaming_tables" and fb["hint"] == "table"
+    assert fb["built_as"] == "prop" and "width 12.00 outside 0.60..8.00" in fb["reason"]
+
+
+def test_a_low_teller_line_is_a_counter_by_the_alternate_rule():
+    plan = _plan(_prop("teller_counter", (8.0, 0.8, 1.0), "teller_line"))
+    (m,) = plan["modules"]
+    assert m["species"] == "counter" and m["stem"] == "prop_counter_delco_01_w800_d80_h100"
+    (alt,) = plan["species_alternates"]
+    assert alt["hint"] == "teller_line" and alt["built_as"] == "counter"
+    assert plan["species_fallbacks"] == []
 
 
 def test_a_species_that_would_fit_turned_says_so():
