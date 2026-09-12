@@ -51,8 +51,14 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
     # minted placeholders and `simple_car` were built base-up (centre at
     # z = h/2) under a "center" claim, and stood h/2 in the air on cold run
     # 9019's site. Facts without a centre (older gatherers, tests) skip it.
+    # Only a SLOT-FIT module carries a `module` block with a pivot claim.
+    # A habitat or dressing species -- a pebble, a weed tuft -- is built base
+    # -up on purpose, to sit on the surface Patina scatters it over, and has
+    # no claim to measure: cold run 9020 failed all four clutter species on
+    # this check the first time it ran, because a missing block defaulted
+    # to "center".
     center = facts.get("center")
-    pivot = ((plan.get("module") or {}).get("pivot") or "center")
+    pivot = plan.get("pivot") or (plan.get("module") or {}).get("pivot")
     if center is not None and pivot == "center":
         off = max(abs(float(c)) for c in center)
         _check(checks, "fit_pivot", off <= tol,

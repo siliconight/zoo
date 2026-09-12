@@ -28,7 +28,9 @@ def recentre(result: dict, plan: dict, lo, hi, tol: float = TOL) -> dict:
     collision boxes and attachment points move by the same offset, so the
     three stay in step. A result already centred is returned untouched, and
     a re-centred one records ``recentred_by``."""
-    pivot = ((plan.get("module") or {}).get("pivot") or "center")
+    # An explicit claim only: a species built for a surface (clutter,
+    # dressing) carries no `module` block and is left where its recipe put it.
+    pivot = plan.get("pivot") or (plan.get("module") or {}).get("pivot")
     if pivot != "center":
         return result
     ox, oy, oz = offset(lo, hi)

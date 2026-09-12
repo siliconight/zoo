@@ -78,7 +78,7 @@ def test_the_recentre_moves_geometry_collision_and_attachments_together():
     o = _Obj([(-1.2, -3.0, 0.0), (1.2, 3.0, 2.8)])
     res = {"objects": [o], "collision_boxes": [((-1.2, -3.0, 0.0), (1.2, 3.0, 2.8))],
            "attachments": {"ATT_top": (0.0, 0.0, 2.8)}}
-    out = pivot.recentre(res, {"module": {"pivot": "center"}},
+    out = pivot.recentre(res, {"pivot": "center"},
                          (-1.2, -3.0, 0.0), (1.2, 3.0, 2.8))
     assert out["recentred_by"] == [0.0, 0.0, 1.4]
     assert sorted(v.co.z for v in o.data.vertices) == [-1.4, 1.4]
@@ -86,5 +86,26 @@ def test_the_recentre_moves_geometry_collision_and_attachments_together():
     assert out["attachments"] == {"ATT_top": (0.0, 0.0, 1.4)}
     # already centred: untouched, no offset recorded
     out2 = pivot.recentre({"objects": [], "collision_boxes": [], "attachments": {}},
-                          {"module": {"pivot": "center"}}, (-1, -1, -1), (1, 1, 1))
+                          {"pivot": "center"}, (-1, -1, -1), (1, 1, 1))
     assert "recentred_by" not in out2
+
+
+def test_a_surface_species_with_no_module_block_is_not_judged_or_moved():
+    """Cold run 9020: pebble, rubble_frag, litter_scrap and weed_tuft -- built
+    base-up on purpose, to sit on the ground Patina scatters them over --
+    failed `fit_pivot` because a missing `module` block defaulted to
+    "center". A habitat build carries no claim; it gets no check and no
+    re-centre."""
+    from zoo_keeper.core import pivot
+    g = genome.load_species("pebble")
+    plan = {"dimensions": {"width": 0.08, "depth": 0.08, "height": 0.05},
+            "parts": ["Pebble_Stone"], "budgets": {"tris_lod0": 200}}
+    facts = {"dimensions": dict(plan["dimensions"]), "center": [0.0, 0.0, 0.025],
+             "tris": 60, "parts": ["Pebble_Stone"], "has_uvs": True,
+             "has_wear_colors": True, "materials": ["M_Pebble_gravel"],
+             "has_collision": False, "unapplied_transforms": []}
+    report = validate.evaluate(facts, g, plan, {"collision": False})
+    assert not any(c["id"] == "fit_pivot" for c in report["checks"])
+    out = pivot.recentre({"objects": [], "collision_boxes": [], "attachments": {}},
+                         plan, (-0.04, -0.04, 0.0), (0.04, 0.04, 0.05))
+    assert "recentred_by" not in out

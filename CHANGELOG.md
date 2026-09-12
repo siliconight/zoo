@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.66.2] - 2026-09-12
+
+The pivot check judges slot-fit modules only. Cold run 9020, the first
+build on 0.66.1: the site's box truck came out centred (y -1.40 .. 1.40)
+and every clutter species failed -- pebble, rubble_frag, litter_scrap,
+weed_tuft are built base-up on purpose, to sit on the ground Patina
+scatters them over, and a missing pivot claim had defaulted to "center".
+`fit_pivot` and the re-centre now read the resolved plan's own `pivot` (a
+kit module's is "center"; a habitat plan has none) and leave a surface
+species where its recipe put it.
+
 ## [0.66.1] - 2026-09-12
 
 The pivot is enforced, not declared.
