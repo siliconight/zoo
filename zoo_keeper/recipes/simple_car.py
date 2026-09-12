@@ -133,7 +133,10 @@ def build(plan, streams, collection):
     # --- bumpers ------------------------------------------------------------
     for tag, sy in (("F", -1), ("R", 1)):
         bm = geometry.new_bm()
-        geometry.add_box(bm, (0, sy * (length / 2 - 0.03),
+        # The bumper's outer face IS the car's length: a bumper that stood
+        # 0.03 m proud at each end made the built module 4.36 m against a
+        # 4.30 m slot and failed `fit_depth` on cold run 9024's site kit.
+        geometry.add_box(bm, (0, sy * (length / 2 - 0.06),
                               body_z0 + (body_z1 - body_z0) * 0.22),
                          (w * 0.96, 0.12, (body_z1 - body_z0) * 0.34))
         part(bm, f"Car_Bumper_{tag}")

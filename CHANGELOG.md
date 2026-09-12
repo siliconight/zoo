@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.67.2] - 2026-09-13
+
+`simple_car`'s bumpers sit within its length: they stood 0.03 m proud at
+each end, so the built module was 4.36 m against a 4.30 m slot and failed
+`fit_depth` on cold run 9024's site kit (Lot stood it anyway; it resolves
+by file, which is its next thing to fix). The bumper's outer face is now
+the car's length. `streetlight` fails the same check by 0.18 m for a
+different reason -- its recipe floats the head above the lamp point it
+puts at +h/2 on purpose -- and is left for the contract conversation with
+Lux rather than moved in a hurry (roadmap 153).
+
 ## [0.67.1] - 2026-09-13
 
 `sign_post` is bare metal in every style, not raw `metal` with `metal_bare`
