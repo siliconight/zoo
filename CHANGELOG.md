@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.63.0] - 2026-09-12
+
+A new person can mint a species.
+
+Roadmap 150, from the walker: "new people can walk up to this level factory
+and make a good looking level and mint the necessary props, textures,
+styles to fulfil the request." For props the owning tool is Zoo, and
+growing it meant reading five recipes, a genome schema and a test file.
+Measured 2026-09-12 over Deli Counter's 129 built manifests: 511 prop
+slots carry no species hint, and the names say what they are -- `pump` 42,
+`pump_island` 21, `canopy_col` 42, `aisle` 19, `display_case` 11, `stall`
+10, `lift` 8, `planter_box`, `forecourt_pad`, `canopy_roof`.
+
+### Added
+- `tools/new_species.py report`: the request queue -- placement names with
+  no species hint, most common first; hints to species that do not exist;
+  and hinted slots that exist but did not fit (a range or a bay, not a
+  mint). `tools/new_species.py new <species> --width --depth --height
+  [--like prop] [--material] [--keywords]` writes a genome from the
+  template with the dims as defaults and a 0.5x..2.0x range, a placeholder
+  recipe (a solid box of the plan's exact dims, one named part, collision,
+  a top attachment, a docstring that says where the drawing goes), a test,
+  and a line in `genome/minted.json`, which `test_genome` unions into its
+  known set. It prints the one line Deli Counter's keyword table needs.
+  Refuses to overwrite. `tests/test_new_species.py`.
+- `pump`, the first minted species (1.0 x 1.2 x 1.4, metal), routed by
+  Deli Counter 0.118.0's `pump` keyword; `pump_island` stays a box. Its
+  recipe is the placeholder; a pump that is a box is the honest state of a
+  pump nobody has drawn, and it is now counted as one.
+
 ## [0.62.0] - 2026-09-12
 
 A run species fills a run, in bays.

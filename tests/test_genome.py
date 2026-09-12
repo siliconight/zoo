@@ -49,9 +49,23 @@ DRESSING_SPECIES = {"pebble", "rubble_frag", "weed_tuft", "litter_scrap",
                     "glass_shard"}
 
 
+def _minted():
+    """Species minted by tools/new_species.py (roadmap 150) -- registered in
+    genome/minted.json so a new person can add one without editing this
+    file, and listed there so the hand-authored set above stays the audit
+    of what somebody actually shaped."""
+    import json
+    import os
+    p = os.path.join(os.path.dirname(genome.genome_dir()), "minted.json")
+    if not os.path.exists(p):
+        return set()
+    with open(p, encoding="utf-8") as f:
+        return set(json.load(f))
+
+
 def test_all_species_load_and_validate():
     species = genome.list_species()
-    assert set(species) == PROP_SPECIES | ARCH_SPECIES | DRESSING_SPECIES
+    assert set(species) == PROP_SPECIES | ARCH_SPECIES | DRESSING_SPECIES | _minted()
     for s in species:
         g = genome.load_species(s)
         assert genome.validate_genome(g) == []
