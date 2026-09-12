@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.68.1] - 2026-09-13
+
+`bench` and `bus_shelter` carry their own triangle budgets (300, 400): the
+minter copies `prop`'s 200, and a slatted bench (220 tris) and a glazed
+shelter (352) built as `warn` rows against it -- which Lot 0.63.0 read as
+"not pass" and kept the boxes for. Measured on a local kit build before
+cold run 9027.
+
 ## [0.68.0] - 2026-09-13
 
 Three species for the waiting places (roadmap 153), minted by
