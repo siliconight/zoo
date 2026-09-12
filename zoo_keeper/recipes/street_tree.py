@@ -3,7 +3,7 @@
 Roadmap 153, the waiting places: "a tree in a kerb grate (the contract's
 alpha-cutout foliage, the first species that needs it)". A bark cylinder
 for the trunk, a crown of CUTOUT CARDS -- four vertical planes crossed at
-45 degrees and two horizontal ones, each wearing the `foliage` kind, a
+45 degrees, one foliage tile each, wearing the `foliage` kind, a
 leaf-cluster pack whose alpha is tested rather than blended (Pixelcoat
 0.32.0, `materials._textured`), so the crown reads as leaf mass with sky
 between -- and a flat iron grate at grade. Without a foliage pack the
@@ -44,10 +44,10 @@ def build(plan, streams, collection):
     objs, cboxes = [], []
     z0 = -h / 2.0
 
-    def part(bm, name, texel=1.2, part_bevel=None, smooth=True):
+    def part(bm, name, texel=1.2, part_bevel=None, smooth=True, uv_offset=(0.0, 0.0, 0.0)):
         obj = geometry.bm_to_object(
             bm, name, collection, bevel=bevel if part_bevel is None else part_bevel,
-            texel=texel, rng=rng, wear=wear,
+            texel=texel, rng=rng, wear=wear, uv_offset=uv_offset,
             **({} if smooth else {"smooth_angle": 0.0}))
         objs.append(obj)
         return obj
@@ -70,22 +70,28 @@ def build(plan, streams, collection):
                    (TRUNK_D / 2.0, TRUNK_D / 2.0, trunk_top)))
 
     # crown: the upper 0.6 of the height as CARDS. Four vertical planes
-    # through the axis at 0, 45, 90 and 135 degrees, each the slot's full
-    # width and the crown's full height, and two horizontal planes at a
-    # third and two thirds of the crown, each the slot's footprint -- so
-    # the extents are exactly (w, d, crown) and the silhouette is leaf
-    # mass from every side. A card is a 2 cm box: two faces, no culling.
+    # through the axis at 0, 45, 90 and 135 degrees, the crown's full
+    # height; the axis-aligned pair is the slot's width and the diagonal
+    # pair is that times root two, so every card's extents are the slot's
+    # (w, d). ONE TILE PER CARD: the foliage pack is authored at
+    # `meters_per_tile` = the card's width with its cutout faded to
+    # nothing inside an ellipse centred on the tile's corner, and the
+    # crown's UVs are cube-projected about the crown's own centre
+    # (`uv_offset`), so each card's UVs run -0.5..0.5 across one tile and
+    # the card's edge is the canopy's, not a hard line. Cold run 9031's
+    # frames: the tile repeated 2.7 times across the card and the two
+    # horizontal cards read as shelves; both gone. A card is a 2 cm box:
+    # two faces, no culling.
     crown_h = h * 0.6
     crown_c = h / 2.0 - crown_h / 2.0
     bm = geometry.new_bm()
     span = max(w, d)
     for k in range(4):
-        verts = geometry.add_box(bm, (0.0, 0.0, crown_c), (span, CARD_T, crown_h))
+        length = span if k % 2 == 0 else span * math.sqrt(2.0)
+        verts = geometry.add_box(bm, (0.0, 0.0, crown_c), (length, CARD_T, crown_h))
         geometry.place(verts, (0.0, 0.0, 0.0), rot_z=math.radians(45.0 * k))
-    for frac in (1.0 / 3.0, 2.0 / 3.0):
-        geometry.add_box(bm, (0.0, 0.0, crown_c - crown_h / 2.0 + crown_h * frac),
-                         (w, d, CARD_T))
-    crown = part(bm, "StreetTree_Crown", texel=1.0, part_bevel=0.0, smooth=False)
+    crown = part(bm, "StreetTree_Crown", texel=1.0, part_bevel=0.0, smooth=False,
+                 uv_offset=(0.0, 0.0, -crown_c))
 
     bark = materials.make_material(
         f"M_StreetTree_{plan['material']}", plan["color"], plan["material"])

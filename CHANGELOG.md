@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.69.2] - 2026-09-13
+
+`street_tree`'s crown is four vertical cards and one foliage tile each.
+Cold run 9031's frames: the tile repeated 2.7 times across a card and the
+two horizontal cards read as shelves, so the crown was a square lattice.
+The axis-aligned pair is the slot's width and the diagonal pair is that
+times root two (every card's extents are the slot's); the crown's UVs are
+cube-projected about the crown's own centre (`uv_offset`), so each card's
+UVs run -0.5..0.5 across one tile of Pixelcoat 0.32.1's foliage pack,
+authored at the card's width with an elliptical cutout -- the card's edge
+is the canopy's. Local kit build: PASS at the slot's dims.
+
 ## [0.69.1] - 2026-09-13
 
 `weed_tuft` spans its own width whatever the seed. The blades' bases and
