@@ -52,8 +52,17 @@ def gather_facts(collection, root_name):
         lo, hi = geometry.bounds_of(meshes)
         dims = {"width": hi.x - lo.x, "depth": hi.y - lo.y,
                 "height": hi.z - lo.z}
+        # Where the module's box actually sits. The kit index has always
+        # REPEATED the plan's "pivot": "center"; this is the measurement the
+        # claim is checked against (`fit_pivot`). Measured 2026-09-12 on
+        # cold run 9019's site kit: the minted placeholders and the car were
+        # built base-up (z 0 .. h) under a "center" claim, and a consumer
+        # placing them by that claim stood them h/2 in the air.
+        center = [round((lo.x + hi.x) / 2, 4), round((lo.y + hi.y) / 2, 4),
+                  round((lo.z + hi.z) / 2, 4)]
     else:
         dims = {}
+        center = None
     tris = 0
     has_uvs = bool(meshes)
     has_wear = bool(meshes)
@@ -86,6 +95,7 @@ def gather_facts(collection, root_name):
             bad_xf.append(obj.name)
     return {
         "dimensions": {k: round(v, 4) for k, v in dims.items()},
+        "center": center,
         "tris": tris,
         "parts": [o.name for o in meshes],
         "has_uvs": has_uvs,

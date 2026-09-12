@@ -77,15 +77,15 @@ def build(plan, streams, collection):
             bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wear))
 
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, h / 2), (w, d, h))
+    geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))   # centre pivot, like every module
     part(bm, "{root}_Body")
-    cboxes.append(((-w / 2, -d / 2, 0.0), (w / 2, d / 2, h)))
+    cboxes.append(((-w / 2, -d / 2, -h / 2), (w / 2, d / 2, h / 2)))
 
     surface = materials.make_material(
         f"M_{root}_{{plan['material']}}", plan["color"], plan["material"])
     materials.assign(objs, surface)
     return {{"objects": objs, "collision_boxes": cboxes,
-            "attachments": {{"ATT_top": (0.0, 0.0, h)}}}}
+            "attachments": {{"ATT_top": (0.0, 0.0, h / 2)}}}}
 '''
 
 TEST_TEMPLATE = '''"""{species}: minted {date} by tools/new_species.py (roadmap 150)."""

@@ -15,8 +15,9 @@ from ..core import dna, genome as genome_mod, intent as intent_mod
 from ..core import kit as kit_mod
 from ..core import arch as arch_mod
 from ..core import meta as meta_mod, seeding, validate, connect
+from ..core import pivot as pivot_mod
 from .. import recipes
-from . import collision, export, lods, markers
+from . import collision, export, geometry, lods, markers
 
 DEFAULT_OPTIONS = {
     "collision": None,      # None = use the genome's per-species default
@@ -151,6 +152,15 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
             "n_fail": n_fail, "results": results}
 
 
+def _recentre(result: dict, plan: dict) -> dict:
+    """`core.pivot.recentre` over the recipe's visual objects' bounds."""
+    objs = [o for o in result.get("objects", []) if getattr(o, "type", "MESH") == "MESH"]
+    if not objs:
+        return result
+    lo, hi = geometry.bounds_of(objs)
+    return pivot_mod.recentre(result, plan, (lo.x, lo.y, lo.z), (hi.x, hi.y, hi.z))
+
+
 def build_module(module: dict, out_dir: str, theme: str = "delco",
                  style: int = 1, options: dict | None = None) -> dict:
     """Build ONE architectural module GLB, named by Deli Counter's law.
@@ -189,6 +199,16 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
         seeding.root_key(stem, build_species, 0, SEED_EPOCH))
     result = recipes.get(build_species)(plan, streams, coll)
     root_name = arch_mod.root_name(build_species)
+    # THE PIVOT IS ENFORCED, NOT DECLARED. Every module is contracted
+    # centre-pivot (the kit index says so per row and Deli Counter and Lot
+    # place by it: origin at the slot's centre). A recipe that builds its
+    # geometry base-up -- the minting template did, and `simple_car` does --
+    # ships a module a consumer stands h/2 in the air. Measured on cold run
+    # 9019's site kit: three cover modules, all built z 0 .. h under a
+    # "center" claim. Re-centre what the recipe returned, geometry and
+    # collision and attachments together, and let `fit_pivot` measure the
+    # result rather than trust this either.
+    result = _recentre(result, plan)
 
     if opts["collision"] and result.get("collision_boxes"):
         collision.collision_from_boxes(root_name, result["collision_boxes"],

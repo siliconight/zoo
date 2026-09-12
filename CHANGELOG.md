@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.66.1] - 2026-09-12
+
+The pivot is enforced, not declared.
+
+Cold run 9019's site kit, measured off the GLBs: `box_truck` and
+`cargo_container` (minted) spanned z 0 .. h and `simple_car` z 0.01 .. 1.45,
+while the kit index said `"pivot": "center"` for each -- it repeats the
+plan's claim, and nothing measured it. Deli Counter and Lot place a
+module's origin at the slot's centre, so those three stood h/2 in the air.
+Three changes: the minting template and the three minted recipes (`pump`
+too) build centred; `build_module` re-centres whatever a recipe returns
+(`core.pivot.recentre` -- geometry, collision boxes and attachments move
+together, and the offset is recorded); and `gather_facts` reports the
+bounds' centre so `validate` can fail `fit_pivot` on a module that is off
+it. `simple_car` is centred by the enforcement rather than the recipe.
+
 ## [0.66.0] - 2026-09-12
 
 Two street species minted for the site's cover: `box_truck` (2.4 x 6.0 x

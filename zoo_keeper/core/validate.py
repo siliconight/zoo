@@ -43,6 +43,24 @@ def evaluate(facts: dict, genome: dict, plan: dict, options: dict) -> dict:
                + (" (advisory: exact slot fit governs)" if fit_targets else ""),
                warn_only=bool(fit_targets))
 
+    # THE PIVOT, MEASURED. Every module is contracted centre-pivot and the
+    # kit index repeats the plan's claim per row; Deli Counter and Lot place
+    # the module's origin at the slot's centre. `gather_facts` now reports
+    # where the visual bounds' centre actually is, and a module whose centre
+    # is off the origin by more than the fit tolerance fails here -- the
+    # minted placeholders and `simple_car` were built base-up (centre at
+    # z = h/2) under a "center" claim, and stood h/2 in the air on cold run
+    # 9019's site. Facts without a centre (older gatherers, tests) skip it.
+    center = facts.get("center")
+    pivot = ((plan.get("module") or {}).get("pivot") or "center")
+    if center is not None and pivot == "center":
+        off = max(abs(float(c)) for c in center)
+        _check(checks, "fit_pivot", off <= tol,
+               f"bounds centred at ({center[0]:.3f}, {center[1]:.3f}, "
+               f"{center[2]:.3f}) -- "
+               + ("on the origin" if off <= tol else
+                  f"OFF the claimed centre pivot by {off:.3f}m"))
+
     # architectural modules are built to a slot's EXACT dims (Deli Counter
     # never scales them) — verify the built size matches the target, not just
     # the genome envelope. Only fires when a plan carries target_dims.
