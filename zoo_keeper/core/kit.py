@@ -180,9 +180,16 @@ def slot_typename(role: str, size_mod: str) -> str:
 def module_stem(typ: str, theme: str, style: int,
                 width_cm: int = None, state: str = None,
                 depth_cm: int = None, voids_tag: str = None,
-                openings_tag: str = None, height_cm: int = None) -> str:
+                openings_tag: str = None, height_cm: int = None,
+                species: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    ``<type>_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_v<hash>][_o<hash>][_<state>]``.
+    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_v<hash>][_o<hash>][_<state>]``.
+
+    ``species`` (roadmap 44) is a VOLUME's hinted species when it is built as
+    that species rather than as the ``prop`` box -- ``prop_desk_delco_01_...``
+    against ``prop_delco_01_...`` -- so a desk and a crate of one size never
+    share a filename, and Deli Counter's resolver can ask for the desk and
+    fall back to the box. Equal to the type, or None, it adds nothing.
 
     ``depth_cm`` IS FOR PLATES AND VOLUMES, and only because width alone
     stopped identifying a module. A wall varies on one axis -- its width --
@@ -205,7 +212,8 @@ def module_stem(typ: str, theme: str, style: int,
     the two must be changed together and there is no back-compatibility to
     preserve beyond leaving non-plate names alone, which this does.
     """
-    base = f"{typ}_{theme}_{style:02d}"
+    base = (f"{typ}_{species}_{theme}_{style:02d}"
+            if species and species != typ else f"{typ}_{theme}_{style:02d}")
     if width_cm is not None:
         base += f"_w{int(round(width_cm))}"
     if depth_cm is not None:
@@ -219,6 +227,47 @@ def module_stem(typ: str, theme: str, style: int,
     if state:
         base += f"_{state}"
     return base
+
+
+def _species_fit(hint: str, dims, genome_dir: str = None):
+    """(species, None) when the hinted species can be built at ``dims``
+    (width, depth, height inside its genome's ranges), else (None, why).
+
+    The fit is checked in the slot's own orientation -- width along x,
+    depth along y -- because Deli Counter places volumes axis-aligned and
+    the recipe builds width along local x; a desk that would fit turned
+    ninety degrees is reported as such and built as the box, since nobody
+    has turned it. Measured 2026-09-11 over 1,443 placements: 142 fit, 579
+    are runs no single-object species can be (an 8 m teller counter), which
+    is roadmap 44's next step, not this function's.
+    """
+    from zoo_keeper.core import genome as genome_mod
+    try:
+        g = genome_mod.load_species(hint, genome_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        return None, "no genome for '%s' (%s)" % (hint, str(exc).split(".")[0])
+    ranges = g.get("dimensions") or {}
+    w, d, h = (float(dims[0]), float(dims[1]), float(dims[2]))
+    over = []
+    for key, val in (("width", w), ("depth", d), ("height", h)):
+        r = ranges.get(key)
+        if not r:
+            continue
+        lo, hi = float(r.get("min", 0.0)), float(r.get("max", 1e9))
+        if val < lo - 1e-6 or val > hi + 1e-6:
+            over.append("%s %.2f outside %.2f..%.2f" % (key, val, lo, hi))
+    if over:
+        turned = True
+        for key, val in (("width", d), ("depth", w), ("height", h)):
+            r = ranges.get(key)
+            if r and (val < float(r.get("min", 0)) - 1e-6
+                      or val > float(r.get("max", 1e9)) + 1e-6):
+                turned = False
+        why = "'%s' does not fit: %s" % (hint, "; ".join(over))
+        if turned:
+            why += " (would fit turned 90 degrees)"
+        return None, why
+    return hint, None
 
 
 def slot_variants(slot: dict, typ: str, global_state: str = None):
@@ -286,6 +335,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     """
     buckets = {}
     deferred = {}
+    fallbacks = []
     for s in manifest.get("slots", []):
         role = s.get("role")
         if role is None or (roles and role not in roles):
@@ -316,10 +366,28 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         slot_style = int(s.get("style") or style or 1)
         slot_material = s.get("material")
 
+        # A VOLUME'S SPECIES HINT (roadmap 44). Deli Counter names what the
+        # placement is (`species` on the slot, from the name); this decides
+        # whether that species can be BUILT at the slot's size, from its
+        # genome's ranges, and builds the box otherwise -- saying which, in
+        # `species_fallbacks`, because a silent box is the defect this
+        # whole item is about.
+        hint = None
+        if typ in VOLUME_ROLES and exact and s.get("species"):
+            hint, why = _species_fit(str(s.get("species")), dims)
+            if hint is None:
+                fallbacks.append({"slot_id": s.get("slot_id"),
+                                  "hint": str(s.get("species")),
+                                  "dims": [round(float(v), 4) for v in dims[:3]],
+                                  "built_as": typ, "reason": why})
+
         for species, st, stem_state, is_deferred in slot_variants(s, typ,
                                                                    state):
+            if hint and species == typ:
+                species = hint
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
-                               depth_cm, vtag, otag, height_cm)
+                               depth_cm, vtag, otag, height_cm,
+                               species=hint if species == hint else None)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -448,4 +516,6 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         "modules": modules,
         "deferred_variants": sorted(deferred.values(), key=lambda d: d["stem"]),
         "missing_modules": missing,
+        # Hinted volumes built as the box, each with the reason (roadmap 44).
+        "species_fallbacks": fallbacks,
     }

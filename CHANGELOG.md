@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.61.0] - 2026-09-12
+
+A hinted volume is built as what it is, when it fits.
+
+Roadmap 44. Deli Counter 0.117.0 stamps `species` on each prop slot from
+the placement's name. `plan_kit` checks the hint against the species'
+genome ranges (`_species_fit`, width along x, depth along y, height) and
+plans that species at the slot's exact dims when it fits -- the existing
+`build_module` path already loads the genome of `module["species"]` and
+the recipe builds to `plan["dimensions"]` -- else the `prop` box, with
+every fallback and its reason in the plan's new `species_fallbacks`
+("width 8.00 outside 1.00..5.00", "would fit turned 90 degrees", "no
+genome"). `module_stem` carries the species (`prop_desk_delco_01_...`),
+the mirror of Deli Counter's, so a desk and a crate of one size are two
+files. Unhinted slots plan byte for byte as before.
+- Built through Blender on a three-slot probe (desk 1.6 x 0.8 x 0.75,
+  counter 2.0 x 0.65 x 0.95, an 8 m teller run): the desk is a desk (top,
+  legs, pedestal, drawers), the counter a counter with its register
+  attachment, the run the box. The counter FAILED `fit_width` at 2.040 m:
+  `recipes/counter.py` gave the top a 2 cm lip past the body on a
+  free-standing prop; under `fit_exact` the lip now comes out of the body
+  and the top is the slot's width. `build_kit` writes `species_fallbacks`
+  into the built index and prints each one (`[zoo] SPECIES FALLBACK ...`).
+
 ## [0.60.0] - 2026-09-11
 
 The corner module can be asked for.

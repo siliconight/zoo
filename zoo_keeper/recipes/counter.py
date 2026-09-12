@@ -29,33 +29,42 @@ def build(plan, streams, collection):
 
     base_h = 0.07
     top_t = 0.045
+    lip = 0.02          # the top's overhang past the body, each end
     body_d = d * (0.85 if overhang else 1.0)
     body_y = (d - body_d) / 2 if overhang else 0.0   # body pushed to staff side
+    # EXACT FIT (roadmap 44): a counter built into a Deli Counter slot must
+    # be the slot's width overall -- the first hinted `counter_island` came
+    # out 2.040 m against a 2.000 m slot and failed `fit_width`, because
+    # the top was `w + 0.04` for a free-standing prop. Keep the lip; take it
+    # out of the body instead, so the top IS the width.
+    exact = bool(plan.get("fit_exact"))
+    top_w = w if exact else w + 2 * lip
+    body_w = w - 2 * lip if exact else w
 
     # recessed kick base
     bm = geometry.new_bm()
     geometry.add_box(bm, (0.0, body_y, base_h / 2),
-                     (w * 0.96, body_d * 0.92, base_h))
+                     (body_w * 0.96, body_d * 0.92, base_h))
     part(bm, "Counter_Base")
 
     # body
     body_h = h - base_h - top_t
     bm = geometry.new_bm()
     geometry.add_box(bm, (0.0, body_y, base_h + body_h / 2),
-                     (w, body_d, body_h))
+                     (body_w, body_d, body_h))
     part(bm, "Counter_Body")
 
     # countertop, proud on every side, overhanging the customer face
     bm = geometry.new_bm()
     geometry.add_box(bm, (0.0, 0.0, h - top_t / 2),
-                     (w + 0.04, d, top_t))
+                     (top_w, d, top_t))
     part(bm, "Counter_Top")
 
     # staff-side under-shelf
     if shelf:
         bm = geometry.new_bm()
         geometry.add_box(bm, (0.0, body_y + body_d * 0.3, base_h + body_h * 0.5),
-                         (w * 0.9, body_d * 0.35, 0.03))
+                         (body_w * 0.9, body_d * 0.35, 0.03))
         part(bm, "Counter_Shelf")
 
     cboxes.append(((-w / 2, -d / 2, 0.0), (w / 2, d / 2, h)))

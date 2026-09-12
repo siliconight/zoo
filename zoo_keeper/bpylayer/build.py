@@ -283,6 +283,8 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "modules": modules,
         "deferred_variants": plan.get("deferred_variants", []),
         "missing_modules": plan.get("missing_modules", []),
+        # Hinted volumes built as the box, with the reason (roadmap 44).
+        "species_fallbacks": plan.get("species_fallbacks", []),
         "n_fail": n_fail,
         "n_missing": n_missing,
     }
@@ -291,6 +293,12 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
 
     for line in kit_mod.capability_gaps(plan):
         print(line)
+    for fb in plan.get("species_fallbacks", []):
+        # Said out loud: a placement named for a thing and built as a box
+        # is the defect roadmap 44 is about, and a silent one stays one.
+        print("[zoo] SPECIES FALLBACK %s: asked '%s' at %s, built as the box -- %s"
+              % (fb.get("slot_id"), fb.get("hint"), "x".join(str(v) for v in fb.get("dims", [])),
+                 fb.get("reason")))
     if n_missing:
         print(f"[zoo] {n_missing} module(s) the genome library cannot build "
               f"(listed above as {kit_mod.GAP_TAG}, and in missing_modules of "
