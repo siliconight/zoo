@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.67.1] - 2026-09-13
+
+`sign_post` is bare metal in every style, not raw `metal` with `metal_bare`
+offered beside `metal_painted` -- 0.67.0 shipped with its own material
+tests red, which is the wrong way round. A species is one kind.
+
 ## [0.67.0] - 2026-09-13
 
 Three kerb-line species minted for the street (roadmap 153): `fire_hydrant`
