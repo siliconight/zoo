@@ -25,7 +25,8 @@ SPECIES_DIR = os.path.join(os.path.dirname(os.path.dirname(
 
 # Batch 1 (0.44.0) and batch 2 (0.45.0). Split painted/bare because METALLIC
 # is a per-kind lookup: paint is a dielectric, bare metal a conductor.
-PAINTED = ("vending_machine", "simple_car", "helmet", "queue_stanchion",
+PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
+           "helmet", "queue_stanchion",
            "chair", "filing_cabinet", "atm")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door")
 MOVED = PAINTED + BARE

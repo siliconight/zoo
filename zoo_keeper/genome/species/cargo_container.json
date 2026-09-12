@@ -1,0 +1,104 @@
+{
+  "species": "cargo_container",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A 20-foot ISO shipping container: 6.06 x 2.44 x 2.59 m, corrugated steel sides, corner castings, two lockable doors at one end with four vertical lock bars. On the lot it is cover (roadmap 22): solid, 2.59 m tall, collision the full box."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.318,
+      "max": 4.88,
+      "default": 2.44
+    },
+    "depth": {
+      "min": 5.757,
+      "max": 12.12,
+      "default": 6.06
+    },
+    "height": {
+      "min": 2.46,
+      "max": 5.18,
+      "default": 2.59
+    }
+  },
+  "parts": [
+    "CargoContainer_Body"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "cargo container",
+    "shipping container",
+    "container",
+    "cargo_container"
+  ]
+}

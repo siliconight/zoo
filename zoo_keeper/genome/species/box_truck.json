@@ -1,0 +1,104 @@
+{
+  "species": "box_truck",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A single-axle box truck: a cab a third of the length at the front, a taller square cargo box behind it with a roll-up door at the rear, six wheels on two axles, a step bumper. Parked on the lot as cover between buildings (roadmap 22): it must be taller than 1.3 m everywhere along its length and carry collision."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.92,
+      "max": 3.0,
+      "default": 2.4
+    },
+    "depth": {
+      "min": 4.8,
+      "max": 7.5,
+      "default": 6.0
+    },
+    "height": {
+      "min": 2.24,
+      "max": 3.5,
+      "default": 2.8
+    }
+  },
+  "parts": [
+    "BoxTruck_Body"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "box truck",
+    "box_truck",
+    "delivery truck",
+    "truck"
+  ]
+}

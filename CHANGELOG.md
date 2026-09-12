@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.66.0] - 2026-09-12
+
+Two street species minted for the site's cover: `box_truck` (2.4 x 6.0 x
+2.8) and `cargo_container` (2.44 x 6.06 x 2.59), both `metal_painted`, both
+with collision, both placeholder boxes at their authored dims with the
+real thing described in the genome's reference. Roadmap 22: Lot 0.59.0
+places its cover as species-shaped slots -- a box truck, a container, a car
+(`simple_car`, already drawn) -- and this kit builds them exact-fit like any
+building's props. A truck that is a box is the honest state of a truck
+nobody has drawn; a truck that stands six metres across a lane with
+collision is already cover.
+
 ## [0.65.0] - 2026-09-12
 
 The teller line has a window per station.
