@@ -1,5 +1,83 @@
 # Changelog
 
+## [0.78.0] - a word on the stop sign, stock on the shelves, wheels out of the body's plane
+
+Three more from the walker's walk copy, each measured before it was changed
+and re-rendered after. The measuring instrument is new:
+`tools/coplanar_probe.py` lists every pair of faces, across all visual parts
+of a built prop, that lie within 2 mm of one plane and overlap -- SAME when
+both face the same way (whatever sees one sees the other), OPP when they are
+back to back. Zoo's materials export `doubleSided: true` (measured on
+`verify/*.glb`), so OPP pairs are not culled either; they are hidden only
+when both solids are closed around them.
+
+**Simple car: "these wheels jitter when I walk past them".** Probed on the
+1.75 x 4.30 x 1.45 module cold run 9049 shipped (Zoo 0.76.0; the recipe did
+not change in 0.77.0): each tyre's outer cap lay EXACTLY in `Car_Body`'s side
+plane, both facing out, gap 0.00 mm, 1475 cm2 of overlap per wheel -- the
+part of the cap above the body's lower edge. There is no separate hub; the
+suspected hub-versus-tyre fight does not exist. `WHEEL_INSET` was documented
+as the body's overhang past the tyre, and was in fact half the tyre's width,
+so the overhang was zero. The refuted comment is kept above the constant.
+`WHEEL_TUCK` now puts the tyre face 2 cm inside the body side. After, at the
+genome's minimum, default and maximum sizes: no SAME pairs. Two OPP pairs
+remain and are left: body top / shoulder bottom (6.96 m2) and shoulder top /
+cabin bottom (3.04 m2) are butt joints the recipe's comment said were
+overlaps; both lie inside closed solids behind the bevel's V-groove. The
+comment now says what the numbers say.
+
+**Stop sign: no legend.** The red octagon carries a white STOP: four faceted
+glyphs from the new `recipes/_legend.py`, a small cell grid per letter where
+a cell is full, empty or a 45-degree corner cut -- the octagonal O and angular
+S of a low-poly Highway Gothic. One third of the sign's width tall and
+centred (MUTCD R1-1: 10 in on 30 in), 0.77 of the width wide; letter width,
+stroke and spacing are chosen, not taken from the sign tables, and say so.
+Each glyph is a closed solid whose front stands `LEGEND_PROUD` (4 mm, the
+FACE_PROUD argument) in front of the red face and whose back runs through it
+to the middle of the border. Half-way into the red face's 4 mm was tried
+first and left the back cap 1.93 mm from both its planes (1.35 mm at the
+smallest sign, squeezed by `fit_to`) -- enclosed, but inside the probe's
+window; the border's middle is 7.5 mm from everything. The plate
+still hangs in front of the pole. 108 tris to 372; the budget goes 150 to
+450. The border/face and border/post OPP contacts 0.77.0 introduced are
+unchanged and occluded.
+
+**Shelving: "nothing in the cabinets".** Every shelf but the top one is now
+stocked -- corrugated boxes, banker's boxes, ring binders, cloth ledgers,
+coffee cans -- planned by `recipes/_shelf_stock.py` from a new "stock" RNG
+stream, so the frame's wear noise is what it was. Nothing overhangs the
+uprights, the board's front edge or the back panel; items sit 3 mm into what
+they stand on, keep 4 mm between neighbours, and a stacked item steps in at
+least 6 mm on every side, so no two faces share a plane. Every finish is a
+tintable kind (paper, plastic, metal_painted) and clears a 1.4 luminance
+ratio against every style's board and frame grey; the first tan ledger
+measured 1.29 against the frame and was darkened.
+
+The probe found the shelf's own structure worse than its contents: 24
+coincident pairs on the 2.0 x 0.4 x 1.9 module cold run 9049 shipped. The
+back panel ran full height, so its top lay in the top board's top (113.6 cm2,
+both facing up, visible from above a low unit) and its bottom in the bottom
+board's; boards and back panel stopped exactly at the uprights' faces. They
+now bury into the uprights (the back panel by half as much as the boards),
+the back panel runs board-middle to board-middle and stands 4 mm in from the
+uprights' rear, and the board stack stops 3 mm short of the uprights' top and
+bottom. After, at six sizes from 0.6 x 0.3 x 0.9 to 16 x 1.4 x 4.4: zero
+pairs, stock included. The same arithmetic found an unreported gap: a board
+spanned `bx +/- (bw/2 - up)`, which reaches an END upright but stops 25 mm
+short of a SHARED one, so on every multi-bay run the middle uprights stood
+free of their boards. Spans now come from the uprights' faces.
+
+Tris: 308 to 876 on that module, 2688 on a three-bay 6 m aisle; the budget
+goes 900 to 3000. A seven-bay 16 m run builds 6372 and warns, as its frame
+alone (about 2800) already did.
+
+What a still cannot show: Cycles ray-traces, so no render here shows
+z-fighting before or after. The car and shelf fixes are evidenced by the
+probe's numbers; whether the jitter is gone in Godot needs a walk.
+
+Tests: `test_stop_legend.py`, `test_shelf_stock.py`, `test_car_wheels.py`,
+each run against a deliberately broken copy first to see it fail.
+
 ## [0.77.0] - three recipes the walker saw wrong in a walk copy
 
 From the walker's second in-game round (roadmap 155), each measured from the

@@ -36,11 +36,26 @@ CABIN = {  # body_style -> (length frac, y-center frac)
 #: cabin look balanced on top of the body.
 ROCKER_W, SHOULDER_TOP, CABIN_W, ROOF_W = 0.88, 0.93, 0.90, 0.88
 
-#: How far the widest body point overhangs the tyre. This IS the wheel arch:
-#: there is no boolean here, and none is needed -- a wheel tucked under an
-#: overhanging shoulder reads as arched, and a wheel flush with the side does
-#: not, whatever else is true about it.
+#: Half the tyre's width: the wheel centre sits this far inboard of the body
+#: side, so a WHEEL_W tyre's outer face lands on the side plane.
+#:
+#: REFUTED, kept because it is what the code said until 0.78.0: this constant
+#: was documented as "how far the widest body point overhangs the tyre". It
+#: never was. With a 0.22 m tyre centred WHEEL_INSET inboard, the tyre's outer
+#: cap lay EXACTLY in the plane of `Car_Body`'s side face, both facing out --
+#: measured with tools/coplanar_probe.py on the 1.75 x 4.30 x 1.45 module
+#: cold run 9049 shipped (Zoo 0.76.0): gap 0.00 mm, 1475 cm2 of overlap per
+#: wheel, the part of each cap above the body's lower edge. Two coincident
+#: faces the same way round is a z-fight, and it moves with the camera: "these
+#: wheels jitter when I walk past them" (the walker).
 WHEEL_INSET = 0.11
+WHEEL_W = 0.22
+#: How far the tyre's outer face sits INSIDE the body side, on top of
+#: WHEEL_INSET. This is the arch the comment above claimed: there is no
+#: boolean, and a wheel tucked under the overhang reads as arched. 2 cm is
+#: several depth-buffer steps at any distance a car is seen from, and small
+#: enough that the tyre under the body line still reads at full width.
+WHEEL_TUCK = 0.02
 
 
 def build(plan, streams, collection):
@@ -53,9 +68,19 @@ def build(plan, streams, collection):
     wheel_r = h * 0.22
     objs, cboxes = [], []
 
-    # Height bands. The body overlaps the rocker and the shoulder overlaps the
-    # body on purpose: an overlap is one solid after shading, a butt joint is
-    # a seam that catches light along its whole length.
+    # Height bands. The body overlaps the rocker on purpose: an overlap is one
+    # solid after shading, a butt joint is a seam that catches light along its
+    # whole length.
+    #
+    # The shoulder does NOT overlap the body, and the cabin does not overlap
+    # the shoulder, whatever this comment used to say: the shoulder starts at
+    # body_z1 and the cabin at shoulder_z1. tools/coplanar_probe.py measures
+    # both as coincident faces BACK TO BACK (body top / shoulder bottom
+    # 6.96 m2, shoulder top / cabin bottom 3.04 m2, gap 0.00 mm). They are
+    # left as they are: each pair lies inside the two closed solids, and the
+    # bevel's V-groove at the side meets exactly where the flat faces begin,
+    # so no line of sight reaches them. Lowering the shoulder into the body
+    # instead would stand the body's top edge proud of the shoulder's taper.
     rocker_z0, rocker_z1 = wheel_r * 0.55, h * 0.32
     body_z0, body_z1 = h * 0.21, h * 0.565
     shoulder_z1 = h * 0.655
@@ -102,12 +127,12 @@ def build(plan, streams, collection):
 
     # --- wheels, tucked under the overhang ---------------------------------
     wheel_y = length * 0.32
-    wheel_x = w / 2 - WHEEL_INSET
+    wheel_x = w / 2 - WHEEL_INSET - WHEEL_TUCK
     for i, (sy, sx) in enumerate(
             [(sy, sx) for sy in (-1, 1) for sx in (-1, 1)], start=1):
         bm = geometry.new_bm()
         geometry.add_cylinder(bm, (sx * wheel_x, sy * wheel_y, wheel_r),
-                              radius=wheel_r, depth=0.22,
+                              radius=wheel_r, depth=WHEEL_W,
                               segments=seg, axis="X")
         part(bm, f"Car_Wheel_{i}", texel=1.0)
 

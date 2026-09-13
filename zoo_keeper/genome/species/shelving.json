@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Freestanding shelf unit: two side uprights, N shelf boards, optional back panel \u2014 reads as store gondola or stockroom racking by proportions."
+    "notes": "Original procedural construction. Freestanding shelf unit: two side uprights, N shelf boards, optional back panel \u2014 reads as store gondola or stockroom racking by proportions. Stocked since 0.78.0: boxes, binders, ledgers and cans on every shelf but the top. BUILT (0.78.0, delco_1997 kit path): 876 tris at 2.0 x 0.4 x 1.9 (one bay), 2688 at 6.0 x 1.0 x 1.6 (three bays), 6372 at 16.0 x 1.4 x 4.4 (seven bays, over budget; its frame alone was about 2800 before stock)."
   },
   "dimensions": {
     "width": {
@@ -105,7 +105,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 900
+    "tris_lod0": 3000
   },
   "attachments": [],
   "collision": true,

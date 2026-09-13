@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: A 30-inch octagonal blade, red with a white border, its bottom edge about 2.1 m over the kerb on a galvanised u-channel post. The shape is read before the word. BUILT: 108 tris at the authored dims (2026-09-13)."
+    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: A 30-inch octagonal blade, red with a white border, its bottom edge about 2.1 m over the kerb on a galvanised u-channel post. The shape is read before the word, and the word is there: a white STOP legend one third of the sign's width tall, centred (MUTCD R1-1: 10 in on 30 in). BUILT: 108 tris at the authored dims (2026-09-13); 372 with the faceted legend (0.78.0)."
   },
   "dimensions": {
     "width": {
@@ -87,7 +87,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 150
+    "tris_lod0": 450
   },
   "attachments": [],
   "collision": true,

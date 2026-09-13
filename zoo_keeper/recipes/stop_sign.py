@@ -11,6 +11,14 @@ can be dropped on it later without touching the post; until then the
 white border is geometry (a slightly larger white octagon behind the red
 one), which is how the sign reads from across the street.
 
+THE LEGEND IS GEOMETRY TOO, for the same reason. Up to 0.77.0 the sign was
+a red octagon with a white rim and no word on it ("the stop sign has no
+legend", the walker). The white STOP is four faceted glyphs from
+`_legend` -- a third of the sign's width tall, centred, each a closed solid
+whose front stands LEGEND_PROUD in front of the red face and whose back is
+buried LEGEND_BURY behind it, in the border, so no legend face shares a
+plane with any face of the sign.
+
 Collision is the POST only: a body walks into a pole, never into a blade
 2 m over its head. Centre pivot; extents exactly (w, d, h).
 """
@@ -19,6 +27,7 @@ from __future__ import annotations
 import math
 
 from ..bpylayer import geometry, materials
+from . import _legend
 
 POST = 0.06
 BLADE_T = 0.015
@@ -26,6 +35,37 @@ BLADE_T = 0.015
 #: never share a plane at any distance the depth buffer resolves.
 FACE_PROUD = 0.004
 BORDER = 0.035        # white margin around the red face
+#: How far the legend's front stands in front of the red face: the same
+#: depth-buffer argument as FACE_PROUD, so the same number.
+LEGEND_PROUD = FACE_PROUD
+#: How far the legend's back sits behind the red face's front: through the red
+#: face and half-way into the border. FACE_PROUD / 2 was tried first and put
+#: the back cap 1.93 mm from both of the red face's planes at the default
+#: size and 1.35 mm at the genome's smallest, where `fit_to` squeezes the
+#: depth -- enclosed, but inside the 2 mm tools/coplanar_probe.py reports.
+#: Half the border's 15 mm keeps it 7.5 mm (5 mm squeezed) from every plane.
+LEGEND_BURY = FACE_PROUD + BLADE_T / 2.0
+
+
+def _glyph_solid(bm, verts2d, faces, y_front, y_back):
+    """Extrude one flat glyph (``(x, z)`` verts, CCW from the front) into a
+    closed prism between ``y_front`` and ``y_back`` (y_front < y_back)."""
+    front = [bm.verts.new((x, y_front, z)) for x, z in verts2d]
+    back = [bm.verts.new((x, y_back, z)) for x, z in verts2d]
+    edges = {}
+    for f in faces:
+        # (x, z) counter-clockwise with x right and z up: (1,0,0) x (0,0,1)
+        # is (0,-1,0), so the authored order already faces -Y
+        bm.faces.new([front[i] for i in f])
+        bm.faces.new([back[i] for i in reversed(f)])
+        for k in range(len(f)):
+            a, b = f[k], f[(k + 1) % len(f)]
+            edges[(a, b)] = edges.get((a, b), 0) + 1
+    # a boundary edge is one no neighbouring cell walks the other way; its
+    # wall is wound so the normal points away from the glyph
+    for (a, b) in edges:
+        if (b, a) not in edges:
+            bm.faces.new((front[b], front[a], back[a], back[b]))
 
 
 def _octagon(bm, centre, across, thickness):
@@ -91,6 +131,15 @@ def build(plan, streams, collection):
     _octagon(bm, (0.0, face_c, blade_c), w - 2.0 * BORDER, FACE_PROUD)
     part(bm, "StopSign_Face", faces, part_bevel=0.0)
 
+    # the legend: STOP, a third of the width tall, centred on the blade
+    red_front = -(POST / 2.0 + BLADE_T + FACE_PROUD)
+    glyphs, _size = _legend.legend("STOP", w * _legend.LEGEND_H_OF_WIDTH)
+    bm = geometry.new_bm()
+    for verts2d, gfaces in glyphs:
+        _glyph_solid(bm, [(x, z + blade_c) for x, z in verts2d], gfaces,
+                     red_front - LEGEND_PROUD, red_front + LEGEND_BURY)
+    legend = part(bm, "StopSign_Legend", [], part_bevel=0.0)
+
     post_mat = materials.make_material(
         f"M_StopSign_{plan['material']}", plan["color"], plan["material"])
     red = materials.make_material("M_StopSign_face", [0.62, 0.07, 0.09],
@@ -99,7 +148,7 @@ def build(plan, streams, collection):
                                     "metal_painted")
     materials.assign(steel, post_mat)
     materials.assign(faces, red)
-    materials.assign([border], white)
+    materials.assign([border, legend], white)
     # the slot is exact; the detail is not (geometry.fit_to)
     cboxes = geometry.fit_to(objs, (w, d, h), cboxes)
 
