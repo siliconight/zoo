@@ -1,0 +1,103 @@
+{
+  "species": "newspaper_box",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: A coin-operated news rack: a hopper on a pedestal, a sloped window where the front page shows, a coin slot and a handle. They stand in twos and threes. BUILT: 264 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.294,
+      "max": 0.588,
+      "default": 0.42
+    },
+    "depth": {
+      "min": 0.315,
+      "max": 0.63,
+      "default": 0.45
+    },
+    "height": {
+      "min": 0.805,
+      "max": 1.61,
+      "default": 1.15
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.16,
+        0.14
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.16,
+        0.14
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.16,
+        0.14
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.16,
+        0.14
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.16,
+        0.14
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 300
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "newspaper box",
+    "news rack",
+    "paper box",
+    "newspaper_box",
+    "vending rack"
+  ]
+}

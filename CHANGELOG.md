@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.72.0] - 2026-09-13
+
+The 1990s American street kit. The walker: "the streets should look like
+America in the 1990s -- USPS mailboxes, stop signs, traffic lights."
+
+Six species, each shaped rather than a placeholder box: `stop_sign` (a
+30-inch octagonal blade, red with a white border, on a galvanised
+u-channel post -- the shape is read before the word), `traffic_signal` (a
+pole with a mast arm over the near lanes, a three-lens head at its end, a
+second head on the pole, and a cobra-head luminaire arm the other way),
+`mailbox` (the blue collection box: boxy body on short legs, domed lid,
+pull-down door with a lip), `newspaper_box` (a coin-operated rack: hopper,
+pedestal, a sloped window where the front page shows), `parking_meter`
+(one head on one post per space, which is the decade's meter) and
+`payphone` (the open half-hood, not the glass booth). Nothing reproduces
+anybody's markings: a collection box is a blue box and a news rack's
+window is empty. Lenses are emissive at a low strength and WHICH lens is
+lit is not baked -- a signal whose state is baked is wrong half the time.
+
+THE POLE IS THE SIGNAL'S CENTRE, and the luminaire arm is why. A mast arm
+alone would put the module's centre out over the carriageway and Lot's
+greybox box with it; the second arm is both what those poles carry in
+Pennsylvania and what makes the slot symmetric about the pole.
+
+`geometry.fit_to(objs, size, boxes)` scales a built piece about its centre
+so its bounds are exactly the slot's, and moves the collision boxes with
+it. All six failed `fit_depth` the first time they built -- a mailbox
+0.740 m deep against a 0.700 m slot, a payphone 0.450 against 0.500 --
+because a door or a visor sits a centimetre proud of a face, which is what
+the object looks like. Tuning each detail until the sum comes out even is
+arithmetic nobody can maintain; measuring what was built and fitting it is
+one line. Budgets are each piece's measured build plus a tenth (108 tris
+for the stop sign, 1,152 for the signal).
+
+`sign_post` gives up the keyword "stop sign" to `stop_sign`: it is the
+generic street-sign post, a blade nobody has drawn on a u-channel.
+
 ## [0.71.0] - 2026-09-13
 
 The five street trees are species of their own, and the canopy fills.

@@ -1,0 +1,133 @@
+{
+  "species": "traffic_signal",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: A suburban Pennsylvania intersection: a pole on the corner, a mast arm over the near lanes with a three-lens head at its end, a second head on the pole, and a cobra-head luminaire arm the other way -- which is what puts the pole at the module's centre. Lenses emissive; which is lit is not baked. BUILT: 1152 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 5.6,
+      "max": 11.2,
+      "default": 8.0
+    },
+    "depth": {
+      "min": 0.434,
+      "max": 0.868,
+      "default": 0.62
+    },
+    "height": {
+      "min": 4.55,
+      "max": 9.1,
+      "default": 6.5
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.5,
+        0.47
+      ],
+      "wear": 0.15,
+      "bevel": 0.006,
+      "emissive_color": [
+        0.95,
+        0.55,
+        0.2
+      ],
+      "emissive_strength": 1.6
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.5,
+        0.47
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35,
+      "emissive_color": [
+        0.95,
+        0.55,
+        0.2
+      ],
+      "emissive_strength": 1.6
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.5,
+        0.47
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15,
+      "emissive_color": [
+        0.95,
+        0.55,
+        0.2
+      ],
+      "emissive_strength": 1.6
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.5,
+        0.47
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45,
+      "emissive_color": [
+        0.95,
+        0.55,
+        0.2
+      ],
+      "emissive_strength": 1.6
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.5,
+        0.5,
+        0.47
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05,
+      "emissive_color": [
+        0.95,
+        0.55,
+        0.2
+      ],
+      "emissive_strength": 1.6
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1300
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "traffic signal",
+    "traffic light",
+    "stoplight",
+    "signal",
+    "traffic_signal"
+  ]
+}

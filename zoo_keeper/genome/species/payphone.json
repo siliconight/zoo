@@ -1,0 +1,102 @@
+{
+  "species": "payphone",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: The open half-hood, not the glass booth: a back panel on a post, a shallow hood, the instrument with a handset on a hook and a coin box under it. BUILT: 308 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.525,
+      "max": 1.05,
+      "default": 0.75
+    },
+    "depth": {
+      "min": 0.35,
+      "max": 0.7,
+      "default": 0.5
+    },
+    "height": {
+      "min": 1.61,
+      "max": 3.22,
+      "default": 2.3
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.26,
+        0.32
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.26,
+        0.32
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.26,
+        0.32
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.26,
+        0.32
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.26,
+        0.32
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 350
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "payphone",
+    "pay phone",
+    "phone booth",
+    "telephone"
+  ]
+}

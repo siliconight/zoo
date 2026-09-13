@@ -28,9 +28,13 @@ SPECIES_DIR = os.path.join(os.path.dirname(os.path.dirname(
 PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "fire_hydrant", "litter_bin", "bus_shelter",
            "helmet", "queue_stanchion",
-           "chair", "filing_cabinet", "atm")
+           "chair", "filing_cabinet", "atm",
+           # the 1990s street kit (roadmap 153): painted steel, every one
+           "traffic_signal", "mailbox", "newspaper_box", "parking_meter",
+           "payphone")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door",
-        "sign_post")
+        # a u-channel post and a stop sign's post are galvanised, not painted
+        "sign_post", "stop_sign")
 MOVED = PAINTED + BARE
 
 

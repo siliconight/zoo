@@ -580,6 +580,42 @@ def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
     return obj
 
 
+def fit_to(objs, size, boxes=None):
+    """Scale ``objs`` about their union centre so their bounds are exactly
+    ``size`` = (w, d, h), and return ``boxes`` scaled the same way.
+
+    THE SLOT IS EXACT AND THE DETAIL IS NOT. A recipe hangs a door, a
+    window, a visor a centimetre proud of a face because that is what the
+    object looks like, and the sum lands a few centimetres off the slot --
+    the 1990s street kit failed `fit_depth` on all six pieces the first
+    time it built (a mailbox 0.740 m deep against a 0.700 m slot, a
+    payphone 0.450 against 0.500). Tuning each detail until the sum comes
+    out even is arithmetic nobody can maintain; measuring what was built
+    and fitting it is one line and cannot drift.
+
+    Per-axis, about the centre, so a piece keeps its proportions where it
+    was already right. An axis with no extent is left alone rather than
+    divided by zero. Returns the scaled collision boxes, which must move
+    with the geometry or the collider stops matching the mesh.
+    """
+    verts = [(o, v) for o in objs for v in o.data.vertices]
+    if not verts:
+        return list(boxes or [])
+    lo = [min(v.co[i] for _o, v in verts) for i in range(3)]
+    hi = [max(v.co[i] for _o, v in verts) for i in range(3)]
+    centre = [(lo[i] + hi[i]) / 2.0 for i in range(3)]
+    k = [(size[i] / (hi[i] - lo[i])) if (hi[i] - lo[i]) > 1e-9 else 1.0
+         for i in range(3)]
+    for _o, v in verts:
+        for i in range(3):
+            v.co[i] = centre[i] + (v.co[i] - centre[i]) * k[i]
+    out = []
+    for a, b in (boxes or []):
+        out.append((tuple(centre[i] + (a[i] - centre[i]) * k[i] for i in range(3)),
+                    tuple(centre[i] + (b[i] - centre[i]) * k[i] for i in range(3))))
+    return out
+
+
 def bounds_of(objs):
     """(min, max) world-space AABB across objects (transforms assumed
     identity — Zoo builds everything at world scale in-place)."""

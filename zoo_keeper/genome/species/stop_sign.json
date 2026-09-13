@@ -1,30 +1,28 @@
 {
-  "species": "sign_post",
+  "species": "stop_sign",
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A regulatory sign on a post: a 0.1 m galvanised steel post 2.4 m tall with a 0.75 m octagonal stop plate at the top facing the road (the plate is the thing to draw; the post is the placeholder). Roadmap 153: at each crossing, facing the spur. The keyword 'stop sign' moved to the `stop_sign` species (roadmap 153, the 1990s street kit): this is the generic street-sign post -- a blade nobody has drawn on a u-channel."
+    "notes": "The 1990s American street kit (roadmap 153). REFERENCE: A 30-inch octagonal blade, red with a white border, its bottom edge about 2.1 m over the kerb on a galvanised u-channel post. The shape is read before the word. BUILT: 108 tris at the authored dims (2026-09-13)."
   },
   "dimensions": {
     "width": {
-      "min": 0.09,
-      "max": 0.125,
-      "default": 0.1
+      "min": 0.525,
+      "max": 1.05,
+      "default": 0.75
     },
     "depth": {
-      "min": 0.09,
-      "max": 0.125,
-      "default": 0.1
+      "min": 0.056,
+      "max": 0.112,
+      "default": 0.08
     },
     "height": {
-      "min": 2.16,
-      "max": 3.0,
-      "default": 2.4
+      "min": 1.995,
+      "max": 3.99,
+      "default": 2.85
     }
   },
-  "parts": [
-    "SignPost_Body"
-  ],
+  "parts": [],
   "params": {},
   "materials": {
     "default": "metal_bare",
@@ -36,9 +34,9 @@
     "default": {
       "material": "metal_bare",
       "color": [
-        0.56,
         0.55,
-        0.53
+        0.56,
+        0.58
       ],
       "wear": 0.15,
       "bevel": 0.006
@@ -46,9 +44,9 @@
     "delco": {
       "material": "metal_bare",
       "color": [
-        0.5,
-        0.49,
-        0.46
+        0.55,
+        0.56,
+        0.58
       ],
       "wear": 0.35,
       "bevel": 0.006,
@@ -57,8 +55,8 @@
     "center_city": {
       "material": "metal_bare",
       "color": [
+        0.55,
         0.56,
-        0.5655,
         0.58
       ],
       "wear": 0.122,
@@ -68,9 +66,9 @@
     "industrial_flats": {
       "material": "metal_bare",
       "color": [
-        0.4708,
-        0.4463,
-        0.4367
+        0.55,
+        0.56,
+        0.58
       ],
       "wear": 0.57,
       "bevel": 0.006,
@@ -79,9 +77,9 @@
     "rockay": {
       "material": "metal_bare",
       "color": [
-        0.5264,
-        0.5445,
-        0.5565
+        0.55,
+        0.56,
+        0.58
       ],
       "wear": 0.29,
       "bevel": 0.006,
@@ -89,14 +87,14 @@
     }
   },
   "budgets": {
-    "tris_lod0": 200
+    "tris_lod0": 150
   },
   "attachments": [],
   "collision": true,
   "match_priority": 0,
   "keywords": [
-    "sign post",
-    "street sign",
-    "sign_post"
+    "stop sign",
+    "stop_sign",
+    "traffic sign"
   ]
 }

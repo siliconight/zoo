@@ -8,9 +8,15 @@
   "honey_locust",
   "litter_bin",
   "london_plane",
+  "mailbox",
+  "newspaper_box",
+  "parking_meter",
+  "payphone",
   "pin_oak",
   "pump",
   "red_maple",
   "sign_post",
-  "street_tree"
+  "stop_sign",
+  "street_tree",
+  "traffic_signal"
 ]
