@@ -1,58 +1,66 @@
-"""simple_car's wheels (0.78.0): "these wheels jitter when I walk past them"
-(the walker). Measured with tools/coplanar_probe.py: each tyre's outer cap
-lay exactly in the body's side plane, both facing out. Constants are read
-with `ast` because the recipe imports bpy at module scope."""
+"""simple_car's wheels.
+
+0.78.0: "these wheels jitter when I walk past them" (the walker). Measured
+with tools/coplanar_probe.py: each tyre's outer cap lay exactly in the body's
+side plane, both facing out. WHEEL_TUCK put the tyre face 2 cm inside it.
+
+0.79.0 rebuilt the body around wheel WELLS -- an arch over each axle notched
+into the outer underside -- and moved the layout into `core.car_forms` so it
+can be checked here without Blender. The 0.78.0 guarantee is kept for every
+body style at the genome's smallest, default and largest sizes, and the tyre
+must now also sit inside its well. Recipe constants are read with `ast`
+because the recipe imports bpy at module scope."""
 from __future__ import annotations
 
 import ast
-import json
 import os
 import re
 
+from zoo_keeper.core import car_forms, genome
+
 _ZOO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _RECIPE = os.path.join(_ZOO, "zoo_keeper", "recipes", "simple_car.py")
-_GENOME = os.path.join(_ZOO, "zoo_keeper", "genome", "species", "simple_car.json")
 
 
 def _constants(path):
-    """Module-level literal assignments, including ``A, B = 1, 2``."""
     ns = {}
     for node in ast.parse(open(path, encoding="utf-8").read()).body:
-        if not (isinstance(node, ast.Assign) and len(node.targets) == 1):
-            continue
-        target = node.targets[0]
-        try:
-            value = ast.literal_eval(node.value)
-        except ValueError:
-            continue
-        if isinstance(target, ast.Name):
-            ns[target.id] = value
-        elif isinstance(target, ast.Tuple):
-            for elt, v in zip(target.elts, value):
-                ns[elt.id] = v
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 \
+                and isinstance(node.targets[0], ast.Name):
+            try:
+                ns[node.targets[0].id] = ast.literal_eval(node.value)
+            except ValueError:
+                pass
     return ns
 
 
-def test_the_tyre_face_stands_inside_the_body_side():
+def _sizes():
+    d = genome.load_species("simple_car")["dimensions"]
+    return [tuple(d[a][k] for a in ("width", "depth", "height"))
+            for k in ("min", "default", "max")]
+
+
+def test_the_tyre_face_stands_inside_the_body_side_and_the_tyre_inside_its_well():
     c = _constants(_RECIPE)
-    for name in ("WHEEL_INSET", "WHEEL_W", "WHEEL_TUCK", "ROCKER_W"):
-        assert name in c, name
-    dims = json.load(open(_GENOME, encoding="utf-8"))["dimensions"]["width"]
-    for w in (dims["min"], dims["default"], dims["max"]):
-        body_side = w / 2
-        centre = w / 2 - c["WHEEL_INSET"] - c["WHEEL_TUCK"]
-        outer = centre + c["WHEEL_W"] / 2
-        inner = centre - c["WHEEL_W"] / 2
-        assert body_side - outer >= 0.004, w          # not the body's plane
-        rocker = w * c["ROCKER_W"] / 2
-        # nor the rocker's: the rocker face must cut through the tyre well
-        # clear of both of its caps
-        assert inner + 0.004 <= rocker <= outer - 0.004, w
+    for style in car_forms.FORMS:
+        f = dict(car_forms.FORMS[style], style=style, rack=False)
+        for W, L, H in _sizes():
+            lay = car_forms.layout(f, W, L, H)
+            outer = lay["tyre_outer_x"]
+            inner = outer - lay["tyre_w"]
+            assert lay["hw"] - outer >= 0.004, (style, W)       # not the skin's plane
+            well_inner = lay["hw"] - car_forms.WHEEL_TUCK - lay["tyre_w"] - c["WELL_CLEAR"]
+            assert inner - well_inner >= 0.004, (style, W)      # the well's wall clears it
+            # the arch roof over the tyre's crown, by the arch gap
+            assert (lay["wheel_r"] + lay["R"]) - 2 * lay["wheel_r"] >= 0.03
 
 
-def test_the_recipe_places_the_wheel_with_those_constants():
+def test_the_recipe_places_the_wheel_with_that_layout():
     """A constant nothing reads is not a fix (CLAUDE.md, the null-result
-    rule): the placement line has to use both of them."""
+    rule): the tyre, the well and the arch must all come from the layout."""
     src = open(_RECIPE, encoding="utf-8").read()
-    assert re.search(r"wheel_x\s*=\s*w\s*/\s*2\s*-\s*WHEEL_INSET\s*-\s*WHEEL_TUCK", src)
-    assert re.search(r"depth\s*=\s*WHEEL_W", src)
+    assert re.search(r'xo = lay\["tyre_outer_x"\]', src)
+    assert re.search(r"cxw = xo - tyre_w / 2\.0", src)
+    assert re.search(r"xw = hw - WHEEL_TUCK - tyre_w - WELL_CLEAR", src)
+    assert re.search(r"WHEEL_TUCK = car_forms\.WHEEL_TUCK", src)
+    assert re.search(r'ya_f, ya_r, R = lay\["ya_f"\], lay\["ya_r"\], lay\["R"\]', src)

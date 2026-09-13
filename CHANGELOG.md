@@ -1,5 +1,167 @@
 # Changelog
 
+## [0.79.0] - cars with glass you can see through, a cabin behind it, and a body style
+
+The walker, after walking a generated street: "we need our cars to upgrade
+quite a bit. missing a lot of detail, side windows, transparency, etc etc".
+The references were a 1991 Ford Explorer, a 1990s Geo Metro three-door and a
+lot of 90s sedans.
+
+**What 0.78.0 built, measured before anything moved.** The shipped
+`cover/prop_simple_car_delco_1997_01_w175_d430_h145.glb` of walk 9048: 11
+visual parts, 888 tris, a cabin box on a slab. The side panes were built
+inside the tapered cabin solid, so the only side glass a camera could reach
+was a sliver along the top edge -- "no side windows". The glass material was
+`M_Skin_glass_delco_1997`, alphaMode OPAQUE: the delco `glass` pack
+(`glass_delco`, Pixelcoat 0.16.0) carries no `import_hints.transparency`, so
+`materials._textured` never blends it, and its albedo is #2b3a3d -- the
+"opaque green-grey windshield band". The rockay glass packs do carry the hint
+(`glass_wavy`: blend, 0.5). The buildings' windows are opaque for the same
+reason -- measured on the same walk,
+`lot/auto_shop_a02/art/zoo/window_delco_1997_01_w130_ob0bdca.glb` glazes
+`Window_Glass` in `M_Skin_glass_delco_1997`, OPAQUE. That is Pixelcoat's
+`profiles/materials/glass_delco.json`, and it is not changed here.
+
+**The car is rebuilt, one recipe, four body styles.** `core/car_forms.py`
+holds the styles as fractions of the slot, read off the cars named: `sedan`
+(Corsica / Taurus: three boxes, wheelbase 0.575, windshield base a third
+back, trunk a sixth), `hatchback` (Metro: wheelbase 0.62, 0.19 h tyres, big
+glass, a near-upright hatch), `suv` (Explorer: 0.19 h ground clearance, roof
+to the tailgate, roof rack, two-tone cladding) and `coupe` (kept, because
+the prompt rules always offered it). Each car is:
+
+  * a lower body lofted from cross-sections -- rocker, vertical door skin,
+    shoulder roll, crowned hood and deck -- with a wheel WELL notched over
+    each axle so the arches are in the silhouette, and inside the cabin an
+    open tub: door walls, a floor, wheel tubs;
+  * a greenhouse that is not a solid: a hull (windshield plane, side planes
+    with tumblehome, rear plane), a roof slab that is the hull, pillars 3 mm
+    inside it, and one pane per opening 7 mm inside -- windshield, a pane per
+    door per side, quarter glass where the style has it, backlight (6 or 8
+    `Car_Glass_*` objects, named by `car_forms.pane_names`);
+  * an interior: dashboard, instrument hood, steering wheel on the driver's
+    side (+X; the nose is -Y), front seats with headrests, a rear bench
+    between the wheel tubs, door cards, floor mat;
+  * shaped two-band bumpers, a grille with bars, headlamps and amber corner
+    lamps in a dark housing, tail lamps in a housing with a reverse lamp,
+    a rear plate and its frame (Pennsylvania plates the rear only), mirrors,
+    handles, door seams, side moulding, wipers; SUV roof rack and cladding
+    with a pinstripe; hubcap, steel or five-spoke alloy wheels on tyres with
+    a sidewall.
+
+Paint is a 1990s palette per style (dark green, teal, maroon, navy, white,
+silver, tan, red, black, and the Metro's sky blue), drawn from its own
+stream. A prompt colour wins; the `1970s`, `1980s`, `police` and `racing`
+style blocks now say `"paint": "fixed"` and keep theirs. Materials stay on
+the skin system: paint, cladding, lamps, plate and grey steel wheels on
+tintable `metal_painted`, trim and tyres on `rubber`, seats on `canvas`.
+Brightwork and headlamps were `metal_bare` first and rendered brown in
+Godot's Compatibility renderer (metallic 0.9 with only the ground to
+reflect); they are dielectric now. Lamps are unlit and their materials do
+not end `_Lens` / `_Diffuser` / `_Face`, so Lux's emissive binder leaves them.
+
+**Glass is see-through whatever the pack says.** New
+`materials.make_see_through_material`: a pack authored see-through is used
+as it is; an opaque pack keeps its albedo under `M_Skin_glass_<theme>_
+see_through`, blended at the car's 0.38 opacity (the building's opaque glass
+material is untouched); no pack gives a flat tinted blended pane. Measured
+in Godot 4.7 on a scratch copy of walk 9048 with the new car under the same
+stem: the GLB writes alphaMode BLEND, baseColorFactor alpha 0.38, texture
+kept; Godot imports every pane as BaseMaterial3D transparency 4
+(ALPHA_DEPTH_PRE_PASS, the importer's mapping of BLEND), albedo alpha 0.380,
+cull disabled; every opaque part imports at transparency 0. `look_shots.py`
+frames from given stations at the parked car show the seats, steering wheel
+and far-side glass through the near door glass.
+
+**How a style is chosen.** `params.body_style` is now `auto` by default
+(`sedan`, `hatchback`, `suv`, `coupe` by name, or by prompt keyword). A kit
+build takes param defaults, so `auto` picks from the styles whose natural
+(depth, height) window holds the slot, from a `car_style` stream seeded by
+the module stem: 3.8 x 1.40 is always a hatchback, 4.7 x 1.73 always an SUV,
+4.8 x 1.42 always a sedan, and Lot's 1.75 x 4.30 x 1.45 slot a sedan or a
+hatchback. Proportions, doors (`doors` 0 lets the style draw), quarter
+glass, rack, cladding, wheels, bumpers and paint vary by seed within a style.
+The pivot, the exact-fit dims (mirror heads are the width, bumpers the
+depth, roof or rails the height), the +Y length axis, the two collision
+boxes and the three attachments are what they were; `ATT_driver_seat` moved
+to +X, the driver's side of a car whose nose is -Y (it was on the
+passenger's side).
+
+A Lot street still gets ONE car: every parked car is one slot shape at
+style 1, so one stem, one module, one seed. That is Lot's to change, below.
+
+**No coincident faces.** Measured with `tools/coplanar_probe.py`'s own
+`probe()` on `plan_kit` + `build_module` builds: every style forced at the
+genome's min, default and max dims with slot styles 1-8 (96 builds), and 550
+more at random slot sizes inside the genome's ranges, random style or
+`auto`: 646 builds, 0 SAME and 0 OPP pairs, every `fit_*` check passing. The
+grid alone is not enough and read clean first: the probe's `--glb` mode on
+an exported 1.60 x 3.80 x 1.40 hatchback found a door card's face 0.29 mm
+from the rear hub disc (SAME, 193 cm2), a size the grid never built. Getting
+there, each kept in the code above the fix: a pinstripe's buried face 2.0 mm from the cladding's
+(SAME, 14.66 cm2); grille bars' back face 2.0 mm in front of the nose face
+(OPP, 152 cm2); corner pillars cornered at `e - t*a - t*b`, which on planes
+that are not square to each other left twisted quads 1.85 mm off the roof
+slab's side (SAME, up to 24 cm2) -- the corner is now `e - t/(1+a.b)*(a+b)`;
+that fix then exposed the A-pillar's inner face folding into a bow-tie on a
+raked windshield (OPP, 0.00 mm, 7-20 cm2), and the first clamp against it
+compared Y at the wrong height, never bound, and changed nothing -- the null
+result was the wiring, and the clamp now reads the edge at the corner's
+height; a moulding ending 0.31 mm from a door seam (OPP, 10.56 cm2); door
+cards running over the rear wheel tub (the hub disc above); a reverse lamp's
+buried face exactly 2 mm off the tail-lamp housing, counted on 19 of 150
+random sizes -- every one under 4.0 m, where float rounding put 2 mm inside
+the probe's window (OPP); a front seat 1.66 mm off the wheel-tub ledge on
+1.85 m hatchbacks (OPP, 3 of 250).
+
+**Tris, per style, the largest of those 646 builds:** sedan 3,100, hatchback
+2,884, SUV 3,328, coupe 3,004 (means 2,857 / 2,781 / 3,149 / 2,846). 1,344 of
+the first SUV's 2,980 were the body loft; dropping two stations that bought
+no shape (hood and deck are linear between their ends) and stepping the
+arches at 45 degrees instead of 30 took about 200 off. The budget goes from
+12,000 (never measured against anything) to 3,400. For scale: a street tree
+in walk 9048 is 2,220-2,652 tris, and that street parks 19 cars -- 19 x 3,300
+is about 63,000 tris of car against 42,500 of its 18 trees, where the 0.78.0
+car was 17,000. Godot's import generates LODs for these meshes
+(`meshes/generate_lods=true` in the walk project's import settings). Nodes
+per car: 15-19, from 12.
+
+`plan["bevel"]` is no longer applied to the car: the chamfers it reads by are
+modelled, and `bevel_edges` is what made 0.78.0's 12-tri boxes 44.
+
+**`tools/preview_specimen.py`** takes `--azimuth`, `--eye` and `--dist`, each
+overriding only itself: the auto camera stood at 3.2 m for a car, a
+first-floor window rather than a sidewalk.
+
+**What Lot would change to get a street of different cars (not done here).**
+`site_parking.CAR` is one (1.75, 4.3, 1.45) and `lot.write_site_slots`
+writes `"style": 1` on every slot, and `cover_module_refs` resolves every
+piece at the site's one style. To park a mix: choose a shape per bay from a
+small table -- e.g. hatchback 1.60 x 3.80 x 1.40, sedan 1.75 x 4.80 x 1.42,
+SUV 1.80 x 4.70 x 1.73, all inside a 6.0 m bay and the genome's ranges --
+and a style int per bay from the same bay hash, written on the slot and used
+by the stem. Zoo needs nothing more: the shape picks the style, the stem
+seeds the paint and trim. The cover planner's `MIN_COVER_HEIGHT` of 1.3
+holds for all three. `plan_parking` also gives both kerbs one yaw
+(`road.angle_deg + 90`), so the cars on one side face against the traffic;
+with the nose at -Y, one side wants that yaw plus 180.
+
+What a render cannot show: Cycles ray-traces and no frame shows z-fighting;
+the coincident-face result is the probe's. Whether 19 cars at 15-19 nodes
+and about 3,000 tris each cost frame time on the walker's machine has not been
+measured.
+
+Tests: `test_car_forms.py` (style selection deterministic per seed and
+bounded by the slot's proportions, doors read, trim varies, palette and
+fixed paint, one pane per opening and the recipe's panes named from it, the
+see-through material blending on every branch, the layout holding the exact
+dims at every style and size with and without a rack, the genome interface
+Lot parks by, stand-offs above the probe's window, the measured matrix
+within budget) and `test_car_wheels.py` rewritten onto the layout. Six
+deliberate breakages -- skin depths 2 mm apart, panes given the trim
+material, an opaque forced pack, the body side moved 1 cm, WHEEL_TUCK 0, a
+hatchback window stretched to 4.9 m -- each failed its test first.
+
 ## [0.78.0] - a word on the stop sign, stock on the shelves, wheels out of the body's plane
 
 Three more from the walker's walk copy, each measured before it was changed

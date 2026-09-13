@@ -161,6 +161,73 @@ def make_material(name, base_color, material_kind):
     return mat
 
 
+def make_see_through_material(name, tint, opacity, material_kind="glass"):
+    """Glazing that is transparent whatever the skin library says about it.
+
+    `make_material` makes a pane see-through only when the kind's Pixelcoat
+    pack carries ``import_hints.transparency``; without one, or without a
+    library, the pane is exported alphaMode OPAQUE. MEASURED on walk 9048's
+    `prop_simple_car_delco_1997_01_w175_d430_h145.glb`: the car's glass was
+    `M_Skin_glass_delco_1997`, OPAQUE, because the delco `glass` pack
+    (`glass_delco`, Pixelcoat 0.16.0) has no transparency hint -- the rockay
+    glass packs do (`glass_wavy`: blend, opacity 0.5). For a window in a
+    hollow facade that can be the right answer. For a car it is not: the
+    whole point of the glass is the cabin behind it.
+
+    So, in order:
+      * a pack that is authored see-through is used as it is;
+      * a pack that is not keeps its albedo (the grime and tint the theme
+        gave glass) under its own material name with ``_see_through``
+        appended, blended at ``opacity`` -- the building's opaque glass
+        material is never touched;
+      * no pack: a flat tinted pane at ``opacity``.
+
+    The blend rides the same `_textured` transparency branch as an authored
+    pack, so the glTF exporter writes alphaMode BLEND either way; Godot
+    imports that as BaseMaterial3D transparency ALPHA, which also keeps the
+    pane out of the shadow pass so daylight reaches the cabin.
+    """
+    opacity = max(0.05, min(0.95, float(opacity)))
+    pack = _find_pack(material_kind)
+    trans = (pack or {}).get("transparency") or {}
+    if (pack and trans.get("alpha_mode") != "scissor"
+            and float(trans.get("opacity", 1.0)) < 1.0):
+        return make_material(name, tint, material_kind)
+    if pack:
+        skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}_see_through"
+        mat = bpy.data.materials.get(skin_name)
+        if mat:
+            return mat
+        print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})"
+              f"  see-through at opacity {opacity:.2f} (the pack is opaque)")
+        forced = dict(pack)
+        forced["transparency"] = {"alpha_mode": "blend", "opacity": opacity,
+                                  "ior": 1.5}
+        return _textured(skin_name, forced, material_kind)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Base Color"].default_value = (*tint, 1.0)
+    bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(material_kind, 0.05)
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Alpha"].default_value = opacity
+    try:
+        if "IOR" in bsdf.inputs:
+            bsdf.inputs["IOR"].default_value = 1.5
+    except Exception:
+        pass
+    for _attr, _val in (("blend_method", "BLEND"),
+                        ("surface_render_method", "BLENDED")):
+        try:
+            setattr(mat, _attr, _val)
+        except Exception:
+            pass
+    return mat
+
+
 def make_emissive_material(name, color, strength=2.0):
     """Self-lit surface (fixture diffusers, streetlight lenses, sign faces).
 

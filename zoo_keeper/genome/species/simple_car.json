@@ -24,10 +24,15 @@
  },
  "parts": [
   "body",
-  "cabin",
+  "greenhouse",
+  "glass",
+  "interior",
   "wheel",
-  "window",
-  "bumper"
+  "bumper",
+  "lamp",
+  "mirror",
+  "plate",
+  "trim"
  ],
  "params": {
   "wheels": {
@@ -36,19 +41,21 @@
    "default": 4
   },
   "doors": {
-   "min": 2,
+   "min": 0,
    "max": 4,
-   "default": 4
+   "default": 0
   },
   "body_style": [
+   "auto",
    "sedan",
    "hatchback",
+   "suv",
    "coupe"
   ],
   "wheel_segments": {
    "min": 10,
    "max": 24,
-   "default": 14
+   "default": 12
   }
  },
  "materials": {
@@ -78,7 +85,8 @@
     0.1
    ],
    "wear": 0.45,
-   "bevel": 0.014
+   "bevel": 0.014,
+   "paint": "fixed"
   },
   "1980s": {
    "material": "metal_painted",
@@ -88,7 +96,8 @@
     0.08
    ],
    "wear": 0.35,
-   "bevel": 0.012
+   "bevel": 0.012,
+   "paint": "fixed"
   },
   "1990s": {
    "material": "metal_painted",
@@ -108,7 +117,8 @@
     0.12
    ],
    "wear": 0.25,
-   "bevel": 0.01
+   "bevel": 0.01,
+   "paint": "fixed"
   },
   "racing": {
    "material": "metal_painted",
@@ -118,7 +128,8 @@
     0.06
    ],
    "wear": 0.15,
-   "bevel": 0.01
+   "bevel": 0.01,
+   "paint": "fixed"
   },
   "center_city": {
    "material": "metal_painted",
@@ -155,7 +166,7 @@
   }
  },
  "budgets": {
-  "tris_lod0": 12000
+  "tris_lod0": 3400
  },
  "attachments": [
   "ATT_roof",
@@ -167,15 +178,33 @@
   "sedan",
   "hatchback",
   "coupe",
-  "automobile"
+  "automobile",
+  "suv"
  ],
  "prompt_rules": [
+  {
+   "any": [
+    "sedan"
+   ],
+   "set": {
+    "params.body_style": "sedan"
+   }
+  },
   {
    "any": [
     "hatchback"
    ],
    "set": {
     "params.body_style": "hatchback"
+   }
+  },
+  {
+   "any": [
+    "suv",
+    "sport utility"
+   ],
+   "set": {
+    "params.body_style": "suv"
    }
   },
   {

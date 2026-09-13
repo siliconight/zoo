@@ -145,6 +145,16 @@ def main():
     patch_extent = float(_arg("--patch-extent", "1.15"))
     no_ground = _flag("--no-ground")
     species = _arg("--species", None)
+    # A CAMERA THAT CAN WALK AROUND THE PIECE. The auto camera stands at one
+    # front-right three-quarter, at an eye height scaled from the piece's
+    # size -- 3.2 m for a 4.3 m car, which is a first-floor window, not a
+    # person on the sidewalk. `--azimuth` is degrees about the target in the
+    # ground plane (0 = +X, 90 = +Y; the default -45 is the old camera
+    # exactly), `--eye` an absolute camera height in metres, `--dist` the
+    # ground-plane distance in metres. Each overrides only itself.
+    azimuth = _arg("--azimuth")
+    eye_arg = _arg("--eye")
+    dist_arg = _arg("--dist")
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if repo not in sys.path:
@@ -220,6 +230,10 @@ def main():
         dist = size * 2.4
         eye = max(size * 0.75, min(1.6, size * 2.0))
         res_xy = (960, 640)
+    if dist_arg is not None:
+        dist = float(dist_arg) / 1.0182337649086284   # |(0.72, 0.72)|
+    if eye_arg is not None:
+        eye = float(eye_arg)
 
     if not no_ground:
         _ground(bpy, size=max(4.0, size * 6.0))
@@ -231,7 +245,13 @@ def main():
     cam = bpy.data.objects.new("PrevCam", cam_data)
     scene.collection.objects.link(cam)
     scene.camera = cam
-    cam.location = mathutils.Vector((dist * 0.72, -dist * 0.72, eye))
+    if azimuth is None:
+        cam.location = mathutils.Vector((dist * 0.72, -dist * 0.72, eye))
+    else:
+        r = dist * 1.0182337649086284
+        a = math.radians(float(azimuth))
+        cam.location = mathutils.Vector((target.x + r * math.cos(a),
+                                         target.y + r * math.sin(a), eye))
     cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
 
     _light_and_world(bpy, math)
