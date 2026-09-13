@@ -1,0 +1,101 @@
+{
+  "species": "bollard",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The forecourt clutter (roadmap 153), from the walker's reference frames. REFERENCE: A steel pipe bollard on a concrete foot with a domed cap and two painted bands. The smallest object that says vehicles stop here; a forecourt without them reads as a car park somebody forgot. BUILT: 550 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.154,
+      "max": 0.33,
+      "default": 0.22
+    },
+    "depth": {
+      "min": 0.154,
+      "max": 0.33,
+      "default": 0.22
+    },
+    "height": {
+      "min": 0.735,
+      "max": 1.575,
+      "default": 1.05
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.72,
+        0.16,
+        0.13
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.72,
+        0.16,
+        0.13
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.72,
+        0.16,
+        0.13
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.72,
+        0.16,
+        0.13
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.72,
+        0.16,
+        0.13
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 650
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "bollard",
+    "pipe bollard",
+    "guard post"
+  ]
+}

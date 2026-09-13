@@ -1,15 +1,18 @@
 [
   "bench",
+  "bollard",
   "box_truck",
   "bus_shelter",
   "callery_pear",
   "cargo_container",
   "fire_hydrant",
   "honey_locust",
+  "jersey_barrier",
   "litter_bin",
   "london_plane",
   "mailbox",
   "newspaper_box",
+  "pallet_stack",
   "parking_meter",
   "payphone",
   "pin_oak",
@@ -18,5 +21,6 @@
   "sign_post",
   "stop_sign",
   "street_tree",
-  "traffic_signal"
+  "traffic_signal",
+  "water_barrel"
 ]

@@ -31,7 +31,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "chair", "filing_cabinet", "atm",
            # the 1990s street kit (roadmap 153): painted steel, every one
            "traffic_signal", "mailbox", "newspaper_box", "parking_meter",
-           "payphone")
+           "payphone",
+           # the forecourt clutter (roadmap 153): a bollard is painted steel
+           "bollard")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign")

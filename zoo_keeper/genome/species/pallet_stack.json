@@ -1,0 +1,102 @@
+{
+  "species": "pallet_stack",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The forecourt clutter (roadmap 153), from the walker's reference frames. REFERENCE: Two pallets with their deck boards, a wrapped load above them and a strap round it. Knee-to-waist cover that is not a hero asset. BUILT: 704 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.84,
+      "max": 1.8,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.7,
+      "max": 1.5,
+      "default": 1.0
+    },
+    "height": {
+      "min": 0.665,
+      "max": 1.425,
+      "default": 0.95
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.44,
+        0.3
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.44,
+        0.3
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.44,
+        0.3
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.44,
+        0.3
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.55,
+        0.44,
+        0.3
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 800
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "pallet stack",
+    "pallets",
+    "pallet_stack",
+    "sacks",
+    "stacked pallets"
+  ]
+}

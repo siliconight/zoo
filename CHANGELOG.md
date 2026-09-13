@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.74.0] - the forecourt clutter
+
+The walker's Call of Duty frames: what a forecourt carries is CLUSTERS of
+cheap objects -- four blue drums by a fence, stacked pallets, a concrete
+barrier dragged across a lane, banded bollards at every column base. None
+is a hero asset; each is one simple shape and the grouping is what sells
+it.
+
+`jersey_barrier` (the profile is the object: a wide foot, a steep lower
+slope, a near-vertical face to a narrow top -- 124 tris), `water_barrel`
+(a 55-gallon drum whose two rolling hoops are what stop it reading as a
+tube -- 480), `bollard` (a pipe on a concrete foot with a domed cap and
+two painted bands, the bands geometry so the read survives an unskinned
+build -- 550) and `pallet_stack` (two pallets, a wrapped load, a strap --
+704). Every budget is its measured build plus a tenth. All four collide:
+they exist to break a sightline at knee-to-waist height, and cover a body
+can walk through is the defect this pipeline keeps measuring for.
+
 ## [0.73.0] - a tree of tracery, and autumn
 
 The walker's reference frames ("trees comps", 2026-09-13): a clear trunk,

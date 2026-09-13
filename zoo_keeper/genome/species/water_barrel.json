@@ -1,0 +1,102 @@
+{
+  "species": "water_barrel",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "The forecourt clutter (roadmap 153), from the walker's reference frames. REFERENCE: A 55-gallon drum: a cylinder with two rolling hoops and a rimmed top and bottom. The hoops are what stop it reading as a tube. They stand in groups of four. BUILT: 480 tris at the authored dims (2026-09-13)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.406,
+      "max": 0.87,
+      "default": 0.58
+    },
+    "depth": {
+      "min": 0.406,
+      "max": 0.87,
+      "default": 0.58
+    },
+    "height": {
+      "min": 0.616,
+      "max": 1.32,
+      "default": 0.88
+    }
+  },
+  "parts": [],
+  "params": {},
+  "materials": {
+    "default": "plastic",
+    "options": [
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "plastic",
+      "color": [
+        0.16,
+        0.33,
+        0.62
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "plastic",
+      "color": [
+        0.16,
+        0.33,
+        0.62
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "plastic",
+      "color": [
+        0.16,
+        0.33,
+        0.62
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "plastic",
+      "color": [
+        0.16,
+        0.33,
+        0.62
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "plastic",
+      "color": [
+        0.16,
+        0.33,
+        0.62
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 550
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "water barrel",
+    "drum",
+    "barrel",
+    "water_barrel",
+    "oil drum"
+  ]
+}
