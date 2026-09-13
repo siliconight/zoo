@@ -26,7 +26,8 @@
     "StreetTree_Body"
   ],
   "params": {
-    "crown": "volume"
+    "crown": "volume",
+    "form": "red_maple"
   },
   "materials": {
     "default": "wood",
@@ -94,7 +95,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 200
+    "tris_lod0": 2200
   },
   "attachments": [],
   "collision": true,

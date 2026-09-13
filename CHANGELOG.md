@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.70.0] - 2026-09-13
+
+`street_tree` is GROWN, by species. The walker, on cold run 9032's frames:
+"trees usually have multiple branches that stem from the trunk and those
+branches have twigs and depending on what species of tree determines how
+that looks." `core.tree_forms` tables the street trees a Delaware County
+street plants -- red maple (the default), pin oak, honey locust, London
+plane, callery pear -- each as where the first branch leaves the trunk,
+how far the leader runs, how many primary branches, their angles from
+vertical low/mid/high, twigs per branch, the leaf clusters' size and the
+crown envelope (oval, pyramid, vase, flat). The recipe grows a tapered
+trunk and leader, branches spiralling up by the golden angle at the
+species' angles, twigs off each branch's outer half, and a faceted leaf
+cluster at every tip in the same low-poly style as the cars and the
+shelter; the SKELETON is fitted to the slot per axis first and the
+clusters placed at the fitted tips, so they keep their shape (the first
+build fitted the whole tree after and pressed the clusters into plates),
+then a last small correction makes the extents the slot's exactly. A
+cluster is a quarter taller than wide with a full-width middle band:
+measured on the second build, two frustums as wide as tall read as flat
+gems from the sidewalk, which is where the eye is. The genome names the
+species (`params.form`); `params.crown = "cards"` keeps the crossed
+cutout cards of 0.69.2. Budget 2,200 tris (a red maple builds 2,136).
+
 ## [0.69.3] - 2026-09-13
 
 `street_tree` ships the faceted crown again. The walker, on cold run
