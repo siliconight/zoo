@@ -44,6 +44,25 @@ def test_the_run_species_declare_bay_max_and_open_their_width():
         assert g["dimensions"]["width"]["max"] > unit, sp
 
 
+def test_the_desk_declares_a_row_max_and_the_ranges_the_library_asks_for():
+    """`bay_max` divides the width; `row_max` divides the DEPTH, and a
+    cubicle block is the only shape that needs it today.
+
+    Measured over the 328 named prop slots in the 130 built shells: 30 desk
+    slots fell outside the old ranges -- 27 at 1.1 or 1.2 m tall and 10 at
+    6.0 m deep -- which was 30 of the 43 misses in the whole library. After
+    this the library's named prop slots go 285 fit / 43 miss to 314 / 14.
+    """
+    g = _genome("desk")
+    assert g["params"]["row_max"] == 1.5
+    assert g["dimensions"]["depth"]["max"] == 6.0
+    assert g["dimensions"]["height"]["max"] == 1.3
+    # a row is a unit, not a sliver: 6.0 m at 1.5 is four rows of 1.5
+    from zoo_keeper.recipes._bays import bays
+    rows = bays(6.0, 1.5)
+    assert len(rows) == 4 and all(abs(r[1] - 1.5) < 1e-9 for r in rows)
+
+
 def _prop(sid, dims, species):
     return {"slot_id": sid, "role": "prop", "size_mod": "full", "style": 1,
             "species": species, "fit": {"dims": list(dims), "pivot": "center"}}
@@ -70,17 +89,27 @@ def test_the_runs_the_library_authors_now_plan_as_their_species():
 
 
 def test_what_still_falls_back_says_why():
-    """A 1.2 m tall bench is no chair (1.1 max); a 5 x 1.6 x 1.2 "boss desk"
-    is no desk either, and is a counter by the alternate rule."""
+    """A 1.2 m tall bench is no chair (1.1 max).
+
+    SUPERSEDED, kept above the result that replaced it. This used to assert
+    that a 5 x 1.6 x 1.2 "boss desk" was a COUNTER by the alternate rule,
+    because `desk` capped at 1.0 m tall and 1.2 m deep. Measured across the
+    130 built shells, 27 of the library's desk volumes are 1.1 or 1.2 m tall
+    and 15 are 1.3-1.6 m deep -- those are reception desks with a raised
+    ledge and desks with a return, not service counters, and calling them
+    counters was the range being too tight rather than the name being wrong.
+    `desk` now runs to 1.3 m tall and 6.0 m deep and keeps its work surface
+    at sitting height, so this builds as a desk and no alternate is needed.
+    """
     plan = kit.plan_kit({"building_id": "t", "slots": [
         _prop("bench", (5.0, 1.4, 1.2), "chair"),
         _prop("boss_desk", (5.0, 1.6, 1.2), "desk"),
     ]}, theme="delco", style=1)
     reasons = {f["slot_id"]: f["reason"] for f in plan["species_fallbacks"]}
     assert list(reasons) == ["bench"] and "height 1.20 outside" in reasons["bench"]
-    (alt,) = plan["species_alternates"]
-    assert alt["slot_id"] == "boss_desk" and alt["built_as"] == "counter"
-    assert "depth 1.60 outside" in alt["reason"]
+    assert plan["species_alternates"] == [], plan["species_alternates"]
+    # `desk` for the boss desk, `prop` for the bench that fell back
+    assert {m["species"] for m in plan["modules"]} == {"desk", "prop"}
 
 
 def test_tables_and_seating_run_in_bays_and_a_tall_desk_is_a_counter():
@@ -103,16 +132,32 @@ def test_tables_and_seating_run_in_bays_and_a_tall_desk_is_a_counter():
     assert plan["species_fallbacks"] == [], plan["species_fallbacks"]
     by = {m["stem"].split("_delco")[0]: m["species"] for m in plan["modules"]}
     assert by["prop_table_delco_01_w400_d200_h90".split("_delco")[0]] == "table"
-    assert {m["species"] for m in plan["modules"] if m["dims"][0] == 6.0} == {"counter"}
-    alts = {a["slot_id"]: a["built_as"] for a in plan["species_alternates"]}
-    assert alts == {"front_desk": "counter", "checkin_desk": "counter"}
-    assert "height 1.10 outside" in [a["reason"] for a in plan["species_alternates"]][0]
+    # SUPERSEDED: `front_desk` (6.0 x 0.9 x 1.1) and `checkin_desk`
+    # (4.0 x 1.4 x 1.2) were built as counters while `desk` capped at 1.0 m.
+    # They are reception desks -- a work surface at sitting height with a
+    # ledge over its back edge -- and the species now says so, so they build
+    # as what they are named and nothing falls to an alternate.
+    assert {m["species"] for m in plan["modules"] if m["dims"][0] == 6.0} == {"desk"}
+    assert plan["species_alternates"] == [], plan["species_alternates"]
 
 
 def test_what_is_a_region_not_a_thing_still_falls_back():
+    """A REGION is a species only when its unit tiles in two directions.
+
+    `cubicles_w` used to be here as the example of a region: 8 x 6 m of
+    floor called a desk. It has moved to the other side, because a cubicle
+    block IS a grid of desks butted back to back and `row_max` divides the
+    depth the way `bay_max` divides the width -- ten of the library's desk
+    volumes are 6.0 m deep and every one of them is that. `gaming_tables`
+    stays: a casino floor's tables stand apart with room to walk between
+    them, so twelve metres of them is a region and no amount of tiling one
+    table makes it right.
+    """
     plan = kit.plan_kit({"building_id": "t", "slots": [
         _prop("cubicles_w", (8.0, 6.0, 1.2), "desk"),
         _prop("gaming_tables", (12.0, 6.0, 1.0), "table"),
     ]}, theme="delco", style=1)
-    assert {f["slot_id"] for f in plan["species_fallbacks"]} == {"cubicles_w", "gaming_tables"}
+    assert {f["slot_id"] for f in plan["species_fallbacks"]} == {"gaming_tables"}
     assert plan["species_alternates"] == []
+    # the cubicle block builds; the casino floor is still a box
+    assert {m["species"] for m in plan["modules"]} == {"desk", "prop"}

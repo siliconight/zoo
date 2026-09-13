@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.76.0] - a desk fills a deep slot, and a tall one grows a transaction top
+
+The walker: the outside is coming along, what about the props inside. The
+first measurement said the species were missing; that was WRONG and is kept
+here because it sent an hour the wrong way. Zoo has 83 recipes and every
+species the building library asks for by name exists. `minted.json` is a
+24-entry list of what the street work minted, not the catalogue, and reading
+it as the catalogue is the shape of mistake CLAUDE.md's first rule is about:
+name what produced an artefact before concluding from it.
+
+WHAT IS ACTUALLY TRUE, measured over the 328 named prop slots in the 130
+built shells: 285 fell inside their species' declared ranges and 43 did not,
+and 30 of the 43 were `desk`. Not 30 problems -- two:
+
+    27  height 1.1 or 1.2, against a 1.0 max     a reception desk
+    15  depth 1.3 to 1.6, against a 1.2 max      a desk with a return
+    10  depth 6.0                                a CUBICLE BLOCK
+
+ROWS. `bay_max` already divides a wide slot into desks butted together.
+`row_max` does the same to the DEPTH and faces alternate rows opposite ways,
+which is what back-to-back cubicles are: a 6.0 m slot at `row_max` 1.5 is
+four rows of 1.5. `row_max` absent means one row and every existing species
+behaves exactly as it did.
+
+A TRANSACTION TOP. A 1.2 m "desk" is a reception desk: the work surface is
+still at sitting height and a raised ledge stands over its back edge. Above
+`DESK_TOP_MAX` the top stops at `DESK_WORK_H` and the remainder becomes that
+ledge -- and the top slab is still built AT the slot height below it,
+because `fit_height` is an exact check and lowering a 0.80 m desk to a
+0.78 m work surface failed validation on the first build. That is what
+`DESK_TOP_MAX` is for and it was found by building, not by reading.
+
+Ranges: depth 0.5-6.0, height 0.65-1.3. The library's named prop slots go
+285 fit / 43 miss to 314 / 14. Built through Blender at all three shapes:
+8 x 6 x 1.2 is exact to size, pivot centred, 5,896 tris against an 8,000
+budget, ten checks pass.
+
+Three tests in `test_bays.py` asserted the old answers and are updated with
+what they superseded. A 5 x 1.6 x 1.2 "boss desk" was a COUNTER by the
+alternate rule, and a 8 x 6 m cubicle block was "a region, not a thing";
+both were the range being too tight rather than the name being wrong. A
+casino floor's `gaming_tables` is still a region, because tables stand apart
+with room to walk between them and no amount of tiling one table fixes that.
+
 ## [0.75.0] - stone, siding and shingle enter the kind vocabulary
 
 The walker's art direction names them and Pixelcoat mints them: local
