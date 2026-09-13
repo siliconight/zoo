@@ -52,6 +52,19 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "glass": 0.05, "glass_facade": 0.08, "paper": 0.80,
              "concrete": 0.92, "plaster": 0.88,
              "brick": 0.90, "tile": 0.35, "drywall": 0.90, "ceiling_tile": 0.92,
+             # Fieldstone: a broken face with mortar between, above concrete
+             # (0.92) and brick (0.90). A stone wall that catches a highlight
+             # reads as wet plastic at every angle.
+             "stone": 0.94,
+             # Vinyl/aluminium lap siding sits by `wood` (0.65), not by
+             # `plastic` (0.45): it leaves the factory with a low sheen and
+             # chalks within a decade, which is the state the late 1990s
+             # found it in.
+             "siding": 0.66,
+             # An asphalt shingle is stone granule bonded to felt, so it is a
+             # MINERAL surface beside concrete rather than a bituminous one;
+             # `tar` (0.90) is the binder underneath, not what light hits.
+             "shingle": 0.93,
              "carpet": 0.98, "dirt": 0.97, "tar": 0.90,
              # Layer 3 surface dressing: loose stone and plant matter, both
              # fully matte -- a dressing scatter that catches a specular

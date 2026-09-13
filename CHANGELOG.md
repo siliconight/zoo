@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.75.0] - stone, siding and shingle enter the kind vocabulary
+
+The walker's art direction names them and Pixelcoat mints them: local
+fieldstone as the county's visual ballast, and vinyl or aluminium lap siding
+over brown asphalt shingle as the layer the late 1990s put on older
+buildings. A theme mapping alone changes nothing -- `find_pack` is only ever
+asked for kinds in `KNOWN_KINDS`, so the packs would be built into every
+library and reach no surface. `stone` had exactly that problem for the length
+of one commit.
+
+Roughness, each derived against a neighbour already in the table:
+
+    stone     0.94   above concrete (0.92) and brick (0.90): a broken,
+                     unpolished face, and a stone wall that catches a
+                     highlight reads as wet plastic
+    siding    0.66   beside wood (0.65), not plastic (0.45): extruded vinyl
+                     leaves the factory with a low sheen and chalks within
+                     a decade
+    shingle   0.93   beside concrete: stone granule bonded to felt is a
+                     MINERAL surface; tar (0.90) is the binder underneath,
+                     not what light hits
+
+None is metallic, so all three stay out of `METALLIC` by omission.
+
 ## [0.74.0] - the forecourt clutter
 
 The walker's Call of Duty frames: what a forecourt carries is CLUSTERS of

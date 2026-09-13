@@ -50,6 +50,16 @@ MAP_KEYS = ("albedo", "normal", "roughness", "emissive", "height")
 KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "canvas", "carbon", "glass", "glass_facade", "paper",
                "concrete", "plaster", "brick", "tile", "drywall",
+               # THE WALKER'S ART DIRECTION, docs/DELCO_1997_ART_DIRECTION.md.
+               # `stone` is the local fieldstone of point 3 -- facades,
+               # foundations, retaining walls, churches, schools, mills,
+               # bridge abutments -- and `siding` and `shingle` are the two
+               # surfaces of point 5 with a consumer in this pipeline: Deli
+               # Counter's twin wears siding over a stone base, and
+               # `roof_material` puts shingle on a house. Without the kind
+               # here the pack is built into every library and reaches no
+               # surface, which is what happened to `stone` for one commit.
+               "stone", "siding", "shingle",
                "ceiling_tile", "carpet", "dirt", "tar",
                # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
                "gravel", "vegetation",
