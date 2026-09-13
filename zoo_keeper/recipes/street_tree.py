@@ -177,6 +177,14 @@ def build(plan, streams, collection):
                    zb + math.cos(ang) * length)
             limbs.append(((0.0, 0.0, zb), tip, r_first * 0.8, r_top * 0.8))
             tips.append((tip, cluster * (0.85 + 0.3 * rng.random())))
+            # a mass where the twigs fork, on the branch's outer third: the
+            # tips alone hang their clusters on the crown's envelope and
+            # leave the inside of it empty, which at 4 m across reads as
+            # scattered chunks rather than a canopy (the five-species
+            # contact sheet, 2026-09-13). A real branch carries leaves
+            # along its outer length, so this is where they are.
+            mid = (tip[0] * 0.62, tip[1] * 0.62, zb + (tip[2] - zb) * 0.62)
+            tips.append((mid, cluster * (0.7 + 0.25 * rng.random())))
             for j in range(int(f["twigs"])):
                 s = 0.55 + 0.35 * (j + 1) / (f["twigs"] + 1)
                 base = (tip[0] * s, tip[1] * s, zb + (tip[2] - zb) * s)

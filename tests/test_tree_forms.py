@@ -43,3 +43,36 @@ def test_the_genome_names_a_form_the_table_holds():
     assert g["params"].get("form") in tree_forms.FORMS
     assert g["params"].get("crown") == "volume"
     assert g["budgets"]["tris_lod0"] >= 2136   # measured: a red maple builds 2,136 tris
+
+
+#: What Blender actually built for each form, 2026-09-13, read off the
+#: exported glTF rather than off a report. The derivation is checked
+#: against these rather than against itself.
+#:
+#: BEFORE THE MID-BRANCH MASS (0.70.0, tips = 1 + branches * (1 + twigs)):
+#: 1,812 / 2,136 / 2,352 / 2,460 / 2,784 for 16 / 19 / 21 / 22 / 25 tips.
+#: `84 + 108 * tips` reproduced all five then and reproduces all five now
+#: with the extra mass per branch, which is the evidence that the formula
+#: is the pieces and not a curve fitted to one build.
+MEASURED_TRIS = {"london_plane": 1992, "red_maple": 2352, "honey_locust": 2532,
+                 "pin_oak": 2712, "callery_pear": 3072}
+
+
+def test_the_triangle_count_is_derived_and_matches_every_measured_build():
+    for sp, tris in MEASURED_TRIS.items():
+        f = tree_forms.FORMS[sp]
+        assert tree_forms.tri_count(f) == tris, (sp, tree_forms.tri_count(f), tris)
+    # and the derivation is the pieces, not a curve fitted to five points
+    f = tree_forms.FORMS["red_maple"]
+    assert tree_forms.tips(f) == 1 + f["branches"] * (2 + f["twigs"])
+    assert tree_forms.limbs(f) == 2 + f["branches"] * (1 + f["twigs"])
+    assert tree_forms.tri_count(f) == (tree_forms.TRIS_GRATE
+                                       + tree_forms.TRIS_LIMB * tree_forms.limbs(f)
+                                       + tree_forms.TRIS_CLUSTER * tree_forms.tips(f))
+
+
+def test_every_genome_carries_the_budget_its_form_derives():
+    for sp, f in tree_forms.FORMS.items():
+        g = genome.load_species(sp)
+        assert g["budgets"]["tris_lod0"] == tree_forms.tri_budget(f), sp
+        assert g["budgets"]["tris_lod0"] > tree_forms.tri_count(f), sp

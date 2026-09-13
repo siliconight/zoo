@@ -19,6 +19,8 @@ Pure: a dict, read by `recipes/street_tree.py`; testable without Blender.
 """
 from __future__ import annotations
 
+import math
+
 #: name -> form. Fields:
 #:   first_branch: height of the lowest primary branch, as a fraction of h
 #:   leader:       how far up the trunk continues as a central leader, of h
@@ -63,6 +65,46 @@ FORMS = {
 }
 
 DEFAULT = "red_maple"
+
+#: WHAT A TREE COSTS, DERIVED RATHER THAN PINNED. `street_tree` builds one
+#: grate box, one limb per trunk/leader/branch/twig and one leaf cluster per
+#: tip; a box triangulates to 12, a cluster is three boxes (36), and a
+#: 6-segment capped cylinder is 12 side + 8 cap = 20 before the bevel, 72
+#: after it. Measured across the five species built 2026-09-13 -- 1,812 /
+#: 2,136 / 2,352 / 2,460 / 2,784 tris for 16 / 19 / 21 / 22 / 25 tips --
+#: `84 + 108 * tips` reproduces every one of them exactly, so the budget a
+#: genome carries is this formula and not a number somebody chose. A build
+#: that warns against it has changed its piece count or its bevel, which is
+#: worth knowing.
+TRIS_GRATE = 12
+TRIS_LIMB = 72
+TRIS_CLUSTER = 36
+#: Headroom on the derived count: one cluster and one limb, so a recipe that
+#: grows a single extra fork reports rather than warns.
+TRIS_HEADROOM = TRIS_LIMB + TRIS_CLUSTER
+
+
+def tips(f: dict) -> int:
+    """Leaf clusters on a tree of form ``f``: one per branch tip, one where
+    each branch's twigs fork, one per twig tip, one on the leader."""
+    return 1 + int(f["branches"]) * (2 + int(f["twigs"]))
+
+
+def limbs(f: dict) -> int:
+    """Cylinders: the trunk, the leader, one per branch and one per twig --
+    a mass at a fork rides the branch it is on and adds none."""
+    return 2 + int(f["branches"]) * (1 + int(f["twigs"]))
+
+
+def tri_count(f: dict) -> int:
+    """Triangles `street_tree` builds for form ``f`` -- the derivation above."""
+    return TRIS_GRATE + TRIS_LIMB * limbs(f) + TRIS_CLUSTER * tips(f)
+
+
+def tri_budget(f: dict) -> int:
+    """The genome's `tris_lod0` for form ``f``: the derived count plus one
+    fork's headroom, rounded up to a round fifty."""
+    return int(math.ceil((tri_count(f) + TRIS_HEADROOM) / 50.0) * 50)
 
 
 def form(name: str | None) -> dict:

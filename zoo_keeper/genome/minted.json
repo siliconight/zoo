@@ -2,10 +2,15 @@
   "bench",
   "box_truck",
   "bus_shelter",
+  "callery_pear",
   "cargo_container",
   "fire_hydrant",
+  "honey_locust",
   "litter_bin",
+  "london_plane",
+  "pin_oak",
   "pump",
+  "red_maple",
   "sign_post",
   "street_tree"
 ]

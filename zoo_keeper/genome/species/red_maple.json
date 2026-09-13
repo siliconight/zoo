@@ -1,24 +1,24 @@
 {
-  "species": "street_tree",
+  "species": "red_maple",
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A young street tree in a kerb grate: a 0.3 m trunk from a 1.2 m square iron grate at grade, a 4 m crown in the upper 60 percent of a 6 m height. The slot is the crown; only the trunk collides. Roadmap 153, the waiting places -- the first species wanting alpha-cutout foliage."
+    "notes": "One of the five street trees (roadmap 153), grown by `street_tree`'s builder from `core.tree_forms['red_maple']`. REFERENCE: Acer rubrum, the commonest Delaware County street tree: one trunk, branches ascending 30-48 degrees, an oval crown of even rounded masses, red in October."
   },
   "dimensions": {
     "width": {
-      "min": 2.0,
-      "max": 8.0,
+      "min": 2.4,
+      "max": 6.4,
       "default": 4.0
     },
     "depth": {
-      "min": 2.0,
-      "max": 8.0,
+      "min": 2.4,
+      "max": 6.4,
       "default": 4.0
     },
     "height": {
-      "min": 3.0,
-      "max": 12.0,
+      "min": 3.6,
+      "max": 9.6,
       "default": 6.0
     }
   },
@@ -101,8 +101,9 @@
   "collision": true,
   "match_priority": 0,
   "keywords": [
-    "street tree",
-    "tree",
-    "street_tree"
+    "red maple",
+    "maple",
+    "acer",
+    "red_maple"
   ]
 }

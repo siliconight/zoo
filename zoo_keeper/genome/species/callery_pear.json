@@ -1,25 +1,25 @@
 {
-  "species": "street_tree",
+  "species": "callery_pear",
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A young street tree in a kerb grate: a 0.3 m trunk from a 1.2 m square iron grate at grade, a 4 m crown in the upper 60 percent of a 6 m height. The slot is the crown; only the trunk collides. Roadmap 153, the waiting places -- the first species wanting alpha-cutout foliage."
+    "notes": "One of the five street trees (roadmap 153), grown by `street_tree`'s builder from `core.tree_forms['callery_pear']`. REFERENCE: Pyrus calleryana 'Bradford': every branch rising tight from nearly one point, a dense narrow oval -- the one that splits in an ice storm."
   },
   "dimensions": {
     "width": {
-      "min": 2.0,
-      "max": 8.0,
-      "default": 4.0
+      "min": 1.8,
+      "max": 4.8,
+      "default": 3.0
     },
     "depth": {
-      "min": 2.0,
-      "max": 8.0,
-      "default": 4.0
+      "min": 1.8,
+      "max": 4.8,
+      "default": 3.0
     },
     "height": {
-      "min": 3.0,
-      "max": 12.0,
-      "default": 6.0
+      "min": 3.3,
+      "max": 8.8,
+      "default": 5.5
     }
   },
   "parts": [
@@ -27,7 +27,7 @@
   ],
   "params": {
     "crown": "volume",
-    "form": "red_maple"
+    "form": "callery_pear"
   },
   "materials": {
     "default": "wood",
@@ -95,14 +95,16 @@
     }
   },
   "budgets": {
-    "tris_lod0": 2500
+    "tris_lod0": 3200
   },
   "attachments": [],
   "collision": true,
   "match_priority": 0,
   "keywords": [
-    "street tree",
-    "tree",
-    "street_tree"
+    "callery pear",
+    "bradford pear",
+    "pear tree",
+    "pyrus",
+    "callery_pear"
   ]
 }

@@ -1,24 +1,24 @@
 {
-  "species": "street_tree",
+  "species": "honey_locust",
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A young street tree in a kerb grate: a 0.3 m trunk from a 1.2 m square iron grate at grade, a 4 m crown in the upper 60 percent of a 6 m height. The slot is the crown; only the trunk collides. Roadmap 153, the waiting places -- the first species wanting alpha-cutout foliage."
+    "notes": "One of the five street trees (roadmap 153), grown by `street_tree`'s builder from `core.tree_forms['honey_locust']`. REFERENCE: Gleditsia triacanthos inermis: open and spreading, few limbs, fine twigs, a thin flat-topped crown you can see the sky through -- the parking-lot tree."
   },
   "dimensions": {
     "width": {
-      "min": 2.0,
-      "max": 8.0,
-      "default": 4.0
+      "min": 2.7,
+      "max": 7.2,
+      "default": 4.5
     },
     "depth": {
-      "min": 2.0,
-      "max": 8.0,
-      "default": 4.0
+      "min": 2.7,
+      "max": 7.2,
+      "default": 4.5
     },
     "height": {
-      "min": 3.0,
-      "max": 12.0,
+      "min": 3.6,
+      "max": 9.6,
       "default": 6.0
     }
   },
@@ -27,7 +27,7 @@
   ],
   "params": {
     "crown": "volume",
-    "form": "red_maple"
+    "form": "honey_locust"
   },
   "materials": {
     "default": "wood",
@@ -95,14 +95,15 @@
     }
   },
   "budgets": {
-    "tris_lod0": 2500
+    "tris_lod0": 2650
   },
   "attachments": [],
   "collision": true,
   "match_priority": 0,
   "keywords": [
-    "street tree",
-    "tree",
-    "street_tree"
+    "honey locust",
+    "locust",
+    "gleditsia",
+    "honey_locust"
   ]
 }

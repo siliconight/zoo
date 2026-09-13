@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.71.0] - 2026-09-13
+
+The five street trees are species of their own, and the canopy fills.
+
+`red_maple`, `pin_oak`, `honey_locust`, `london_plane` and `callery_pear`
+are minted species sharing `street_tree`'s builder -- each recipe module
+re-exports it, each genome names its row of `core.tree_forms` in
+`params.form` and carries its own slot dims, because a callery pear is
+3.0 m across at planting and a London plane 5.0 m, and that difference is
+the point of naming them. Deli Counter's keyword table can route "pin
+oak" or "sycamore" to one; Lot plants one species per road.
+
+A leaf mass now sits where each branch's twigs fork, on its outer third:
+the tips alone hang every cluster on the crown's envelope and leave the
+inside empty, which at 4 m across read as scattered chunks rather than a
+canopy (measured on a five-species contact sheet).
+
+THE TRIANGLE BUDGET IS DERIVED, NOT CHOSEN. A tree is one grate box, one
+limb per trunk/leader/branch/twig and one cluster per tip: 12 + 72 per
+limb + 36 per cluster. Read off the exported glTF for all five species,
+`84 + 108 * tips` reproduces every build exactly -- before the mid-branch
+mass (1,812 / 2,136 / 2,352 / 2,460 / 2,784) and after it (1,992 / 2,352 /
+2,532 / 2,712 / 3,072) -- so each genome's `tris_lod0` is that count plus
+one fork's headroom, and a warn against it means the piece count or the
+bevel moved.
+
 ## [0.70.0] - 2026-09-13
 
 `street_tree` is GROWN, by species. The walker, on cold run 9032's frames:
