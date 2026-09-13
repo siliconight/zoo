@@ -64,6 +64,39 @@ def _limb(bm, a, b, r0, r1):
     return verts
 
 
+def _small_cluster(bm, centre, size):
+    """A twig's leaf mass: ONE tapered box. A crown reads as tracery when
+    there are many of these, and many is only affordable if each is cheap
+    (12 triangles against a branch mass's 36)."""
+    cx, cy, cz = centre
+    verts = geometry.add_box(bm, (cx, cy, cz), (size, size, size * 1.1))
+    geometry.taper_z(verts, 0.5, 0.6)
+
+
+def _stick(bm, a, b, r0, r1):
+    """A TWIG: a thin box from ``a`` to ``b``, turned onto the segment the
+    way `_limb` turns a cylinder. Twelve triangles against a cylinder's
+    seventy-two, and at two centimetres across nobody reads the
+    cross-section -- which is what lets a crown carry eighty of them."""
+    ax, ay, az = a
+    bx, by, bz = b
+    dx, dy, dz = bx - ax, by - ay, bz - az
+    length = math.sqrt(dx * dx + dy * dy + dz * dz) or 1e-6
+    verts = geometry.add_box(bm, (0.0, 0.0, length / 2.0),
+                             (r0 * 2.0, r0 * 2.0, length))
+    geometry.taper_z(verts, max(0.2, r1 / max(r0, 1e-6)), 1.0)
+    polar = math.acos(max(-1.0, min(1.0, dz / length)))
+    azim = math.atan2(dy, dx)
+    cp, sp = math.cos(polar), math.sin(polar)
+    ca, sa = math.cos(azim), math.sin(azim)
+    for v in verts:
+        x, y, z = v.co.x, v.co.y, v.co.z
+        x, z = x * cp + z * sp, -x * sp + z * cp
+        x, y = x * ca - y * sa, x * sa + y * ca
+        v.co.x, v.co.y, v.co.z = x + ax, y + ay, z + az
+    return verts
+
+
 def _cluster(bm, centre, size):
     """A faceted leaf mass ``size`` wide and a quarter taller than wide:
     a narrow base widening to a full-width waist, a short full-width
@@ -158,11 +191,11 @@ def build(plan, streams, collection):
         cluster = f["cluster"] * w
         golden = math.radians(137.5)
         spin = rng.random() * 6.2831853
-        # limbs as (a, b, r0, r1); tips as (point, cluster size)
-        limbs, tips = [], []
+        # limbs as (a, b, r0, r1); masses as (point, size), big and small
+        limbs, sticks, big, small = [], [], [], []
         limbs.append(((0.0, 0.0, z0), (0.0, 0.0, first), r_base, r_first))
         limbs.append(((0.0, 0.0, first), (0.0, 0.0, leader_top), r_first, r_top))
-        tips.append(((0.0, 0.0, leader_top), cluster * 0.9))
+        big.append(((0.0, 0.0, leader_top), cluster * 0.9))
         for k in range(n):
             t_k = k / max(1, n - 1)
             zb = first + (leader_top - first) * t_k * 0.9
@@ -176,7 +209,7 @@ def build(plan, streams, collection):
                    math.sin(azim) * math.sin(ang) * length,
                    zb + math.cos(ang) * length)
             limbs.append(((0.0, 0.0, zb), tip, r_first * 0.8, r_top * 0.8))
-            tips.append((tip, cluster * (0.85 + 0.3 * rng.random())))
+            big.append((tip, cluster * (0.85 + 0.3 * rng.random())))
             # a mass where the twigs fork, on the branch's outer third: the
             # tips alone hang their clusters on the crown's envelope and
             # leave the inside of it empty, which at 4 m across reads as
@@ -184,7 +217,7 @@ def build(plan, streams, collection):
             # contact sheet, 2026-09-13). A real branch carries leaves
             # along its outer length, so this is where they are.
             mid = (tip[0] * 0.62, tip[1] * 0.62, zb + (tip[2] - zb) * 0.62)
-            tips.append((mid, cluster * (0.7 + 0.25 * rng.random())))
+            small.append((mid, cluster * (0.7 + 0.25 * rng.random())))
             for j in range(int(f["twigs"])):
                 s = 0.55 + 0.35 * (j + 1) / (f["twigs"] + 1)
                 base = (tip[0] * s, tip[1] * s, zb + (tip[2] - zb) * s)
@@ -194,10 +227,25 @@ def build(plan, streams, collection):
                 ttip = (base[0] + math.cos(side) * math.sin(tang) * tl,
                         base[1] + math.sin(side) * math.sin(tang) * tl,
                         base[2] + math.cos(tang) * tl)
-                limbs.append((base, ttip, r_top * 0.9, r_top * 0.4))
-                tips.append((ttip, cluster * (0.55 + 0.25 * rng.random())))
+                sticks.append((base, ttip, r_top * 0.9, r_top * 0.4))
+                small.append((ttip, cluster * (0.55 + 0.25 * rng.random())))
+                # THE THIRD ORDER. A twig forks into finer shoots, each with
+                # its own small mass: this is what the walker's frames have
+                # and a six-branch tree does not -- tracery you can see the
+                # sky through rather than blobs on sticks.
+                for m in range(int(f.get("twiglets", 0))):
+                    ls = side + (1 if m % 2 == 0 else -1) * math.radians(
+                        30 + 30 * rng.random())
+                    ll = tl * (0.45 + 0.2 * rng.random())
+                    lang = tang - math.radians(6)
+                    ltip = (ttip[0] + math.cos(ls) * math.sin(lang) * ll,
+                            ttip[1] + math.sin(ls) * math.sin(lang) * ll,
+                            ttip[2] + math.cos(lang) * ll)
+                    sticks.append((ttip, ltip, r_top * 0.45, r_top * 0.22))
+                    small.append((ltip, cluster * (0.42 + 0.2 * rng.random())))
         # fit the skeleton: the tips' extents to the slot less half a
         # cluster each side, the trunk's base staying on the grate
+        tips = big + small
         xs = [p[0] for p, _c in tips]; ys = [p[1] for p, _c in tips]
         zs = [p[2] for p, _c in tips]
         margin = cluster * 0.5
@@ -214,10 +262,22 @@ def build(plan, streams, collection):
         wood = geometry.new_bm()
         for a, b, r0, r1 in limbs:
             _limb(wood, _fitp(a), _fitp(b), r0, r1)
+        # THE TWIGS ARE THEIR OWN MESH, AND UNBEVELLED. A bevel on a box
+        # costs thirty-two triangles and a twig is two centimetres across:
+        # measured, a bevelled stick came to 44 against the 12 its box
+        # needs, which on eighty twigs is the difference between a 2,880
+        # tri tree and a 5,184 tri one. The trunk and the branches keep
+        # theirs, where the highlight is worth having.
+        twigs = geometry.new_bm()
+        for a, b, r0, r1 in sticks:
+            _stick(twigs, _fitp(a), _fitp(b), r0, r1)
         leaves = geometry.new_bm()
-        for p, c in tips:
+        for p, c in big:
             q = _fitp(p)
             _cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)
+        for p, c in small:
+            q = _fitp(p)
+            _small_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)
         # the exact slot: a last per-axis correction of both meshes, small
         # now that the skeleton fits, so a cluster keeps its shape
         xs, ys, zs = [], [], []
@@ -237,6 +297,8 @@ def build(plan, streams, collection):
                 v.co.z = z0 + (v.co.z - z0) * kz
         trunk_top_z = z0 + (first - z0)
         trunk = part(wood, "StreetTree_Wood", texel=1.5)
+        twig_obj = part(twigs, "StreetTree_Twigs", texel=2.0, part_bevel=0.0,
+                        smooth=False)
         crown = part(leaves, "StreetTree_Crown", texel=0.6, part_bevel=0.0)
         leaf_kind = "vegetation"
         cboxes.append(((-TRUNK_D / 2.0, -TRUNK_D / 2.0, z0),
@@ -244,11 +306,22 @@ def build(plan, streams, collection):
 
     bark = materials.make_material(
         f"M_StreetTree_{plan['material']}", plan["color"], plan["material"])
-    leaf = materials.make_material(f"M_StreetTree_{leaf_kind}",
-                                   [0.30, 0.45, 0.20], leaf_kind)
+    # THE LEAF COLOUR RIDES THE STYLE (tree_forms.LEAF_PALETTE): one module
+    # per stem means every instance of a style shares a leaf, so a row that
+    # differs is a row Lot planted at more than one style.
+    # `plan["style"]` is the style NAME ("delco"); the INDEX -- the number in
+    # the module's own stem, which is what makes two builds two modules --
+    # is `plan["module"]["style"]`.
+    style_ix = int((plan.get("module") or {}).get("style", 1) or 1)
+    leaf_rgb = tree_forms.leaf_color(style_ix)
+    leaf = materials.make_material(
+        f"M_StreetTree_{leaf_kind}_s{style_ix}", leaf_rgb, leaf_kind)
     iron = materials.make_material("M_StreetTree_metal_bare", [0.2, 0.2, 0.21],
                                    "metal_bare")
-    materials.assign([trunk], bark)
+    materials.assign([o for o in objs if o.name.startswith(("StreetTree_Wood",
+                                                            "StreetTree_Twigs",
+                                                            "StreetTree_Trunk"))],
+                     bark)
     materials.assign([crown], leaf)
     materials.assign([grate], iron)
     return {"objects": objs, "collision_boxes": cboxes,

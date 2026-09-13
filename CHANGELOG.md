@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.73.0] - a tree of tracery, and autumn
+
+The walker's reference frames ("trees comps", 2026-09-13): a clear trunk,
+then MANY thin branches, and the leaf mass in many small clumps with sky
+through it -- not six blobs on sticks -- and adjacent trees differing in
+colour.
+
+A THIRD ORDER OF BRANCHING. Every form gains `twiglets`: each twig forks
+into finer shoots, each with its own small mass. Branch counts rise (a red
+maple to 8, a callery pear to 10), twigs to three or four, and the masses
+shrink to a fifth of the crown's width. A branch's own tip keeps the
+three-box mass that carries the silhouette; everything else -- the fork,
+the twig tips, the twiglet tips -- is ONE tapered box.
+
+AND THE TWIGS ARE THIN BOXES IN THEIR OWN UNBEVELLED MESH. Measured: with
+twigs as cylinders the five trees came to 8,952 / 6,960 / 5,448 / 8,076 /
+7,200 tris, which no level would spend on a street prop; as bevelled boxes
+a red maple was 5,184 against a derived 2,880, because a bevel on a box
+costs 32 triangles and a crown carries eighty of them. A twig two
+centimetres across needs neither a cylinder nor a bevel. The trunk and the
+branches keep both. The five now build 2,208 / 2,640 / 2,880 / 3,216 /
+3,552, and `tree_forms.tri_count` -- now the pieces, each with its own
+price -- reproduces every one exactly.
+
+THE LEAF COLOUR RIDES THE STYLE INDEX (`tree_forms.LEAF_PALETTE`: high
+summer, gold, orange-red, a late green). A module is built once per stem
+and instanced, so every tree of one style shares a leaf; the style index
+is already part of the stem, so a row that differs is a row Lot planted at
+more than one style.
+
 ## [0.72.0] - 2026-09-13
 
 The 1990s American street kit. The walker: "the streets should look like

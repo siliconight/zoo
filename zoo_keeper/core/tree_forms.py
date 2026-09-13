@@ -21,6 +21,28 @@ from __future__ import annotations
 
 import math
 
+#: THE LEAF PALETTE, and why it is indexed rather than random. A row of
+#: street trees in October is not one colour: the walker's frames show
+#: green, gold and orange within a few metres of each other. A recipe that
+#: picked a colour from its wear stream would give every INSTANCE of one
+#: module the same leaf anyway -- Deli Counter builds a module once per
+#: stem and Lot instances it -- so the colour rides the module's STYLE
+#: index, which is already part of the stem. Lot plants style 1, 2 or 3
+#: and gets three trees.
+LEAF_PALETTE = (
+    (0.26, 0.42, 0.18),        # 1: high summer
+    (0.55, 0.46, 0.13),        # 2: turning, gold
+    (0.58, 0.29, 0.11),        # 3: turned, orange-red
+    (0.34, 0.44, 0.16),        # 4: a late green
+)
+
+
+def leaf_color(style: int) -> list:
+    """The leaf colour for a module built at ``style`` (1-based)."""
+    i = (int(style) - 1) % len(LEAF_PALETTE)
+    return list(LEAF_PALETTE[i])
+
+
 #: name -> form. Fields:
 #:   first_branch: height of the lowest primary branch, as a fraction of h
 #:   leader:       how far up the trunk continues as a central leader, of h
@@ -31,6 +53,8 @@ import math
 #:                 them the angle is interpolated
 #:   reach:        how far the outermost tip reaches, as a fraction of w/2
 #:   twigs:        twigs per branch (each forks off the branch's outer half)
+#:   twiglets:     how many finer shoots each twig carries; the third order
+#:                 is what makes a crown read as tracery rather than blobs
 #:   cluster:      leaf cluster size as a fraction of w (a faceted blob at
 #:                 every branch and twig tip)
 #:   crown:        the envelope the tips are pushed toward:
@@ -39,29 +63,29 @@ import math
 FORMS = {
     # Acer rubrum -- the commonest Delco street tree. One trunk, branches
     # ascending at 30-45 degrees, an oval crown of even rounded clusters.
-    "red_maple": {"first_branch": 0.32, "leader": 0.72, "branches": 6,
-                  "angles": (48, 40, 30), "reach": 1.0, "twigs": 2,
-                  "cluster": 0.30, "crown": "oval"},
+    "red_maple": {"first_branch": 0.34, "leader": 0.74, "branches": 8,
+                  "angles": (48, 40, 30), "reach": 1.0, "twigs": 3,
+                  "twiglets": 2, "cluster": 0.20, "crown": "oval"},
     # Quercus palustris -- a strong central leader to the top, lower limbs
     # DROOPING, middle level, upper rising: a pyramid.
-    "pin_oak": {"first_branch": 0.30, "leader": 0.95, "branches": 7,
-                "angles": (105, 85, 45), "reach": 1.0, "twigs": 2,
-                "cluster": 0.26, "crown": "pyramid"},
+    "pin_oak": {"first_branch": 0.30, "leader": 0.95, "branches": 9,
+                "angles": (105, 85, 45), "reach": 1.0, "twigs": 3,
+                "twiglets": 2, "cluster": 0.18, "crown": "pyramid"},
     # Gleditsia triacanthos -- open and spreading, few limbs, fine twigs,
     # a thin flat-topped crown you can see the sky through.
-    "honey_locust": {"first_branch": 0.36, "leader": 0.60, "branches": 5,
-                     "angles": (70, 60, 50), "reach": 1.0, "twigs": 3,
-                     "cluster": 0.20, "crown": "flat"},
+    "honey_locust": {"first_branch": 0.38, "leader": 0.62, "branches": 6,
+                     "angles": (70, 60, 50), "reach": 1.0, "twigs": 4,
+                     "twiglets": 2, "cluster": 0.15, "crown": "flat"},
     # Platanus x acerifolia -- massive limbs forking low, a broad crown of
     # big masses.
-    "london_plane": {"first_branch": 0.30, "leader": 0.55, "branches": 5,
-                     "angles": (65, 50, 40), "reach": 1.0, "twigs": 2,
-                     "cluster": 0.36, "crown": "oval"},
+    "london_plane": {"first_branch": 0.30, "leader": 0.58, "branches": 6,
+                     "angles": (65, 50, 40), "reach": 1.0, "twigs": 3,
+                     "twiglets": 2, "cluster": 0.24, "crown": "oval"},
     # Pyrus calleryana 'Bradford' -- every branch rising tight from one
     # point, a dense narrow oval; the one that splits in an ice storm.
-    "callery_pear": {"first_branch": 0.28, "leader": 0.80, "branches": 8,
-                     "angles": (35, 28, 20), "reach": 0.9, "twigs": 2,
-                     "cluster": 0.28, "crown": "vase"},
+    "callery_pear": {"first_branch": 0.28, "leader": 0.82, "branches": 10,
+                     "angles": (35, 28, 20), "reach": 0.9, "twigs": 3,
+                     "twiglets": 2, "cluster": 0.17, "crown": "vase"},
 }
 
 DEFAULT = "red_maple"
@@ -77,28 +101,55 @@ DEFAULT = "red_maple"
 #: that warns against it has changed its piece count or its bevel, which is
 #: worth knowing.
 TRIS_GRATE = 12
-TRIS_LIMB = 72
-TRIS_CLUSTER = 36
+TRIS_LIMB = 72             # trunk, leader, primary branch: a cylinder
+TRIS_TWIG = 12             # a twig or a twiglet: a thin box (`_stick`)
+TRIS_CLUSTER = 36          # a branch-tip mass: three boxes
+TRIS_SMALL_CLUSTER = 12    # a twig's mass: one tapered box
 #: Headroom on the derived count: one cluster and one limb, so a recipe that
 #: grows a single extra fork reports rather than warns.
 TRIS_HEADROOM = TRIS_LIMB + TRIS_CLUSTER
 
 
+def twiglets(f: dict) -> int:
+    return int(f.get("twiglets", 0))
+
+
+def big_tips(f: dict) -> int:
+    """Leaf masses built as three boxes: one per branch tip, one on the
+    leader. These are the masses that carry the crown's silhouette."""
+    return 1 + int(f["branches"])
+
+
+def small_tips(f: dict) -> int:
+    """Leaf masses built as ONE tapered box: where each branch's twigs fork,
+    at every twig tip and at every twiglet tip. Many and cheap, which is
+    what a crown of tracery costs."""
+    b, t = int(f["branches"]), int(f["twigs"])
+    return b * (1 + t + t * twiglets(f))
+
+
 def tips(f: dict) -> int:
-    """Leaf clusters on a tree of form ``f``: one per branch tip, one where
-    each branch's twigs fork, one per twig tip, one on the leader."""
-    return 1 + int(f["branches"]) * (2 + int(f["twigs"]))
+    """Every leaf mass on a tree of form ``f``."""
+    return big_tips(f) + small_tips(f)
 
 
 def limbs(f: dict) -> int:
-    """Cylinders: the trunk, the leader, one per branch and one per twig --
-    a mass at a fork rides the branch it is on and adds none."""
-    return 2 + int(f["branches"]) * (1 + int(f["twigs"]))
+    """CYLINDERS: the trunk, the leader and one per primary branch."""
+    return 2 + int(f["branches"])
+
+
+def sticks(f: dict) -> int:
+    """THIN BOXES: one per twig and one per twiglet. A twig at two
+    centimetres does not need a cylinder, and a crown carrying eighty of
+    them cannot afford one."""
+    b, t = int(f["branches"]), int(f["twigs"])
+    return b * t * (1 + twiglets(f))
 
 
 def tri_count(f: dict) -> int:
     """Triangles `street_tree` builds for form ``f`` -- the derivation above."""
-    return TRIS_GRATE + TRIS_LIMB * limbs(f) + TRIS_CLUSTER * tips(f)
+    return (TRIS_GRATE + TRIS_LIMB * limbs(f) + TRIS_TWIG * sticks(f)
+            + TRIS_CLUSTER * big_tips(f) + TRIS_SMALL_CLUSTER * small_tips(f))
 
 
 def tri_budget(f: dict) -> int:
