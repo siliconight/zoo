@@ -25,7 +25,9 @@
   "parts": [
     "StreetTree_Body"
   ],
-  "params": {},
+  "params": {
+    "crown": "volume"
+  },
   "materials": {
     "default": "wood",
     "options": [

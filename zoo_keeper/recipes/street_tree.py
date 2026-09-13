@@ -2,8 +2,9 @@
 
 Roadmap 153, the waiting places: "a tree in a kerb grate (the contract's
 alpha-cutout foliage, the first species that needs it)". A bark cylinder
-for the trunk, a crown of CUTOUT CARDS -- four vertical planes crossed at
-45 degrees, one foliage tile each, wearing the `foliage` kind, a
+for the trunk, a crown that is a faceted low-poly volume in the vegetation
+grammar by default (`params.crown = "volume"`), or four crossed cutout cards
+wearing the `foliage` kind (`"cards"`), a
 leaf-cluster pack whose alpha is tested rather than blended (Pixelcoat
 0.32.0, `materials._textured`), so the crown reads as leaf mass with sky
 between -- and a flat iron grate at grade. Without a foliage pack the
@@ -69,34 +70,46 @@ def build(plan, streams, collection):
     cboxes.append(((-TRUNK_D / 2.0, -TRUNK_D / 2.0, z0),
                    (TRUNK_D / 2.0, TRUNK_D / 2.0, trunk_top)))
 
-    # crown: the upper 0.6 of the height as CARDS. Four vertical planes
-    # through the axis at 0, 45, 90 and 135 degrees, the crown's full
-    # height; the axis-aligned pair is the slot's width and the diagonal
-    # pair is that times root two, so every card's extents are the slot's
-    # (w, d). ONE TILE PER CARD: the foliage pack is authored at
-    # `meters_per_tile` = the card's width with its cutout faded to
-    # nothing inside an ellipse centred on the tile's corner, and the
-    # crown's UVs are cube-projected about the crown's own centre
-    # (`uv_offset`), so each card's UVs run -0.5..0.5 across one tile and
-    # the card's edge is the canopy's, not a hard line. Cold run 9031's
-    # frames: the tile repeated 2.7 times across the card and the two
-    # horizontal cards read as shelves; both gone. A card is a 2 cm box:
-    # two faces, no culling.
+    # crown: the upper 0.6 of the height. TWO CROWNS, ONE GENOME PARAM.
+    # `volume` (the default, what ships): two frustums, the lower widening
+    # up to (w, d) at the waist and the upper narrowing from it -- a
+    # faceted low-poly canopy in the vegetation grammar, which is the
+    # retro read the rest of this world has (the walker, 2026-09-13: "the
+    # mario64 trees looked nice in their own retro way"). `cards`: four
+    # crossed cutout cards with one foliage tile each (Pixelcoat 0.32.1),
+    # measured on cold run 9032 and judged not fully baked -- the cards'
+    # thin side faces show as hairlines, and the canopy reads as a
+    # different art style from the cars and the shelter beside it. The
+    # cards stay in the recipe for the day they are, behind the param.
     crown_h = h * 0.6
     crown_c = h / 2.0 - crown_h / 2.0
+    crown_lo = h / 2.0 - crown_h
+    style = str(plan.get("params", {}).get("crown", "volume"))
     bm = geometry.new_bm()
-    span = max(w, d)
-    for k in range(4):
-        length = span if k % 2 == 0 else span * math.sqrt(2.0)
-        verts = geometry.add_box(bm, (0.0, 0.0, crown_c), (length, CARD_T, crown_h))
-        geometry.place(verts, (0.0, 0.0, 0.0), rot_z=math.radians(45.0 * k))
-    crown = part(bm, "StreetTree_Crown", texel=1.0, part_bevel=0.0, smooth=False,
-                 uv_offset=(0.0, 0.0, -crown_c))
+    if style == "cards":
+        span = max(w, d)
+        for k in range(4):
+            length = span if k % 2 == 0 else span * math.sqrt(2.0)
+            verts = geometry.add_box(bm, (0.0, 0.0, crown_c), (length, CARD_T, crown_h))
+            geometry.place(verts, (0.0, 0.0, 0.0), rot_z=math.radians(45.0 * k))
+        crown = part(bm, "StreetTree_Crown", texel=1.0, part_bevel=0.0, smooth=False,
+                     uv_offset=(0.0, 0.0, -crown_c))
+        leaf_kind = "foliage"
+    else:
+        waist = crown_lo + crown_h * 0.4
+        lower = geometry.add_box(bm, (0.0, 0.0, (crown_lo + waist) / 2.0),
+                                 (w, d, waist - crown_lo))
+        geometry.taper_z(lower, 1.0, 0.7)
+        upper = geometry.add_box(bm, (0.0, 0.0, (waist + h / 2.0) / 2.0),
+                                 (w, d, h / 2.0 - waist))
+        geometry.taper_z(upper, 0.5, 1.0)
+        crown = part(bm, "StreetTree_Crown", texel=0.6, part_bevel=0.0)
+        leaf_kind = "vegetation"
 
     bark = materials.make_material(
         f"M_StreetTree_{plan['material']}", plan["color"], plan["material"])
-    leaf = materials.make_material("M_StreetTree_foliage",
-                                   [0.30, 0.45, 0.20], "foliage")
+    leaf = materials.make_material(f"M_StreetTree_{leaf_kind}",
+                                   [0.30, 0.45, 0.20], leaf_kind)
     iron = materials.make_material("M_StreetTree_metal_bare", [0.2, 0.2, 0.21],
                                    "metal_bare")
     materials.assign([trunk], bark)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.69.3] - 2026-09-13
+
+`street_tree` ships the faceted crown again. The walker, on cold run
+9032's frames: the low-poly volume "looked nice in its own retro way" and
+the cutout cards are "not fully baked" -- their thin side faces show as
+hairlines and the canopy reads as a different art style from the cars and
+the shelter beside it. The genome names the crown (`params.crown`):
+`volume` (default: two frustums in the vegetation grammar) or `cards`
+(four crossed cutout cards, one foliage tile each). The card path and the
+`foliage` kind stay in the tool for the day they are ready; nothing ships
+with them until the genome asks.
+
 ## [0.69.2] - 2026-09-13
 
 `street_tree`'s crown is four vertical cards and one foliage tile each.
