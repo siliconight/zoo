@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.77.0] - three recipes the walker saw wrong in a walk copy
+
+From the walker's second in-game round (roadmap 155), each measured from the
+recipe's own numbers before it was changed, and each re-rendered after.
+
+**Stop sign: the pole stood in front of the plate.** The post is 0.06 m deep
+centred on y = 0; the whole 15 mm blade sat inside that depth, so the post's
+front face was 19 mm in front of the red face. The blade now hangs on the
+post's front, and the red face stands 4 mm proud of the white border so the
+two never share a plane. The STOP legend is still missing and is not in this
+release.
+
+**Drop safe: the dial and handle flickered.** Both sat inside the door slab
+with their front faces coplanar with the door's, and coplanar faces z-fight.
+The door now stops 25 mm short of the front and the dial and handle stand
+proud of it to the front; the bounding box is unchanged.
+
+**Traffic signal: no red, no green.** The docstring said the lenses are red,
+amber and green; the code put all six lenses on one emissive material in one
+orange. Each lens row is now its own mesh and material: red, amber, and a
+1990s signal's blue-green.
+
+All three build through the kit at their Lot slot sizes and pass validation.
+
 ## [0.76.0] - a desk fills a deep slot, and a tall one grows a transaction top
 
 The walker: the outside is coming along, what about the props inside. The

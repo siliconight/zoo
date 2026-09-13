@@ -22,6 +22,9 @@ from ..bpylayer import geometry, materials
 
 POST = 0.06
 BLADE_T = 0.015
+#: How far the red face stands proud of the white border. Enough that the two
+#: never share a plane at any distance the depth buffer resolves.
+FACE_PROUD = 0.004
 BORDER = 0.035        # white margin around the red face
 
 
@@ -73,14 +76,19 @@ def build(plan, streams, collection):
     cboxes.append(((-POST / 2.0, -POST / 2.0, z0),
                    (POST / 2.0, POST / 2.0, post_top)))
 
-    # the white border: the outer octagon, a hair behind the red face
+    # THE BLADE HANGS ON THE POST'S FRONT (the face looks toward -Y). It
+    # used to sit inside the post's 6 cm depth, which put the post's front
+    # face 19 mm in front of the red face: the pole in front of the sign (the
+    # walker, cold run 9048). The border's back now touches the post's front
+    # face; the red face stands FACE_PROUD in front of the border.
+    border_c = -(POST / 2.0 + BLADE_T / 2.0)
     bm = geometry.new_bm()
-    _octagon(bm, (0.0, BLADE_T / 2.0, blade_c), w, BLADE_T)
+    _octagon(bm, (0.0, border_c, blade_c), w, BLADE_T)
     border = part(bm, "StopSign_Border", [], part_bevel=0.0)
 
-    # the red face, inset by the border and proud of it
+    face_c = -(POST / 2.0 + BLADE_T + FACE_PROUD / 2.0)
     bm = geometry.new_bm()
-    _octagon(bm, (0.0, -BLADE_T / 4.0, blade_c), w - 2.0 * BORDER, BLADE_T)
+    _octagon(bm, (0.0, face_c, blade_c), w - 2.0 * BORDER, FACE_PROUD)
     part(bm, "StopSign_Face", faces, part_bevel=0.0)
 
     post_mat = materials.make_material(
@@ -96,4 +104,5 @@ def build(plan, streams, collection):
     cboxes = geometry.fit_to(objs, (w, d, h), cboxes)
 
     return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_face": (0.0, -BLADE_T, blade_c)}}
+            "attachments": {"ATT_face": (0.0, face_c - FACE_PROUD / 2.0,
+                                         blade_c)}}
