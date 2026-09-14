@@ -194,10 +194,16 @@ def test_a_plan_is_the_same_plan_every_time(sp, form):
 
 
 def test_seeds_change_what_the_seed_is_for():
-    cloths = {tuple(CF.plan_table(0.75, 0.75, 0.74, random.Random(s))["cloth_rgb"]) for s in range(30)}
+    """The chair's velvet is still the seed's. A table's cloth and a stool's
+    seat are the VARIANT's since 0.89.0 (tests/test_club_fixes.py): the
+    seed is the stem, and a `_n2` stool is one stool in every kit."""
     velvets = {tuple(CF.plan_chair(0.78, 0.75, 0.78, random.Random(s))["velvet_rgb"]) for s in range(30)}
-    seats = {tuple(CF.plan_stool(0.42, 0.42, 0.76, random.Random(s))["seat_rgb"]) for s in range(30)}
-    assert len(cloths) == len(CF.CLOTHS) and len(velvets) == len(CF.VELVETS) and len(seats) == len(CF.SEATS)
+    assert len(velvets) == len(CF.VELVETS)
+    cloths = {tuple(CF.plan_table(0.75, 0.75, 0.74, random.Random(1), variant=v)["cloth_rgb"])
+              for v in range(len(CF.CLOTHS))}
+    seats = {tuple(CF.plan_stool(0.42, 0.42, 0.76, random.Random(1), variant=v)["seat_rgb"])
+             for v in range(len(CF.SEATS))}
+    assert len(cloths) == len(CF.CLOTHS) and len(seats) == len(CF.SEATS)
 
 
 # --- the stage ---------------------------------------------------------------

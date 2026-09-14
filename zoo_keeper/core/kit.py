@@ -182,9 +182,9 @@ def module_stem(typ: str, theme: str, style: int,
                 depth_cm: int = None, voids_tag: str = None,
                 openings_tag: str = None, height_cm: int = None,
                 species: str = None, form: str = None, stock: str = None,
-                variant: int = None) -> str:
+                variant: int = None, material: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_v<hash>][_o<hash>][_<state>]``.
+    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_v<hash>][_o<hash>][_<state>]``.
 
     ``form``, ``stock`` and ``variant`` (0.84.0) are a VOLUME's dressing
     fields -- see :data:`DRESSING_FIELDS` -- and add nothing when absent,
@@ -192,6 +192,25 @@ def module_stem(typ: str, theme: str, style: int,
     unchanged. `plan_kit` passes them only when the built species honours
     them; Deli Counter's mirror constructs them from the slot and falls
     back to the name without them.
+
+    ``material`` (0.89.0) is the slot's material KIND when it changes the
+    build: a known kind (`skins.KNOWN_KINDS`) that is not what the species
+    would have used for the theme unasked (:func:`species_default_material`).
+    Two slots differing only in `material` build two different modules --
+    `dna.resolve_module_plan` reads it as an override -- and planned ONE
+    stem, so the later build overwrote the earlier on disk: measured
+    2026-09-14 on the club kit, `prop_booth_seat_..._fsofa_n1` with and
+    without Deli Counter's `wood`, and 2026-08-21 over 280 manifests, 19
+    plate stems across 17 buildings. `_m<kind>` sits after the dressing and
+    before the void/opening hashes and the state, so a dressed interactive
+    slot's states each carry the same material. Absent, or equal to the
+    species' own, or unknown, it adds nothing and every name built before
+    it is unchanged. THE MIRROR: Deli Counter cannot read a genome to learn
+    the species default, so its `themed_tscn.module_stem` takes the same
+    keyword, `resolve_themed_stem` asks for the `_m<material>` name first
+    when the slot carries a material and falls back to the name without it
+    -- exactly how it already resolves the dressing. The kit index carries
+    `material_tag` per module so a reader can see which name was built.
 
     ``species`` (roadmap 44) is a VOLUME's hinted species when it is built as
     that species rather than as the ``prop`` box -- ``prop_desk_delco_01_...``
@@ -234,6 +253,8 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_s{stock}"
     if variant:
         base += f"_n{int(variant)}"
+    if material:
+        base += f"_m{material}"
     if voids_tag:
         base += f"_v{voids_tag}"
     if openings_tag:
@@ -307,6 +328,44 @@ def state_art_for(species: str, genome_dir: str = None) -> frozenset:
     except (FileNotFoundError, ValueError):
         return frozenset()
     return frozenset(g.get("state_art") or ())
+
+
+def species_default_material(species: str, theme: str,
+                             genome_dir: str = None):
+    """The material kind ``species`` builds in for ``theme`` when no slot
+    asks for one -- what `dna.resolve_module_plan` picks before its
+    override: the theme's style block (walking the theme family, so
+    `delco_1997` inherits `delco`'s) or the genome's default. None when
+    there is no such genome.
+
+    This is the ONE definition of "the species' own material" that
+    :func:`module_stem`'s ``material`` is measured against, so the stem
+    and the plan cannot disagree about whether a slot's material changed
+    the build."""
+    from zoo_keeper.core import dna as dna_mod
+    from zoo_keeper.core import genome as genome_mod
+    try:
+        g = genome_mod.load_species(species, genome_dir)
+    except (FileNotFoundError, ValueError):
+        return None
+    _name, block = dna_mod._pick_style_tag(g, theme)
+    material = block.get("material") or g["materials"]["default"]
+    if material not in g["materials"]["options"]:
+        material = g["materials"]["default"]
+    return material
+
+
+def material_tag(slot_material, species: str, theme: str,
+                 genome_dir: str = None):
+    """The ``_m<kind>`` value for a slot, or None when the material adds
+    nothing: absent, not a known kind (the plan ignores it), or the species'
+    own for the theme (the plan would pick it anyway)."""
+    from zoo_keeper.core import skins
+    if not slot_material or slot_material not in skins.KNOWN_KINDS:
+        return None
+    if slot_material == species_default_material(species, theme, genome_dir):
+        return None
+    return str(slot_material)
 
 
 def slot_variants(slot: dict, typ: str, global_state: str = None,
@@ -570,10 +629,14 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                 s, typ, state, state_art=_art):
             if hint and species == typ:
                 species = hint
+            # THE MATERIAL IN THE NAME (0.89.0), when it changes the build:
+            # see `module_stem`. Measured against the species this variant
+            # is BUILT as, which is what `dna.resolve_module_plan` reads.
+            mtag = material_tag(slot_material, species, theme)
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
                                depth_cm, vtag, otag, height_cm,
                                species=hint if species == hint else None,
-                               **dress)
+                               material=mtag, **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -606,9 +669,15 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             # it, and it was right to.
             dims_key = (tuple(round(float(v), 4) for v in dims[:3])
                         if exact else None)
+            # Keyed on the material TAG, not the slot's raw material (0.89.0):
+            # a slot with no material, one naming an unknown kind and one
+            # naming the species' own all build the same plan, and one
+            # module must dress all three. The tag is exactly what the
+            # plan's material follows, so the key can neither split one
+            # build into two names nor fold two builds into one.
             key = (typ, width_cm, st, species, glaze, slot_style,
                    dress["form"], dress["stock"], dress["variant"],
-                   slot_material, dims_key, _void_key(fit.get("voids")),
+                   mtag, dims_key, _void_key(fit.get("voids")),
                    _opening_key(fit.get("openings")))
             b = buckets.get(key)
             if b is None:
@@ -625,6 +694,10 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "openings": [dict(o) for o in (fit.get("openings") or ())],
                     "style": slot_style,
                     "material": slot_material,
+                    # the `_m<kind>` this module's stem carries, or None:
+                    # the kit index mirrors it so a reader can see which
+                    # name was built without re-deriving the default
+                    "material_tag": mtag,
                     "fit": "exact" if exact else "unit",
                     "dims": ([round(dims[0], 4), round(dims[1], 4),
                               round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
@@ -655,25 +728,27 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         modules = buildable
     # STEM COLLISION -- two modules, one filename.
     #
-    # The bucket key above carries slot_material; `module_stem` does not. So
-    # two buckets can be two DISTINCT modules with ONE stem: they build
-    # differently (dna.resolve_module_plan reads module["material"] as an
-    # override) and one overwrites the other on disk. Deli Counter's resolver
-    # then hands both zones whichever file won.
+    # Until 0.89.0 the bucket key carried slot_material and `module_stem`
+    # did not, so two buckets could be two DISTINCT modules with ONE stem:
+    # they built differently (dna.resolve_module_plan reads
+    # module["material"] as an override) and one overwrote the other on
+    # disk. Measured 2026-08-21 over 280 manifests: 19 stems across 17
+    # buildings, every one floor or ceiling; and 2026-09-14 on the club kit,
+    # the sofa with and without Deli Counter's `wood`.
     #
-    # Measured 2026-08-21 over 280 manifests: 19 stems across 17 buildings,
-    # every one floor or ceiling.
+    # The stem now carries `_m<kind>` whenever the material changes the
+    # build (`material_tag`), so a material alone can no longer collide.
+    # What remains upstream: `carpet`, `tile` and `ceiling_tile` are absent
+    # from every spec's `materials` list, so Deli Counter's
+    # skin_style.style_for falls through to `default_material` and hands
+    # all of them one style -- 410 of 574 (building, plate material) pairs
+    # are style 1. Those plates are separate FILES now, each built in its
+    # own kind; whether a carpet floor also gets a carpet PACK is the
+    # theme's mapping, not this function's.
     #
-    # THE ROOT CAUSE IS UPSTREAM AND THIS DOES NOT FIX IT. `carpet`, `tile`
-    # and `ceiling_tile` are absent from every spec's `materials` list, so
-    # Deli Counter's skin_style.style_for falls through to `default_material`
-    # and hands all of them one style -- 410 of 574 (building, plate material)
-    # pairs are style 1. Identical style means identical Pixelcoat pack AND
-    # identical stem. Adding material to the stem would separate the
-    # filenames and leave carpet still wearing concrete's skin.
-    #
-    # What this does is stop the collision being SILENT. It was producing two
-    # buckets and one name and saying nothing at all.
+    # The check stays because the key still has axes the stem does not
+    # (glazing, the exact dims of a unit fit), and a collision must never
+    # again be silent.
     by_stem: dict = {}
     for _m in modules:
         by_stem.setdefault(_m["stem"], []).append(_m)

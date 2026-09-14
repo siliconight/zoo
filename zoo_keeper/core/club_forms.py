@@ -674,8 +674,15 @@ def _bar_stage(w, d, h, rng):
 TABLE_FORMS = ("cloth", "bare")
 TABLE_TOP_T = 0.03
 #: floor-length cloths: burgundy, black, deep green, and a stained cream
-CLOTHS = (([0.26, 0.03, 0.05], 3.0), ([0.02, 0.02, 0.025], 2.0),
-          ([0.03, 0.12, 0.08], 1.5), ([0.55, 0.47, 0.34], 1.5))
+#: A CLOTH IS DARK RED OR WHITE, BY VARIANT (0.89.0): ``CLOTHS[variant %
+#: len]``, on the tintable `cloth` kind (Pixelcoat 0.43.0's linen). 0.88.0
+#: drew one of four from the form stream on `canvas`, whose delco pack was
+#: a fixed beige weave, so every table wore gold burlap whatever was drawn.
+#: Two colours, not four: a club's tables are dressed alike, and a room of
+#: `_n0.._n3` tables reads as two cloths on rotation rather than a draw.
+#: Linear RGB; the pack lands at about 0.64 of these (measured there).
+CLOTHS = (([0.30, 0.03, 0.05], "cloth"), ([0.92, 0.90, 0.86], "cloth"),
+          ([0.26, 0.02, 0.04], "cloth"), ([0.88, 0.86, 0.82], "cloth"))
 TABLE_MATERIALS = {
     "iron": ([0.03, 0.03, 0.03], "metal_painted"),
 }
@@ -685,10 +692,12 @@ def pick_table_form(form):
     return form if form in TABLE_FORMS else "cloth"
 
 
-def plan_table(w, d, h, rng, form="auto"):
-    """``{"prims", "collision", "form", "cloth_rgb", "top_z", "top_radius",
-    "stock_regions", "overshoot_m"}``; ``stock_regions`` are the two halves
-    of the square inscribed in the round top, ``(x0, x1, y0, y1, z0)`` each.
+def plan_table(w, d, h, rng, form="auto", variant=0):
+    """``{"prims", "collision", "form", "cloth_rgb", "cloth_kind", "top_z",
+    "top_radius", "stock_regions", "overshoot_m"}``; ``stock_regions`` are
+    the two halves of the square inscribed in the round top,
+    ``(x0, x1, y0, y1, z0)`` each. The cloth is ``CLOTHS[variant % len]``
+    (0.89.0); ``rng`` is kept for what the seed is still for.
 
     TWO HALVES, NOT ONE SQUARE: `_surface_stock` sets about one cluster per
     0.22 m2 of bar top, and a 0.75 m table's inscribed square is 0.20 m2 --
@@ -699,13 +708,7 @@ def plan_table(w, d, h, rng, form="auto"):
     form = pick_table_form(form)
     rx, ry = w / 2, d / 2
     prims, cboxes = [], []
-    pick = rng.uniform(0.0, sum(wt for _c, wt in CLOTHS))
-    cloth = CLOTHS[-1][0]
-    for c, wt in CLOTHS:
-        pick -= wt
-        if pick <= 0.0:
-            cloth = c
-            break
+    cloth, cloth_kind = CLOTHS[int(variant or 0) % len(CLOTHS)]
     if form == "bare":
         top = P.cyl("Table_Top", "top", (0.0, 0.0), 1.0, h - TABLE_TOP_T, h, segments=20)
         top["verts"] = [(v[0] * rx, v[1] * ry, v[2]) for v in top["verts"]]
@@ -794,6 +797,7 @@ def plan_table(w, d, h, rng, form="auto"):
     half = top_r / math.sqrt(2.0) * 0.96
     prims, cboxes, over = _finish(prims, cboxes, w, d, h)
     return {"prims": prims, "collision": cboxes, "form": form, "cloth_rgb": cloth,
+            "cloth_kind": cloth_kind,
             "top_z": h, "top_radius": top_r,
             "stock_regions": [(-half, 0.0, -half, half, h), (0.0, half, -half, half, h)],
             "overshoot_m": over}
@@ -933,15 +937,23 @@ def plan_chair(w, d, h, rng):
 
 # --- bar_stool -------------------------------------------------------------------
 
-SEATS = (([0.20, 0.02, 0.03], 3.0), ([0.02, 0.02, 0.02], 2.5), ([0.10, 0.04, 0.12], 1.0))
+#: A STOOL SEAT IS ITS VARIANT (0.89.0): ``SEATS[variant % len]``, (linear
+#: RGB, kind) on kinds that tint -- red and black vinyl (`plastic`), plum
+#: velvet -- so `_n2` is the same stool in every kit. 0.88.0 drew one of
+#: three from the form stream on `plastic`, whose delco_1997 pack was a
+#: fixed red-orange, so every seat was that colour whatever was drawn.
+SEATS = (([0.20, 0.02, 0.03], "plastic"), ([0.02, 0.02, 0.02], "plastic"),
+         ([0.10, 0.04, 0.12], "velvet"), ([0.16, 0.02, 0.03], "velvet"))
 STOOL_MATERIALS = {"seatpan": ([0.04, 0.04, 0.04], "metal_painted")}
 
 
-def plan_stool(w, d, h, rng):
+def plan_stool(w, d, h, rng, variant=0):
     """A padded round seat on a chrome column with a footring and a domed
-    base. ``{"prims", "collision", "seat_rgb", "ring_z", "overshoot_m"}``."""
+    base. ``{"prims", "collision", "seat_rgb", "seat_kind", "ring_z",
+    "overshoot_m"}``. The seat is ``SEATS[variant % len]``; ``rng`` is kept
+    for what the seed is still for."""
     rx, ry = w / 2, d / 2
-    seat = _weighted(rng, SEATS)
+    seat, seat_kind = SEATS[int(variant or 0) % len(SEATS)]
     prims, cboxes = [], []
     base_r = 0.86
     prims.append(_scaled_cyl("BarStool_Base", "column", rx * base_r, ry * base_r, 0.0,
@@ -996,5 +1008,6 @@ def plan_stool(w, d, h, rng):
     prims.append(P.mesh("BarStool_Seat", "seat", sv, sf))
     cboxes.append(((-rx * 0.8, -ry * 0.8, 0.0), (rx * 0.8, ry * 0.8, h)))
     prims, cboxes, over = _finish(prims, cboxes, w, d, h)
-    return {"prims": prims, "collision": cboxes, "seat_rgb": seat, "ring_z": ring_z,
+    return {"prims": prims, "collision": cboxes, "seat_rgb": seat, "seat_kind": seat_kind,
+            "ring_z": ring_z,
             "overshoot_m": over}

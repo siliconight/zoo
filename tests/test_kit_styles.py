@@ -31,12 +31,17 @@ def test_slots_split_into_per_style_module_families():
         _slot(style=4, material="metal"),
     ]), theme="rockay", style=1)
     stems = sorted(m["stem"] for m in plan["modules"])
-    assert stems == ["wall_rockay_01_w200", "wall_rockay_03_w200",
-                     "wall_rockay_04_w200"]
+    # 0.89.0: a material that is not the wall's own for the theme (concrete
+    # on rockay) is in the name -- `_m<kind>` after the dressing, before
+    # the hashes (tests/test_club_fixes.py) -- so the style and the material
+    # each keep a module family apart, and a material alone never collides.
+    assert stems == ["wall_rockay_01_w200", "wall_rockay_03_w200_mdrywall",
+                     "wall_rockay_04_w200_mmetal"]
     by = {m["stem"]: m for m in plan["modules"]}
     assert by["wall_rockay_01_w200"]["count"] == 2
-    assert by["wall_rockay_03_w200"]["material"] == "drywall"
-    assert by["wall_rockay_04_w200"]["material"] == "metal"
+    assert by["wall_rockay_01_w200"]["material_tag"] is None
+    assert by["wall_rockay_03_w200_mdrywall"]["material"] == "drywall"
+    assert by["wall_rockay_04_w200_mmetal"]["material"] == "metal"
 
 
 def test_legacy_slots_without_style_plan_exactly_as_before():

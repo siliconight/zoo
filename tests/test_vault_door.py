@@ -236,7 +236,11 @@ def test_all_four_states_plan_as_vault_door_modules():
     assert set(by_state) == {None, "unlocked", "open", "breached"}
     assert all(m["species"] == "vault_door" for m in plan["modules"])
     base = by_state[None]["stem"]
-    assert base.startswith("vault_door_delco_1997_01_w360_o")
+    # `_mconcrete` (0.89.0): the slot carries its partition's kind and the
+    # plan takes it, so the stem says so -- the leaf's recipe reads the
+    # style's metal_painted and ignores it (asserted below), which is a
+    # recipe fact the planner cannot see. One build, one name, still.
+    assert base.startswith("vault_door_delco_1997_01_w360_mconcrete_o")
     for st in ("unlocked", "open", "breached"):
         assert by_state[st]["stem"] == base + "_" + st
     assert plan["deferred_variants"] == []

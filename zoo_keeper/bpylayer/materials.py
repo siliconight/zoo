@@ -67,10 +67,20 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "shingle": 0.93,
              "carpet": 0.98, "dirt": 0.97, "tar": 0.90,
              # Velvet (0.87.0, the club chairs): a cut pile, as matte as
-             # carpet. Its colour is the chair's -- no theme has a velvet
-             # pack yet, so it rides the flat path and the genome's colour
-             # shows; when Pixelcoat authors one it must be tintable.
+             # carpet. Its colour is the chair's: Pixelcoat 0.43.0's pack is
+             # tintable, so the genome's colour rides the textured path too.
              "velvet": 0.96,
+             # A tablecloth's linen (0.89.0): finer and a shade less matte
+             # than canvas (0.90). Tintable in the same way.
+             "cloth": 0.85,
+             # THE CLUB SURFACES (Pixelcoat 0.42.0, measured there at the
+             # pack size): the medallion carpet's pile 0.95, the flocked
+             # damask's paper 0.66 with the flock matte over it, stained bar
+             # wood 0.50, sun-faded paint over block 0.88. Each is the
+             # fallback for a socket the pack does not texture; every one of
+             # these packs ships a roughness map.
+             "carpet_club": 0.95, "wallpaper_club": 0.66, "wood_stained": 0.50,
+             "paint_block": 0.88,
              # Layer 3 surface dressing: loose stone and plant matter, both
              # fully matte -- a dressing scatter that catches a specular
              # highlight reads as wet plastic at every viewing angle.

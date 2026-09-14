@@ -104,7 +104,24 @@ END_EXT = 0.9
 TUBE_OF_PITCH = 0.16
 TUBE_MIN, TUBE_MAX = 0.0025, 0.012
 
-BACKER_T = 0.025
+#: THE TUBES SIT A FINGER OFF THE CAN. 0.88.0 put the tubes at the slot's
+#: front and a 25 mm backer at its back, so on Deli Counter's 0.10 m sign
+#: the glass stood 60-70 mm proud of the face it was mounted on. Under the
+#: walk's ceiling light every word threw a second, dark copy of itself onto
+#: the backer, offset by that gap -- double vision. It is the tubes' CAST
+#: SHADOW, not geometry: `plan_sign` draws no dark lettering, and in a
+#: two-sign lab (Godot 4.7, GL Compatibility, one omni lamp above and in
+#: front) the 0.88.0 sign's backer held 12,576 pixels darker than its median
+#: by 20 with the lamp's shadow on and 3 with it off; the sign built this way
+#: held 0 either way, under the same lamp in the same frame (0.89.0
+#: CHANGELOG). A real sign's tube is held 15-25 mm off the can by its glass
+#: standoffs, and its shadow is a tight halo under the tube. So: the tubes
+#: keep the slot's front, the backer's face is one standoff behind them and
+#: the backer takes the rest of the depth -- it is the can.
+TUBE_STANDOFF = 0.02
+#: the least the can may be; a slot shallower than tubes + standoff + this
+#: gives up standoff first
+BACKER_T_MIN = 0.012
 MATERIALS = {
     # standoffs: the clear glass tube supports, read as grey plastic
     "standoff": ([0.30, 0.30, 0.32], "plastic"),
@@ -195,7 +212,11 @@ def plan_sign(w, d, h, variant=0):
     r = max(TUBE_MIN, min(TUBE_MAX, TUBE_OF_PITCH * pitch))
     # the tube plane: the tubes' fronts are the slot's front
     yt = -d / 2 + r
-    back_front = d / 2 - min(BACKER_T, 0.3 * d)
+    # the can's face is one standoff behind the tubes' backs, and the can
+    # is everything from there to the wall; a shallow slot shortens the
+    # standoff before it thins the can below BACKER_T_MIN
+    standoff = max(0.004, min(TUBE_STANDOFF, d - 2 * r - BACKER_T_MIN))
+    back_front = yt + r + standoff
     prims = [P.box("NeonSign_Backer", "backer", (-w / 2, back_front, 0.0), (w / 2, d / 2, h))]
     n = len(lines)
     block_h = (n * LINE - 3 - 1) * pitch

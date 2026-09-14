@@ -1,3 +1,152 @@
+## [0.89.0] - the club's five defects, and the material in the name
+
+0.88.0 built the club and recorded what it found and did not fix: the
+tablecloths rendered as gold burlap, every stool seat the plastic pack's
+red-orange, a `wood` slot built a wood sofa, two slots differing only in
+material shared one filename, a club floor could not ask for Pixelcoat
+0.42.0's carpet, and the neon sign read as double vision. Each is closed
+here, with a test that failed against 0.88.0 first
+(`tests/test_club_fixes.py`, 26 tests, 22 of them failing before), and
+each was measured before it was believed. Pixelcoat 0.43.0 is the other
+half: `velvet`, `leather`, `canvas` and `plastic` are tintable in both
+delco themes and there is a `cloth` for tablecloths.
+
+This does not reduce interventions-per-level by itself. Deli Counter still
+writes none of the club species' names, and it must mirror one naming
+change below before a kit built by this release resolves.
+
+### The material is in the stem: `_m<kind>`
+
+`kit.module_stem` takes ``material`` and writes ``_m<kind>`` after the
+dressing (`_f`, `_s`, `_n`) and before the void and opening hashes and the
+state, so a dressed interactive slot's states each carry the same
+material:
+
+    <type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_v<hash>][_o<hash>][_<state>]
+
+It is present when the slot's material is a known kind
+(`skins.KNOWN_KINDS`) that is not the species' own for the theme -- the
+theme style block's material, walking the theme family, or the genome
+default: `kit.species_default_material`, the ONE definition the stem and
+`dna.resolve_module_plan` are measured against. Absent, unknown, or equal
+to the species' own, it adds nothing and every name built before it is
+unchanged. `plan_kit` keys its buckets on that tag rather than the raw
+slot material, so a slot with no material, one naming an unknown kind and
+one naming the species' own all dress one module; the kit index and every
+plan module carry `material_tag`, and the STEM COLLISION check stays for
+the axes the key still has that the stem does not.
+
+THE MIRROR, for Deli Counter's `themed_tscn.module_stem`: the same
+keyword, the same position, and `resolve_themed_stem` asks for the
+`_m<material>` name first when the slot carries a material and falls back
+to the name without it -- exactly how it already resolves the dressing.
+Deli Counter cannot read a genome to learn the species default, and does
+not need to. Measured on what changes: a `wood` sofa slot names
+`prop_booth_seat_delco_1997_01_w200_d90_h85_fsofa_n1_mwood`; a rockay
+wall zone in drywall names `wall_rockay_03_w200_mdrywall` where the style
+already kept it apart; a vault door cut from a concrete partition names
+`vault_door_delco_1997_01_w360_mconcrete_o<hash>`, because the slot's kind
+lands on the plan even though the leaf's recipe reads the style's
+metal_painted and ignores it (asserted in `test_vault_door.py`) -- one
+build, one name, still. `dna.resolve_module_plan`'s fallback stem (a
+module with no `stem`) now passes height and species too; it had only
+ever been reached by walls.
+
+### Upholstery is not the slot's to override
+
+`dna.UPHOLSTERED` is the one table of upholstered species and their soft
+kind: `booth_seat` None (the genome's own material IS the upholstery --
+leather, canvas or plastic), `club_chair` velvet, `bar_stool` plastic
+(the planner says per variant). On these a slot's material is the FRAME's
+unless the genome material is the upholstery and the slot names one of
+its kinds. `resolve_module_plan` writes ``plan["upholstery"]`` --
+`material`, `frame`, `color` -- and `booth_seat` reads it: the frame kind
+replaces the wood of the panels, kick, cap and feet in their own colours,
+the upholstery keeps its kind and the genome colour. The club walk's couch,
+built from Deli Counter's `wood` slot, reads back as leather
+(`M_Skin_leather_delco_1997_420d12`, the genome's 0.26/0.05/0.07) on
+`M_Skin_wood_delco_1997` legs. `club_chair` and `bar_stool` always took
+the slot material on feet and column; the table is the contract, not a
+patch list.
+
+### The club kinds, and a seat and a cloth by variant
+
+`skins.KNOWN_KINDS` and `materials.ROUGHNESS` take `carpet_club` (0.95),
+`wallpaper_club` (0.66), `wood_stained` (0.50), `paint_block` (0.88) and
+`cloth` (0.85); a floor slot asking for `carpet_club` builds in it.
+
+`club_forms.SEATS` is ``(rgb, kind)`` -- red and black vinyl (`plastic`),
+plum and oxblood velvet -- and `plan_stool` takes ``variant``:
+``SEATS[variant % 4]``, so `_n2` is the same stool in every kit.
+`CLOTHS` is dark red and white on the `cloth` kind, ``CLOTHS[variant %
+4]`` in `plan_table`; two colours, not four, because a club's tables are
+dressed alike. The chair's velvet is still the seed's.
+`test_seeds_change_what_the_seed_is_for` says which is which.
+
+### The neon sign's tubes sit a finger off the can
+
+0.88.0 put the tubes at the slot's front and a 25 mm backer at its back:
+on Deli Counter's 0.10 m sign the glass stood 66 mm proud of the face it
+was mounted on (measured off the GLB: tube back at z 0.0406, backer face
+at -0.0250). Under a light every word threw a dark copy of itself onto the
+backer, offset by that gap. It was NOT geometry -- `plan_sign` draws no
+dark lettering -- and it was not settled in the walk: at the `tables`
+station the backer 1-4 px from the tubes measures 38 luma against 49 at
+8-13 px in 0.88.0, in this release, and with the twelve `shadow_enabled`
+lights of `lux.applied.tscn` switched off, whose frames matched to 0.1
+luma across five stations. That dial was never confirmed: the basement's
+pendants are Lux runtime rigs (`lux_area_light_rig.gd`), not those nodes,
+and a symmetric band is not a shadow. So a two-sign lab: one omni lamp
+above and in front, the 0.88.0 sign and this one side by side, GL
+Compatibility, shot with the lamp's shadow on and off. The 0.88.0 backer
+held 12,576 pixels darker than its median by 20 with the shadow on and 3
+with it off; this release's held 0 either way, in the same frame under
+the same lamp.
+
+`neon_forms.TUBE_STANDOFF` 0.02 m: the tubes keep the slot's front, the
+can's face is one standoff behind their backs (20 mm off the GLB) and the
+can is everything from there to the wall; a slot shallower than tubes plus
+standoff plus `BACKER_T_MIN` shortens the standoff first. `BACKER_T` is
+gone with its use. Same 2448 tris, `coplanar_probe` 0 pairs.
+
+### Not this release's, measured on the way
+
+  * **The vending machine writes COLOR_0 as it should.** Asked whether
+    0.87.0's machine reached cold run 9054's walk with no "draw vertex
+    colour" line. The machine in 9054 is not 0.87.0's: its kit index says
+    Zoo 0.86.0 (`bank_branch_a04_kit.built.json`), its meshes are the
+    pre-0.87.0 Body/Glass/Panel/CoinSlot/Tray in `M_Skin_*` kinds, its
+    status is `fail` (`fit_depth` 0.795 m against 0.750), and its COLOR_0
+    is tinted on all five primitives (min 0.791). A 0.88.0-recipe machine
+    built here and imported by Level Factory's current `zoo_worldskin.gd`
+    prints "3 material(s) draw vertex colour, 2 all-white left off, 0 with
+    a surface lacking colours": the two whites are `_Face` and `_Lens`
+    (COLOR_0 exactly 1.0 on every vertex, the backlit contract), the other
+    eleven primitives carry 0.63-0.99. No 9054 walk import log survives in
+    the workspace to say why no line was printed there; the file itself
+    would have earned one. Nothing changed.
+  * `plan_stool` and `plan_table` keep their ``rng`` for what the seed is
+    still for; the neon standoff rods are shorter, not fewer.
+
+### Seen
+
+Godot 4.7, GL Compatibility, RTX 2060, `tools/look_shots.py` on scratch
+copies of the club walk at five given stations, before (0.88.0's kit, the
+old packs) and after (this kit, Pixelcoat 0.43.0's delco_1997 library):
+dark red and white cloths, red and black vinyl and plum velvet seats, the
+couch leather on wood legs, the chairs velvet through the pack. Readback
+of the imported materials: `albedo_color` is the genome colour exactly
+(plum 0.12/0.03/0.12 linear reads 0.381/0.190/0.381 sRGB), albedo texture
+means 0.61-0.65 linear, vertex colour drawn on every one of the twelve
+fabric materials the readback listed (velvet, cloth, leather, canvas, the
+stool vinyl) and, by the import's own lines, on every wear-carrying material
+of the fourteen rebuilt props.
+
+Suite: 1709 passed, 160 skipped in plain Python (0.88.0: 1683 / 160);
+80 passed in Blender 5.1.1 for `test_club_bpy.py` and
+`test_interior_bpy.py`. `coplanar_probe` 0 pairs on the rebuilt stool,
+table, sign, both sofas and the chair.
+
 ## [0.88.0] - a strip club is a stage, a bar, a sofa and a name in neon
 
 The walker, with two GTA IV Triangle Club frames: "strip clubs should have a

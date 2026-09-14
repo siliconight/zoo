@@ -62,9 +62,18 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "stone", "siding", "shingle",
                "ceiling_tile", "carpet", "dirt", "tar",
                # a club chair's upholstery (0.87.0): object-owned like the
-               # prop metals -- the mesh carries the hue -- and packless in
-               # every theme today, so it renders flat in the chair's colour
-               "velvet",
+               # prop metals -- the mesh carries the hue. Pixelcoat 0.43.0's
+               # `velvet_neutral` is tintable, so the pack supplies the pile
+               # and the genome the dye; `cloth` (0.89.0) is a tablecloth's
+               # linen on the same terms, because `canvas` is sackcloth.
+               "velvet", "cloth",
+               # THE CLUB SURFACES, Pixelcoat 0.42.0. Read (not run) through
+               # this file by that release: `dna.resolve_module_plan` keeps
+               # a slot's material only when it is listed here, so a club
+               # floor asking for `carpet_club` built in concrete and said
+               # nothing. A kind absent from this tuple is a kind no slot
+               # can ask for, whatever the library holds.
+               "carpet_club", "wallpaper_club", "wood_stained", "paint_block",
                # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
                "gravel", "vegetation",
                # a leaf-cluster cutout for a tree's crown cards (roadmap 153)

@@ -298,6 +298,12 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
                 "forward": "+Y",
                 "supported_slot_types": [r["plan"]["module"]["type"]],
                 "material_set": r["plan"].get("material"),
+                # the `_m<kind>` the stem carries, or None (0.89.0): the
+                # index mirrors the name so a reader need not re-derive the
+                # species default to know which file a material built
+                "material_tag": r["plan"]["module"].get("material_tag"),
+                # the upholstered species' soft kind and frame kind
+                "upholstery": r["plan"].get("upholstery"),
                 "collision": bool(r["facts"].get("collision")
                                   or r["facts"].get("has_collision")
                                   or any("col" in str(f).lower()

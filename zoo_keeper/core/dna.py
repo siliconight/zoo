@@ -17,6 +17,29 @@ from . import kit, seeding, skins
 #: frosted panel) must join it here rather than reopen the same hole.
 OPAQUE_FOR = {"glass": "glass_facade"}
 
+#: THE UPHOLSTERED SPECIES, and the recipe key their soft part is built as.
+#: A slot's `material` on one of these names its FRAME -- Deli Counter writes
+#: `wood` on a sofa volume because a sofa has wooden legs -- and never its
+#: upholstery, which stays the kind the genome or the theme gives it. 0.88.0
+#: measured the alternative: the club walk's couch, built from a `wood` slot,
+#: carried `M_Skin_wood_delco_1997` and `M_Skin_canvas_delco_1997` and no
+#: leather at all. A slot that names an UPHOLSTERY kind (one of the genome's
+#: own `materials.options`) means the upholstery, and the frame keeps its
+#: default. Which species are upholstered is this table and nowhere else;
+#: `resolve_module_plan` writes ``plan["upholstery"]`` from it and the
+#: recipes read that.
+#:
+#: The value is the SOFT KIND, or None where the genome's own `material` is
+#: the upholstery (booth_seat's options are leather, canvas and plastic --
+#: the vinyl on the booth, not its wood). club_chair and bar_stool are the
+#: other way round: their genome material is the FRAME (wood feet, a bare
+#: metal column) and the planner fixes the soft kind -- velvet from
+#: `club_forms.VELVETS`, vinyl or velvet per variant from `SEATS`, so the
+#: value here is the kind when the planner does not say. For them any slot
+#: material is the frame's, options or not.
+UPHOLSTERED = {"booth_seat": None, "club_chair": "velvet",
+               "bar_stool": "plastic"}
+
 # Boot construction constants — single source of truth. The DNA hook writes
 # the resolved values into the plan; the recipe executes them verbatim so the
 # built height and the plan's recorded height can never disagree.
@@ -243,9 +266,33 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     # than a species' own options list, which describes what the species
     # defaults to, not what a slot may demand). Unknown values fall back to
     # the genome default -- older manifests are untouched.
+    own = material                       # the species' own, before the slot
     override = module.get("material")
     if override and override in skins.KNOWN_KINDS:
         material = override
+    # THE UPHOLSTERY IS NOT THE SLOT'S TO OVERRIDE (0.89.0, `UPHOLSTERED`).
+    # On an upholstered species the slot material is the frame's unless it
+    # names one of the genome's own upholstery kinds; either way the plan
+    # says which kind the soft part is, and the recipe reads that, not
+    # `plan["material"]`.
+    upholstery = None
+    if genome["species"] in UPHOLSTERED:
+        soft = UPHOLSTERED[genome["species"]]
+        frame = material if material != own else None
+        if soft is None:
+            # the genome material is the upholstery: a slot naming one of
+            # its kinds re-covers it, anything else is the frame
+            if frame and material in genome["materials"]["options"]:
+                upholstery = {"material": material, "frame": None}
+            else:
+                upholstery = {"material": own, "frame": frame}
+        else:
+            upholstery = {"material": soft, "frame": frame}
+    # THE MATERIAL IN THE STEM (0.89.0): the same rule `kit.material_tag`
+    # applies when the kit is planned, spelled here against the genome
+    # already in hand so the plan and the plan_kit entry name one file.
+    mtag = material if (override and material != own
+                        and override in skins.KNOWN_KINDS) else None
     # A STRUCTURAL SLAB IS NEVER SEE-THROUGH. Measured on the shipped build:
     # `wall_rockay_02_w200.glb` carried `M_Skin_glass_rockay`, BLEND, alpha
     # 0.50, doubleSided -- on Wall_Base, Wall_Cap, Wall_Pier_0 and
@@ -274,8 +321,11 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
         module["type"], theme, int(module.get("style") or style),
         module.get("width_cm"), None, module.get("depth_cm"),
         module.get("voids_tag"), module.get("openings_tag"),
+        module.get("height_cm"),
+        species=(module.get("species")
+                 if module.get("species") != module["type"] else None),
         form=module.get("form"), stock=module.get("stock"),
-        variant=module.get("variant"))
+        variant=module.get("variant"), material=mtag)
 
     plan = {
         "species": genome["species"],
@@ -310,8 +360,14 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
             "depth_cm": module.get("depth_cm"),
             "fit": module.get("fit", "exact"),
             "stem": stem,
+            # the `_m<kind>` the stem carries, or None (0.89.0)
+            "material_tag": mtag,
         },
     }
+    if upholstery is not None:
+        # the soft part's kind and colour, and the frame's kind when the
+        # slot named one -- read by the upholstered recipes (`UPHOLSTERED`)
+        plan["upholstery"] = dict(upholstery, color=list(plan["color"]))
     # A VOLUME'S DRESSING FIELDS (0.84.0) ride the same road: `kit.plan_kit`
     # keeps only what the built species honours, and a module without them
     # gets exactly the params it always had -- the genome defaults, `stock`
