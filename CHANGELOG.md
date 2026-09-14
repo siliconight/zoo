@@ -1,3 +1,122 @@
+## [0.85.0] - a fire hydrant that is a fire hydrant
+
+The walker, in the walk copies: what are the "white boxes at the foot of the
+stop signs"? Measured by Level Factory in `_runs/walk_9052_rain`, they are
+`cover_81`, Lot's `fire_hydrant_37`, the one hydrant on that site.
+
+**What 0.79.0 shipped, measured before anything moved.** The walk's
+`cover/prop_fire_hydrant_delco_1997_01_w35_d35_h75.glb` (cold run 9052's site
+kit job): one visual part, `FireHydrant_Body`, 44 tris -- the minting
+placeholder's 6 mm bevelled box -- a 12-tri collider, one material,
+`M_Skin_metal_painted_delco_1997_807d75`, the tintable `metal_painted` pack
+times the genome's grey. Rebuilt from this repo at 0.83.0 through
+`build_module` with that job's Pixelcoat output, the GLB came back
+byte-identical, so every measurement below is on the path the walk took.
+
+**What Lot asks for, kept.** `site_furniture.SPECIES["fire_hydrant"]` is
+(0.35, 0.35, 0.75), the genome default; the slot is centre-pivot, exact fit,
+`metal_painted`, collision the full box. The stem is unchanged, the module
+fits the slot to the 0.1 mm the facts are rounded to, its bounds are centred
+on the origin, and the collider is still the slot's box.
+
+**The recipe is rebuilt** (`recipes/fire_hydrant.py`, every size and colour
+in the new pure `core/hydrant_forms.py`). An American dry-barrel hydrant,
+pumper outlet toward -Y (the species convention for a front), hose outlets
+toward +X and -X:
+
+  * a ground collar, the traffic flange with six hex nuts, a lower barrel
+    tapering from 90 to 84 mm apothem, the upper barrel flange with six nuts
+    and the nozzle section;
+  * two 2 1/2 in hose outlets and a 4 1/2 in pumper outlet, 0.477 m to the
+    centre at Lot's slot, each a stub, a cap with a chain lug and a
+    pentagonal nut, and a hanging chain from the lug to an eye on the
+    nozzle section;
+  * the bonnet flange with five nuts, a faceted four-ring dome, a hold-down
+    disc and the pentagonal operating nut.
+
+Ten parts (`FireHydrant_Collar`, `_Barrel`, `_Nuts`, `_HoseNozzles`,
+`_PumperNozzle`, `_HoseCaps`, `_PumperCap`, `_Bonnet`, `_OperatingNut`,
+`_Chains`), every round part a 12-sided prism with a face toward each axis,
+every edge hard. Genome version 2, attachments `ATT_top` and `ATT_pumper`.
+
+THE SLOT IS EXACT AND NOTHING IS SCALED PER AXIS: a barrel stretched on one
+axis is an ellipse. One scale comes from the tightest axis and the slack goes
+to the part that can be longer -- the hose stubs take X, the pumper stub -Y,
+the lower barrel Z. At Lot's slot the scale is 1.0 and the stubs are 20 and
+43 mm. Any positive slot fits: the uniform scale leaves every axis at least
+its nominal slack, which a first draft's two ValueErrors did not know (no slot
+could raise them; they are asserts now, and a test holds the bound on three
+slots outside the genome). The long corner is honest about it: at
+0.297 x 0.42 x 0.9 the pumper stub is 159 mm.
+
+**Paint by seed** (a `hydrant_paint` stream off the module stem), from the
+period's common municipal patterns: NFPA 291 chrome yellow with the bonnet and
+caps coded by flow class (AA light blue, A green, B orange, C red), yellow
+with a white top, red with a white, silver or black top, and aluminium with a
+coded or red top. CHOSEN, not surveyed -- nothing here is checked against a
+1997 Delaware County photograph or says which authority painted which. The
+collar is the body's paint at 0.45, the chains tinted `metal_bare`. A prompt
+colour paints the body. Kit style 1, which every current Lot site asks for,
+draws `red_black`, so every hydrant the walker sees today is a red body with a
+black top; across 40 styles the draws are 13 yellow_coded, 7 yellow_white,
+6 red_silver, 6 silver_red, 3 red_black, 3 red_white, 2 silver_coded.
+
+**Wear** is the existing pass (`geometry.wear_colors`: concavity, seeded
+grime, the style's ambient) with a grime ramp 0.25 m off grade on top. Level
+Factory 0.86.0's `zoo_worldskin.gd`, importing a scratch copy of the walk,
+prints "4 material(s) draw vertex colour" for this module.
+
+REFUTED on the way, each kept in the file it was found in:
+- a 10 mm chain lug and a 12 mm eye. The end link runs straight into both
+  along the outlet, so its sides stood 1.25 mm off theirs and the probe
+  reported four SAME pairs on every build;
+- a 7.5 mm link on 2.8 mm wire. A chain hanging in one vertical plane gives
+  every link a side along the same horizontal, so neighbours' faces stood
+  (W - T) / 2 apart: 1.99 mm at the genome's smallest slot, four SAME pairs.
+  8.5 on 2.5 mm leaves 2.55 mm there, and `chain_side_gaps` is tested;
+- aluminium at (0.46, 0.47, 0.47) rendered as white paint on the pack's
+  near-white grain. It is (0.34, 0.35, 0.35) now and still reads pale in
+  Cycles; no walk frame has shown it, since style 1 is not silver;
+- the bonnet's nuts in body paint read as red dots on a black bonnet; they
+  are painted with the bonnet.
+
+**Numbers.** `tools/coplanar_probe.py`'s own `probe` over 214 builds -- min /
+default / max and the mixed corners at styles 1 and 2, 40 random slots at
+styles 1 and 2, 60 more at styles 3 and 5 -- found 0 SAME and 0 OPP pairs,
+every build PASS. It can fail: the pumper cap duplicated in place reports 18.
+Triangles are `hydrant_forms.triangles` exactly (1,212 plus 12 per chain
+link; a bpy test holds it equal to the build): Lot's slot 1,416; the worst
+corner, 0.42 x 0.42 x 0.637, 1,680, where the stubs and so the chains are
+longest; over 40,000 random slots in the genome, 1,416 to 1,680. Budget
+200 -> 1,700. One hydrant stands per crossing (walk 9052_rain has one); six
+on a street cost about 8,500 tris, under three of this kit's cars.
+
+**Seen.** Cycles renders through `tools/preview_specimen.py --slot` (the
+worktree's `zoo_keeper` printed as the one imported) from 1.6 m at front,
+three-quarter and side, and three more schemes. Then Godot 4.7 frames through
+the factory's `tools/look_shots.py` of two scratch copies of walk 9052_rain,
+each with Level Factory 0.86.0's import script and a fresh import, differing
+only in this module: four given stations round `cover_81` under the walk's
+rain preset. The grey box is a red hydrant with a black bonnet and caps, the
+chains visible from 1.2 m; frame means move by under 0.5 of 255.
+
+NOT ZOO'S, and not changed: Lot stands every hydrant at `yaw = road angle`
+(`site_furniture.py`, the per-cut loop), and by `plate_facing` a module's -Y
+points toward the road only on an L kerb. `cover_81` is on road 1's R kerb,
+so in walk 9052_rain the pumper faces the buildings. Turning an R-kerb
+hydrant 180 degrees, as `_bus_stop` turns its shelter, is Lot's change.
+
+`tests/test_fire_hydrant.py` is rewritten: pure tests over Lot's dims and the
+nominal layout, exact extents over the corners and 30 random slots, stub and
+barrel minimums, undersized slots, outlet height and clearance, facing, taper
+and bury, nuts on their flanges and off the 12-gon's face directions, chain
+gaps and floor, the triangle count at the worst corner, scheme weights,
+determinism, variety, flow-coded tops, a prompt colour and the genome's
+parts; and bpy tests for fit, parts, budget, triangle formula and collider at
+eight slots, the pumper cap as the -Y face and the hose caps as the X faces,
+the same vertices every build, and zero SAME pairs at seven slots at two
+styles. The file was run inside Blender 5.1.1 for this release: 85 passed.
+
 ## [0.84.0] - the rooms get what was missing: five interior species, and stock on the tops
 
 The walker, in the `wine_cellar` basement of `country_club_a01` (walk copy of

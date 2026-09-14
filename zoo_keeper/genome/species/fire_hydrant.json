@@ -1,9 +1,9 @@
 {
   "species": "fire_hydrant",
-  "version": 1,
+  "version": 2,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A dry-barrel fire hydrant: a cast body 0.35 m across, a bonnet, two side hose nozzles and a larger front pumper nozzle, standing 0.75 m on the sidewalk 0.5 m in from the kerb, painted. Roadmap 153: kerb-line furniture, collision the full body."
+    "notes": "Minted 2026-09-12 by tools/new_species.py as a placeholder box; rebuilt 0.85.0 as an American dry-barrel hydrant (core/hydrant_forms.py). REFERENCE: the common pattern -- ground collar and traffic flange, tapered lower barrel, upper barrel flange, nozzle section with two 2 1/2 in hose outlets and a 4 1/2 in pumper outlet, each capped with a pentagonal nut and chained, bonnet with a pentagonal operating nut -- at 0.35 m across the hose caps and 0.75 m tall on the sidewalk, 0.5 m in from the kerb. Paint schemes are the period's common municipal patterns (NFPA 291 chrome yellow with flow-coded tops, red with white or silver tops, aluminium bodies), chosen and not surveyed. Roadmap 153: kerb-line furniture, collision the full slot box."
   },
   "dimensions": {
     "width": {
@@ -23,7 +23,16 @@
     }
   },
   "parts": [
-    "FireHydrant_Body"
+    "FireHydrant_Collar",
+    "FireHydrant_Barrel",
+    "FireHydrant_Nuts",
+    "FireHydrant_HoseNozzles",
+    "FireHydrant_PumperNozzle",
+    "FireHydrant_HoseCaps",
+    "FireHydrant_PumperCap",
+    "FireHydrant_Bonnet",
+    "FireHydrant_OperatingNut",
+    "FireHydrant_Chains"
   ],
   "params": {},
   "materials": {
@@ -90,9 +99,12 @@
     }
   },
   "budgets": {
-    "tris_lod0": 200
+    "tris_lod0": 1700
   },
-  "attachments": [],
+  "attachments": [
+    "ATT_top",
+    "ATT_pumper"
+  ],
   "collision": true,
   "match_priority": 0,
   "keywords": [
