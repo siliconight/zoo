@@ -285,21 +285,34 @@ def build(plan, streams, collection):
     steel = list(plan["color"])
     root = arch.root_name("vault_door")
 
-    def mat(tag, color):
-        return materials.make_material(f"M_VaultDoor_{kind}_{tag}", color,
-                                       kind)
+    def mat(tag, color, k=kind):
+        return materials.make_material(f"M_VaultDoor_{k}_{tag}", color, k)
 
+    # PAINTED plates and BARE hardware (vault_forms.HARDWARE_KIND, and the
+    # refutation above it: a bare-metal surround wore the pack's glossy
+    # roughness bars as black streaks across 3.6 m of plate)
+    bright = style.get("bright", [min(1.0, c * 1.35) for c in steel])
     m_steel = mat("steel", steel)
-    m_bright = mat("bright", style.get("bright",
-                                       [min(1.0, c * 1.35) for c in steel]))
+    m_bright = mat("bright", bright)
     m_dark = mat("dark", style.get("dark", [c * 0.45 for c in steel]))
     # the strap grid a shade under the plates, so the seams read at distance
     m_strap = mat("strap", [c * 0.78 for c in steel])
-    m_brass = mat("brass", style.get("accent", [0.72, 0.55, 0.26]))
+    m_hw = mat("bright", bright, vf.HARDWARE_KIND)
+    m_brass = mat("brass", style.get("accent", [0.72, 0.55, 0.26]),
+                  vf.HARDWARE_KIND)
 
     fit_objs, leaf_objs, loose_objs = [], [], []
 
+    # the finish table is vault_forms'; a part wired to the other finish is a
+    # defect here, not a look (undecidable only if the genome's kind were the
+    # hardware's own, when the two finishes are one material)
+    hardware = ({m_hw.name, m_brass.name} if kind != vf.HARDWARE_KIND
+                else None)
+
     def emit(bm, name, material, group, smooth=0.0, texel=1.0):
+        if hardware is not None:
+            assert (name in vf.HARDWARE_PARTS) == (material.name in hardware), (
+                name, material.name)
         if not bm.verts:
             bm.free()
             return None
@@ -698,10 +711,10 @@ def build(plan, streams, collection):
 
     emit(face, "FaceRing", m_bright, lg, smooth=SMOOTH_CURVED)
     emit(bars, "Bars", m_steel, lg)
-    emit(hard, "Hardware", m_bright, lg, smooth=SMOOTH_CURVED)
+    emit(hard, "Hardware", m_hw, lg, smooth=SMOOTH_CURVED)
     emit(leaf_bolts, "LeafBolts", m_brass, lg)
     emit(back, "Boss", m_steel, lg, smooth=SMOOTH_CURVED)
-    emit(back_studs, "BossBolts", m_bright, lg)
+    emit(back_studs, "BossBolts", m_hw, lg)
     m_char = mat("char", [0.035, 0.032, 0.03])
     emit(char, "Char", m_char, lg)
 
@@ -714,10 +727,10 @@ def build(plan, streams, collection):
             _cyl(bm, ((rd - 0.03) * ca, y_bolt, zc + (rd - 0.03) * sa),
                  ((rd + length) * ca, y_bolt, zc + (rd + length) * sa),
                  0.052, 12)
-        emit(bm, "Bolts", m_bright, lg, smooth=SMOOTH_CURVED)
+        emit(bm, "Bolts", m_hw, lg, smooth=SMOOTH_CURVED)
 
     if state != "breached":
-        wobj = emit(wheel, "Wheel", m_bright, lg, smooth=SMOOTH_CURVED)
+        wobj = emit(wheel, "Wheel", m_hw, lg, smooth=SMOOTH_CURVED)
     else:
         wobj = None
 
@@ -744,7 +757,7 @@ def build(plan, streams, collection):
 
     if state == "breached":
         # the wheel, blown off, lying face up on the floor in front
-        wobj = emit(wheel, "Wheel", m_bright, loose_objs, smooth=SMOOTH_CURVED)
+        wobj = emit(wheel, "Wheel", m_hw, loose_objs, smooth=SMOOTH_CURVED)
         if wobj is not None:
             # lying on its rim face, tipped 2.5 degrees onto a spoke knob:
             # (rim 0.055 m) + 2 * wr * sin(2.5) stays under the 0.1025 m a

@@ -1,3 +1,119 @@
+## [0.86.0] - the vault door is painted, and the breached one is the same file twice
+
+Two defects in 0.83.0's `vault_door`, both found on bank_branch_a02's door
+(3.6 x 0.3 x 3.3 slot, 1.3 x 2.1 aperture) as built for the vault-room walk
+copy: its Godot 4.7 frames, and a rebuild of the breached state.
+
+**1. The streaks.** The frames showed the square surround and the leaf covered
+in long horizontal black streaks where the walker's references show a clean
+riveted painted-steel face. The kit that walk carries was built by Zoo 0.84.0
+against cold run 9052's delco_1997 Pixelcoat output; rebuilt from this repo at
+0.85.0 with those packs, the locked GLB came back byte-identical, and unlocked
+and open identical in every mesh with only the embedded albedo PNG encoded at
+another size (11,795 against 8,340 bytes, the same pixels; breached is defect
+2) -- so the measurements below are on the path the walk took. In order:
+
+  * UVs, NOT the cause. A per-triangle probe over the locked and open GLBs
+    (the 2 x 2 map from each triangle's own frame to UV, its singular values)
+    found every part at 1.000 UV units per metre along both in-plane axes and
+    0 m2 of triangles with a singular value under 0.25. No stretched, no
+    degenerate projection; Level Factory's `zoo_worldskin.gd` leaves
+    `vault_door` alone ("not a kit module").
+  * The pack. Every vault part was `metal_bare`, which delco_1997 skins with
+    `metal_bare_neutral`: a 128 px tile per metre whose roughness map is two
+    values in horizontal bars, 42 and 85 of 255 (0.165 and 0.333, the glossy
+    bars 27% of the tile; row-mean std 14.3 against column-mean 2.8), under
+    `METALLIC["metal_bare"]` 0.9. A glossy conductor mirrors the room, and in
+    the vault room the room is dark.
+  * Proved at the station. The same four GLBs with ONLY that map's green
+    channel flattened to its mean (73), photographed through
+    `tools/look_shots.py` at the same given station in a scratch copy of the
+    walk, lost every streak. On the surround above the frame (vault_front,
+    x 600-960, y 230-320, Rec.709 luma on the 8-bit output) mean |dY/dy| fell
+    from 22.30 to 6.80 against |dY/dx| 7.71 and 6.09.
+
+The pack's grain is Pixelcoat's to judge, and it is not changed here. What Zoo
+got wrong is the finish: a vault door's plate is PAINTED. The genome's kind is
+now `metal_painted` in every style (options `metal_painted`, `concrete`), and
+the recipe keeps the hand-worn and machined hardware bare -- the wheel, the
+dial and pull, the extended bolts, the boss bolts and the brass bolt heads --
+with `vault_forms.HARDWARE_KIND` a constant, as the hydrant's chains are.
+`vault_forms.HARDWARE_PARTS` is the table, and the recipe asserts every part
+it emits against it. Built after, the same station reads |dY/dy| 5.78 against
+|dY/dx| 5.54, the plate's luma std 33.9 -> 9.9, mean 104.7 -> 110.9 beside a
+wall at 90.4. Bare metal on the locked door at 0.3 m: 52.3 m2 -> 1.7 m2; the
+widest single bare polygon over all four states at 0.3 and 0.6 m: 3.618 m (a
+surround triangle) -> 0.440 m (the U pull's bar).
+
+The rest of the library on the same finish, each species once through
+`build_specimen` at its genome defaults with flat materials: 18 species carry
+`metal_bare`, and 13 of them a bare polygon at least 0.5 m across, where the
+pack's bars would show -- stop_sign (post, 2.45 m), sign_post (2.40), shelving
+(12.3 m2 in such polygons), the six street trees' grates (1.70 m, 3.0 m2 each),
+water_tank (15.8 m2), flat_top_grill (8.4 m2), furnace (flue and plenum,
+2.6 m2) and payphone (0.75 m). None was photographed and none is changed: the
+galvanised posts, the shelving and the grill ARE bare metal, and whether that
+pack should read as black bars on them is Pixelcoat's question. The hosts'
+`steel` surface stock (`_surface_stock`) was not in the sweep.
+
+**2. The breached state was not repeatable.** Two builds of `_breached` from
+the same inputs wrote different GLBs. Measured in Blender 5.1.1, three builds
+per process and two processes: `VaultDoor_Shards` came back with the same 272
+vertices (sorted digest equal) in a different order each time, and so with a
+different COLOR_0; every other part and every other state was identical. The
+cause is in `bpylayer/geometry.py`: `subdivide` returned `list(set)` and
+`fracture` handed `bisect_plane` a `list(set)` of BMVerts and returned
+another, and a BMVert hashes by identity, so a set of them iterates in address
+order. Both now return the verts in the bmesh's own storage order
+(`_in_storage_order`).
+
+The helpers are shared, and the other callers were worse. `glass_shard`
+changed order only; `rubble_frag` (fracture, then `displace_lobes`, one draw
+per vertex) and `litter_scrap` (subdivide, then one draw per vertex) changed
+GEOMETRY from build to build, because the draws landed on other vertices.
+After the change all three and the vault repeat within a process and across
+two. Their shapes now differ from any earlier build, which no earlier build
+could promise either.
+
+NOT FIXED, found on the way: `pebble` still writes a different COLOR_0 order
+each build with identical vertices and colours per vertex. It is not Zoo's
+code -- `bmesh.ops.create_uvsphere` itself returns its faces in a different
+order each call in Blender 5.1.1 (four calls, four face-order digests, one
+vertex digest; `create_cube` and `create_cone` are stable). `add_ellipsoid`
+and `add_hemisphere` wrap it, so bollard, cheesesteak, exhaust_fan, helmet,
+pebble, pendant_fixture, satellite_dish and soda_cup are exposed. Sorting the
+faces after the op is the obvious fix and is not made here.
+`add_hemisphere` also feeds `bisect_plane` a `list(set(...))`; not measured.
+
+**Numbers.** The kit rebuilt through `tools/zoo_cli.py --build-kit` against
+the vault slot alone: all four states PASS, 6,696 / 6,696 / 7,736 / 7,686
+triangles, and `tools/coplanar_probe.py --glb` reports 0 coincident pairs on
+each. Rebuilt in a second process, all four GLBs are byte-identical to the
+first; at 0.85.0 the same comparison differed on `_breached`.
+
+**Seen.** Godot 4.7 (gl_compatibility, RTX 2060) frames through the factory's
+`tools/look_shots.py` of scratch copies of the vault-room walk, one per build,
+at five given stations (vault_front, vault_wide, vault_side, vault_back,
+vault_inside) with the locked, open and breached node shown in turn: the
+before copy reproduces the original frame to the decimal (plate mean 104.7,
+std 33.9). After, the surround, straps, frame and leaf read as flat grey paint
+with the rivets and bolt rings picked out, and the wheel and dial darker bare
+metal. The breached scorch round the lock was not checked against the paint.
+
+`tests/test_vault_door.py`: a pure test that the genome and every style are
+`metal_painted` and the finish table covers every genome part with no plate
+part bare; a bpy test that no bare polygon on any state at 0.3 or 0.6 m is
+0.5 m wide or more (and that only `HARDWARE_PARTS` are bare); a bpy test that
+three builds of each state write the same GLB; and a bpy test that
+`glass_shard`, `rubble_frag` and `litter_scrap` build the same vertices three
+times. `tests/test_material_options_closed.py` moves `vault_door` from BARE to
+PAINTED. Run inside Blender against 0.85.0's code, 6 fail: the finish test,
+the plan's style material, the painted list, the bare-polygon test (on the
+missing table; the same walk as a probe measured 3.618 m there), the
+same-file test (3 digests for `_breached`) and the helper test (on
+`glass_shard`). Suite: 1344 passed, 94 skipped in plain Python (0.85.0:
+1343 / 91); 1419 passed, 19 skipped inside Blender 5.1.1 (0.85.0: 1415 / 19).
+
 ## [0.85.0] - a fire hydrant that is a fire hydrant
 
 The walker, in the walk copies: what are the "white boxes at the foot of the

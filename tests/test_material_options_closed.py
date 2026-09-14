@@ -36,8 +36,12 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "bollard",
            # a furnace cabinet and a water heater's jacket are enamelled
            # sheet steel (0.84.0)
-           "furnace")
-BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door",
+           "furnace",
+           # a vault door is painted plate; its wheel, dial and bolts are
+           # bare, a constant in the recipe as the hydrant's chains are
+           # (0.86.0)
+           "vault_door")
+BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign")
 MOVED = PAINTED + BARE

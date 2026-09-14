@@ -83,6 +83,32 @@ KNUCKLE = 1.12        # knuckle ring radius over barrel radius
 BOSS_BACK = 0.02      # the leaf's back boss stands this far inside the slot
 BOSS_DEPTH = 0.04     # and this far proud of the plug's back face
 
+#: WHAT THE DOOR IS MADE OF. The plates, straps, rivets, frame, leaf, bars,
+#: hinges and boss are PAINTED steel -- the genome's kind, `metal_painted` --
+#: and only the hand-worn and machined hardware is bare: the wheel, the dial
+#: and pull, the locking bolts and the brass bolt heads. `HARDWARE_KIND` is a
+#: constant, as the fire hydrant's chains are, because one object with two
+#: finishes is not a species offering two materials.
+#:
+#: REFUTED, kept: 0.83.0 skinned the WHOLE door `metal_bare`. Godot 4.7
+#: frames of bank_branch_a02 showed the 3.6 x 3.3 m surround and the leaf
+#: covered in long horizontal black streaks where the walker's references
+#: show a clean riveted painted face. Measured, in order:
+#:   * UVs first, and not the cause: every triangle of every part of the
+#:     locked and open GLBs maps 1.000 UV units per metre along both of its
+#:     in-plane axes (0 m2 with a singular value under 0.25);
+#:   * the delco_1997 `metal_bare_neutral` pack's roughness map is two values
+#:     in horizontal bars, 42 and 85 of 255 (0.165 and 0.333; the dark bars
+#:     27% of the tile), row-mean std 14.3 against column-mean 2.8, at one
+#:     128 px tile per metre -- and the material is metallic 0.9, so the
+#:     glossy bars mirror the dark room;
+#:   * the same GLBs with ONLY that map's green channel flattened to its mean
+#:     (73) photographed at the same Godot station lost every streak.
+#: The pack's grain is Pixelcoat's to judge; painting a painted door is Zoo's.
+HARDWARE_KIND = "metal_bare"
+HARDWARE_PARTS = ("BoltHeads", "LeafBolts", "Hardware", "BossBolts", "Bolts",
+                  "Wheel")
+
 
 def _clamp(v, lo, hi):
     return max(lo, min(hi, v))

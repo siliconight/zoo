@@ -277,7 +277,30 @@ def test_the_module_plan_carries_the_aperture_state_and_exact_fit():
     assert bp["params"]["opening"]["width"] == 1.3
     # the concrete partition's kind lands on plan["material"]; the recipe
     # builds from the style's steel, which is what the genome says
-    assert bp["style_block"]["material"] == "metal_bare"
+    assert bp["style_block"]["material"] == "metal_painted"
+
+
+#: The parts a person sees as plate: the surround, its straps and rivets, the
+#: frame, the leaf and everything painted onto it.
+PLATE_PARTS = ("Surround", "Straps", "Rivets", "Frame", "Threshold", "Hinges",
+               "Keepers", "Leaf", "FaceRing", "Bars", "Boss", "BoltPorts",
+               "TornPlate", "Char", "Shards")
+
+
+def test_the_door_is_painted_steel_and_only_its_hardware_is_bare():
+    """0.83.0 skinned every part `metal_bare`, and in Godot the surround and
+    the leaf wore that pack's glossy roughness bars as long black streaks
+    (vault_forms, above HARDWARE_KIND). The references are painted plate."""
+    g = genome.load_species("vault_door")
+    assert g["materials"]["default"] == "metal_painted"
+    for name, style in g["styles"].items():
+        assert style["material"] == "metal_painted", name
+    assert vf.HARDWARE_KIND == "metal_bare"
+    assert set(vf.HARDWARE_PARTS) == {"BoltHeads", "LeafBolts", "Hardware",
+                                      "BossBolts", "Bolts", "Wheel"}
+    assert not set(vf.HARDWARE_PARTS) & set(PLATE_PARTS)
+    genome_parts = {p.split("_", 1)[1] for p in g["parts"]}
+    assert genome_parts <= set(vf.HARDWARE_PARTS) | set(PLATE_PARTS)
 
 
 def test_the_genome_and_the_forms_agree_on_every_default():
@@ -365,3 +388,96 @@ def test_bpy_every_state_fits_is_in_budget_and_has_no_coincident_faces():
 def test_bpy_a_thin_partition_builds_the_same_contract():
     pytest.importorskip("bpy")
     _bpy_states(0.3)
+
+
+def _build_state(state, depth=0.3, out=None):
+    """Build one state of bank_branch_a02's vault slot; return the GLB bytes."""
+    import tempfile
+    from zoo_keeper.bpylayer import build
+    out = out or tempfile.mkdtemp(prefix="vault_door_")
+    plan = kit.plan_kit({"building_id": "b",
+                         "slots": [_slot(dims=[3.6, depth, 3.3])]},
+                        theme="delco_1997")
+    m = next(x for x in plan["modules"] if x["state"] == state)
+    build.build_module(m, out, theme="delco_1997",
+                       options={"save_blend": False})
+    with open(os.path.join(out, m["stem"] + ".glb"), "rb") as fh:
+        return fh.read()
+
+
+#: The widest single polygon of bare metal the door may carry, in metres
+#: (its largest vertex-to-vertex span). The metal_bare pack is a 1 m tile of
+#: horizontal roughness bars on a metallic 0.9 surface; a plate a metre across
+#: shows them as streaks, a bolt or a spoke does not. Measured after the
+#: change over all four states at 0.3 and 0.6 m: 0.440 (`VaultDoor_Hardware`,
+#: the U pull's 0.44 m bar). Before it: 3.618, a `VaultDoor_Surround`
+#: triangle, with the leaf at 2.445 and the straps at 3.583.
+BARE_POLYGON_MAX = 0.5
+
+
+def test_bpy_no_bare_metal_plate_wide_enough_to_streak():
+    bpy = pytest.importorskip("bpy")
+    import itertools
+    worst = (0.0, None)
+    for depth in (0.3, 0.6):
+        for state in (None, "unlocked", "open", "breached"):
+            _build_state(state, depth)
+            for o in bpy.context.scene.objects:
+                if (o.type != "MESH" or o.name.endswith("colonly")
+                        or not o.data.materials):
+                    continue
+                mat = o.data.materials[0]
+                bsdf = next(n for n in mat.node_tree.nodes
+                            if n.type == "BSDF_PRINCIPLED")
+                if bsdf.inputs["Metallic"].default_value <= 0.0:
+                    continue
+                part = o.name.split("_", 1)[1]
+                assert part in vf.HARDWARE_PARTS, (state, depth, o.name,
+                                                   mat.name)
+                vs = o.data.vertices
+                for p in o.data.polygons:
+                    span = max((vs[a].co - vs[b].co).length for a, b in
+                               itertools.combinations(p.vertices, 2))
+                    if span > worst[0]:
+                        worst = (span, (state, depth, o.name))
+    assert worst[1] is not None, "no bare metal read: nothing was measured"
+    assert worst[0] < BARE_POLYGON_MAX, worst
+
+
+def test_bpy_every_state_is_the_same_file_every_build():
+    """The breached door's `VaultDoor_Shards` came back in a different vertex
+    order each build (so a different COLOR_0 and a different GLB): the shard
+    fracture iterated a set of BMVerts, which hash by address
+    (`geometry._in_storage_order`)."""
+    pytest.importorskip("bpy")
+    import hashlib
+    for state in (None, "unlocked", "open", "breached"):
+        digests = {hashlib.sha1(_build_state(state)).hexdigest()
+                   for _ in range(3)}
+        assert len(digests) == 1, (state, sorted(digests))
+
+
+def test_bpy_the_other_species_on_the_shard_helpers_repeat_too():
+    """The same two helpers build `glass_shard` (fracture), `rubble_frag`
+    (fracture, then a draw per vertex) and `litter_scrap` (subdivide, then a
+    draw per vertex). Before the fix the last two came back as different
+    GEOMETRY from one build to the next, not only in another order."""
+    bpy = pytest.importorskip("bpy")
+    import tempfile
+    from zoo_keeper.bpylayer import build
+
+    out = tempfile.mkdtemp(prefix="shard_helpers_")
+
+    def snapshot(sp):
+        build.clear_scene()
+        build.build_specimen("", out, seed=7, species=sp,
+                             options={"save_blend": False})
+        return {o.name: [tuple(round(c, 6) for c in v.co)
+                         for v in o.data.vertices]
+                for o in bpy.context.scene.objects if o.type == "MESH"}
+
+    for sp in ("glass_shard", "rubble_frag", "litter_scrap"):
+        first = snapshot(sp)
+        assert first, sp
+        for _ in range(2):
+            assert snapshot(sp) == first, sp

@@ -251,7 +251,24 @@ def subdivide(bm, verts, cuts=1):
         for g in ret.get(key, []):
             if isinstance(g, bmesh.types.BMVert) and g.is_valid:
                 out.add(g)
-    return list(out)
+    return _in_storage_order(bm, out)
+
+
+def _in_storage_order(bm, members):
+    """``members`` (a set of BMVerts) as a list in the bmesh's own order.
+
+    NEVER ``list(some_set)``. A BMVert hashes by identity, so a set of them
+    iterates in memory-address order, which moves from build to build. Every
+    consumer of the list inherits that order -- `fracture` hands it to
+    `bisect_plane`, and `rubble_frag`, `litter_scrap` and `displace_lobes`
+    draw one random number per vertex along it. MEASURED on Blender 5.1.1,
+    three builds per process, two processes, from identical inputs: the
+    breached vault door's `VaultDoor_Shards` came back with the same 272
+    vertices in a different order (so a different COLOR_0), `glass_shard` the
+    same, and `rubble_frag` and `litter_scrap` with DIFFERENT GEOMETRY -- the
+    sorted coordinates differed, because the draws landed on other vertices.
+    """
+    return [v for v in bm.verts if v in members]
 
 
 def _unit(rng):
@@ -334,7 +351,7 @@ def fracture(bm, verts, rng, cuts=3, near=0.30, far=0.85,
             no.normalize()
         co = c + no * (radius * (near + rng.random() * max(0.0, far - near)))
         vs = set(verts)
-        geom = list(vs)
+        geom = _in_storage_order(bm, vs)
         geom += [e for e in bm.edges if e.verts[0] in vs and e.verts[1] in vs]
         geom += [f for f in bm.faces if all(v in vs for v in f.verts)]
         res = bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-7,
@@ -346,7 +363,7 @@ def fracture(bm, verts, rng, cuts=3, near=0.30, far=0.85,
         verts = [g for g in res.get("geom", []) if g.is_valid
                  and isinstance(g, bmesh.types.BMVert)]
         verts += [g for g in cut if isinstance(g, bmesh.types.BMVert)]
-        verts = list(set(verts))
+        verts = _in_storage_order(bm, set(verts))
     return verts
 
 
