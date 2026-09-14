@@ -1,29 +1,40 @@
 {
   "species": "cargo_container",
-  "version": 1,
+  "version": 2,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A 20-foot ISO shipping container: 6.06 x 2.44 x 2.59 m, corrugated steel sides, corner castings, two lockable doors at one end with four vertical lock bars. On the lot it is cover (roadmap 22): solid, 2.59 m tall, collision the full box."
+    "notes": "Minted 2026-09-12 by tools/new_species.py as a placeholder box; rebuilt 0.82.0 as an ISO shipping container. REFERENCE (the walker, walk 9052_rain): a red 40 ft door end (trapezoidal corrugation, corner posts and castings, rails, two leaves with four locking bars, cam keepers, handles, hinges, header and sill, owner code and data plate), a weathered grey-blue 20 ft with rust at the rails and fork pockets, a clean orange 20 ft at 6.06 x 2.44 x 2.59 m. ISO 668 dims: 10 ft 2.991, 20 ft 6.058, 40 ft 12.192, 45 ft 13.716 m long; 2.438 wide; 2.438 / 2.591 / 2.896 m tall. Carrier names and owner codes are invented. On the lot it is cover (roadmap 22): solid, collision the full box."
   },
   "dimensions": {
     "width": {
-      "min": 2.318,
-      "max": 4.88,
+      "min": 2.3,
+      "max": 2.5,
       "default": 2.44
     },
     "depth": {
-      "min": 5.757,
-      "max": 12.12,
+      "min": 2.9,
+      "max": 13.8,
       "default": 6.06
     },
     "height": {
-      "min": 2.46,
-      "max": 5.18,
+      "min": 2.4,
+      "max": 2.95,
       "default": 2.59
     }
   },
   "parts": [
-    "CargoContainer_Body"
+    "CargoContainer_Walls",
+    "CargoContainer_Frame",
+    "CargoContainer_Doors",
+    "CargoContainer_RibFlanks",
+    "CargoContainer_RibValleys",
+    "CargoContainer_Hardware",
+    "CargoContainer_Apertures",
+    "CargoContainer_Markings",
+    "CargoContainer_Plates",
+    "CargoContainer_Warning",
+    "CargoContainer_Rust",
+    "CargoContainer_Patch"
   ],
   "params": {},
   "materials": {
@@ -90,9 +101,12 @@
     }
   },
   "budgets": {
-    "tris_lod0": 200
+    "tris_lod0": 4500
   },
-  "attachments": [],
+  "attachments": [
+    "ATT_top",
+    "ATT_doors"
+  ],
   "collision": true,
   "match_priority": 0,
   "keywords": [

@@ -1,3 +1,121 @@
+## [0.82.0] - a cargo container that is a shipping container
+
+The walker, walk 9052_rain, looking at the overlay's `CargoContainer` under
+`cover_136`: "this needs some more love to look like a cargo container". The
+references were a red 40 ft door end, a weathered grey-blue 20 ft with rust at
+the rails and fork pockets, and a clean orange 20 ft at 6.06 x 2.44 x 2.59 m.
+
+**What 0.80.0 shipped, measured before anything moved.** The walk's
+`cover/prop_cargo_container_delco_1997_01_w244_d606_h259.glb` (cold run 9052's
+site kit job): one visual part, `CargoContainer_Body`, 44 tris -- the minting
+placeholder's box with a 6 mm bevel -- and a 12-tri collider, on one material,
+`M_Skin_metal_painted_delco_1997_807d75`. That is the delco_1997
+`metal_painted_neutral` pack (Pixelcoat 0.16.0: 128 px, 1.2 m a tile, albedo
+232..255 in every channel, `tintable`) times the genome's grey. There was no
+corrugation in the mesh or in the texture, and the only variation on a 6 m
+face was per-vertex wear noise over 48 vertices -- the "plain flat box with a
+blotchy green-grey noise skin".
+
+**What Lot asks for, kept.** `site_cover.COVER_SPECIES` parks
+`("cargo_container", 2.44, 6.06, 2.59)`, the genome defaults, at yaw 0 or 90;
+`lot.cover_module_refs` resolves the stem above; the module is centre-pivot,
+exact-fit, length along +Y, collision the full box. None of that changes, and
+the stem Lot looks for is the stem this builds.
+
+**The recipe is rebuilt** (`recipes/cargo_container.py`, decisions in the new
+pure `core/container_forms.py`). Door end at -Y, blind end at +Y:
+
+  * eight ISO 1161 corner castings are the envelope, their apertures painted
+    on the slot's faces; corner posts; top and bottom side rails; top and
+    bottom rails across the blind end; door header and sill;
+  * trapezoidal corrugated sides and blind end (300 mm pitch, 40 mm deep, a
+    39 degree flank -- slightly coarser than a real panel's 280 / 36 so each
+    flank is a facet wide enough to shade) and a corrugated roof (420 / 20);
+    every sheet edge runs into the frame member beside it;
+  * two door leaves, each a frame ring and a pressed infill with four
+    channels under a flat top band; four locking bars with cam keepers top
+    and bottom, two guides each, handles and retainers; four hinges a leaf; a
+    dark seam backer;
+  * fork pockets (360 x 115 mm) in the bottom side rails of 10 and 20 ft
+    boxes, 2050 mm apart on a 20 ft (900 on a 10 ft is chosen, not tabled);
+  * ISO 6346 markings from `_legend`'s faceted glyphs, flat and cut at every
+    rib break so each piece lies on its own crest, flank or valley: owner
+    code, serial and a boxed check digit (the ISO algorithm; the standard's
+    CSQU 305438 3 is a test) on the right leaf and both sides, the size-type
+    code (12G1 / 22G1 / 42G1 / 45G1 / L5G1 from the slot's length and
+    height), a GROSS / TARE block, a CSC plate, a warning triangle, and on 55%
+    of boxes an invented carrier name down each side (SEAHOLT, PORTALIS,
+    TRADEPAC, GALEOTA, ALBATROS; leasing prefixes DCR, BFA, HLS, CGT, CFR --
+    none checked against the BIC register);
+  * paint from a period palette by the module's seed (red, maroon, orange,
+    blue, grey-blue, green, grey, a dirty white that takes dark lettering);
+    rust streaks hanging off the top rail and blooming off the bottom rail,
+    never over a marking; a primer or darker touch-up patch on some walls.
+
+Size class comes from the slot: nearest of 10, 20, 40, 45 ft by length, so a
+Lot slot at 6.06 builds a 20 ft box with pockets and a 12.19 slot a 40 ft
+without. The genome's ranges were the minting tool's (depth to 12.12, which a
+40 ft box at 12.192 is outside); they are now ISO's -- width 2.30..2.50,
+depth 2.90..13.80, height 2.40..2.95 -- with the defaults unchanged. Genome
+version 2, attachments `ATT_top` and `ATT_doors`.
+
+**`_legend` carries a stencil alphabet.** A B C D E F G H I L R U and 0-9 join
+S T O P, on the same grid under the same rule (a cut corner is only a stroke
+by stroke cell); letters with a diagonal stroke do not fit it and are left
+out, and a test holds every carrier, prefix and code to the set. A space in
+`legend()` advances and emits nothing. The stop sign's word is unchanged.
+
+**Refuted in the build, kept in `container_forms.FORM_SHADE`.** The first
+module photographed in a scratchpad copy of walk 9052_rain (Godot 4.7, GL
+Compatibility, the rain preset) showed the corrugation almost gone: under an
+overcast sky every facet of a rib gets the same light. The same module under
+a sun in Blender read strongly. The shade was first baked into the `Wear`
+colour; the GLB carried it (walls' COLOR_0 median 0.863 -> 0.515) and the
+frame did not move (patch-free strip of the side wall, mean luma 47.4 -> 47.1,
+3 px column step 3.32 -> 3.07). The dial was dead: every surface of the
+imported container, car and box truck in that walk has
+`vertex_color_use_as_albedo = false`. Crests, flanks and valleys are now
+separate surfaces on the paint at 1.0 / 0.80 / 0.66
+(`CargoContainer_Walls` + `_Doors`, `_RibFlanks`, `_RibValleys`): mean luma
+47.1 -> 43.7, column step 3.07 -> 3.93, and the ribs and door channels read
+at 7 and 20 m in the frames.
+
+NOTE, not Zoo's: that measurement means no cover module's wear or ambient
+vertex colour is drawn in a walk today (Level Factory's `zoo_worldskin.gd`
+prints `not a kit module, left alone` for them). Also noted and not isolated:
+in the rain frames the narrow up-facing strips -- rail tops, the sill,
+keeper tops -- carry a bright dashed highlight; Lux's rain runtime has no
+wetness or splash shader, so it is not a rain decal. And
+`tools/preview_specimen.py`'s specimen path stands a centre-pivot species half
+under its ground plane (only `build_module` recentres); the container was
+judged from kit-path renders.
+
+**Numbers.** `tools/coplanar_probe.py`'s own `probe` over 118 builds (min /
+default / max of every axis at two styles, the ISO nominal sizes at three
+styles, 40 random slots) found one SAME pair: a glyph edge 0.3 mm from a rib
+break cut into a 0.3 mm sliver, reported at 1.63 mm because a triangle that
+thin has no trustworthy normal. `split_at` now snaps a vertex within 1 mm of a
+break onto it. Since then 394 builds over three sweeps (100 more random
+slots): 0 SAME, 0 OPP, every fit, pivot, collision, UV and wear check passing.
+Triangles by class over those sweeps: 10 ft 2,488..3,308; 20 ft 2,650..3,766;
+40 ft 2,858..3,910; 45 ft 3,105..4,022 (a carrier name is most of the spread).
+Lot's slot builds 2,814. Budget 200 -> 4,500: a street carrying five
+containers costs about what five of 0.79.0's cars do.
+
+`tests/test_cargo_container.py`: every ISO nominal size inside the genome and
+Lot's slot at its defaults; class, size-type code and pockets per length;
+the ISO check-digit example; corrugation fills its span and ends on crests;
+door channels leave the top band flat; a painted polygon cut at the ribs
+loses no area and no piece straddles a break or is a sliver; form shades
+ordered; every marking spelled from existing glyphs; the palette; a box is
+the same box every build and 40 styles give 40 codes and at least 5 paints;
+a prompt colour wins; white paint takes dark lettering; rust never lands on a
+marking and stays on crests; patches avoid markings; nothing on the door end
+stands outside the castings; details clear the probe on a flank. The bpy half
+builds the six nominal sizes (fit, pivot, collision, parts, budget) and runs
+the coplanar probe on 20 ft, 20 ft at Lot's dims and 40 ft at two styles; it
+is skipped without Blender and was run inside Blender 5.1 for this release.
+
 ## [0.81.1] - a run of walls has no groove at its joints
 
 Walk 9052, delco_1997, an interior partition: "you can see the seams here", a

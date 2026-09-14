@@ -57,6 +57,35 @@ GLYPHS = {
                            "##d",
                            "#..",
                            "#..")),
+    # CONTAINER STENCIL (0.82.0). An ISO 6346 owner code, serial and size-type
+    # code, and a carrier name, need the letters below and all ten digits.
+    # Same grid, same rule: a cut corner is only ever a stroke x stroke cell.
+    # Letters with a diagonal stroke (K M N V W X Y Z) do not fit a three-by-
+    # five grid of square cuts and are left out; the carrier names and owner
+    # codes in `core/container_forms.py` are spelled from this set, and a test
+    # holds them to it.
+    "A": ("SgS", "SmSmS", ("a#b", "#.#", "###", "#.#", "#.#")),
+    "B": ("SgS", "SmSmS", ("##b", "#.#", "###", "#.#", "##d")),
+    "C": ("SgS", "SmSmS", ("a##", "#..", "#..", "#..", "c##")),
+    "D": ("SgS", "SmSmS", ("##b", "#.#", "#.#", "#.#", "##d")),
+    "E": ("SgS", "SmSmS", ("###", "#..", "##.", "#..", "###")),
+    "F": ("SgS", "SmSmS", ("###", "#..", "##.", "#..", "#..")),
+    "G": ("SgS", "SmSmS", ("a##", "#..", "#.#", "#.#", "c#d")),
+    "H": ("SgS", "SmSmS", ("#.#", "#.#", "###", "#.#", "#.#")),
+    "I": ("aSa", "SmSmS", ("###", ".#.", ".#.", ".#.", "###")),
+    "L": ("SgS", "SmSmS", ("#..", "#..", "#..", "#..", "###")),
+    "R": ("SgS", "SmSmS", ("##b", "#.#", "##d", "#.#", "#.#")),
+    "U": ("SgS", "SmSmS", ("#.#", "#.#", "#.#", "#.#", "c#d")),
+    "0": ("SgS", "SmSmS", ("a#b", "#.#", "#.#", "#.#", "c#d")),
+    "1": ("aSa", "SmSmS", ("##.", ".#.", ".#.", ".#.", "###")),
+    "2": ("SgS", "SmSmS", ("a#b", "..#", "a#d", "#..", "###")),
+    "3": ("SgS", "SmSmS", ("##b", "..#", ".##", "..#", "##d")),
+    "4": ("SgS", "SmSmS", ("#.#", "#.#", "###", "..#", "..#")),
+    "5": ("SgS", "SmSmS", ("###", "#..", "##b", "..#", "##d")),
+    "6": ("SgS", "SmSmS", ("a##", "#..", "##b", "#.#", "c#d")),
+    "7": ("SgS", "SmSmS", ("###", "..#", "..#", "..#", "..#")),
+    "8": ("SgS", "SmSmS", ("a#b", "#.#", "###", "#.#", "c#d")),
+    "9": ("SgS", "SmSmS", ("a#b", "#.#", "c##", "..#", "##d")),
 }
 
 # corner order in a cell: 0 bottom-left, 1 bottom-right, 2 top-right, 3 top-left
@@ -118,12 +147,17 @@ def legend(text, height, letter_w=LETTER_W, gap=GAP):
     Returns ``[(verts, faces), ...]`` one per glyph, verts as ``(x, z)``, and
     the overall ``(width, height)``. Glyph meshes are kept apart so a recipe
     can build each as its own closed solid.
+
+    A space advances like a glyph and emits nothing, so ``"SHLU 204518"``
+    keeps the gap a stencilled code has without a glyph to test.
     """
     n = len(text)
     total_w = (n * letter_w + (n - 1) * gap) * height
     out = []
     x0 = -total_w / 2.0
     for k, ch in enumerate(text):
+        if ch == " ":
+            continue
         verts, faces = glyph_cells(ch, letter_w)
         ox = x0 + k * (letter_w + gap) * height
         out.append(([(ox + x * height, -height / 2.0 + z * height)
