@@ -1,3 +1,166 @@
+## [0.87.0] - the vending machine glows, and sells WOODER
+
+The walker, with a frame of a modded Deus Ex vending machine: "vending
+machines should glow", and "we want fake products that are funny and a bit
+crass ... Delco themed". The reference is a tall machine whose whole front is
+a backlit panel carrying one loud brand, a column of lit selection buttons, a
+coin panel with a small lit display, a dark delivery flap, and the panel's
+colour on the floor beside it.
+
+**What 0.86.0 shipped, measured before anything moved.** Built through
+`plan_kit` + `build_module` at Deli Counter's `vending` size (0.85 x 0.75 x
+1.83, style 4) with cold run 9052's delco_1997 Pixelcoat output: a body box, a
+"glass" slab, a side panel, a coin slot and a tray, 220 triangles, three
+materials, nothing emissive -- and FAIL, `depth=0.795m != exact target
+0.750m`, because the coin slot's front stood 45 mm in front of the body. The
+same FAIL Deli Counter's furnish agent reported from `country_club_a01`'s kit
+log (`prop_vending_machine_delco_1997_04_w85_d75_h183`, x2). The genome's
+`lit` param was declared and read by nothing.
+
+**The recipe is rebuilt** (`recipes/vending_machine.py`; every size, the brand
+and every pixel of the artwork in the new pure `core/vending_forms.py`). A
+1990s soda machine, front toward -Y:
+
+  * the cabinet, the slot's full width, height and back, and a door hung on
+    its face `REVEAL` (8 mm) inside its sides and top;
+  * the door is ONE closed solid over a grid of cells with three apertures
+    left out -- the backlit panel, the selection column and the delivery flap
+    -- so it has no internal faces;
+  * the backlit panel; in the column a dark plate, the price display (bezel
+    and lit lens), the coin mech with a coin slot, a bill mouth and a reject
+    button, six lit selection buttons, the coin return and a T-handle lock;
+    a dark bin behind a tilted flap; a recessed kick plate.
+
+Fourteen parts, every edge hard, 464 triangles at every size (budget 600),
+genome version 2. THE SLOT IS EXACT with nothing scaled: the door's front is
+the slot's front plane and every column part is recessed into its aperture,
+the frontmost 4 mm behind it. Every insert is buried 6 mm (three times the
+coplanar probe's window) past the planes it meets.
+
+**The brands** are one table, `core/brands.py`, so shelf stock, cans and cups
+can sell the same drinks later: WOODER, JAWN JUICE, IGGLES TEARS, SCRAPPLE
+SODA, MACDADE MUD, SHORE THING, HOAGIE SWEAT, YOUSE GRAPE, NANA'S BASEMENT,
+BLUE ROUTE BACKUP, CHESTER GOLD and WIT OR WITOUT, each with its drink, its
+slogan, a button label, a palette, an emblem and a cabinet paint. Two of the
+starting names were changed and the module keeps why: BLUE ROUTE BLAST (one
+word from a national lemon-lime's flavour line) and WIT WIZ (the "Wiz" is a
+processed-cheese trademark). `FORBIDDEN_WORDS` is a tripwire for the obvious
+real names, and a test reads every row against it.
+
+A machine's brand is drawn from its stem WITHOUT the variant suffix, and the
+variant indexes that draw -- so the four variants of one slot are always four
+brands. The genome now declares `module_variants: 4`, which `plan_kit`
+already honours (`_n1`.. `_n3`); an explicit `params.brand` wins. The six
+buttons are the brand and five others. The cabinet wears the brand's paint
+unless the prompt asked for a colour.
+
+**The lettering is the factory's typeface.** Pixelcoat sets every shop sign in
+Pixel Operator Bold (CC0, vendored in Pixelcoat). Blender's Python carries no
+PIL, so `tools/mint_pixel_type.py` reads that TTF once into
+`core/pixel_type_glyphs.py` and `core/pixel_type.py` lays it out in pure
+Python. Nothing is lost by the table, measured with PIL before it was
+written: at 16 px every glyph is 0 or 255, at 32 px exactly the 16 px bitmap
+doubled (0 of 64,000 pixels on "IGGLES TEARS"), and a string equals its glyphs
+at their advances (no kerning). A test re-mints the table from Pixelcoat's TTF
+and compares four strings against Pixelcoat's own `_render_ttf`, identical.
+The artwork -- dithered gradient, emblem, logo, drink, slogan band, six
+labels and a red 75¢ -- is painted into one PNG per machine at 256 px/m (the
+labels and display at 512), written by a deterministic encoder, packed into
+the .blend and embedded in the GLB.
+
+Found on the way and fixed: the glTF exporter names an image after its FILE,
+not `Image.name`, so the first build shipped an image called `zoo_a3xvb95d`
+from `mkstemp` -- a different GLB every build. `materials.image_from_png`
+writes `<name>.png` in a fresh directory. Two builds in two Blender processes
+now write byte-identical GLBs.
+
+**The glow.** `materials.make_backlit_material`: the artwork drives Emission
+Color and, times `PANEL_ALBEDO` 0.35 (folded into `baseColorFactor`), Base
+Color -- a backlit panel is not a mirror of the room. Panel `M_Vending_<art>
+_Face`, buttons and display `M_Vending_<art>_Lens`, so Lux's emissive binder
+finds them. In the GLB: `emissiveTexture`, `emissiveFactor` [1,1,1],
+`baseColorFactor` 0.35. Level Factory's `zoo_worldskin.gd` leaves the machine
+alone ("not a kit module"); Godot 4.7's import, read back headless in the walk
+copy: `emission_enabled` true, energy as exported, emission texture the same
+Texture2D as albedo, 8 mips.
+
+REFUTED, kept: `lit` 0 as "Emission Strength 0". With the texture still linked
+the exporter drops `emissiveFactor` and keeps `emissiveTexture`, and Godot 4.7
+imports that as emission ON at energy 1.0, colour white (readback) -- frames
+at strength 0 and 1 matched to the decimal. A dark face now links no emission
+at all, and `lit` 0 is a machine with its plug pulled.
+
+**The strength is measured, not chosen.** Two scratch copies of the vault-room
+walk (Godot 4.7, gl_compatibility, RTX 2060, `tools/look_shots.py`): three
+machines against the basement's east wall and one in the lobby under the
+walk's Heavy Rain preset, and one outdoors south of the bank under the theme's
+`delco_summer_afternoon`, the brightest light this level has (the Heavy Rain
+lobby is darker than the basement: frame means 46 and 70). The same GLBs at
+strengths 0, 1.0, 1.5, 2.0 and 3.0; panel pixels are those brightening by more
+than 8 codes from 0 to 1:
+
+    basement (Heavy Rain)    luma  28.9 / 110.8 / 142.5 / 165.5 / 194.2
+                             sat   0.63 /  0.54 /  0.49 /  0.45 /  0.36
+                             white%   0 /     0 /     0 /  2.85 /  8.03
+    outdoors (summer)        luma  47.5 / 120.6 / 149.8 / 172.1 / 201.2
+                             pinned%  0 /     0 / 68.52 / 70.46 / 90.33
+
+(white: every channel >= 235; pinned: any channel >= 250.) 1.0 is the highest
+strength with nothing pinned or white in either preset: 3.8 x its unlit luma in
+the basement, the art's own saturation (0.81-0.89 in the PNG) kept in the sun.
+2.0, the first value (the fixtures' lenses), washed every panel toward pastel
+under Heavy Rain and pinned 70 % outdoors. `PANEL_EMISSION` and
+`LENS_EMISSION` are 1.0 with the table beside them.
+
+GL Compatibility DOES render the Environment's glow here: at 3.0 a ring 3-24 px
+outside the panel brightens by 12.0 codes with Heavy Rain's glow on and -0.4
+with it off. At 1.0 the ring moves 0.3, because that preset's
+`glow_hdr_threshold` is 1.1. A halo is the preset's lever.
+
+**Light on the floor is NOT done here, and it is not Zoo's alone.** Measured
+on a scratch copy with an OmniLight3D per basement machine in its panel's mean
+colour (energy 0.8, range 2.5 m, no shadow, 0.35 m in front of the panel at its
+centre height): coloured pools on the floor and wall as the reference shows,
+the 5 m frame's mean +2.3 codes, up to +51 on the floor and +142 on the wall
+beside them. Shipping it needs: a Zoo marker (`LuxEmit_vending` with the
+colour in its payload -- not added, because `LuxFixtureSpawner` would skip a
+type it has no rig for); a `vending` row in Lux's `LuxLightLoader._rig_for`
+that reads that colour; and Level Factory counting those lights in the
+package's `max_renderable_lights`, against Lux's per-mesh budget of eight.
+
+**Two machines side by side are only two brands if Deli Counter asks.** A
+stem is a file: two slots of one size and style instance one GLB. Deli
+Counter's `vending` piece has `variants=False` and `most=1`, so today every
+vending machine of one size in one building is the same brand. `variants=True`
+there (its crc32 % 4 already matches `module_variants`) is the change.
+
+**Seen.** `look_shots` frames before (0.86.0) and after at seven given
+stations -- basement close, 5 m and three-quarter, lobby close and 5 m,
+outdoors close and 5 m -- and the after set again under summer afternoon. At
+about 4.7 m the logos and the scale-2 slogans read; the scale-1 slogans
+("Delco Tap Wooder. Now With Bubbles.") do not, a 4 px cap against 9 px. At
+Deli Counter's 0.85 m machine the panel's width is that limit; the slogan band
+is 30 % of the panel so that at its 1.0 m machine 11 of the 12 slogans set at
+scale 2 (5 at 26 %), and the 0.85 m GLBs photographed are byte-identical
+either side of that change. A Blender contact sheet of all twelve.
+
+**Numbers.** `tools/coplanar_probe.py --species vending_machine` at five
+corners: 464 tris, 0 coincident pairs each.
+
+`tests/test_vending_machine.py`, 89 tests: the genome and parts; the layout
+exact at eight sizes and 30 random ones; nothing proud of the door; the door's
+apertures and the triangle count; the brand table complete, invented,
+legible (slogan contrast >= 4.5, labels >= 3, every label fits its button,
+every brand lays out on the narrowest panel); variants four brands, 40 styles
+at least eight; the artwork byte-stable and a real PNG; the glyph table
+against Pixelcoat's TTF; and in Blender the fit at eight sizes, the glow on
+the three lit parts and in the GLB, `lit` 0 dark in the file, two builds one
+GLB and four variants four images, and 0 coplanar rows at six sizes. Run inside
+Blender against 0.86.0's code, 87 fail and 1 passes (that DC's two sizes lie
+inside the genome; the glyph test skips there, Blender having no PIL). Suite:
+1416 passed, 111 skipped in plain Python (0.86.0: 1344 / 94); 1507 passed, 20
+skipped inside Blender 5.1.1 (0.86.0: 1419 / 19).
+
 ## [0.86.0] - the vault door is painted, and the breached one is the same file twice
 
 Two defects in 0.83.0's `vault_door`, both found on bank_branch_a02's door

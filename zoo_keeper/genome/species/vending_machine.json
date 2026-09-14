@@ -1,9 +1,9 @@
 {
  "species": "vending_machine",
- "version": 1,
+ "version": 2,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. No source meshes, no scraped data."
+  "notes": "Original procedural construction. No source meshes, no scraped data. Brands, slogans and panel artwork are invented (core/brands.py); lettering is Pixel Operator, CC0, via Pixelcoat."
  },
  "dimensions": {
   "width": {
@@ -23,19 +23,44 @@
   }
  },
  "parts": [
-  "body",
-  "glass",
-  "panel",
-  "coin_slot",
-  "tray"
+  "Vending_Cabinet",
+  "Vending_Door",
+  "Vending_Panel",
+  "Vending_ColumnPlate",
+  "Vending_Display",
+  "Vending_DisplayLens",
+  "Vending_CoinMech",
+  "Vending_Slots",
+  "Vending_Buttons",
+  "Vending_CoinReturn",
+  "Vending_Lock",
+  "Vending_Bin",
+  "Vending_Flap",
+  "Vending_Kick"
  ],
  "params": {
   "lit": {
    "min": 0,
    "max": 1,
    "default": 1
-  }
+  },
+  "brand": [
+   "auto",
+   "wooder",
+   "jawn_juice",
+   "iggles_tears",
+   "scrapple_soda",
+   "macdade_mud",
+   "shore_thing",
+   "hoagie_sweat",
+   "youse_grape",
+   "nanas_basement",
+   "blue_route_backup",
+   "chester_gold",
+   "wit_or_witout"
+  ]
  },
+ "module_variants": 4,
  "materials": {
   "default": "metal_painted",
   "options": [
@@ -129,7 +154,7 @@
   }
  },
  "budgets": {
-  "tris_lod0": 6000
+  "tris_lod0": 600
  },
  "attachments": [
   "ATT_tray"

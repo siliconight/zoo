@@ -324,6 +324,82 @@ def make_emissive_textured_material(name, pack, strength=2.2):
     return mat
 
 
+def image_from_png(name, png_bytes):
+    """A PACKED image from PNG bytes a recipe painted (0.87.0: the vending
+    machine's panel). Cached by name, so callers put the pixels' identity in
+    it. The bytes pass through a temporary file only because
+    `bpy.data.images.load` takes a path; once packed, the exporter embeds the
+    packed PNG, so the GLB carries exactly these bytes.
+
+    THE FILE IS NAMED ``<name>.png``, in a fresh directory. The glTF exporter
+    names an image after its file's basename, not `Image.name`: the first
+    build used `mkstemp` and shipped an image called `zoo_a3xvb95d`, which
+    is a different GLB every build and a randomly named PNG in every Godot
+    import that extracts it."""
+    img = bpy.data.images.get(name)
+    if img is not None:
+        return img
+    import os
+    import shutil
+    import tempfile
+    folder = tempfile.mkdtemp(prefix="zoo_png_")
+    path = os.path.join(folder, name + ".png")
+    try:
+        with open(path, "wb") as fh:
+            fh.write(png_bytes)
+        img = bpy.data.images.load(path)
+        img.pack()
+        img.name = name
+    finally:
+        shutil.rmtree(folder, ignore_errors=True)
+    return img
+
+
+def make_backlit_material(name, image, strength, albedo_factor):
+    """A lit face whose artwork is its own light: ``image`` drives Emission
+    Color at ``strength`` and, dimmed by ``albedo_factor``, Base Color.
+
+    Different from `make_emissive_textured_material` in the dimming, and on
+    purpose: that one sets base colour and emission to the same full artwork,
+    so under a bright room the diffuse term adds a second copy of the panel on
+    top of its glow. A backlit plastic panel is not a mirror of the room.
+
+    The multiply is the same Mix node `_tint_multiply` uses, which the glTF
+    exporter folds into ``baseColorFactor`` (measured, see there). Nearest
+    filter, clamped: a panel never tiles. Name with a Lux suffix (`_Face`,
+    `_Lens`) so the emissive binder finds it."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 0.35
+    bsdf.inputs["Metallic"].default_value = 0.0
+    tex = tree.nodes.new("ShaderNodeTexImage")
+    tex.image = image
+    tex.interpolation = "Closest"
+    tex.extension = "EXTEND"
+    f = float(albedo_factor)
+    base = _tint_multiply(tree, tex.outputs["Color"], (f, f, f), name)
+    tree.links.new(base, bsdf.inputs["Base Color"])
+    # A DARK FACE LINKS NO EMISSION AT ALL, because strength 0 is not dark
+    # once it leaves Blender. With the texture linked and Emission Strength
+    # 0, the glTF exporter drops `emissiveFactor` and keeps
+    # `emissiveTexture`; Godot 4.7 imports that as emission ON, energy 1.0,
+    # colour white (readback of the file, 0.87.0), where the glTF default
+    # factor would be black. Frames of strength 0 and strength 1 matched to
+    # the decimal in a Godot walk copy.
+    if float(strength) > 0.0:
+        sock = "Emission Color" if "Emission Color" in bsdf.inputs else "Emission"
+        tree.links.new(tex.outputs["Color"], bsdf.inputs[sock])
+        bsdf.inputs["Emission Strength"].default_value = float(strength)
+    else:
+        bsdf.inputs["Emission Strength"].default_value = 0.0
+    return mat
+
+
 def _load_image(path, non_color=False):
     img = bpy.data.images.load(path, check_existing=True)
     if non_color:
