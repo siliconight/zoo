@@ -1,3 +1,227 @@
+## [0.88.0] - a strip club is a stage, a bar, a sofa and a name in neon
+
+The walker, with two GTA IV Triangle Club frames: "strip clubs should have a
+dingy lived in feel, dark with colored lights, couches and bars". Then a local
+comparison for layout only -- a one-storey 1990s neighbourhood club with two
+bar areas whose poles stand inside the bar, and several TVs -- and a
+correction: the game is 1997, so the PRE-renovation club: CRTs on brackets,
+nothing that reads as a refit, the only light in the furniture a plain warm
+rope light. Deli Counter's library has three strip clubs
+(`strip_club_a01..a03`); today their `stage` (8 x 4 x 0.8, 7 x 3.5 x 0.8) and
+bar volumes route to no species and ship as grey boxes.
+
+This is the Zoo half. It does not reduce interventions-per-level by itself:
+until Deli Counter writes the names below, no generated club gets any of it.
+
+### What the library had, measured first
+
+`booth_seat` form `sofa` is the couch (reused, not duplicated). `table`,
+`counter` and `_surface_stock`'s `bar` flavour already set bottles, pints on
+coasters, ashtrays and napkins on a top; `stair_rail`, `sign_box`,
+`_legend.py` and `crt_tv` exist. What did not: a stage of any kind, a small
+round table, a tub chair, a bar stool, a neon sign, a TV that is not on a
+surface. `_legend`'s cell grid cannot draw a diagonal stroke (K M N V W X Y Z
+are left out of it on purpose), so it cannot spell a club name; Pixelcoat's
+built-in 5 x 7 bitmap (`signage._FONT`) can.
+
+delco_1997's packs (cold run 9052's Pixelcoat build, read): `leather`
+(brown), `canvas` (beige), `carpet` (dusty mauve), `wood` and `plastic`
+(red-orange) are NOT tintable; only `laminate`, `paper`, `metal_bare` and
+`metal_painted` take the mesh's colour. A velvet colour cannot ride any kind
+Zoo had.
+
+### Five species and a form (planned in pure Python, built vertex for vertex)
+
+| species | planner | what it is | tris (pure = built; no bevel) | budget |
+| --- | --- | --- | --- | --- |
+| `club_stage` `round` | `core/club_forms.py` `plan_stage` | an ellipse filling the slot behind its steps: recessed wood fascia, overhanging lip, worn carpet top, rope light under the lip and on every step nosing, padded rail on brass posts and collars open where the steps come up, chrome pole with floor and ceiling flanges | 1348 at 2x2x0.45, 1388 at DC's 8x4x0.8, 2896 at 3.6x4.6x3.6, 4128 at 14x8x5 | 5000 |
+| `club_stage` `runway` | same | a platform along the slot's long axis with a round far end, the pole there, steps at the near end, no rail on the square end | 708 at 8x4x0.8, 2160 at 8x4x3.6, 2888 at 14x8x5 | |
+| `club_stage` `bar_stage` | same | an oval bar round a raised deck: kick, fascia, bar top ring, padded armrest, brass foot rail on brackets, deck lip, carpet and rope light a hand above the bar top, one pole or two along the deck | 2424-2996, plus up to 1664 of `bar` stock on the straight runs | |
+| `cocktail_table` `cloth` / `bare` | `plan_table` | a floor-length cloth over a round top that flares to a folded hem (CLOTHS: burgundy, black, green, stained cream), or a bare wood top on a black cast base | 240 / 268, plus up to 448 of stock | 1400 |
+| `club_chair` | `plan_chair` | a barrel-backed tub chair: short wood feet, upholstered drum, a D-shaped crowned seat, a back that wraps the sides and falls to the arm fronts, piping on the crown; VELVETS oxblood, plum, teal, bottle green | 992 | 1200 |
+| `bar_stool` | `plan_stool` | domed chrome base, column, footring on three spokes, black pan, padded vinyl seat (red, black, plum) | 762 | 900 |
+| `neon_sign` | `core/neon_forms.py` `plan_sign` | glass tube lettering and a cut-corner border tube on a dark backer, on standoffs | 1776 (LIVE GIRLS) to 4856 (BOTTOMS UP ON BALTIMORE PIKE) | 5000 |
+| `crt_tv` form `bracket` | `core/crt_forms.py` `plan_bracket` | a tube set with a deep bezel, tapered housing, lit screen and knobs, strapped to a black shelf with a lip on an arm and brace off a wall plate, tipped 8 degrees toward the room | 168 | (4000) |
+
+Recipes: `recipes/club_stage.py`, `cocktail_table.py`, `club_chair.py`,
+`bar_stool.py`, `neon_sign.py`, and `crt_tv.py` `_bracket`. Every planner
+keeps the interior species' rules -- exact extents, parts overlapping by
+millimetres, no two faces within 2 mm of one plane, deterministic -- and the
+tests hold them at every genome corner.
+
+**The stage's heights follow the slot** (`stage_heights`): a slot up to 0.9 m
+IS the platform (Deli Counter's 0.8 m volume builds today, no rail, no pole);
+up to 1.16 m the platform is the slot less the 0.36 m rail; taller, the
+platform is 0.8 m -- DC's own stage height, so its collider and the deck
+agree -- and the pole runs to the slot's top. **Author the volume to the
+ceiling** to get the pole. **Steps are derived**: the fewest (1-3, 0.34 m
+treads) that keep a ramp over them at or under 44 degrees, because a ramp is
+what a body walks and `floor_max_angle` is 45 (0.45 m: 2 steps, 33.5 deg;
+0.6: 2, 41.4; 0.8: 3, 38.1; 0.9: 3, 41.4). `auto` is `round` up to 1.4 : 1
+after the steps, `runway` past it, never `bar_stage`. Zoo does not decide the
+walkable surface (README): the stage's colliders are bands inscribed in its
+outline, the steps and short boxes along the rail, not the pole.
+
+**The lettering is the factory's.** `neon_forms.FONT_5X7` is a copy of
+Pixelcoat 0.41.0's `_FONT` (Zoo does not import Pixelcoat, which needs numpy
+and PIL inside Blender); a test compares the copy with the Pixelcoat source,
+read as text, when that repo is beside this one or `GABAGOOL_FACTORY` names
+it. A glyph is turned into its skeleton -- lit pixels joined across edges, and
+diagonally only where the corner between is dark -- merged into maximal
+straight runs, each run one eight-sided rod. One to three lines, whichever
+gives the largest pitch.
+
+**The names are one table**, `core/club_names.py` `NAMES`: 24 invented,
+PG-13, Delco -- THE JAWN ROOM, MACDADE MAGIC, LIVE GIRLS, BOTTOMS UP ON
+BALTIMORE PIKE, NANA'S NOT HERE, YOUSE BEHAVE, MOM THINKS I'M AT BINGO,
+CHEEKS ON CHESTER PIKE, THE WOODER HOLE, SHAKE YOUR SCRAPPLE, ROUTE 291
+REVUE, DOWN THE SHORE LOUNGE, CASH ONLY CABARET, NO TOUCHIN' HON, THE MARCUS
+HOOK-UP, GLENOLDEN GLOW, DARBY DOLLS, THE PRETZEL TWIST, OPEN TIL 2 AM,
+DOLLAR DRAFTS - LIVE DANCERS, FOLSOM FOXES, GO-GO ON 291, TIPS APPRECIATED,
+YO! SHOWGIRLS. `neon_sign`'s `module_variants` is the table's length and the
+variant IS the index. `DENYLIST` (the local comparison's name first, then
+regional and national club names, local brands and teams) is a guard a test
+holds every name against -- not a search of any business register.
+
+### Light, and what happens to it downstream
+
+`prim_mesh.build` takes `(name, colour, "emissive", strength)` for a lit key:
+`make_emissive_material`, no bevel, no wear, no ambient, so COLOR_0 is white.
+Every lit material is `M_*_Face`, the suffix Lux's emissive binder cuts with
+the power: `M_ClubStage_rope_Face` (1.0, 0.62, 0.28) x 1.0,
+`M_NeonSign_<hex>_Face` in `club_names.PALETTES` x 1.2, `M_CRT_Screen_Face`
+(0.10, 0.17, 0.26) x 0.35.
+
+Level Factory 0.86.0's `zoo_worldskin.gd` (21,136 bytes, read, not changed)
+leaves props alone except turning vertex colour on for materials whose COLOR_0
+is tinted. Imported into a scratch walk copy with that script, it printed
+"all-white left off" for exactly the lit materials (stage 1, CRT 1, neon 2),
+and a headless Godot 4.7 probe of the imported scenes read every one back
+with emission on at the energy above and `vertex_color_use_as_albedo` false.
+**Level Factory needs no change for the emission.**
+
+REFUTED, each by a frame, each kept at its constant: the rope light at 3.0
+and the neon at 4.0 clipped in the walk's dark basement (brightest rope
+pixels 250,250,250; the pink-and-blue sign's 226,247,252, white); after, the
+sign's most saturated pixels read 164,96,144 (pink) and the rope 200,198,183.
+The CRT screen at (0.32, 0.42, 0.55) x 1.2 rendered as a blank panel in
+Cycles, and at (0.10, 0.17, 0.26) x 1.0 as a pale flat screen in Godot.
+
+### A new kind: `velvet`
+
+`skins.KNOWN_KINDS` and `materials.ROUGHNESS` (0.96). No theme has a velvet
+pack, so a club chair renders flat in its VELVETS colour with its wear -- the
+progressive art pass. When Pixelcoat authors one it must be tintable, or
+every chair turns one colour. Pixelcoat's `_ZOO_KINDS` mirror in
+`cli/main.py` does not list it (nor `stone`, `siding`, `shingle`, `tar`,
+`metal_bare` or `metal_painted`).
+
+### Refutations kept in the files
+
+  * Stage: the first step on the floor laid its bottom in the fascia's bottom
+    plane (one SAME pair at every size); brass posts at phase 0 put a rail
+    segment's end cap 0.44 mm from a post facet on a runway's round end;
+    a runway always along x gave a 2 x 8 m slot a 3.5 m end radius; a
+    bar_stage pole only past deck + 0.5 left a 1.5 m slot 0.32 m short and
+    the fit stretched it 27 %.
+  * Chair: a seat ellipse inside the barrel stood 33 mm short of the slot's
+    front (fit stretched the chair 4 %); piping 4 mm under the crown stood
+    4 mm over the slot.
+  * Table: a column bottom exactly 2.0 mm over the base plate passed the pure
+    probe and failed Blender's (float32); one stock region per top carried
+    one group on 12 of 12 seeds, two halves carry two on 9 of 12 at 0.75 m.
+  * CRT bracket: drawn at slot size and fitted, the tip put it 24-60 mm over
+    (now four corrections against the tipped bounds, overshoot under 1e-4 m);
+    the arm 1 mm under the plate's bottom; a `plastic` housing rendered as a
+    red box because delco_1997's plastic pack is red-orange and not tintable
+    (painted metal now).
+
+### What already shipped is unchanged, measured
+
+Built from a `git archive` of 0.86.0 and from this branch, kit path,
+delco_1997: `crt_tv` stand at 0.55x0.5x0.42 and 0.9x0.62x0.7, `booth_seat`
+sofa and booth, `pool_table`, `table` and `counter` with bar stock -- same
+digest over object names, vertices, Wear and material names, pinned in
+`tests/test_club_bpy.py`. The stand path returns before `bracket` is read.
+
+### Tests
+
+`tests/test_club_species.py` (249, pure): genomes, contract names and forms,
+keyword routing (and that chair, stool, table, couch, tv and lit sign still
+route where they did), dressing fields honoured and all-or-nothing dropped,
+DC's current stage volumes fit, exact extents and zero coincident pairs and
+colliders inside bounds at every genome corner of every form, budgets with
+worst stock, the neon budget is the longest name, determinism, seeded colour
+coverage, stage heights, step pitch, auto form, poles to the slot top, the
+rail gap over the steps, rope light on every step, bar_stage anatomy, stock
+inside the round top, cloth vs bare, chair back profile, footring height,
+name table = variants, names spelled from the font and on no denylist, font
+parity with Pixelcoat, every glyph skeleton covers exactly its lit pixels,
+line breaking, every name clean at four sign corners, bracket TV fit and
+tip. `tests/test_club_bpy.py` (43 in Blender 5.1.1): PASS, fit to 1 mm,
+budget, genome parts, `coplanar_probe` 0 pairs at min/default/max of every
+form, two builds identical, lit materials exactly where promised with white
+COLOR_0, emission in the exported GLB, bar stock present and measured apart,
+the 0.86.0 digests, no collider on a sign. Against 0.86.0 both files fail at
+collection (no `club_forms`, no genome).
+
+### Not Zoo's, found on the way, not changed
+
+  * **A sofa slot's material makes its upholstery that kind.**
+    `dna.resolve_module_plan` takes a slot's `material` when it is a known
+    kind, and `booth_seat` uses `plan["material"]` for upholstery. Deli
+    Counter writes `wood` on its booth volumes: a sofa built with it carried
+    only `M_Skin_wood_delco_1997` and `M_Skin_canvas_delco_1997`, no leather.
+    The same stem with and without the field names one file, so a kit holding
+    both writes whichever was built last.
+  * `crt_tv` stand fails `fit_depth` on the kit path at every size measured
+    (0.522 m against 0.500): its knobs stand 22 mm proud of the front. Its
+    screen box sits inside the body. Both on 0.86.0 too.
+  * The walk copy's own `zoo_worldskin.gd` is 12,121 bytes, older than Level
+    Factory 0.86.0's; the frames re-imported only the club GLBs with the
+    current script.
+
+### What Deli Counter must add (not done here)
+
+  1. `prop_species` rows ahead of the rows that claim the words:
+     `("club_stage", "stage", "pole_stage", "runway")` -> `club_stage`;
+     `("cocktail", "club_table", "highboy")` -> `cocktail_table` before
+     `table`; `("club_chair", "tub_chair", "lounge_chair")` -> `club_chair`
+     before `chair`; `("bar_stool", "barstool", "stool")` -> `bar_stool`
+     before `chair` (whose keywords include `stool`); `("neon", "club_sign")`
+     -> `neon_sign`; `("bar_tv", "wall_tv")` -> `crt_tv` with form `bracket`.
+  2. Strip club rooms: the stage volume authored FLOOR TO CEILING (3.6 m) with
+     form `round` or `runway` -- at 0.8 m it builds a platform with no rail or
+     pole; a bar area as `club_stage` form `bar_stage` with stock `bar`;
+     `cocktail_table` 0.75x0.75x0.74 stock `bar` with two `club_chair`
+     0.78x0.75x0.78 each; `bar_stool` 0.42x0.42x0.76 at bar fronts instead of
+     `chair_set`, material `metal_bare` (a `wood` slot builds a wood column);
+     sofas with material `leather` (see above); `neon_sign` 1.4x0.1x0.6 on a
+     wall at about 2.2 m, `variant` = crc32(building) % 24; `crt_tv`
+     0.55x0.62x0.5 form `bracket` at about 2.1 m near the bars. `variant` =
+     crc32(slot_id) % 4 elsewhere.
+  3. Lux: the club is dark only if a preset makes it so; the frames are under
+     the walk's basement light.
+
+### Seen
+
+Godot 4.7 (gl_compatibility) frames through the factory's `tools/look_shots.py`
+of a scratch copy of the vault-surface walk with a club corner in
+bank_branch_a02's east basement room -- a round stage with its pole, two
+clothed tables with tub chairs, a couch, three stools, THE JAWN ROOM in pink
+and blue, a bracket TV -- at five given stations; and a Cycles contact sheet of
+every species, form and all 24 names built with delco_1997's packs. Not
+checked: the bar_stage in Godot; a level Deli Counter generates; anything
+under a Lux club preset.
+
+Suite: 1612 passed, 142 skipped in plain Python with `GABAGOOL_FACTORY` set
+(1611 / 143 without it: the font-parity test skips) against 0.86.0's
+1344 / 94; 1729 passed, 25 skipped inside Blender 5.1.1 (0.86.0: 1419 / 19).
+The first full Blender run failed one test of this release's own: the
+emission check had a fixed floor of 0.35 written before the screen was
+dimmed to 0.35 strength; it now compares with the declared colour and
+strength.
+
 ## [0.87.0] - the vending machine glows, and sells WOODER
 
 The walker, with a frame of a modded Deus Ex vending machine: "vending

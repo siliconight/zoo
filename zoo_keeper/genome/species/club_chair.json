@@ -1,0 +1,126 @@
+{
+  "species": "club_chair",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Club species (Zoo 0.87.0). REFERENCE: the low tub chairs in the walker's Triangle Club lounge frame -- a barrel back that wraps the sides and slopes to the arm fronts, an upholstered drum on short wood feet, a crowned seat, piping along the crown. Worn velvet in oxblood, plum, teal or bottle green by variant; `velvet` has no Pixelcoat pack in any theme yet, so it renders flat in that colour. A couch is booth_seat form sofa. Geometry planned purely in core/club_forms.py."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.6,
+      "max": 0.95,
+      "default": 0.78
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 0.9,
+      "default": 0.75
+    },
+    "height": {
+      "min": 0.65,
+      "max": 0.95,
+      "default": 0.78
+    }
+  },
+  "parts": [
+    "ClubChair_Feet",
+    "ClubChair_Base",
+    "ClubChair_Seat",
+    "ClubChair_Back",
+    "ClubChair_Piping"
+  ],
+  "params": {},
+  "module_variants": 4,
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.4,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.6,
+      "bevel": 0.004,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.5,
+      "bevel": 0.004
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.7,
+      "bevel": 0.004,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.06,
+        0.035,
+        0.02
+      ],
+      "wear": 0.5,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1200
+  },
+  "attachments": [
+    "ATT_seat"
+  ],
+  "collision": true,
+  "keywords": [
+    "club chair",
+    "club_chair",
+    "tub chair",
+    "barrel chair",
+    "lounge chair",
+    "velvet chair"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  }
+}

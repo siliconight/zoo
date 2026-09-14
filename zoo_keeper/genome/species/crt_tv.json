@@ -27,9 +27,18 @@
   "screen",
   "bezel",
   "knob",
-  "foot"
+  "foot",
+  "CRT_Body",
+  "CRT_Screen",
+  "CRT_Knob",
+  "CRT_Bracket"
  ],
  "params": {
+  "form": [
+   "auto",
+   "stand",
+   "bracket"
+  ],
   "knobs": {
    "min": 0,
    "max": 4,
@@ -139,7 +148,10 @@
   "television",
   "crt",
   "tube tv",
-  "tv"
+  "tv",
+  "bar tv",
+  "wall tv",
+  "bracket tv"
  ],
  "connectors": {
   "anchor": {

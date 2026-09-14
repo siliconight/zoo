@@ -1,0 +1,126 @@
+{
+  "species": "neon_sign",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Club species (Zoo 0.87.0). A wall-mounted neon sign: glass tube lettering and a border tube on a dark backer, emissive (M_NeonSign_<hex>_Face, Lux's power cut takes them). The lettering is the skeleton of Pixelcoat's built-in 5x7 bitmap font, copied into core/neon_forms.py and compared with its source by the tests. The text is core/club_names.py's INVENTED Delco club names, never a real business; module_variants is that table's length and the variant is the name's index. No collision: a sign above head height. The back is the slot's +Y face."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.0,
+      "max": 3.0,
+      "default": 1.4
+    },
+    "depth": {
+      "min": 0.06,
+      "max": 0.25,
+      "default": 0.1
+    },
+    "height": {
+      "min": 0.45,
+      "max": 1.2,
+      "default": 0.6
+    }
+  },
+  "parts": [
+    "NeonSign_Backer",
+    "NeonSign_Tubes",
+    "NeonSign_Border",
+    "NeonSign_Standoffs"
+  ],
+  "params": {},
+  "module_variants": 24,
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "wood"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.3,
+      "bevel": 0.003
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.5,
+      "bevel": 0.003,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.4,
+      "bevel": 0.003
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.2,
+      "bevel": 0.003,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.6,
+      "bevel": 0.003,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.02,
+        0.02,
+        0.025
+      ],
+      "wear": 0.4,
+      "bevel": 0.003,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 5000
+  },
+  "attachments": [
+    "ATT_face"
+  ],
+  "collision": false,
+  "keywords": [
+    "neon sign",
+    "neon_sign",
+    "neon",
+    "club sign",
+    "bar sign",
+    "neon light sign"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    }
+  }
+}

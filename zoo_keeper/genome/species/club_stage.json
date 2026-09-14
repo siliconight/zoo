@@ -1,0 +1,150 @@
+{
+  "species": "club_stage",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Club species (Zoo 0.87.0). REFERENCE: the walker's two GTA IV Triangle Club frames and a local 1990s neighbourhood club used for layout only -- a round raised stage with a centre pole, a padded rail on brass posts round its edge and a plain warm rope light along the lip and the step nosings; a runway with the pole at its round end; and a stage that is the middle of an oval bar, stools round a padded bar rail. Pre-renovation: no LED panels. Geometry planned purely in core/club_forms.py. HEIGHTS: a slot up to 0.9 m is the platform alone; up to 1.16 m the platform is the slot less the 0.36 m rail; taller, the platform is 0.8 m (Deli Counter's own stage height) and the pole runs to the slot's top, so author the volume to the ceiling. STEPS: the fewest (1-3, 0.34 m treads) that keep a ramp over them at or under 44 degrees. BUDGET 5000: measured 4652 at the genome's largest bar_stage (14 x 8 x 5: 2996 for the stage and 1656 for the worst of eight seeds of bar stock on its two straight runs); a round stage is 4128 at that size."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.0,
+      "max": 14.0,
+      "default": 4.0
+    },
+    "depth": {
+      "min": 2.0,
+      "max": 8.0,
+      "default": 4.0
+    },
+    "height": {
+      "min": 0.45,
+      "max": 5.0,
+      "default": 3.6
+    }
+  },
+  "parts": [
+    "Stage_Fascia",
+    "Stage_Lip",
+    "Stage_Carpet",
+    "Stage_RopeLight",
+    "Stage_Steps",
+    "Stage_Rail",
+    "Stage_RailPosts",
+    "Stage_Pole",
+    "Bar_Kick",
+    "Bar_Fascia",
+    "Bar_Top",
+    "Bar_Armrest",
+    "Bar_FootRail"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "round",
+      "runway",
+      "bar_stage"
+    ],
+    "stock": [
+      "none",
+      "bar"
+    ]
+  },
+  "module_variants": 4,
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood",
+      "laminate"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.35,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.55,
+      "bevel": 0.004,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.45,
+      "bevel": 0.004
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.25,
+      "bevel": 0.004,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.65,
+      "bevel": 0.004,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.14,
+        0.08,
+        0.045
+      ],
+      "wear": 0.45,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 5000
+  },
+  "attachments": [
+    "ATT_deck"
+  ],
+  "collision": true,
+  "match_priority": 1,
+  "keywords": [
+    "club stage",
+    "club_stage",
+    "strip club stage",
+    "stripper stage",
+    "dance stage",
+    "pole stage",
+    "stage",
+    "runway stage",
+    "bar stage"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  }
+}

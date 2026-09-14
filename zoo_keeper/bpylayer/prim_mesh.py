@@ -20,7 +20,13 @@ from . import geometry, materials
 def build(prims, collection, plan, rng, mats, texel=1.2, ambient=None):
     """Turn ``prims`` into objects linked to ``collection``.
 
-    ``mats`` maps a primitive's ``mat`` key to ``(name, colour, kind)``.
+    ``mats`` maps a primitive's ``mat`` key to ``(name, colour, kind)``,
+    or to ``(name, colour, "emissive", strength)`` for a lit surface (0.87.0:
+    a rope light, a neon tube, a screen that is on) -- built with
+    `materials.make_emissive_material` and painted with no wear and no
+    ambient, so its COLOR_0 is white and Level Factory's import leaves its
+    albedo alone ("all-white left off"). Name a lit material ``M_*_Face``:
+    that suffix is what Lux's emissive binder cuts with the power.
     Returns the list of objects, in first-seen part order.
     """
     bevel = float(plan.get("bevel") or 0.0)
@@ -55,11 +61,20 @@ def build(prims, collection, plan, rng, mats, texel=1.2, ambient=None):
         # normals -- without it nothing was beveled: the first furnace
         # built at exactly its pure pre-bevel count, 372 tris.
         bm.normal_update()
+        entry = mats[mat_key]
+        lit = len(entry) == 4 and entry[2] == "emissive"
         obj = geometry.bm_to_object(bm, name, collection,
-                                    bevel=bevel if bev else 0.0, texel=texel,
-                                    rng=rng, wear=wear, ambient=amb)
-        mname, colour, kind = mats[mat_key]
-        materials.assign([obj], materials.make_material(mname, colour, kind))
+                                    bevel=bevel if (bev and not lit) else 0.0,
+                                    texel=texel, rng=rng,
+                                    wear=0.0 if lit else wear,
+                                    ambient=0.0 if lit else amb)
+        if lit:
+            mname, colour, _kind, strength = entry
+            materials.assign([obj], materials.make_emissive_material(
+                mname, colour, strength))
+        else:
+            mname, colour, kind = entry
+            materials.assign([obj], materials.make_material(mname, colour, kind))
         objs.append(obj)
     return objs
 

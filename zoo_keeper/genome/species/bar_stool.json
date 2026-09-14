@@ -1,0 +1,125 @@
+{
+  "species": "bar_stool",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Club species (Zoo 0.87.0). REFERENCE: a 1990s bar stool -- a padded round vinyl seat on a black pan, a chrome column, a footring on three spokes and a domed base. Seat colour by variant. Geometry planned purely in core/club_forms.py."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.36,
+      "max": 0.5,
+      "default": 0.42
+    },
+    "depth": {
+      "min": 0.36,
+      "max": 0.5,
+      "default": 0.42
+    },
+    "height": {
+      "min": 0.6,
+      "max": 0.85,
+      "default": 0.76
+    }
+  },
+  "parts": [
+    "BarStool_Base",
+    "BarStool_Column",
+    "BarStool_Footring",
+    "BarStool_Pan",
+    "BarStool_Seat"
+  ],
+  "params": {},
+  "module_variants": 4,
+  "materials": {
+    "default": "metal_bare",
+    "options": [
+      "metal_bare",
+      "wood"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.3,
+      "bevel": 0.003
+    },
+    "delco": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.5,
+      "bevel": 0.003,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.4,
+      "bevel": 0.003
+    },
+    "center_city": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.2,
+      "bevel": 0.003,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.6,
+      "bevel": 0.003,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "metal_bare",
+      "color": [
+        0.78,
+        0.79,
+        0.8
+      ],
+      "wear": 0.4,
+      "bevel": 0.003,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 900
+  },
+  "attachments": [
+    "ATT_seat"
+  ],
+  "collision": true,
+  "keywords": [
+    "bar stool",
+    "bar_stool",
+    "barstool",
+    "counter stool"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  }
+}

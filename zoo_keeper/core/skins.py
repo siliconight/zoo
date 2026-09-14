@@ -61,6 +61,10 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                # surface, which is what happened to `stone` for one commit.
                "stone", "siding", "shingle",
                "ceiling_tile", "carpet", "dirt", "tar",
+               # a club chair's upholstery (0.87.0): object-owned like the
+               # prop metals -- the mesh carries the hue -- and packless in
+               # every theme today, so it renders flat in the chair's colour
+               "velvet",
                # Layer 3 surface dressing (docs/SURFACE_DRESSING.md)
                "gravel", "vegetation",
                # a leaf-cluster cutout for a tree's crown cards (roadmap 153)

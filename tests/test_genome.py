@@ -19,7 +19,11 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # the interior species (0.84.0): what a generated room was
                 # missing besides tables and chairs
                 "carton_stack", "furnace", "dust_sheet", "pool_table",
-                "booth_seat"}
+                "booth_seat",
+                # the club species (0.87.0): a 1997 Delco strip club's
+                # stage, tables, tub chairs, stools and its neon
+                "club_stage", "cocktail_table", "club_chair", "bar_stool",
+                "neon_sign"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

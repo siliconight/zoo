@@ -40,10 +40,14 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a vault door is painted plate; its wheel, dial and bolts are
            # bare, a constant in the recipe as the hydrant's chains are
            # (0.86.0)
-           "vault_door")
+           "vault_door",
+           # a neon sign's backer is a painted sheet-metal box (0.87.0)
+           "neon_sign")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
         # a u-channel post and a stop sign's post are galvanised, not painted
-        "sign_post", "stop_sign")
+        "sign_post", "stop_sign",
+        # a bar stool's column, footring and base are chrome (0.87.0)
+        "bar_stool")
 MOVED = PAINTED + BARE
 
 

@@ -66,6 +66,11 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # `tar` (0.90) is the binder underneath, not what light hits.
              "shingle": 0.93,
              "carpet": 0.98, "dirt": 0.97, "tar": 0.90,
+             # Velvet (0.87.0, the club chairs): a cut pile, as matte as
+             # carpet. Its colour is the chair's -- no theme has a velvet
+             # pack yet, so it rides the flat path and the genome's colour
+             # shows; when Pixelcoat authors one it must be tintable.
+             "velvet": 0.96,
              # Layer 3 surface dressing: loose stone and plant matter, both
              # fully matte -- a dressing scatter that catches a specular
              # highlight reads as wet plastic at every viewing angle.

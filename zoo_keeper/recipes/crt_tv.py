@@ -1,9 +1,18 @@
 """CRT TV recipe: chunky plastic body, recessed dark screen, small feet and
 tuning knobs. 1990s tube-television silhouette. Origin at floor center,
-screen faces -Y."""
+screen faces -Y.
+
+FORMS (0.87.0). ``stand`` -- and ``auto``, the default -- is the set this
+recipe always built, on its feet on a surface; ``bracket`` is a bar TV up on
+a wall bracket, tipped toward the room with its screen lit, planned in pure
+Python by `core.crt_forms` and built by `bpylayer.prim_mesh`. The stand path
+below is untouched: it returns before ``bracket`` is consulted and draws the
+same streams it always drew.
+"""
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..bpylayer import geometry, materials, prim_mesh
+from ..core import crt_forms
 
 FOOT_H = 0.02
 
@@ -13,6 +22,8 @@ def _darker(c, f=0.6):
 
 
 def build(plan, streams, collection):
+    if crt_forms.pick_form((plan.get("params") or {}).get("form", "auto")) == "bracket":
+        return _bracket(plan, streams, collection)
     w = plan["dimensions"]["width"]
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
@@ -67,3 +78,20 @@ def build(plan, streams, collection):
 
     return {"objects": objs, "collision_boxes": cboxes,
             "attachments": {"ATT_screen_center": (0, -d / 2, FOOT_H + body_h * 0.56)}}
+
+
+def _bracket(plan, streams, collection):
+    w = plan["dimensions"]["width"]
+    d = plan["dimensions"]["depth"]
+    h = plan["dimensions"]["height"]
+    got = crt_forms.plan_bracket(w, d, h)
+    # the genome's kind and colour are the stand set's; the bracket set's
+    # housing is `crt_forms.MATERIALS` (why is written there)
+    mats = {key: (f"M_CRT_{key}_{k}", list(c), k)
+            for key, (c, k) in crt_forms.MATERIALS.items()}
+    rgb, strength = crt_forms.SCREEN_EMISSIVE
+    mats["screen"] = ("M_CRT_Screen_Face", list(rgb), "emissive", strength)
+    objs = prim_mesh.build(got["prims"], collection, plan, streams.stream("wear"),
+                           mats, texel=2.0)
+    return {"objects": objs, "collision_boxes": got["collision"],
+            "attachments": {"ATT_screen_center": got["screen_centre"]}}
