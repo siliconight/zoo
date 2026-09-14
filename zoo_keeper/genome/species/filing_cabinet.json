@@ -39,7 +39,15 @@
       "max": 1,
       "default": 1
     },
-    "bay_max": 0.5
+    "bay_max": 0.5,
+    "stock": [
+      "none",
+      "office",
+      "bar",
+      "kitchen",
+      "vault",
+      "storage"
+    ]
   },
   "materials": {
     "default": "metal_painted",
@@ -155,5 +163,6 @@
     "file cabinet",
     "filing",
     "cabinet"
-  ]
+  ],
+  "module_variants": 4
 }

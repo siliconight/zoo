@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line."
+    "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line. STOCK (0.84.0): the bare counter is 176 tris at 2.2 x 0.8 x 1.05; with `stock` it measured 272-780 there and 508-1364 at 8.0 x 0.9 x 1.05 (bar the most: bottles are 64 tris each). BUDGET 500 -> 1600 for that, and the bare counter is unchanged."
   },
   "dimensions": {
     "width": {
@@ -38,7 +38,15 @@
       "max": 1,
       "default": 1
     },
-    "bay_max": 4.0
+    "bay_max": 4.0,
+    "stock": [
+      "none",
+      "office",
+      "bar",
+      "kitchen",
+      "vault",
+      "storage"
+    ]
   },
   "materials": {
     "default": "wood",
@@ -105,7 +113,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 500
+    "tris_lod0": 1600
   },
   "attachments": [
     {
@@ -123,5 +131,6 @@
     "service counter",
     "shop counter",
     "checkout"
-  ]
+  ],
+  "module_variants": 4
 }

@@ -42,7 +42,7 @@ def save_blend(filepath):
 _COL_SUFFIXES = ("-colonly", "-convcolonly", "-col", "-convcol")
 
 
-def gather_facts(collection, root_name, fit_names=None):
+def gather_facts(collection, root_name, fit_names=None, dressing=()):
     """Collect the facts core.validate judges.
 
     ``fit_names``: when a recipe declares which of its objects define the
@@ -50,13 +50,25 @@ def gather_facts(collection, root_name, fit_names=None):
     dimensions and centre are measured on those, and the full visual bounds
     are reported beside them as ``overhang`` rather than silently replacing
     them. Without it every visual mesh is measured, exactly as before.
+
+    ``dressing`` names objects set ON the module -- a desk's surface stock --
+    that count toward its triangles and parts but not toward its measured
+    size and centre: the slot is the desk's, and a monitor standing above
+    the desk's top is not the desk being 37 cm too tall. Empty, which every
+    caller before 0.84.0 passes, measures every mesh as it always did.
+
+    Given both, dressing is set aside first and the envelope is the named fit
+    objects among what remains; ``overhang`` stays the bounds of every visual
+    mesh, dressing included, because it answers what stands in the room.
     """
     meshes = [o for o in collection.objects if o.type == "MESH"
               and not o.name.endswith(_COL_SUFFIXES) and "_LOD" not in o.name]
     col = [o for o in collection.objects
            if o.name.endswith(_COL_SUFFIXES)]
-    fit = ([o for o in meshes if o.name in set(fit_names)]
-           if fit_names else meshes)
+    skip = {getattr(o, "name", o) for o in dressing}
+    body = [o for o in meshes if o.name not in skip] or meshes
+    fit = ([o for o in body if o.name in set(fit_names)]
+           if fit_names else body)
     overhang = None
     if fit_names and meshes:
         alo, ahi = geometry.bounds_of(meshes)

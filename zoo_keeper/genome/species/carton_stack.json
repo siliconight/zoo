@@ -1,0 +1,132 @@
+{
+  "species": "carton_stack",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Interior species (Zoo 0.84.0). The walker in a country_club_a01 basement, cold run 9052: 'need a lot more species for this room, its just a bunch of chairs and tables with nothing on it'. REFERENCE: a basement or stockroom floor -- kraft cartons with packing tape and the odd shipping label, banker's file boxes with lids and hand holes, stacked in columns, upper cartons set in and turned a few degrees. Geometry planned purely in core/carton_forms.py. BUILT (0.84.0, delco_1997 kit path, unbeveled): 36 tris at 0.4 x 0.3 x 0.3, 132 at 0.9 x 0.6 x 1.0, 1104 at 1.2 x 0.8 x 1.4 (n1), 1824 at 1.6 x 1.2 x 1.8 (n3). BUDGET 2400: the genome's largest stack (two rows of four columns) measured 1968 before bevel over 280 seeded plans; a stockroom holds several, so every box is 12 tris of body and 12 each of tape and label, no bevel."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.4,
+      "max": 1.6,
+      "default": 0.9
+    },
+    "depth": {
+      "min": 0.3,
+      "max": 1.2,
+      "default": 0.6
+    },
+    "height": {
+      "min": 0.3,
+      "max": 1.8,
+      "default": 1.0
+    }
+  },
+  "parts": [
+    "Carton_Body",
+    "Carton_Tape",
+    "Carton_Label",
+    "Banker_Body",
+    "Banker_Lid",
+    "Banker_Hole"
+  ],
+  "params": {
+    "style": [
+      "auto",
+      "mixed",
+      "kraft",
+      "banker"
+    ]
+  },
+  "module_variants": 4,
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.2,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.4,
+      "bevel": 0.0,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.15,
+      "bevel": 0.0,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.6,
+      "bevel": 0.0,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "paper",
+      "color": [
+        0.3,
+        0.19,
+        0.09
+      ],
+      "wear": 0.35,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 2400
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "carton stack",
+    "carton_stack",
+    "cartons",
+    "cardboard boxes",
+    "banker's boxes",
+    "banker boxes",
+    "storage boxes",
+    "moving boxes",
+    "box stack",
+    "boxes"
+  ]
+}

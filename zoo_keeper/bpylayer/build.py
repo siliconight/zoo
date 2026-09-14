@@ -155,9 +155,18 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
 def _recentre(result: dict, plan: dict) -> dict:
     """`core.pivot.recentre` over the recipe's visual objects' bounds --
     or over its ``fit_objects`` when it names them, so a door leaf swung out
-    of its frame does not drag the frame off the slot centre."""
+    of its frame does not drag the frame off the slot centre.
+
+    Objects the recipe returns as ``dressing_objects`` (0.84.0: a desk's
+    surface stock) are moved with the rest but left out of the bounds: the
+    pivot is the slot's centre, and stock standing on a top is above the
+    slot, not part of it. Without this all 15 of the first stocked host
+    renders built with status FAIL (fit_height, fit_pivot), and a 0.75 m
+    desk under a 0.37 m monitor would be re-centred on desk-plus-monitor --
+    by arithmetic, 18.5 cm into the floor where Deli Counter places it."""
+    skip = set(id(o) for o in result.get("dressing_objects", []))
     objs = [o for o in (result.get("fit_objects") or result.get("objects", []))
-            if getattr(o, "type", "MESH") == "MESH"]
+            if getattr(o, "type", "MESH") == "MESH" and id(o) not in skip]
     if not objs:
         return result
     lo, hi = geometry.bounds_of(objs)
@@ -221,7 +230,8 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
 
     fit_names = ([o.name for o in result["fit_objects"]]
                  if result.get("fit_objects") else None)
-    facts = export.gather_facts(coll, root_name, fit_names=fit_names)
+    facts = export.gather_facts(coll, root_name, fit_names=fit_names,
+                                dressing=result.get("dressing_objects", ()))
     report = validate.evaluate(facts, genome, plan, opts)
 
     os.makedirs(out_dir, exist_ok=True)
@@ -276,6 +286,11 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
                 "category": _module_category(r["plan"]["module"]["type"]),
                 "species": r["plan"]["module"]["species"],
                 "state": r["plan"]["module"]["state"],
+                # the dressing fields the module was built with (0.84.0);
+                # absent from the plan module when the slot asked for none
+                "form": r["plan"]["module"].get("form"),
+                "stock": r["plan"]["module"].get("stock"),
+                "variant": r["plan"]["module"].get("variant"),
                 "width_cm": r["plan"]["module"]["width_cm"],
                 "fit": r["plan"]["module"]["fit"],
                 "dims": r["plan"]["module"].get("dims"),
@@ -321,6 +336,8 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "species_alternates": plan.get("species_alternates", []),
         # States a slot maps elsewhere although its species draws them.
         "state_geometry_notes": plan.get("state_geometry_notes", []),
+        # Dressing fields a slot asked for that its species cannot honour.
+        "dressing_fallbacks": plan.get("dressing_fallbacks", []),
         "n_fail": n_fail,
         "n_missing": n_missing,
     }
@@ -338,6 +355,11 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         print("[zoo] SPECIES ALTERNATE %s: asked '%s' at %s, built as '%s' -- %s"
               % (al.get("slot_id"), al.get("hint"), "x".join(str(v) for v in al.get("dims", [])),
                  al.get("built_as"), al.get("reason")))
+    for df in plan.get("dressing_fallbacks", []):
+        print("[zoo] DRESSING FALLBACK %s: asked %s of '%s', built without "
+              "form/stock/variant -- %s"
+              % (df.get("slot_id"), df.get("asked"), df.get("species"),
+                 df.get("reason")))
     for fb in plan.get("species_fallbacks", []):
         # Said out loud: a placement named for a thing and built as a box
         # is the defect roadmap 44 is about, and a silent one stays one.

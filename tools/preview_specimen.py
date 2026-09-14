@@ -51,6 +51,16 @@ centre-pivot, so it is lifted to stand on the ground plane before rendering.
 `--flank <m>` stands a plain grey wall of that width either side of it, so a
 wall-slot module is judged in a wall and not as a floating panel;
 `--target-z <m>` aims the camera at an absolute height.
+
+THE KIT PATH. `--species S --dims W D H [--style N]` builds the module a kit
+build would ship for a Deli Counter prop slot of those dims -- `kit.plan_kit`
+then `build.build_module`, the path `tools/coplanar_probe.py --species` takes
+-- instead of a prompt specimen, and stands it on the ground (a module is
+centre-pivot). `--stock`, `--variant` and `--form` set the slot's fields of
+the same names, so a desk with office stock renders as the file
+`prop_desk_<theme>_01_..._soffice_n2` that Deli Counter would instance.
+`--theme` is the kit theme on this path (default delco_1997). The first
+lines printed are where `zoo_keeper` was imported from and the stem built.
 """
 from __future__ import annotations
 
@@ -195,6 +205,8 @@ def main():
     # identical from the PNG.
     print(f"[preview] zoo_keeper {zoo_keeper.TOOL_VERSION} from "
           f"{os.path.dirname(os.path.abspath(zoo_keeper.__file__))}")
+    if dims is not None and _arg("--theme") is None:
+        theme = "delco_1997"
     if skins:
         from zoo_keeper.bpylayer import materials
         materials.set_skin_library(os.path.abspath(skins), theme)
@@ -204,11 +216,19 @@ def main():
         if not species:
             raise SystemExit("[preview] --dims needs --species")
         from zoo_keeper.core import kit
-        plan = kit.plan_kit({"building_id": "preview", "slots": [{
-            "slot_id": f"{species}_0", "role": "prop", "size_mod": "full",
-            "style": style, "species": species,
-            "fit": {"dims": dims, "pivot": "center"}}]},
-            theme=theme, style=style)
+        slot = {"slot_id": f"{species}_0", "role": "prop", "size_mod": "full",
+                "style": style, "species": species,
+                "fit": {"dims": dims, "pivot": "center"}}
+        # the slot's dressing fields (0.84.0), as Deli Counter names them
+        for field in ("stock", "variant", "form"):
+            if _arg("--" + field) is not None:
+                slot[field] = (int(_arg("--" + field)) if field == "variant"
+                               else _arg("--" + field))
+        plan = kit.plan_kit({"building_id": "preview", "slots": [slot]},
+                            theme=theme, style=style)
+        for line in (plan.get("species_fallbacks", [])
+                     + plan.get("dressing_fallbacks", [])):
+            print(f"[preview] FALLBACK {line}")
         res = build.build_module(plan["modules"][0], out, theme=theme,
                                  style=style, options={"save_blend": False})
         res["specimen_id"] = res["stem"]
@@ -219,6 +239,7 @@ def main():
                 o.location.z += dims[2] / 2.0
         _bpy.context.view_layer.update()
         print(f"[preview] dims={dims} style={style} -> module={res['stem']} "
+              f"tris={res['facts'].get('tris')} "
               f"status={res['report']['status'].upper()}")
     elif slot_path:
         import json
@@ -255,6 +276,7 @@ def main():
     import bpy
     import mathutils
     scene = bpy.context.scene
+    bpy.context.view_layer.update()
 
     from zoo_keeper.bpylayer.export import _COL_SUFFIXES
     if slot_path:

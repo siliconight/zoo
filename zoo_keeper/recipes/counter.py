@@ -3,11 +3,19 @@
 Solid body, proud countertop overhanging the customer side (-Y), recessed
 kick base, optional staff-side under-shelf. Origin at floor center. The
 generic sibling of the bank teller_line — same posture, no security barrier.
+
+STOCK (0.84.0). The ``stock`` param -- ``none`` by default, which builds
+exactly the counter this recipe always built -- sets `_surface_stock`
+clusters on each bay of the top, keeping REGISTER_CLEAR round every
+``ATT_register`` so a register placed there later has room.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..bpylayer import geometry, materials, prim_mesh
 from ._bays import bay_max_of, bays
+
+#: kept clear of stock round each register station, metres
+REGISTER_CLEAR = 0.22
 
 
 def _darker(c, f=0.6):
@@ -96,5 +104,15 @@ def build(plan, streams, collection):
         else:
             materials.assign([o], body)
 
-    return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": attachments}
+    regions = []
+    for bx, bw in runs:
+        x0 = max(bx - bw / 2, -top_w / 2)
+        x1 = min(bx + bw / 2, top_w / 2)
+        keep = tuple((ax, ay, REGISTER_CLEAR)
+                     for name, (ax, ay, _z) in attachments.items()
+                     if name.startswith("ATT_register") and x0 <= ax <= x1)
+        regions.append((x0, x1, -d / 2, d / 2, h, None, 0.6, keep))
+    stock = prim_mesh.build_stock(plan, streams, collection, regions,
+                                  _darker(plan["color"], 0.85))
+    return {"objects": objs + stock, "dressing_objects": stock,
+            "collision_boxes": cboxes, "attachments": attachments}

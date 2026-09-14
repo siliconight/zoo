@@ -45,7 +45,15 @@
    "default": 1
   },
   "bay_max": 2.2,
-  "row_max": 1.5
+  "row_max": 1.5,
+  "stock": [
+   "none",
+   "office",
+   "bar",
+   "kitchen",
+   "vault",
+   "storage"
+  ]
  },
  "materials": {
   "default": "laminate",
@@ -186,5 +194,6 @@
    }
   }
  },
- "notes": "Depth to 6.0 and height to 1.3 because the library asks for them: of 328 named prop slots in 130 built shells, 30 desk slots fell outside the old ranges -- 27 at 1.1 or 1.2 m tall (a reception desk, whose work surface is still 0.75 with a ledge over its back edge) and 10 at 6.0 m deep (a cubicle block, rows of desks back to back). `row_max` 1.5 divides the depth the way `bay_max` divides the width."
+ "notes": "Depth to 6.0 and height to 1.3 because the library asks for them: of 328 named prop slots in 130 built shells, 30 desk slots fell outside the old ranges -- 27 at 1.1 or 1.2 m tall (a reception desk, whose work surface is still 0.75 with a ledge over its back edge) and 10 at 6.0 m deep (a cubicle block, rows of desks back to back). `row_max` 1.5 divides the depth the way `bay_max` divides the width.",
+ "module_variants": 4
 }

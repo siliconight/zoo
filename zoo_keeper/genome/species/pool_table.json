@@ -1,0 +1,126 @@
+{
+  "species": "pool_table",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Interior species (Zoo 0.84.0). REFERENCE: a seven-foot coin-op bar table of the 1990s (Valley / Dynamo type): a heavy wood-grain cabinet on corner posts, rails with inlaid sights, black pocket castings at the corners and the middle of each long side, cushions with angled noses, bar-green / blue / burgundy cloth, a steel coin slide and a ball-return window on one end; a few balls where the game stopped and, on most seeds, a cue across the cloth. Geometry planned purely in core/pool_table_forms.py. BUILT (0.84.0): 1360 tris at 2.0 x 1.14 x 0.79, 1468 at 2.8 x 1.6 x 0.84 and 1.8 x 1.0 x 0.76 with a cue. Balls are 48 tris each (8 x 4 facets), sights 12. BUDGET 1600: one or two per bar, the hero of the room it is in."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.8,
+      "max": 2.8,
+      "default": 2.0
+    },
+    "depth": {
+      "min": 1.0,
+      "max": 1.6,
+      "default": 1.14
+    },
+    "height": {
+      "min": 0.74,
+      "max": 0.86,
+      "default": 0.79
+    }
+  },
+  "parts": [
+    "PoolTable_Casting",
+    "PoolTable_Rail",
+    "PoolTable_Bed",
+    "PoolTable_Cushion",
+    "PoolTable_Cabinet",
+    "PoolTable_Post",
+    "PoolTable_Ball",
+    "PoolTable_Cue"
+  ],
+  "params": {},
+  "module_variants": 4,
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood",
+      "laminate"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.2,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.32,
+        0.19,
+        0.1
+      ],
+      "wear": 0.4,
+      "bevel": 0.004,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "laminate",
+      "color": [
+        0.3,
+        0.18,
+        0.1
+      ],
+      "wear": 0.3,
+      "bevel": 0.004
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.15,
+      "bevel": 0.004,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.6,
+      "bevel": 0.004,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.35,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1600
+  },
+  "attachments": [
+    "ATT_surface_center"
+  ],
+  "collision": true,
+  "match_priority": 1,
+  "keywords": [
+    "pool table",
+    "pool_table",
+    "billiards",
+    "billiard table",
+    "snooker table",
+    "bar table pool"
+  ]
+}

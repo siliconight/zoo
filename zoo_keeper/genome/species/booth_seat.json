@@ -1,0 +1,144 @@
+{
+  "species": "booth_seat",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Interior species (Zoo 0.84.0). REFERENCE: a Delco bar or diner booth -- dark wood end panels, recessed kick, a vinyl seat on a fascia, a high back of channel-tufted cushions leaning back, a wood cap rail; single, or back to back on one spine when the slot is 1.05 m deep or more -- and a 1990s couch with turned feet, rolled arms, crowned seat and back cushions and a throw pillow. Burgundy, hunter green, teal and mauve are the art direction's accents (docs/DELCO_1997_ART_DIRECTION.md, point 5). Geometry planned purely in core/booth_forms.py. BUILT (0.84.0): booth 740 tris at 1.8 x 0.75 x 1.15, back-to-back 1428 at 2.4 x 1.4 x 1.2 and 2384 at 4.0 x 1.6 x 1.4 (the genome's largest: sixteen channels a side); sofa 650-764. BUDGET 2600: the longest back-to-back booth, measured; a diner row is three or four, a couch is a third of it."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.9,
+      "max": 4.0,
+      "default": 1.8
+    },
+    "depth": {
+      "min": 0.55,
+      "max": 1.6,
+      "default": 0.75
+    },
+    "height": {
+      "min": 0.7,
+      "max": 1.4,
+      "default": 1.15
+    }
+  },
+  "parts": [
+    "Booth_EndPanel",
+    "Booth_Seat",
+    "Booth_BackCushion",
+    "Booth_Cap",
+    "Sofa_Arm",
+    "Sofa_Seat",
+    "Sofa_BackCushion"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "booth",
+      "sofa"
+    ]
+  },
+  "module_variants": 4,
+  "materials": {
+    "default": "leather",
+    "options": [
+      "leather",
+      "canvas",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "leather",
+      "color": [
+        0.3,
+        0.05,
+        0.07
+      ],
+      "wear": 0.2,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "leather",
+      "color": [
+        0.26,
+        0.05,
+        0.07
+      ],
+      "wear": 0.4,
+      "bevel": 0.006,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "canvas",
+      "color": [
+        0.08,
+        0.26,
+        0.24
+      ],
+      "wear": 0.3,
+      "bevel": 0.006
+    },
+    "center_city": {
+      "material": "leather",
+      "color": [
+        0.3,
+        0.05,
+        0.07
+      ],
+      "wear": 0.15,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "leather",
+      "color": [
+        0.3,
+        0.05,
+        0.07
+      ],
+      "wear": 0.6,
+      "bevel": 0.006,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "leather",
+      "color": [
+        0.3,
+        0.05,
+        0.07
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.05
+    },
+    "diner": {
+      "material": "plastic",
+      "color": [
+        0.45,
+        0.06,
+        0.06
+      ],
+      "wear": 0.25,
+      "bevel": 0.006
+    }
+  },
+  "budgets": {
+    "tris_lod0": 2600
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 1,
+  "keywords": [
+    "booth seat",
+    "booth_seat",
+    "booth",
+    "banquette",
+    "diner booth",
+    "bar booth",
+    "sofa",
+    "couch",
+    "settee",
+    "loveseat"
+  ]
+}

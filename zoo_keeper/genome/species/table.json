@@ -37,7 +37,15 @@
       "max": 1,
       "default": 0
     },
-    "bay_max": 2.4
+    "bay_max": 2.4,
+    "stock": [
+      "none",
+      "office",
+      "bar",
+      "kitchen",
+      "vault",
+      "storage"
+    ]
   },
   "materials": {
     "default": "wood",
@@ -167,5 +175,6 @@
         ]
       }
     }
-  }
+  },
+  "module_variants": 4
 }

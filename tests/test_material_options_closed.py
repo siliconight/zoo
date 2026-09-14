@@ -33,7 +33,10 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "traffic_signal", "mailbox", "newspaper_box", "parking_meter",
            "payphone",
            # the forecourt clutter (roadmap 153): a bollard is painted steel
-           "bollard")
+           "bollard",
+           # a furnace cabinet and a water heater's jacket are enamelled
+           # sheet steel (0.84.0)
+           "furnace")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving", "vault_door",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign")

@@ -1,0 +1,129 @@
+{
+  "species": "furnace",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Interior species (Zoo 0.84.0), the basement and utility-room anchor. REFERENCE: a 1990s upflow gas furnace (almond sheet-metal cabinet, blower and louvred burner doors, galvanised supply plenum and trunk, inducer and 4-inch flue, black-iron gas line with drip leg and shut-off, return-air drop) and a 40-gallon gas water heater (faceted tank, domed top, burner cover and gas control valve, EnergyGuide sticker, relief valve and discharge pipe, copper lines, draft hood and flue). Both stand on a concrete pad that is the slot's footprint and run the flue to the slot's top, so the volume should be authored to the ceiling. Geometry planned purely in core/furnace_forms.py. BUILT (0.84.0): furnace 532 tris at 0.9 x 1.0 x 2.4 and 1.2 x 1.2 x 3.0; water heater 596 at 0.6 x 0.6 x 2.4 and 0.5 x 0.5 x 1.4. BUDGET 1200: one per basement or utility room, so twice the measured size leaves room for the return-air drop and a longer gas line without a second look."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.5,
+      "max": 1.4,
+      "default": 0.9
+    },
+    "depth": {
+      "min": 0.5,
+      "max": 1.4,
+      "default": 1.0
+    },
+    "height": {
+      "min": 1.4,
+      "max": 4.0,
+      "default": 2.4
+    }
+  },
+  "parts": [
+    "Furnace_Pad",
+    "Furnace_Cabinet",
+    "Furnace_Plenum",
+    "Furnace_Trunk",
+    "Furnace_Flue",
+    "Heater_Tank",
+    "Heater_Flue"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "furnace",
+      "water_heater"
+    ]
+  },
+  "module_variants": 1,
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.55,
+        0.42
+      ],
+      "wear": 0.2,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.58,
+        0.5,
+        0.38
+      ],
+      "wear": 0.4,
+      "bevel": 0.004,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "metal_painted",
+      "color": [
+        0.58,
+        0.5,
+        0.38
+      ],
+      "wear": 0.3,
+      "bevel": 0.004
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.55,
+        0.42
+      ],
+      "wear": 0.15,
+      "bevel": 0.004,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.55,
+        0.42
+      ],
+      "wear": 0.6,
+      "bevel": 0.004,
+      "ambient": 0.4
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.55,
+        0.42
+      ],
+      "wear": 0.35,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 1200
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "furnace",
+    "water heater",
+    "water_heater",
+    "hot water heater",
+    "boiler",
+    "hvac furnace",
+    "heater"
+  ]
+}

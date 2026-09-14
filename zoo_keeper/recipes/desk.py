@@ -27,10 +27,16 @@ a raised ledge stands over its back edge for the person on the other side.
 So the work surface stops at `DESK_WORK_H` whatever the slot asks for, and
 everything above it becomes the ledge -- raising the top slab instead would
 build a desk nobody can sit at.
+
+STOCK (0.84.0). The ``stock`` param -- ``none`` by default, which builds
+exactly the desk this recipe always built -- sets clusters of
+`_surface_stock` items on every bay of every row's work surface, facing
+that row's sitter (a monitor's screen toward them, its keyboard in front of
+it), clear of the transaction ledge.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..bpylayer import geometry, materials, prim_mesh
 from ._bays import bay_max_of, bays
 
 TOP_T = 0.03        # top slab thickness
@@ -189,8 +195,27 @@ def build(plan, streams, collection):
     materials.assign(tops, surface)
     materials.assign(rest, frame)
 
+    # stock on each row's work surface, bay by bay, facing that row's sitter
+    # and stopping short of the ledge and the fascia under its back edge
+    regions = []
+    ledge_y = d / 2 - LEDGE_D - 0.03 if h - top_h > LEDGE_MIN else None
+    for ri, (ry, rd) in enumerate(rows):
+        ya, yb = ry - rd / 2, ry + rd / 2
+        if ledge_y is not None:
+            yb = min(yb, ledge_y)
+        if yb - ya < 0.2:
+            continue
+        facing = 0.0 if ri % 2 == 0 else 3.141592653589793
+        for bx, bw in runs:
+            regions.append((bx - bw / 2, bx + bw / 2, ya, yb, top_h, facing,
+                            0.6, ()))
+    stock = prim_mesh.build_stock(plan, streams, collection, regions,
+                                  plan["color"])
+    objs += stock
+
     return {
         "objects": objs,
+        "dressing_objects": stock,
         "collision_boxes": cboxes,
         # the work surface, not the ledge: something set down on a desk
         # sits where a person can reach it.

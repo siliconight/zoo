@@ -98,17 +98,18 @@ _NO_DELCO_1997: set[str] = set()
 
 
 def test_delco_1997_reaches_every_species():
-    """0 of 56 before the resolver, 53 after it, 56 after the three styles."""
+    """0 of 56 before the resolver, 53 after it, 56 after the three styles;
+    61 with the interior species of 0.84.0, each authored with `delco`."""
     missing = {n for n, g in _genomes().items() if theme_style(g, "delco_1997") is None}
     assert missing == _NO_DELCO_1997, sorted(missing ^ _NO_DELCO_1997)
-    # 56 hand-authored species, plus whatever tools/new_species.py has
+    # 61 hand-authored species, plus whatever tools/new_species.py has
     # minted (genome/minted.json, roadmap 150) -- a minted species copies
     # its template's styles, so it resolves the theme the template does.
     import json as _json
     import os as _os
     _minted_path = _os.path.join(_os.path.dirname(genome.genome_dir()), "minted.json")
     _minted = _json.load(open(_minted_path, encoding="utf-8")) if _os.path.exists(_minted_path) else []
-    assert len(_genomes()) == 56 + len(_minted), len(_genomes())
+    assert len(_genomes()) == 61 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

@@ -9,10 +9,15 @@ BAYS (roadmap 44). Deli Counter's `cabinet_*` and `*_LOCKER` volumes are
 divides the width into units of at most `bay_max` (genome params); the base
 and the body run the full width, each bay carries its own stack of drawer
 fronts and handles. One bay is the cabinet this recipe always built.
+
+STOCK (0.84.0). The ``stock`` param -- ``none`` by default, which builds
+exactly the cabinet this recipe always built -- sets `_surface_stock`
+clusters on the top (a carton and a clipboard on a file cabinet is a back
+office), facing the drawers' side.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..bpylayer import geometry, materials, prim_mesh
 from ._bays import bay_max_of, bays
 
 
@@ -86,7 +91,13 @@ def build(plan, streams, collection):
     frame_objs = [o for o in objs if "Base" in o.name or "Handle" in o.name]
     materials.assign([o for o in objs if o not in frame_objs], surface)
     materials.assign(frame_objs, frame)
+    stock = prim_mesh.build_stock(
+        plan, streams, collection,
+        [(-w / 2, w / 2, body_y - body_d / 2, body_y + body_d / 2, h, 0.0,
+          0.6, ())], plan["color"])
+    objs += stock
     return {
+        "dressing_objects": stock,
         "objects": objs,
         "collision_boxes": cboxes,
         "attachments": {"ATT_top_center": (0, 0, h)},

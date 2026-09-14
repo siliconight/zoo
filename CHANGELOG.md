@@ -1,3 +1,253 @@
+## [0.84.0] - the rooms get what was missing: five interior species, and stock on the tops
+
+The walker, in the `wine_cellar` basement of `country_club_a01` (walk copy of
+cold run 9052): "need a lot more species for this room, its just a bunch of
+chairs and tables with nothing on it, boring". What was there, read off that
+walk copy: `lot/country_club_a01/art/zoo` holds its chairs and tables as five
+modules at five sizes, and one chair module is referenced 57 times across the
+walk copy's scenes. The room (`objective_room` `wine_cellar`) matches none of
+Deli Counter's furniture keywords, so it got
+`level_design._FURNITURE_DEFAULT`, a low table and a chair. Zoo's side of that
+is two gaps: the species a basement, a bar or a stockroom is made of did not
+exist, and nothing ever set anything on a top -- `table.py`'s
+`ATT_surface_center` and the desk, counter and filing cabinet sockets were
+read by nobody.
+
+This release is the Zoo half. It does not reduce interventions-per-level by
+itself: until Deli Counter writes the names and fields below, no generated
+room gets any of it. That DC change is described at the end and not made
+here (Deli Counter is mid-release).
+
+### Five species, planned as the geometry that ships
+
+Every one is planned in pure Python -- `core/carton_forms.py`,
+`furnace_forms.py`, `drape_forms.py`, `pool_table_forms.py`, `booth_forms.py`
+-- as vertex and face lists (`core/prims.py`) that `bpylayer/prim_mesh.py`
+turns into bmesh faces vertex for vertex, so the unit tests measure what is
+exported (before bevel, which only cuts corners inward). `prims.coincident_pairs`
+is a pure port of `tools/coplanar_probe.py` at its defaults.
+
+| species | what it is | built tris (kit path, delco_1997) | budget |
+| --- | --- | --- | --- |
+| `carton_stack` | kraft cartons (tape, labels) and banker's boxes (lids, hand holes) in seeded columns, upper boxes set in and turned 1-3 degrees | 36 at 0.4x0.3x0.3, 132 at 0.9x0.6x1.0, 1104 at 1.2x0.8x1.4, 1824 at 1.6x1.2x1.8 | 2400 |
+| `furnace` `form` furnace | almond cabinet, blower and louvred burner doors, galvanised plenum and trunk stub, inducer and flue to the slot's top, black-iron gas line with drip leg and shut-off, return drop when wide | 532 at 0.9x1.0x2.4 and 1.2x1.2x3.0 | 1200 |
+| `furnace` `form` water_heater | faceted tank, dome, burner cover, gas valve and knob, EnergyGuide sticker, relief valve and discharge pipe, copper lines with unions, draft hood and flue | 596 at 0.6x0.6x2.4 and 0.5x0.5x1.4 | 1200 |
+| `dust_sheet` | a cloth over a hidden profile drawn from the seed -- chest, armchair, sofa, stack, table (legs showing), lump -- folded skirt, pooled corners, turned hem | 352-360 at chair/chest sizes, 540 at 2.0x0.9x0.85, 678 at 3.2x1.6x2.2 | 1000 |
+| `pool_table` | 1990s coin-op bar table: castings, rails with sights, angled cushions, cloth in one of three bar colours, cabinet on corner posts, coin slide, ball return, balls and (65 % of seeds) a cue | 1360 at 2.0x1.14x0.79, 1468 at 2.8x1.6x0.84 | 1600 |
+| `booth_seat` `form` booth | wood end panels, recessed kick, vinyl seat, channel-tufted back leaning 5-9 degrees, cap rail; back to back on one spine at 1.05 m deep or more | 740 at 1.8x0.75x1.15, 1428 at 2.4x1.4x1.2, 2384 at 4.0x1.6x1.4 | 2600 |
+| `booth_seat` `form` sofa | turned feet, skirted base, rolled arms, crowned seat and back cushions, throw pillow on 70 % of seeds | 650-764 | 2600 |
+
+Budgets are the largest genome size measured, not a guess: rooms carry many of
+these. `furnace` form `auto` is the water heater for a squarish footprint no
+more than 0.8 m on its long side; `booth_seat` `auto` is the booth at 1.0 m
+tall or more. Furnace and water heater stand on a concrete pad that is the
+slot's footprint and run the flue to the slot's top, so the volume should be
+authored to the ceiling. Every genome carries `delco`, `1990s`, the three
+theme styles and keywords (`intent.parse("water heater")` is `furnace`,
+`"couch"` is `booth_seat`, `"phone booth"` is still `payphone`).
+
+### Surface stock: `recipes/_surface_stock.py`
+
+`_shelf_stock.py`'s twin for a top. `desk`, `table`, `counter` and
+`filing_cabinet` gain a `stock` param -- `none` (the default), `office`,
+`bar`, `kitchen`, `vault`, `storage` -- and `module_variants: 4`. The host
+calls `prim_mesh.build_stock` once per bay of its top (a desk per row and bay,
+facing that row's sitter and stopping short of the transaction ledge; a
+counter keeping 0.22 m round every `ATT_register`), from its own "stock"
+stream.
+
+  * **office**: CRT with its keyboard in front, folders with forms, desk
+    phone, mug, pencil cup. **bar**: bottles in a knot, pints on coasters, an
+    ashtray with butts, napkin holder. **kitchen**: ketchup, mustard, salt and
+    pepper, a tray with soda cups, cups, napkins. **vault**: strapped cash in
+    columns, deposit bags, ledgers. **storage**: a carton or banker's box
+    (`carton_forms`' own), a clipboard, forms.
+  * Clusters: about one per 0.22-0.45 m^2 of top, each a group about one
+    anchor. Off kilter by rule: an item turns off its cluster's line by up to
+    `min(15, 2.0 / size_m)` degrees; stacked items turn at least 1 degree
+    from the one below so no two sides are parallel.
+  * No overhang (every vertex inside the top less 2 cm); footprints keep 12 mm
+    apart; lowest faces sink 3 mm into the top and no part has a face between
+    the top and 4 mm above it. A body finish takes whichever of its candidate
+    colours contrasts most with the host top, and holds a luminance ratio of
+    1.4 against every style of all four hosts.
+  * Built tris with stock (kit path): desk 504-1236 at 1.6x0.8x0.75 (bare
+    396), table 292-716 at 1.2x0.8x0.74, counter 272-780 at 2.2x0.8x1.05 and
+    508-1364 at 8.0x0.9x1.05, filing cabinet 828-1100 at 0.9x0.5x1.4.
+    `counter`'s budget goes 500 -> 1600 for that; the others had room.
+
+**A host with `stock` none is byte-identical to 0.80.0.** Measured, not
+argued: seven host modules (desk x2, table x2, counter, filing cabinet x2)
+built through the kit path from a `git archive` of main and from this branch
+give the same sha1 over object names, vertices to 0.1 mm and Wear colours;
+`tests/test_interior_bpy.py` pins those digests. The mechanism is that
+`build_stock` returns before touching `streams` when the flavour is `none`.
+
+### The contract: `kit.DRESSING_FIELDS` -- `form`, `stock`, `variant`
+
+A prop slot may carry `stock` (a flavour), `variant` (0 to the species'
+`module_variants` less one) and `form`. `kit.honour_dressing` keeps them only
+when the species the slot is BUILT as honours all of them, and drops all three
+otherwise, reported in the plan's and the kit index's `dressing_fallbacks` and
+printed as `[zoo] DRESSING FALLBACK`. All or nothing is the contract: Deli
+Counter cannot read a genome, so its resolver can try only the name with every
+field it wrote and the name with none. `variant` on a host without `stock` is
+dropped (it would change nothing but wear noise).
+
+`kit.module_stem` gains `form=`, `stock=`, `variant=`:
+`<type>[_<species>]_<theme>_<style>[_w][_d][_h][_f<form>][_s<stock>][_n<variant>][_v][_o][_<state>]`.
+Absent, `stock` "none", `form` "auto" and `variant` 0 add nothing, so every
+existing name is unchanged (`test_a_slot_without_the_fields_plans_what_it_always_did`).
+The fields are in the bucket key, `dna.resolve_module_plan` puts the honoured
+ones into `params` and `module`, and a module's streams are seeded by its stem
+-- so the variant index is the seed.
+
+### Stock is measured apart from the slot
+
+REFUTED FIRST: stock built into `objects` like any part. All 15 of the first
+stocked host renders built with status FAIL (`fit_height`, `fit_pivot`):
+`build._recentre` centred the host on host-plus-stock, which for a 0.75 m desk
+under a 0.37 m monitor is, by arithmetic, 18.5 cm into the floor where Deli
+Counter places it. Recipes now also return the stock as `dressing_objects`;
+`_recentre` and `export.gather_facts(..., dressing=)` leave those out of the
+bounds and centre (they still count toward tris and parts). An empty
+`dressing` measures as before.
+
+### Refutations kept
+
+  * `prim_mesh` first built nothing beveled: `bmesh.faces.new` leaves face
+    normals zero until `normal_update`, and `bevel_edges` selects by the angle
+    between normals -- the first furnace built at exactly its pre-bevel 372
+    tris.
+  * carton_stack: GAP 6 mm put two tapes back to back at 0.0 mm (30 of 240
+    seeded stacks); banker's lids turned a degree swung 5 mm into the
+    neighbour's gap (0.6 mm pair); a label flush with a carton's side lay
+    1.9 mm from it; a lid rising 4 mm left the box above 1 mm from the body
+    below. All in `carton_forms.py` above what replaced them.
+  * water heater centred on its pad: the gas valve knob stood 3 cm past a
+    0.6 m pad and `fit_exact` squeezed the heater 10 % (`overshoot_m` 0.0315).
+  * dust_sheet: 8 cm skirt room rendered a 2 m sheet as a box in a
+    tablecloth; a lump peaked between grid points up to 23 cm under h; a lump
+    at 1.8 m rendered as a spike. pool_table: a 4.5 cm cloth drop left balls
+    8 mm over the castings; butt and shaft of the cue overlapping at the
+    joint lay on one cone. booth_seat: channels leaning about their foot
+    went through a back-to-back spine; parts buried to one depth in the end
+    panels shared end planes; seat and channel end planes coincided where
+    both runs split at x = 0. Each kept at its fix.
+  * surface stock: a workstation's anchor drawn over the whole top so rarely
+    fit a 0.8 m desk that the first renders had monitors with no keyboard;
+    a small cabinet top that drew the workstation stayed bare. Anchors are
+    drawn where the group fits, a failed group gives way to another, and a
+    group sheds its last member every 12 tries.
+
+### Verification
+
+  * `tests/test_interior_species.py` (149): dims contract, overshoot <= 12 mm
+    before `fit_exact`, colliders inside bounds, zero coincident pairs, budget
+    before bevel, determinism, seeds differ, every profile drawn, keyword
+    routing, forms through the kit -- over each genome's min/default/max
+    corners, render sizes and both forms.
+  * `tests/test_surface_stock.py` (80): no overhang, no shared plane with
+    another item or the host top (5 flavours x 6 tops x 10 seeds), gaps,
+    determinism, off-kilter, keep-out, contrast against every host style,
+    and the slot-field contract.
+  * `tests/test_interior_bpy.py` (37, skipped without Blender; run inside
+    Blender 5.1: 37 passed): main's host digests, 20 stocked hosts keep status
+    and pivot with no SAME-facing stock pair, 10 species builds pass within
+    budget with zero coincident pairs by `coplanar_probe.probe`, rebuilt
+    identically.
+  * A 60-module Blender sweep (species at 20 sizes/forms/variants, 4 hosts x
+    5 flavours x 2 sizes): 0 SAME-facing coincident pairs, all deterministic,
+    no fallbacks, every stocked host carries stock. The new species also
+    have 0 OPP pairs; the hosts' OPP rows are their own existing contacts
+    (legs under tops, drawer fronts on pedestals), not stock.
+  * `tools/preview_specimen.py --species S --dims W D H [--stock --variant
+    --form]` renders the module the kit would ship, standing on the ground,
+    and prints where `zoo_keeper` was imported from. Renders of every
+    species and of desk, table and counter with each flavour were looked at.
+  * Suite: 1146 passed, 61 skipped (plain Python); 1188 passed, 19 skipped
+    inside Blender 5.1.
+
+### What Deli Counter must add (not done here)
+
+  1. **Slot fields** on every prop slot `deli_counter.py` emits: `stock`,
+     `variant`, `form` (None, 0, None when unset) from new `Volume` fields.
+  2. **`themed_tscn.module_stem`** mirrors `kit.module_stem` exactly: the
+     three keywords, suffixes `_f<form>`, `_s<stock>`, `_n<variant>` after
+     `_h`, "none"/"auto"/0 adding nothing. `resolve_themed_stem` passes the
+     slot's fields for volume roles; `resolve_slot_ref` tries the slot, then
+     the slot with the three fields cleared, then the box.
+  3. **`prop_species.PROP_SPECIES`** rows, ahead of the rows that would claim
+     the names first: `("carton", "banker", "file_box", "box_stack")` ->
+     `carton_stack` before the `None` row (whose `stack` would take
+     `box_stack`); `("dust_sheet", "sheeted", "draped", "covered_")` ->
+     `dust_sheet` before chair and table; `("pool", "billiard")` ->
+     `pool_table` before `table`; `("booth", "banquette", "sofa", "couch",
+     "settee", "loveseat")` -> `booth_seat` before the chair row (whose
+     `seat` would take `booth_seat`); `("furnace", "boiler", "water_heater",
+     "heater")` -> `furnace` before `tank`.
+  4. **Names and fields to write** (`level_design._FURNITURE`): utility and
+     basement rooms `furnace` 0.9x1.0x storey and `water_heater` 0.6x0.6x
+     storey against a wall (form `water_heater`); storage, stock and cellar
+     rooms `carton_stack` 0.5-1.6 x 0.3-1.2 x 0.3-1.8 and `dust_sheet` over a
+     table-sized floor volume; bar, lounge, tavern and game rooms
+     `pool_table` 2.0x1.14x0.79 on the floor, `booth` 1.8x0.75x1.15 on a wall,
+     `counter_bar` with stock `bar`; lobby and waiting `sofa` 2.0x0.9x0.85;
+     every desk `stock` office, `table_work` in a vault or count room `stock`
+     vault, kitchen and deli counters `stock` kitchen, supply cabinets
+     `stock` storage; and a cellar or a room matching no row gets cartons and
+     a dust sheet rather than the table-and-chair default. `variant` =
+     crc32(slot_id) % 4. `_prop_material`: `furnace`, `heater` -> metal.
+  5. **Height advisory**: `portable_building.verify_placement` compares the
+     module's visual height with the slot's; a stocked host measures up to
+     about 0.4 m over (a monitor), past its 0.25 m tolerance. Advisory only,
+     but it will warn unless `Stock_` nodes are left out of that height.
+
+Rebased onto 0.83.0 (the entry was written against 0.80.0). Four files
+conflicted because 0.81.0 and 0.83.0 had grown the same seams, and both
+features are kept whole:
+
+  * `core/kit.py` `plan_kit`: 0.83.0's `state_art` cache and
+    `state_geometry_notes` sit beside this entry's `dressing_fallbacks`; the
+    dressing fields are honoured before `slot_variants(..., state_art=_art)`
+    runs, so a module stem carries `_f/_s/_n` before `_v/_o` and the state
+    suffix last. Both lists are returned.
+  * `bpylayer/export.py` `gather_facts(collection, root_name, fit_names=None,
+    dressing=())`: dressing is set aside first, the envelope is the named fit
+    objects among what remains, and `overhang` stays the bounds of every
+    visual mesh. `bpylayer/build.py` `_recentre` measures `fit_objects` (or
+    all objects) less `dressing_objects`, `build_module` passes both, and the
+    kit index carries `state_geometry_notes` and `dressing_fallbacks`.
+  * `tools/preview_specimen.py`: 0.81.0 already parsed `--dims` (after `--`)
+    and `--style`; the branch's second `--dims` parse is dropped, and its
+    `--stock/--variant/--form`, fallback lines and delco_1997 default theme on
+    the kit path join 0.81.0's `--style` and 0.83.0's `--slot/--state/--flank/
+    --target-z`. The import line is 0.83.0's (version and folder).
+  * Not a textual conflict: `tests/test_interior_bpy.py` loaded
+    `coplanar_probe.py` by cutting the source at its last `main()`, which
+    0.83.0 put under `if __name__ == "__main__":` -- all 30 of its build tests
+    failed with an IndentationError inside Blender until the whole file was
+    loaded as a library instead.
+
+After the rebase: 1277 passed, 74 skipped in plain Python (0.83.0 1031/32,
+this branch 1146/61, 0.80.0 900/19: exactly the union); 1332 passed, 19
+skipped inside Blender 5.1.1 (0.83.0 1049/14, this branch 1188/19, 0.80.0
+905/14). The seven stock-less host digests still match, so a host without
+stock is unchanged by 0.81.0-0.83.0 as well. A kit build of the four vault
+states, a desk with office stock variant 2, a water heater, a cargo container
+and a waiting-chair row validates PASS with 0 SAME-facing coincident pairs on
+every GLB by `coplanar_probe.probe`, and each module's geometry digest equals
+the one its own side builds alone -- except `_breached`, whose
+`VaultDoor_Shards` comes back in a different vertex order from run to run on
+0.83.0 by itself (three runs, three digests, one sorted vertex set); its
+sorted vertex set matches, and every other part matches in order and wear.
+
+Unverified: the survey's "272 of 691 library rooms hit the default" was not
+re-derived here. Textured (Pixelcoat) looks were not rendered -- every render
+is the flat path, and the contrast rule is against genome colours, not
+against a non-tintable pack. The DC side above is untested because it is not
+written.
+
 ## [0.83.0] - the bank vault is a round door, in every state the machine names
 
 The walker, on walk 9052 (bank_branch_a02 basement): "the bank vault should

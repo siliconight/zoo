@@ -273,7 +273,9 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     stem = module.get("stem") or kit.module_stem(
         module["type"], theme, int(module.get("style") or style),
         module.get("width_cm"), None, module.get("depth_cm"),
-        module.get("voids_tag"), module.get("openings_tag"))
+        module.get("voids_tag"), module.get("openings_tag"),
+        form=module.get("form"), stock=module.get("stock"),
+        variant=module.get("variant"))
 
     plan = {
         "species": genome["species"],
@@ -310,6 +312,17 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
             "stem": stem,
         },
     }
+    # A VOLUME'S DRESSING FIELDS (0.84.0) ride the same road: `kit.plan_kit`
+    # keeps only what the built species honours, and a module without them
+    # gets exactly the params it always had -- the genome defaults, `stock`
+    # "none" and `form` "auto" among them.
+    for field in ("form", "stock"):
+        if module.get(field):
+            plan["params"][field] = str(module[field])
+            plan["module"][field] = str(module[field])
+    if module.get("variant"):
+        plan["params"]["variant"] = int(module["variant"])
+        plan["module"]["variant"] = int(module["variant"])
     # A plate's holes ride from the slot, through plan_kit, onto the recipe.
     # Without them a floor or ceiling skin is a plain rectangle and caps every
     # stairwell, ramp and hatch Deli Counter cut in the slab beneath it.

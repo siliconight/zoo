@@ -6,10 +6,16 @@ BAYS (roadmap 44). A Deli Counter `count_table` is 4 x 2 m and a
 divides the width into units of at most `bay_max` (genome params); the top
 runs the full width as one surface and each bay stands on its own legs and
 carries its own lower shelf. One bay is the table this recipe always built.
+
+STOCK (0.84.0). "Just a bunch of chairs and tables with nothing on it"
+(the walker, cold run 9052). The ``stock`` param -- ``none`` by default,
+which builds exactly the table this recipe always built -- sets clusters of
+`_surface_stock` items on each bay of the top, facing any way (a table has
+no front), from the recipe's own "stock" stream.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..bpylayer import geometry, materials, prim_mesh
 from ._bays import bay_max_of, bays
 
 TOP_T = 0.04
@@ -76,5 +82,10 @@ def build(plan, streams, collection):
     tops = [o for o in objs if "Top" in o.name or "Shelf" in o.name]
     materials.assign(tops, top_mat)
     materials.assign([o for o in objs if o not in tops], frame)
-    return {"objects": objs, "collision_boxes": cboxes,
+    stock = prim_mesh.build_stock(
+        plan, streams, collection,
+        [(bx - bw / 2, bx + bw / 2, -d / 2, d / 2, h, None, 0.6, ())
+         for bx, bw in runs], plan["color"])
+    return {"objects": objs + stock, "dressing_objects": stock,
+            "collision_boxes": cboxes,
             "attachments": {"ATT_surface_center": (0, 0, h)}}

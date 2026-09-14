@@ -181,9 +181,17 @@ def module_stem(typ: str, theme: str, style: int,
                 width_cm: int = None, state: str = None,
                 depth_cm: int = None, voids_tag: str = None,
                 openings_tag: str = None, height_cm: int = None,
-                species: str = None) -> str:
+                species: str = None, form: str = None, stock: str = None,
+                variant: int = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_v<hash>][_o<hash>][_<state>]``.
+    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_v<hash>][_o<hash>][_<state>]``.
+
+    ``form``, ``stock`` and ``variant`` (0.84.0) are a VOLUME's dressing
+    fields -- see :data:`DRESSING_FIELDS` -- and add nothing when absent,
+    ``stock`` "none" or ``variant`` 0, so every name built before them is
+    unchanged. `plan_kit` passes them only when the built species honours
+    them; Deli Counter's mirror constructs them from the slot and falls
+    back to the name without them.
 
     ``species`` (roadmap 44) is a VOLUME's hinted species when it is built as
     that species rather than as the ``prop`` box -- ``prop_desk_delco_01_...``
@@ -220,6 +228,12 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_d{int(round(depth_cm))}"
     if height_cm is not None:
         base += f"_h{int(round(height_cm))}"
+    if form:
+        base += f"_f{form}"
+    if stock and stock != "none":
+        base += f"_s{stock}"
+    if variant:
+        base += f"_n{int(variant)}"
     if voids_tag:
         base += f"_v{voids_tag}"
     if openings_tag:
@@ -347,6 +361,78 @@ def slot_variants(slot: dict, typ: str, global_state: str = None,
         yield (sp, st, st, same)
 
 
+#: A VOLUME'S DRESSING FIELDS (0.84.0), read off a Deli Counter prop slot.
+#:
+#:   * ``stock`` -- what is set out on the piece's top: ``office``, ``bar``,
+#:     ``kitchen``, ``vault`` or ``storage`` (`recipes/_surface_stock.py`).
+#:     Absent or "none" is the bare piece, byte for byte what it was.
+#:   * ``variant`` -- a small index, 0 to the species' ``module_variants``
+#:     less one, so a room of six desks is not one desk six times. A module
+#:     is seeded by its stem, so the index in the stem IS the seed.
+#:   * ``form`` -- which of a species' forms (``furnace`` or
+#:     ``water_heater``; ``booth`` or ``sofa``). Absent or "auto" lets the
+#:     recipe read the form off the slot's dims.
+#:
+#: WHY THEY ARE IN THE NAME. The walker, in a country_club_a01 basement on
+#: cold run 9052: "its just a bunch of chairs and tables with nothing on
+#: it". A species built at one size is one GLB, repeated; stock on it
+#: without a name of its own would be the same mug on every desk in the
+#: building. Each field that changes geometry is in the stem, and none of
+#: them is when it does not.
+DRESSING_FIELDS = ("form", "stock", "variant")
+
+
+def honour_dressing(slot: dict, species: str, genome_dir: str = None):
+    """``({form, stock, variant}, dropped)`` for a volume slot built as
+    ``species``.
+
+    ALL OR NOTHING, and that is the contract rather than a shortcut. Deli
+    Counter's resolver constructs the stem from the slot and cannot read a
+    genome, so it can try only two names: the one with every field it
+    wrote, and the one with none. A field this species cannot honour --
+    stock on a chair, a variant past ``module_variants``, a form the genome
+    does not list, a flavour nobody has written -- drops all three, and
+    ``dropped`` says which one did.
+    """
+    none = {"form": None, "stock": None, "variant": None}
+    asked_form = slot.get("form")
+    asked_form = None if asked_form in (None, "", "auto") else str(asked_form)
+    asked_stock = slot.get("stock")
+    asked_stock = None if asked_stock in (None, "", "none") else str(asked_stock)
+    try:
+        asked_variant = int(slot.get("variant") or 0)
+    except (TypeError, ValueError):
+        asked_variant = -1
+    if not (asked_form or asked_stock or asked_variant):
+        return none, []
+    from zoo_keeper.core import genome as genome_mod
+    try:
+        g = genome_mod.load_species(species, genome_dir)
+    except (FileNotFoundError, ValueError):
+        g = {"params": {}}
+    params = g.get("params") or {}
+    why = []
+    forms = params.get("form") if isinstance(params.get("form"), list) else []
+    if asked_form and asked_form not in forms:
+        why.append("form '%s' is not one of %s's forms %s"
+                   % (asked_form, species, forms))
+    stocks = params.get("stock") if isinstance(params.get("stock"), list) else []
+    if asked_stock and asked_stock not in stocks:
+        why.append("stock '%s' is not one of %s's flavours %s"
+                   % (asked_stock, species, stocks))
+    nvar = max(1, int(g.get("module_variants") or 1))
+    if asked_variant < 0 or asked_variant >= nvar:
+        why.append("variant %r is outside 0..%d for %s"
+                   % (slot.get("variant"), nvar - 1, species))
+    elif asked_variant and stocks and not asked_stock:
+        why.append("variant %d on %s without stock would change nothing "
+                   "but wear noise" % (asked_variant, species))
+    if why:
+        return none, why
+    return {"form": asked_form, "stock": asked_stock,
+            "variant": asked_variant or None}, []
+
+
 def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
              roles=None, state: str = None, known_species=None) -> dict:
     """From a Deli Counter slots.json manifest, return the distinct Zoo modules
@@ -376,6 +462,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     alternates = []
     art_cache = {}
     state_notes = []
+    dressing_fallbacks = []
 
     def _art(sp):
         if sp not in art_cache:
@@ -461,13 +548,32 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                                         "state": st_, "mapped_to": mapped,
                                         "species_draws_it": dsp})
 
+        # A VOLUME'S DRESSING FIELDS (0.84.0): honoured by the species it is
+        # BUILT as, all or none, and said when dropped. They are orthogonal
+        # to the state: `module_stem` places `_f/_s/_n` before `_v/_o` and
+        # the state suffix last, so a dressed interactive slot's states each
+        # carry the same dressing.
+        dress = {"form": None, "stock": None, "variant": None}
+        if typ in VOLUME_ROLES and exact and any(
+                s.get(f) not in (None, "", "none", "auto", 0)
+                for f in DRESSING_FIELDS):
+            built = hint or typ
+            dress, dropped = honour_dressing(s, built)
+            if dropped:
+                dressing_fallbacks.append({
+                    "slot_id": s.get("slot_id"), "species": built,
+                    "asked": {f: s.get(f) for f in DRESSING_FIELDS
+                              if s.get(f) not in (None, "")},
+                    "reason": "; ".join(dropped)})
+
         for species, st, stem_state, is_deferred in slot_variants(
                 s, typ, state, state_art=_art):
             if hint and species == typ:
                 species = hint
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
                                depth_cm, vtag, otag, height_cm,
-                               species=hint if species == hint else None)
+                               species=hint if species == hint else None,
+                               **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -501,6 +607,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             dims_key = (tuple(round(float(v), 4) for v in dims[:3])
                         if exact else None)
             key = (typ, width_cm, st, species, glaze, slot_style,
+                   dress["form"], dress["stock"], dress["variant"],
                    slot_material, dims_key, _void_key(fit.get("voids")),
                    _opening_key(fit.get("openings")))
             b = buckets.get(key)
@@ -525,6 +632,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "glazing": glaze,
                     "count": 0,
                 }
+                b.update(dress)
                 buckets[key] = b
             b["count"] += 1
 
@@ -603,4 +711,6 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         # States a slot maps to another species although its own species
         # builds art for them (see `state_art_for`).
         "state_geometry_notes": state_notes,
+        # Dressing fields a slot asked for that its species cannot honour.
+        "dressing_fallbacks": dressing_fallbacks,
     }
