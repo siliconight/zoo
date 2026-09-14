@@ -1,5 +1,83 @@
 # Changelog
 
+## [0.81.0] - a waiting chair's back is not the wall's face, and a row is four chairs
+
+Walk 9052, `bank_branch_a02` lobby: "z fighting on the [chairs] on the steel"
+(the walker), a 2.4 m row of four wooden waiting chairs against the bronze
+ribbed `glass_facade` wall. The walk's GLB is the 9052 `zoo_kit_build` output
+byte for byte (md5 db0a20e0...), built by Zoo 0.79.0 from a recipe unchanged
+since 0.72.0.
+
+**Which of four it was, measured.**
+
+1. *Coincident faces inside the module:* tools/coplanar_probe.py on the
+   shipped GLB -- 26 pairs, every one OPP at 0.00 mm (seat end against the
+   neighbouring seat, back on seat, leg under seat). Interior contacts; none
+   can be seen. Not the report.
+2. *Neighbouring placed pieces overlapping:* the four chairs are ONE module
+   (`chair_waiting_rcce455f7_{1,4,7}`, one node each), and no other prop's box
+   comes within 5 cm of any of the three rows. Refuted.
+3. *The back on the wall plane:* the walk copy's `site.tscn` reassembled in
+   Blender (chair nodes plus the wall modules behind them) and probed across
+   nodes -- each row's four back panels lie SAME-facing, gap 0.00 mm, on the
+   wall's inner face: 1.04 m2 for `chair_waiting_rcce455f7_4`, 3.09 m2 over
+   the three rows. An EEVEE frame of the placement shows the backs torn into
+   patches of wall. THIS WAS IT.
+4. *Texture moire:* the wood and wall samplers do export NEAREST /
+   NEAREST_MIPMAP_NEAREST at 256 px, and Level Factory's import fix is its own;
+   but the pattern the walker saw sits on the one face that is coplanar with
+   the wall, not on the seats. Not only that.
+
+**Why the back sat on the wall.** Deli Counter 0.127.0's
+`level_design._wall_slots` stands a piece's back plane 0.12 m from the wall
+centreline (lines 847 and 864); the wall is `wall_thick` 0.30, so its inner
+face is at 0.15 and every wall-slotted prop is buried 0.03 m. The chair's back
+panel was 0.03 m thick and flush with the module's back plane, so its front
+face landed exactly on the wall face. The cabinet and both service counters in
+the same lobby are buried the same 0.03 m and probe 0 SAME pairs: nothing of
+theirs faces the room at that depth. The burial is Deli Counter's (not changed
+here); the coincidence was Zoo's.
+
+**`recipes/_chair_row.layout`** is the chair's boxes, pure, and `chair.py`
+builds exactly them:
+
+* the back panel stands `BACK_INSET` 6 mm in front of the module's back plane,
+  so its front face is 6 mm proud of a wall face at 0.03 m and its rear 6 mm
+  off a wall a corrected slot would put flush; the seat still reaches the back
+  plane, because `build_module` re-centres on the visual bounds and a module
+  that stopped short would have the inset halved and pushed onto the front;
+* neighbouring chairs stand `BAY_GAP` 12 mm apart (seat and back), the outer
+  bays keeping the row's exact width, so a row reads as four chairs and not as
+  one plank with seams where the texture restarts;
+* legs, arm posts and the back run `SEAT_BURY` 5 mm into the seat, the back
+  `BACK_SIDE_INSET` 4 mm narrower than its seat at each end, and the arm post
+  narrower than its rail, so no two faces share a plane.
+
+Probed after, in Blender 5.1: the rebuilt 2.4 x 0.6 x 0.9 module is 1,056
+tris, 0 coincident pairs (26 before, the same recipe rebuilt from this tree
+before the change matching the shipped GLB), visual bounds exactly
++/-1.2 x +/-0.45 x +/-0.3, status pass; the 0.5 m and 0.55 m single chairs
+the same lobby places, a 5.0 x 2.0 x 0.6 row and the genome minimum
+0.38 x 0.38 x 0.5 also probe 0. Put back in the three 9052 placements
+it has 0 SAME pairs with the walls; what remains is 24 OPP contacts, each rear
+leg's back face against the wall face (hidden), and the wall modules' own end
+seams.
+
+**`tools/preview_specimen.py --dims W D H [--style N]`** with `--species`
+plans one prop slot through `kit.plan_kit` and builds it with
+`build.build_module` -- a 2.4 m row could not be previewed through a prompt --
+and every run prints the `zoo_keeper` version and folder it imported.
+
+`tests/test_chair_row.py`: across the genome's min/default/max, the 9052 rows
+and the library's row shapes, with 3 and 4 legs and with and without arms, no
+two box faces share a plane inside the probe's 2 mm window; the extents are
+the slot; no room-facing face lies within 2 mm of a wall face flush or at
+Deli Counter 0.127.0's 0.03 m; neighbours stand 12 mm apart; and the recipe
+builds the layout. Four of the six fail against the 0.80.0 geometry.
+
+NOTE, unchanged and not this release: an arm rail stands at seat + 0.22 m,
+which rises above a chair shorter than about 0.69 m.
+
 ## [0.80.0] - a see-through kind that resolves opaque says so
 
 Walk 9050, delco_1997: `M_Skin_glass_delco_1997` exported alphaMode OPAQUE on

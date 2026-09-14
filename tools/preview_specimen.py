@@ -5,6 +5,9 @@ Run inside Blender (see tools/preview_dressing.ps1):
     blender --background --python tools/preview_specimen.py -- \
         --prompt "carpet floor" --seed 1999 --out _preview \
         --render _preview/floor_carpet.png [--skins <dir> --theme delco]
+    blender --background --python tools/preview_specimen.py -- \
+        --species chair --dims 2.4 0.6 0.9 --style 5 --theme delco_1997 \
+        --render _preview/chair_row.png [--skins <dir>]
 
 `--species <name>` names the species OUTRIGHT and skips keyword matching --
 the door a program uses, already open in `build.build_specimen` and until now
@@ -155,21 +158,57 @@ def main():
     azimuth = _arg("--azimuth")
     eye_arg = _arg("--eye")
     dist_arg = _arg("--dist")
+    # A SLOT'S SIZE. A prompt only scales the genome's default dims, so a
+    # 2.4 m row of waiting chairs -- what Deli Counter places -- could not be
+    # previewed at all. `--dims W D H` (with `--species`) plans one prop slot
+    # through `core.kit.plan_kit` and builds it with `build.build_module`, the
+    # path a `zoo_kit_build` job takes and the one tools/coplanar_probe.py
+    # uses. `--style` is the kit style index the slot carries.
+    dims = None
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
+    if "--dims" in argv:
+        i = argv.index("--dims")
+        dims = [float(v) for v in argv[i + 1:i + 4]]
+    style = int(_arg("--style", "1"))
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if repo not in sys.path:
         sys.path.insert(0, repo)
 
+    import zoo_keeper
     from zoo_keeper.bpylayer import build
+    # Which Zoo built the frame: a worktree and the installed addon look
+    # identical from the PNG.
+    print(f"[preview] zoo_keeper {zoo_keeper.TOOL_VERSION} from "
+          f"{os.path.dirname(os.path.abspath(zoo_keeper.__file__))}")
     if skins:
         from zoo_keeper.bpylayer import materials
         materials.set_skin_library(os.path.abspath(skins), theme)
         print(f"[preview] skins: {skins} (theme={theme})")
 
-    res = build.build_specimen(
-        prompt, out, seed=seed, species=species,
-        options={"collision": None, "lods": False,
-                 "save_blend": False, "clear_scene": True})
+    if dims:
+        if not species:
+            raise SystemExit("[preview] --dims needs --species")
+        from zoo_keeper.core import kit
+        plan = kit.plan_kit({"building_id": "preview", "slots": [{
+            "slot_id": f"{species}_0", "role": "prop", "size_mod": "full",
+            "style": style, "species": species,
+            "fit": {"dims": dims, "pivot": "center"}}]},
+            theme=theme, style=style)
+        res = build.build_module(plan["modules"][0], out, theme=theme,
+                                 style=style, options={"save_blend": False})
+        res["specimen_id"] = res["stem"]
+        # a module is centre-pivot; stand it on the ground plane
+        import bpy as _bpy
+        for o in _bpy.context.scene.objects:
+            if o.parent is None:
+                o.location.z += dims[2] / 2.0
+        _bpy.context.view_layer.update()
+    else:
+        res = build.build_specimen(
+            prompt, out, seed=seed, species=species,
+            options={"collision": None, "lods": False,
+                     "save_blend": False, "clear_scene": True})
     asked = f"species={species!r}" if species else f"prompt={prompt!r}"
     print(f"[preview] {asked} -> specimen={res['specimen_id']} "
           f"status={res['report']['status'].upper()}")
@@ -178,7 +217,10 @@ def main():
     import mathutils
     scene = bpy.context.scene
 
-    meshes = [o for o in scene.objects if o.type == "MESH"]
+    from zoo_keeper.bpylayer.export import _COL_SUFFIXES
+    # collision shapes are hidden from the render; keep them out of the framing
+    meshes = [o for o in scene.objects if o.type == "MESH"
+              and not o.name.endswith(_COL_SUFFIXES)]
     if not meshes:                                  # fall back to the exported glb
         glb = None
         for v in res.get("files", {}).values():
