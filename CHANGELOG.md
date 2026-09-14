@@ -1,3 +1,78 @@
+## [0.81.1] - a run of walls has no groove at its joints
+
+Walk 9052, delco_1997, an interior partition: "you can see the seams here", a
+thin vertical line at every 2.00 m -- bright from an oblique eye 3.2 m away,
+dark from a metre square on.
+
+**MEASURED BEFORE ANYTHING MOVED**, on the walk copy's own `site.tscn` and
+module GLBs, every consecutive pair of modules in every `ext_*` / `int_*` run
+of all three buildings (a module's visual AABB under its node transform, in
+the building frame, metres):
+
+    joints                     434  (strip_retail_a02 52, bank_branch_a02 205,
+                                     country_club_a01 177)
+    gap along the run          0.000 mm at all 434
+    depth-face offset          0.000 mm at all 434
+    V-groove 6.00 x 3.00 mm    300 (a 3 mm chamfer on both sides)
+    V-groove 0.8 - 6.8 mm      134 (at least one side a wallEnd, the unit
+                                     box Deli Counter scales per slot)
+
+Deli Counter lays the run flush and coplanar, so it is not Deli Counter's.
+World-triplanar was on and the texture ran continuous across the joint in
+the frame, so it is not Level Factory's. What each joint carried was the
+style's bevel twice: `wall_delco_1997_02_w200` is a box whose faces stop at
+x = +/-0.997 with a 45-degree chamfer out to +/-1.000, and two of those meet
+as a V. It is the groove 0.50-era plate tiles lost (`recipes/_arch.py`,
+"PLATE TILES ARE UNBEVELED"), kept on walls because "their chamfers sit on
+real corners". A wall's END edges sit on the plane its neighbour shares.
+
+**`arch.butt_planes(species, w)`** names those planes, x = -w/2 and +w/2, for
+the species a run is made of (`arch.RUN_SPECIES`: wall, wallEnd, doorway,
+window, breach). `geometry.bevel_edges` leaves an edge sharp when both its
+ends lie on the SAME one of them (`arch.edge_on_butt_plane`, 0.1 mm); a
+full-width edge touches both planes and lies in neither, so the top and
+bottom chamfers stay, and so do a jamb's reveal, a sill and a header. Plates
+declare none (already unbevelled). `prop` shares the slab builder and
+declares none: a desk's ends are corners.
+
+MEASURED AFTER, strip_retail_a02's kit rebuilt from this tree (seed 9052,
+cold run 9052's slot contract and skin library) and dropped into a scratch
+copy of the walk, windows left as shipped:
+
+    wall_delco_1997_02_w200    96 verts / 44 tris -> 48 / 28; x only +/-1.000
+    doorway jamb, outer end    +/-0.625 only (was 0.622 / 0.625)
+    doorway jamb, reveal       +/-0.505 / 0.508 kept
+    joints with a groove       52 -> 4 (the 4 are the untouched windows)
+
+In `look_shots.py` frames at the walker's station (Godot 4.7, GL
+Compatibility, Lux Heavy Rain), a per-column line score -- the median over
+the wall's rows of |L(x) - mean(L(x-3), L(x+3))|, Rec.709 codes -- put the
+four joint columns at 22.4-29.7 against a column median of 4.3; after, the
+largest column anywhere in the band is 6.3, the texture's own. One metre
+from the joint: 28.2 -> 4.6. No brightness step replaced the line, so per-mesh
+light binding (roadmap 83) is not drawing a seam on this wall.
+
+CONTROL: the same kit built from 0.80.0 reproduces the shipped GLBs' vertex
+positions exactly (wall, wallEnd, doorway and exterior wall checked), so the
+before and after differ by this change and not by the rebuild. The final
+tree's 20 run modules are identical to the ones photographed, and its 10 prop
+modules are identical to 0.80.0's.
+
+Not changed, and worth knowing: a building's outside corner where a run ENDS
+now shows a sharp 90-degree edge instead of a 3 mm chamfer. No frame of one
+was taken. Every kit GLB of the five run species changes bytes, so the next
+cold run rebuilds them.
+
+`tests/test_butt_joints.py`: the planes per species (runs, plates, prop), the
+edge rule (an end edge is a butt edge; a top edge, a reveal and a chamfered
+vertex are not), `_arch.py` passing the planes on every bevelled part and
+`bm_to_object` passing them to the bevel, and two bpy builds that read the
+mesh -- a wall with no vertex inside its end chamfer and its top chamfer
+intact, a doorway with its reveal chamfer and without its end one. The suite
+skips the two without Blender; run inside Blender 5.1 all 18 pass. Against
+0.80.0 the 17 written before the prop case all failed, the bpy two on the
+chamfer vertices themselves (+/-0.997, +/-0.622). 916 passed, 21 skipped (0.80.0: 900, 19).
+
 # Changelog
 
 ## [0.81.0] - a waiting chair's back is not the wall's face, and a row is four chairs

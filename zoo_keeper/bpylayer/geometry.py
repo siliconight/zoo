@@ -15,6 +15,8 @@ import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
+from ..core import arch
+
 WEAR_LAYER = "Wear"
 
 
@@ -191,13 +193,21 @@ def taper_z(verts, top_scale, bottom_scale=1.0):
         v.co.y *= k
 
 
-def bevel_edges(bm, offset, segments=1, angle_min=0.6):
-    """Bevel sharp edges (dihedral angle above angle_min radians)."""
+def bevel_edges(bm, offset, segments=1, angle_min=0.6, butt_planes=()):
+    """Bevel sharp edges (dihedral angle above angle_min radians).
+
+    `butt_planes` are ``(axis, coord)`` planes where the mesh meets a
+    neighbour (`core.arch.butt_planes`). An edge with BOTH ends on one of them
+    stays sharp: two modules' chamfers there meet as a V-groove, which is a
+    line drawn by the build rather than by the thing being built.
+    """
     if offset <= 0:
         return
     edges = [e for e in bm.edges
              if len(e.link_faces) == 2
-             and e.calc_face_angle(0.0) > angle_min]
+             and e.calc_face_angle(0.0) > angle_min
+             and not (butt_planes and arch.edge_on_butt_plane(
+                 e.verts[0].co, e.verts[1].co, butt_planes))]
     if edges:
         bmesh.ops.bevel(bm, geom=edges, offset=offset, segments=segments,
                         profile=0.7, affect="EDGES", clamp_overlap=True)
@@ -524,7 +534,8 @@ def wear_colors(bm, rng, wear, ambient=0.0):
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
                  texel=1.0, rng=None, wear=0.0, ambient=0.0,
-                 uv_offset=(0.0, 0.0, 0.0), smooth_angle=SMOOTH_ANGLE_DEG):
+                 uv_offset=(0.0, 0.0, 0.0), smooth_angle=SMOOTH_ANGLE_DEG,
+                 butt_planes=()):
     """Finish a bmesh (bevel -> normals -> shading -> UVs -> wear) and link.
 
     `smooth_angle` is the crease threshold, exposed because the default is
@@ -549,7 +560,9 @@ def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
     gradient.
     """
     if finish:
-        bevel_edges(bm, bevel)
+        # `butt_planes`: where an architectural module meets its neighbour;
+        # those edges stay sharp (see `bevel_edges`).
+        bevel_edges(bm, bevel, butt_planes=butt_planes)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
         # AFTER recalc, because the decision reads face normals, and BEFORE
         # the UV projection, which does not care either way.

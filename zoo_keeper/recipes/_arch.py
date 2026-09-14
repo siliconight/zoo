@@ -32,6 +32,11 @@ def build_slab(plan, streams, collection, species):
     #: chamfer reads as the 3 mm highlight it is.
     _WALL_SMOOTH = 0.0
 
+    #: Where this module meets its neighbours. Edges lying in these planes
+    #: stay sharp, so two modules' chamfers no longer cut a V-groove into
+    #: every joint of a run (`arch.butt_planes`).
+    butts = arch.butt_planes(species, w)
+
     def part(bm, name, wr=wear, bv=None):
         objs.append(geometry.bm_to_object(
             bm, name, collection, bevel=(bevel if bv is None else bv),
@@ -46,7 +51,7 @@ def build_slab(plan, streams, collection, species):
             # multiplier was quietly undoing a fifth of every step taken
             # toward it in `meters_per_tile`.
             texel=1.0, rng=rng, wear=wr, ambient=ambient,
-            smooth_angle=_WALL_SMOOTH))
+            smooth_angle=_WALL_SMOOTH, butt_planes=butts))
 
     if species in arch.PLATE_SPECIES:
         # A floor or ceiling SKIN. Two things differ from a standing slab and
@@ -106,6 +111,11 @@ def build_slab(plan, streams, collection, species):
     # the whole line. A flat plate's chamfer carries no information (its
     # rim meets walls and parapets), so plates drop it entirely; walls and
     # opening modules keep theirs -- their chamfers sit on real corners.
+    #
+    # EXCEPT AT THEIR ENDS, which was the same groove and was missed. A wall's
+    # end edges sit on the plane its neighbour shares, not on a corner, and
+    # walk 9052 showed the line at every 2.00 m of an interior partition. They
+    # stay sharp now (`butts` above); every other chamfer is unchanged.
     plate_bevel = 0.0 if species in arch.PLATE_SPECIES else None
     for name, center, size in visual:
         bm = geometry.new_bm()

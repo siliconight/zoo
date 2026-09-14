@@ -498,6 +498,55 @@ def relief_parts(w: float, d: float, h: float, style: dict | None = None):
     return parts
 
 
+#: How close a vertex must sit to a butt plane to count as ON it, metres.
+#: A tenth of a millimetre: far above float32 error at building scale, and far
+#: below any style's bevel (2-4 mm), so a chamfered vertex can never pass.
+BUTT_TOL = 1e-4
+
+#: The species a wall run is made of: laid edge to edge, flush, by Deli Counter.
+RUN_SPECIES = ("wall", "wallEnd", "doorway", "window", "breach")
+
+
+def butt_planes(species: str, w: float):
+    """The planes where this module MEETS ITS NEIGHBOUR, as ``(axis, coord)``.
+
+    A standing module's two ends, ``x = -w/2`` and ``x = +w/2``: Deli Counter
+    lays a run as modules edge to edge on those planes, flush and coplanar.
+    Measured on walk 9052 over all three buildings, 434 joints: every gap
+    0.000 mm, every face offset 0.000 mm. What each joint DID carry was the
+    style's bevel twice -- a 3 mm chamfer on each module's end edges, which
+    meet as a V-groove 6.00 mm wide and 3.00 mm deep at 300 of them (0.8 to
+    6.8 mm at wallEnd and opening joints, where Deli Counter scales the unit
+    box). A 45-degree facet catches light the flat face does not, so it drew
+    a thin bright or dark line at every 2.00 m of every wall: "you can see
+    the seams here".
+
+    It is the plate-tile groove again (``recipes/_arch.py``), which was fixed
+    for plates on the grounds that walls' chamfers "sit on real corners". A
+    wall's END edges do not: they sit on the plane its neighbour shares. The
+    corners a person can see -- a jamb's reveal, a sill, a header's underside,
+    the top and bottom of the face -- are not on these planes and keep their
+    chamfer.
+
+    Only the species Deli Counter lays in a RUN have neighbours. Plates return
+    none (their tiles are unbevelled throughout), and so does ``prop``, which
+    goes through the same slab builder but stands alone: a desk's or a
+    vault's ends are corners.
+    """
+    if species not in RUN_SPECIES:
+        return ()
+    hw = w / 2.0
+    return ((0, -hw), (0, hw))
+
+
+def edge_on_butt_plane(a, b, planes, tol: float = BUTT_TOL) -> bool:
+    """True when edge ``a``-``b`` lies IN one of ``planes``: both ends on the
+    SAME plane. A full-width edge has one end on each butt plane and lies in
+    neither -- the top of a wall face, which keeps its chamfer."""
+    return any(abs(a[axis] - c) <= tol and abs(b[axis] - c) <= tol
+               for axis, c in planes)
+
+
 def parts_bbox(parts):
     """Outer (min_xyz, max_xyz) AABB across a list of slab_parts boxes."""
     lo = [1e9, 1e9, 1e9]
