@@ -41,6 +41,16 @@ contains:
 --view patch renders many instances scattered on the ground at standing eye
 height, which is the unit a scatter species is actually judged in: a single
 specimen is never what the player sees.
+
+--slot <slot.json> [--state <s>] builds a MODULE instead of a specimen: the
+slot (one Deli Counter slots.json entry: role, fit, optional interactive) is
+planned by `core.kit.plan_kit` and the module for `--state` (default: the
+default state) is built by `build.build_module` -- the path a kit build takes,
+and the only one that reaches an interactive module's states. A module is
+centre-pivot, so it is lifted to stand on the ground plane before rendering.
+`--flank <m>` stands a plain grey wall of that width either side of it, so a
+wall-slot module is judged in a wall and not as a floating panel;
+`--target-z <m>` aims the camera at an absolute height.
 """
 from __future__ import annotations
 
@@ -103,7 +113,7 @@ def _scale_post(bpy, at, height=UNASSISTED_STEP_MAX_M):
     return ob
 
 
-def _light_and_world(bpy, math_):
+def _light_and_world(bpy, math_, world=0.55):
     sd = bpy.data.lights.new("PrevSun", "SUN")
     sd.energy = 3.5
     try:
@@ -121,7 +131,7 @@ def _light_and_world(bpy, math_):
     bg = sc.world.node_tree.nodes.get("Background")
     if bg:
         bg.inputs[0].default_value = (0.09, 0.10, 0.12, 1.0)
-        bg.inputs[1].default_value = 0.55
+        bg.inputs[1].default_value = world
 
 
 def _bounds(bpy, mathutils, meshes):
@@ -170,6 +180,10 @@ def main():
         i = argv.index("--dims")
         dims = [float(v) for v in argv[i + 1:i + 4]]
     style = int(_arg("--style", "1"))
+    slot_path = _arg("--slot")
+    state_arg = _arg("--state")
+    flank = float(_arg("--flank", "0"))
+    target_z = _arg("--target-z")
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if repo not in sys.path:
@@ -204,23 +218,80 @@ def main():
             if o.parent is None:
                 o.location.z += dims[2] / 2.0
         _bpy.context.view_layer.update()
+        print(f"[preview] dims={dims} style={style} -> module={res['stem']} "
+              f"status={res['report']['status'].upper()}")
+    elif slot_path:
+        import json
+        from zoo_keeper.core import kit
+        with open(slot_path, encoding="utf-8") as fh:
+            slot = json.load(fh)
+        kplan = kit.plan_kit({"building_id": "preview", "slots": [slot]},
+                             theme=theme, style=int(slot.get("style") or 1))
+        pick = [m for m in kplan["modules"] if m["state"] == state_arg]
+        if not pick:
+            print(f"[preview] no module for state {state_arg!r}; planned: "
+                  f"{[(m['stem'], m['state']) for m in kplan['modules']]}")
+            return
+        res = build.build_module(pick[0], out, theme=theme,
+                                 style=int(slot.get("style") or 1),
+                                 options={"save_blend": False})
+        print(f"[preview] slot={os.path.basename(slot_path)} "
+              f"state={state_arg!r} -> module={res['stem']} "
+              f"species={pick[0]['species']} "
+              f"status={res['report']['status'].upper()} "
+              f"tris={res['facts'].get('tris')}")
+        for c in res["report"]["checks"]:
+            if c["level"] != "pass":
+                print(f"[preview]   check {c['id']}: {c['level']} {c['msg']}")
     else:
         res = build.build_specimen(
             prompt, out, seed=seed, species=species,
             options={"collision": None, "lods": False,
                      "save_blend": False, "clear_scene": True})
-    asked = f"species={species!r}" if species else f"prompt={prompt!r}"
-    print(f"[preview] {asked} -> specimen={res['specimen_id']} "
-          f"status={res['report']['status'].upper()}")
+        asked = f"species={species!r}" if species else f"prompt={prompt!r}"
+        print(f"[preview] {asked} -> specimen={res['specimen_id']} "
+              f"status={res['report']['status'].upper()}")
 
     import bpy
     import mathutils
     scene = bpy.context.scene
 
     from zoo_keeper.bpylayer.export import _COL_SUFFIXES
-    # collision shapes are hidden from the render; keep them out of the framing
+    if slot_path:
+        # stand the centre-pivot module on the ground, hide its collider
+        vis = [o for o in scene.objects if o.type == "MESH"]
+        zmin = min((o.matrix_world @ mathutils.Vector(c[:])).z
+                   for o in vis for c in o.bound_box)
+        for o in vis:
+            o.location.z -= zmin
+            if o.name.endswith(("-colonly", "-col")):
+                o.hide_render = True
+        fd = res["plan"]["dimensions"]
+        if flank > 0.0:
+            for sgn in (-1.0, 1.0):
+                me = bpy.data.meshes.new("PrevFlank")
+                x0 = sgn * fd["width"] / 2.0
+                x1 = sgn * (fd["width"] / 2.0 + flank)
+                y0, y1 = -fd["depth"] / 2.0 + 0.05, fd["depth"] / 2.0 - 0.05
+                zt = fd["height"]
+                vv = [(x0, y0, 0), (x1, y0, 0), (x1, y1, 0), (x0, y1, 0),
+                      (x0, y0, zt), (x1, y0, zt), (x1, y1, zt), (x0, y1, zt)]
+                ff = [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5),
+                      (2, 3, 7, 6), (3, 0, 4, 7)]
+                me.from_pydata(vv, [], ff)
+                ob = bpy.data.objects.new("PrevFlank", me)
+                scene.collection.objects.link(ob)
+                mf = bpy.data.materials.new("M_PrevFlank")
+                mf.use_nodes = True
+                bf = mf.node_tree.nodes.get("Principled BSDF")
+                if bf:
+                    bf.inputs["Base Color"].default_value = (0.55, 0.53, 0.50, 1.0)
+                    bf.inputs["Roughness"].default_value = 0.9
+                ob.data.materials.append(mf)
+
     meshes = [o for o in scene.objects if o.type == "MESH"
-              and not o.name.endswith(_COL_SUFFIXES)]
+              and o.name != "PrevFlank" and not o.name.startswith("PrevFlank")
+              and not o.hide_render and not o.name.endswith(_COL_SUFFIXES)]
     if not meshes:                                  # fall back to the exported glb
         glb = None
         for v in res.get("files", {}).values():
@@ -276,6 +347,12 @@ def main():
         dist = float(dist_arg) / 1.0182337649086284   # |(0.72, 0.72)|
     if eye_arg is not None:
         eye = float(eye_arg)
+    if slot_path:
+        # aim at the slot, not at the bounds: a swung leaf would pull the
+        # bounds' centre off the doorway and no two states would frame alike
+        target = mathutils.Vector((0.0, 0.0, target.z))
+    if target_z is not None:
+        target = mathutils.Vector((target.x, target.y, float(target_z)))
 
     if not no_ground:
         _ground(bpy, size=max(4.0, size * 6.0))
@@ -296,7 +373,11 @@ def main():
                                          target.y + r * math.sin(a), eye))
     cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
 
-    _light_and_world(bpy, math)
+    # `--world`: the environment strength. Bare metal mirrors its
+    # surroundings, so under the default near-black world a steel object
+    # renders black whatever its albedo; the default stays what every other
+    # species was reviewed under.
+    _light_and_world(bpy, math, float(_arg("--world", "0.55")))
 
     scene.render.engine = "CYCLES"
     try:

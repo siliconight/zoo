@@ -271,7 +271,7 @@ lives as a small hook in `core/dna.py` `_SPECIES_EXTRAS`.
 
 **Props (31):** `desk`, `chair`, `helmet`, `boots`, `simple_car`, `filing_cabinet`, `table`, `crt_tv`, `atm`, `vending_machine`, `briefcase`, `cash_stack`, `soda_cup`, `cheesesteak`, `flat_top_grill`, `condiment_bottle`, `french_fries`, `security_camera`, `queue_stanchion`, `drop_safe`, `gold_bar`, `hvac_unit`, `water_tank`, `vent_stack`, `exhaust_fan`, `skylight`, `satellite_dish`, `fluorescent_fixture`, `streetlight`, `sign_box`, `wall_pack`
 
-**Architectural modules (9):** `wall`, `wallEnd`, `doorway`, `window`, `window_broken`, `breach`, `vault_door`, `teller_line`, `safe_deposit_boxes` — Deli Counter wall-slot dressing (`vault_door` is an interactive hero portal: closed frame+leaf+hub; open/breached states reuse doorway/breach). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
+**Architectural modules (9):** `wall`, `wallEnd`, `doorway`, `window`, `window_broken`, `breach`, `vault_door`, `teller_line`, `safe_deposit_boxes` — Deli Counter wall-slot dressing (`vault_door` is the bank's hero portal: a round stepped door in a riveted steel surround, built per state of Deli Counter's machine -- locked, unlocked, open, breached -- from `core/vault_forms.py`; its slot must be wider than its aperture, see `vault_forms.required_size`). Built center-pivot at exact slot dims and named by the resolver's law; see [Dressing a greybox](#dressing-a-greybox-deli-counter--lot-integration). Buildable standalone too (`--prompt "a wall"`).
 
 ## Install (Blender 4.2+ / 5.x)
 

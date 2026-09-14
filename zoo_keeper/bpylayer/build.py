@@ -153,8 +153,11 @@ def build_family(prompt: str, out_dir: str, base_seed: int = 0,
 
 
 def _recentre(result: dict, plan: dict) -> dict:
-    """`core.pivot.recentre` over the recipe's visual objects' bounds."""
-    objs = [o for o in result.get("objects", []) if getattr(o, "type", "MESH") == "MESH"]
+    """`core.pivot.recentre` over the recipe's visual objects' bounds --
+    or over its ``fit_objects`` when it names them, so a door leaf swung out
+    of its frame does not drag the frame off the slot centre."""
+    objs = [o for o in (result.get("fit_objects") or result.get("objects", []))
+            if getattr(o, "type", "MESH") == "MESH"]
     if not objs:
         return result
     lo, hi = geometry.bounds_of(objs)
@@ -216,7 +219,9 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     for name, loc in result.get("attachments", {}).items():
         markers.add_marker(name, loc, coll)
 
-    facts = export.gather_facts(coll, root_name)
+    fit_names = ([o.name for o in result["fit_objects"]]
+                 if result.get("fit_objects") else None)
+    facts = export.gather_facts(coll, root_name, fit_names=fit_names)
     report = validate.evaluate(facts, genome, plan, opts)
 
     os.makedirs(out_dir, exist_ok=True)
@@ -229,6 +234,14 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
 
     meta = meta_mod.build_module_meta(TOOL_VERSION, plan, genome, report,
                                       files, stem)
+    # WHAT STANDS OUTSIDE THE SLOT. A swung leaf is real geometry in the
+    # room in front of the wall; the consumer placing the module needs its
+    # reach to keep that floor clear, and the fit checks above deliberately
+    # did not measure it.
+    if facts.get("overhang"):
+        meta["module"]["overhang_bounds"] = facts["overhang"]
+    if result.get("vault"):
+        meta["module"]["vault"] = result["vault"]
     meta_mod.write_meta(base + ".meta.json", meta)
 
     return {"stem": stem, "out_dir": out_dir, "files": files,
@@ -306,6 +319,8 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         # Hinted volumes built as the box, with the reason (roadmap 44).
         "species_fallbacks": plan.get("species_fallbacks", []),
         "species_alternates": plan.get("species_alternates", []),
+        # States a slot maps elsewhere although its species draws them.
+        "state_geometry_notes": plan.get("state_geometry_notes", []),
         "n_fail": n_fail,
         "n_missing": n_missing,
     }
@@ -314,6 +329,11 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
 
     for line in kit_mod.capability_gaps(plan):
         print(line)
+    for sn in plan.get("state_geometry_notes", []):
+        print("[zoo] STATE GEOMETRY %s: state '%s' is mapped to '%s' but '%s' "
+              "builds its own art for it -- the slot's mapping is honoured"
+              % (sn.get("slot_id"), sn.get("state"), sn.get("mapped_to"),
+                 sn.get("species_draws_it")))
     for al in plan.get("species_alternates", []):
         print("[zoo] SPECIES ALTERNATE %s: asked '%s' at %s, built as '%s' -- %s"
               % (al.get("slot_id"), al.get("hint"), "x".join(str(v) for v in al.get("dims", [])),

@@ -260,4 +260,6 @@ def main():
             json.dump(results, f, indent=1)
 
 
-main()
+# `blender --python` runs this file as __main__; a test imports `probe` from it
+if __name__ == "__main__":
+    main()

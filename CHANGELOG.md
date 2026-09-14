@@ -1,3 +1,112 @@
+## [0.83.0] - the bank vault is a round door, in every state the machine names
+
+The walker, on walk 9052 (bank_branch_a02 basement): "the bank vault should
+absolutely be a hero piece". What stands there is Deli Counter's 5 x 5 x 3 m
+`VAULT` box volume, a `prop` slot with no species. What Zoo had for a vault
+OPENING was a closed-only box -- a rectangular leaf and a hub cylinder in a
+jamb portal -- whose open and breached states reused `doorway` and `breach`,
+and whose unlocked state was deferred as identical art. Nothing shipped used
+it: of the specs in `deli_counter/specs`, only `bank.json` has a `vault`
+opening and that building is not modular, so no `slots.json` in
+`deli_counter/build` carries a `vault_door` slot.
+
+**`vault_door` (genome v2) builds a round bank vault door per state.** A
+riveted steel surround in a strap grid; a stepped round frame with a stepped
+jamb through the wall and a ring of brass bolts; a thick stepped leaf with an
+eight-spoke wheel in a riveted ring, five locking bars to keepers, a
+combination dial with a spoked handle and a U pull; two hinge barrels with
+knuckles, pins, plates and arms on the viewer's left. `unlocked` turns the
+wheel a sixteenth and draws the bars out of their keepers; `open` swings the
+leaf 100 degrees on its hinge axis with 16 bolts standing off its edge, bolt
+ports in the lining and a boltwork boss on its back; `breached` over-swings
+it to 122 degrees and leans it 13 degrees off its hinges, blows the dial out
+into a torn-plate rosette on both faces, drops the wheel on the floor, shears
+the bars and leaves their blocks in the keepers, scorches the lock side and
+scatters shards under the 0.1025 m unassisted step. Delco_1997 skins it with
+the tintable `metal_bare` pack in four tints (steel, bright, dark, brass).
+
+Measured on 3.6 x 0.6 x 3.3 and 3.6 x 0.3 x 3.3 slots with a 1.3 x 2.1 m
+aperture: every state validates PASS, fits its slot to 1 mm (the frame, for
+the swung states), 6,600 to 7,736 triangles against a 9,000 budget -- a hero
+budget, one per bank, beside a desk's 8,000 -- and `tools/coplanar_probe.py`
+reports 0 coincident pairs of either facing on all eight GLBs.
+
+**`core/vault_forms.py` (pure) decides every position.** THE PORTAL
+CIRCUMSCRIBES THE AUTHORED APERTURE: the circle runs through the rectangle's
+corners and is cut flat at the sill, where its chord is exactly the authored
+width, so the round door never narrows a passage Deli Counter gated. A slot
+too small for the circle, the frame and the hinges (`required_size`: 3.58 x
+2.66 m for 1.3 x 2.1) builds the whole door at a slot that is big enough and
+scales it uniformly across and up to the real one (`fit_scale`), with every
+face-separating gap authored in real millimetres, and prints
+`[zoo] VAULT_PORTAL_UNDERSIZED` with the clear width left. Deli Counter's
+current vault slot, 1.4 m wide round a 1.4 x 2.3 aperture, builds PASS at
+x0.360 with 0.50 m clear and 0 same-facing pairs, and looks like what it is:
+a porthole at the foot of a steel column. REFUTED, kept: shrinking only the
+portal inside the real slot left the wheel and bars at their minimum sizes
+and built that slot 3.499 m tall in 3.3 m. One flat-cut lathe
+(`cut_lathe`) builds every ring and the stepped leaf as a single closed
+solid, because stacked discs cut at one plane lay their bottoms in that plane.
+Collision per state follows `interactives.py`'s advice: locked and unlocked
+are the slot box; open and breached are the slot less six passage bands
+inscribed in the circle -- the bottom band exactly the authored width, the top
+at the authored head height -- plus four boxes round the swung leaf, which
+tests hold clear of the approach in front of the aperture.
+
+**`kit`: a species may draw its own states.** `slot_variants` deferred every
+state mapped to the default species as identical art. A genome's `state_art`
+now names the states it builds itself, and those are built. A slot mapping
+such a state to another species is honoured and reported in
+`state_geometry_notes` and the kit index, printed as `[zoo] STATE GEOMETRY`
+-- Deli Counter's shipped machine maps `open` to `doorway` and `breached` to
+`breach`, so both are reported until it maps them to `vault_door`.
+
+**`build`: a module may declare what fits.** A leaf swung out of its frame
+cannot fit a wall slot and must not drag the frame off the slot centre. A
+recipe's `fit_objects` are what `_recentre` and `gather_facts` measure; the
+full reach is reported as `facts["overhang"]` and written to the module meta
+as `overhang_bounds`, with the vault's portal and shortfall beside it.
+
+**`tools/preview_specimen.py --slot <slot.json> [--state s]`** plans one Deli
+Counter slot and builds the chosen state's module through `build_module`,
+stands it on the ground, and prints which `zoo_keeper` it imported. `--flank`
+stands a wall either side, `--target-z` aims the camera, `--world` sets the
+environment strength (bare metal mirrors a black world as black).
+`coplanar_probe.py` runs `main()` only as `__main__`, so a test can import
+`probe`.
+
+REFUTED on the way, each kept in the file it was found in:
+- the first render was a mirror image. From the face, +x is the viewer's
+  LEFT; the hinges were built at -x and hung on the right;
+- the passage bands topped out at `zc + 0.8 R`, 6 cm under the aperture's
+  head;
+- the hinge arm's back (`f - 1.5 rb` = 0.0777) landed 0.28 mm from the
+  frame's buried face plane (`y_pan - 0.012` = 0.0780), one of nine
+  coincident pairs from offsets picked where each part was written. They now
+  come from one table with 4 mm spacing;
+- a 0.3 m slot built 0.332 m deep (knuckle rings past both faces), then
+  0.3056 (keeper bolt heads past the face whenever u < 0.175) -- both inside
+  `validate`'s 2 cm tolerance, both caught by the 1 mm test;
+- fracturing shards in the shared bmesh left the verts the cuts made at the
+  module origin: black spikes in the doorway;
+- a scorch of 0.65 R reached the export (lock hardware COLOR_0 0.26 against
+  0.83 open) and could not be seen. At 1.0 R the frame's lock side measures
+  0.334 against 0.606 on the hinge side;
+- the genome said 8 degrees, 14 bolts, 0.12 m while `vault_forms.DEFAULTS`
+  said 13, 16, 0.16, and module builds read the genome. A test now holds them
+  equal.
+
+`tests/test_vault_door.py` is rewritten. It has 22 pure tests (portal,
+bands, collision, swing, lathes, planning, genome agreement, budget) and 2
+bpy tests that build all four states at 0.6 and 0.3 m and assert PASS, a
+1 mm fit, the budget and zero coincident faces. The bpy tests were run inside
+Blender 5.1.1 for this release (2 passed), and the check was shown able to
+fail: duplicating one part in place reported 10 pairs.
+
+NOT BUILT: the barred day gate from the third reference.
+
+Merged onto 0.82.0: `tools/preview_specimen.py` keeps both 0.81.0's `--dims`/`--style` and this entry's `--slot`/`--state`/`--flank`/`--target-z`, and its framing drops collision shapes by suffix as well as hidden ones.
+
 ## [0.82.0] - a cargo container that is a shipping container
 
 The walker, walk 9052_rain, looking at the overlay's `CargoContainer` under

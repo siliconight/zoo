@@ -280,7 +280,23 @@ def _species_fit(hint: str, dims, genome_dir: str = None):
     return hint, None
 
 
-def slot_variants(slot: dict, typ: str, global_state: str = None):
+def state_art_for(species: str, genome_dir: str = None) -> frozenset:
+    """The non-default states a species builds its OWN art for.
+
+    A genome's ``state_art`` list. Empty for every species that does not
+    declare one, which is every species but the vault door today -- so
+    nothing else changes.
+    """
+    from zoo_keeper.core import genome as genome_mod
+    try:
+        g = genome_mod.load_species(species, genome_dir)
+    except (FileNotFoundError, ValueError):
+        return frozenset()
+    return frozenset(g.get("state_art") or ())
+
+
+def slot_variants(slot: dict, typ: str, global_state: str = None,
+                  state_art=None):
     """Which (build_species, state, stem_state) a slot needs.
 
     A plain slot needs one module. An INTERACTIVE slot (an `interactive` block
@@ -297,6 +313,13 @@ def slot_variants(slot: dict, typ: str, global_state: str = None):
 
     Yields ``(build_species, state, stem_state, deferred)`` — deferred entries
     are reported, not built.
+
+    ``state_art`` (optional, ``species -> set of states``) is the exception to
+    the deferral. "Same species, therefore same art" was true while every
+    species built one look; a species that builds its states itself -- the
+    vault door's unlocked wheel and drawn bars are not its locked ones --
+    declares them in its genome, and those states are built, suffixed, from
+    that species. Without the callable, nothing differs from before.
     """
     inter = slot.get("interactive")
     if not inter:
@@ -317,7 +340,11 @@ def slot_variants(slot: dict, typ: str, global_state: str = None):
             continue
         sp = species_for(st)
         # same species as default => identical art today => resolver fallback
-        yield (sp, st, st, sp == default_species)
+        # -- unless that species says it draws this state itself
+        same = sp == default_species
+        if same and state_art is not None and st in state_art(sp):
+            same = False
+        yield (sp, st, st, same)
 
 
 def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
@@ -347,6 +374,14 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     deferred = {}
     fallbacks = []
     alternates = []
+    art_cache = {}
+    state_notes = []
+
+    def _art(sp):
+        if sp not in art_cache:
+            art_cache[sp] = state_art_for(sp)
+        return art_cache[sp]
+
     for s in manifest.get("slots", []):
         role = s.get("role")
         if role is None or (roles and role not in roles):
@@ -407,8 +442,27 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                                   "dims": [round(float(v), 4) for v in dims[:3]],
                                   "built_as": typ, "reason": why})
 
-        for species, st, stem_state, is_deferred in slot_variants(s, typ,
-                                                                   state):
+        # A STATE THE SPECIES DRAWS ITSELF BUT THE SLOT SENDS ELSEWHERE.
+        # The slot's `state_geometry` is the contract and is honoured -- a
+        # vault door whose machine maps `open` to `doorway` still gets a
+        # doorway -- but a species that has its own art for that state is
+        # the evidence the mapping predates it, and that is said, not left
+        # for somebody to notice in a frame.
+        inter = s.get("interactive") or {}
+        if inter:
+            sg = inter.get("state_geometry") or {}
+            ist = inter.get("states") or []
+            idef = inter.get("default") or (ist[0] if ist else None)
+            dsp = sg.get(idef, typ)
+            for st_ in ist:
+                mapped = sg.get(st_, typ)
+                if st_ != idef and mapped != dsp and st_ in _art(dsp):
+                    state_notes.append({"slot_id": s.get("slot_id"),
+                                        "state": st_, "mapped_to": mapped,
+                                        "species_draws_it": dsp})
+
+        for species, st, stem_state, is_deferred in slot_variants(
+                s, typ, state, state_art=_art):
             if hint and species == typ:
                 species = hint
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
@@ -546,4 +600,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         "species_fallbacks": fallbacks,
         # Hinted volumes built as an alternate of the same family instead.
         "species_alternates": alternates,
+        # States a slot maps to another species although its own species
+        # builds art for them (see `state_art_for`).
+        "state_geometry_notes": state_notes,
     }

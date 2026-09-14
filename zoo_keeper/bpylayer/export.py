@@ -42,14 +42,28 @@ def save_blend(filepath):
 _COL_SUFFIXES = ("-colonly", "-convcolonly", "-col", "-convcol")
 
 
-def gather_facts(collection, root_name):
-    """Collect the facts core.validate judges."""
+def gather_facts(collection, root_name, fit_names=None):
+    """Collect the facts core.validate judges.
+
+    ``fit_names``: when a recipe declares which of its objects define the
+    slot envelope (a door leaf swung out of its frame does not), the
+    dimensions and centre are measured on those, and the full visual bounds
+    are reported beside them as ``overhang`` rather than silently replacing
+    them. Without it every visual mesh is measured, exactly as before.
+    """
     meshes = [o for o in collection.objects if o.type == "MESH"
               and not o.name.endswith(_COL_SUFFIXES) and "_LOD" not in o.name]
     col = [o for o in collection.objects
            if o.name.endswith(_COL_SUFFIXES)]
-    if meshes:
-        lo, hi = geometry.bounds_of(meshes)
+    fit = ([o for o in meshes if o.name in set(fit_names)]
+           if fit_names else meshes)
+    overhang = None
+    if fit_names and meshes:
+        alo, ahi = geometry.bounds_of(meshes)
+        overhang = {"min": [round(alo.x, 4), round(alo.y, 4), round(alo.z, 4)],
+                    "max": [round(ahi.x, 4), round(ahi.y, 4), round(ahi.z, 4)]}
+    if fit:
+        lo, hi = geometry.bounds_of(fit)
         dims = {"width": hi.x - lo.x, "depth": hi.y - lo.y,
                 "height": hi.z - lo.z}
         # Where the module's box actually sits. The kit index has always
@@ -93,7 +107,7 @@ def gather_facts(collection, root_name):
         if (obj.location.length > 1e-6
                 or any(abs(s - 1.0) > 1e-6 for s in obj.scale)):
             bad_xf.append(obj.name)
-    return {
+    out = {
         "dimensions": {k: round(v, 4) for k, v in dims.items()},
         "center": center,
         "tris": tris,
@@ -104,3 +118,6 @@ def gather_facts(collection, root_name):
         "has_collision": bool(col),
         "unapplied_transforms": bad_xf,
     }
+    if overhang is not None:
+        out["overhang"] = overhang
+    return out

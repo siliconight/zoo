@@ -1,60 +1,88 @@
 {
  "species": "vault_door",
- "version": 1,
+ "version": 2,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Original procedural construction. Architectural interactive module: the CLOSED armored vault door (heavy portal frame + thick leaf + wheel hub) that fills a vault portal slot. Its open/breached states reuse doorway/breach geometry via the slot's interactive.state_geometry."
+  "notes": "Original procedural construction. Architectural interactive module: a round bank vault door in a stepped frame set in a riveted steel surround, built per state of Deli Counter's vault_door machine (locked, unlocked, open, breached). Positions come from core/vault_forms.py."
  },
  "dimensions": {
   "width": {
    "min": 0.8,
-   "max": 3.5,
-   "default": 1.4
+   "max": 6.0,
+   "default": 3.5
   },
   "depth": {
    "min": 0.2,
    "max": 1.2,
-   "default": 0.5
+   "default": 0.6
   },
   "height": {
    "min": 1.8,
-   "max": 3.6,
-   "default": 2.3
+   "max": 5.0,
+   "default": 3.3
   }
  },
  "parts": [
-  "VaultDoor_Jamb_L",
-  "VaultDoor_Jamb_R",
-  "VaultDoor_Sill",
-  "VaultDoor_Header",
+  "VaultDoor_Surround",
+  "VaultDoor_Frame",
+  "VaultDoor_Threshold",
+  "VaultDoor_Hinges",
+  "VaultDoor_Keepers",
+  "VaultDoor_Straps",
+  "VaultDoor_Rivets",
+  "VaultDoor_BoltHeads",
   "VaultDoor_Leaf",
-  "VaultDoor_Hub"
+  "VaultDoor_FaceRing",
+  "VaultDoor_Bars",
+  "VaultDoor_Hardware",
+  "VaultDoor_LeafBolts",
+  "VaultDoor_Wheel"
+ ],
+ "state_art": [
+  "unlocked",
+  "open",
+  "breached"
  ],
  "params": {
-  "jamb": {
-   "min": 0.08,
-   "max": 0.5,
-   "default": 0.18
+  "frame_frac": {
+   "min": 0.15,
+   "max": 0.3,
+   "default": 0.22
   },
-  "header": {
-   "min": 0.08,
-   "max": 0.5,
-   "default": 0.2
+  "margin": {
+   "min": 0.04,
+   "max": 0.3,
+   "default": 0.1
   },
-  "sill_lip": {
+  "open_swing_deg": {
+   "min": 80.0,
+   "max": 110.0,
+   "default": 100.0
+  },
+  "breach_swing_deg": {
+   "min": 100.0,
+   "max": 135.0,
+   "default": 122.0
+  },
+  "breach_tilt_deg": {
    "min": 0.0,
-   "max": 0.4,
-   "default": 0.15
+   "max": 14.0,
+   "default": 13.0
   },
-  "leaf_frac": {
-   "min": 0.4,
-   "max": 1.0,
-   "default": 0.7
+  "bolts": {
+   "min": 8,
+   "max": 20,
+   "default": 16
   },
-  "hub_frac": {
-   "min": 0.1,
-   "max": 0.6,
-   "default": 0.32
+  "bolt_length": {
+   "min": 0.06,
+   "max": 0.2,
+   "default": 0.16
+  },
+  "collision_bands": {
+   "min": 3,
+   "max": 12,
+   "default": 6
   }
  },
  "materials": {
@@ -68,59 +96,89 @@
   "default": {
    "material": "metal_bare",
    "color": [
-    0.42,
-    0.44,
-    0.47
+    0.52,
+    0.54,
+    0.57
+   ],
+   "bright": [
+    0.74,
+    0.76,
+    0.78
+   ],
+   "dark": [
+    0.2,
+    0.21,
+    0.22
+   ],
+   "accent": [
+    0.74,
+    0.57,
+    0.27
    ],
    "wear": 0.2,
-   "bevel": 0.006
+   "bevel": 0.0
   },
   "delco": {
    "material": "metal_bare",
    "color": [
-    0.38,
-    0.4,
-    0.43
+    0.48,
+    0.5,
+    0.53
+   ],
+   "bright": [
+    0.7,
+    0.72,
+    0.74
+   ],
+   "dark": [
+    0.18,
+    0.19,
+    0.2
+   ],
+   "accent": [
+    0.7,
+    0.54,
+    0.25
    ],
    "wear": 0.35,
-   "bevel": 0.006
+   "bevel": 0.0
   },
   "center_city": {
    "material": "metal_bare",
    "color": [
-    0.4496,
-    0.48,
-    0.55
+    0.5,
+    0.53,
+    0.58
    ],
    "wear": 0.122,
-   "bevel": 0.006,
+   "bevel": 0.0,
    "ambient": 0
   },
   "industrial_flats": {
    "material": "metal_bare",
    "color": [
-    0.4028,
-    0.3807,
-    0.3727
+    0.46,
+    0.44,
+    0.43
    ],
    "wear": 0.57,
-   "bevel": 0.006,
+   "bevel": 0.0,
    "ambient": 0.1
   },
   "rockay": {
    "material": "metal_bare",
    "color": [
-    0.3948,
-    0.4356,
-    0.4935
+    0.47,
+    0.5,
+    0.55
    ],
    "wear": 0.34,
-   "bevel": 0.006,
+   "bevel": 0.0,
    "ambient": 0.05
   }
  },
  "budgets": {
-  "tris_lod0": 900
+  "tris_lod0": 9000
  },
  "attachments": [],
  "collision": true,

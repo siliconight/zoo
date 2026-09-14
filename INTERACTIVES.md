@@ -237,6 +237,13 @@ standalone `breach` species is still for walls authored *pre-blown*; a
 - each non-default state with **differing** geometry → a `_<state>` variant,
   built with its `state_geometry` species at the slot's exact dims
 - same-geometry states → reported under `deferred_variants` (not built)
+- **unless the species draws the state itself** (Zoo 0.83.0): a genome's
+  `state_art` list names the non-default states it builds its own art for,
+  and those are built, suffixed, from that species even though the slot maps
+  them to it. `vault_door` declares `unlocked`, `open` and `breached`. A slot
+  that maps one of those states to a *different* species is still honoured,
+  and the plan says so under `state_geometry_notes` (printed as
+  `[zoo] STATE GEOMETRY ...` by a kit build) -- the mapping predates the art.
 
 `build.build_kit` builds all variants into `art/zoo/` and records
 `state`/`species` per module plus the deferred list in
