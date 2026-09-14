@@ -78,6 +78,34 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                # correctly keep `metal`.
                "metal_painted", "metal_bare")
 
+# THE KINDS A PERSON SEES THROUGH. Every enterable window pane, a broken
+# window's remnants, a teller line's screen, a bus shelter's panes and a
+# skylight glaze in `glass`; a hollow facade's window glazes `glass_facade`,
+# which stays opaque (`dna.OPAQUE_FOR`). Zoo does not decide the opacity --
+# the pack does, through `import_hints.transparency` -- but it does know which
+# kinds are MEANT to have one, and says so when a pack for one of them has not.
+#
+# That silence is how a whole theme shipped opaque windows. The delco_1997
+# `glass` pack (`glass_delco`) carried no transparency hint; measured on walk
+# 9050, `M_Skin_glass_delco_1997` exported alphaMode OPAQUE on 12 GLBs, 7 of
+# them window modules, and the build log said only `skin: glass <- glass_delco`.
+SEE_THROUGH_KINDS = ("glass",)
+
+
+def is_see_through(pack: dict | None) -> bool:
+    """True when a resolved pack asks to be BLENDED: an
+    ``import_hints.transparency`` with opacity below 1 that is not a
+    ``scissor`` cutout. Pure; the one reading of the hint that both
+    ``materials._textured`` and ``materials.make_see_through_material``
+    act on, so the two cannot disagree about the same pack."""
+    trans = (pack or {}).get("transparency") or {}
+    if not trans or trans.get("alpha_mode") == "scissor":
+        return False
+    try:
+        return float(trans.get("opacity", 1.0)) < 1.0
+    except (TypeError, ValueError):
+        return False
+
 
 def find_pack(skins_dir: str, material_kind: str,
               theme: str = "delco") -> dict | None:
@@ -144,7 +172,9 @@ def load_pack(pack_dir: str) -> dict | None:
         if os.path.isfile(path):
             maps[key] = os.path.abspath(path)
     return {"id": stem, "dir": os.path.abspath(pack_dir), "maps": maps,
-            "meters_per_tile": 1.0, "tileable": None, "tintable": False}
+            "meters_per_tile": 1.0, "tileable": None, "tintable": False,
+            # a bare Pixelcoat 0.1 folder has no manifest to carry a hint
+            "transparency": None}
 
 
 def library_report(skins_dir: str, theme: str = "delco",

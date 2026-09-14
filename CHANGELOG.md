@@ -1,5 +1,67 @@
 # Changelog
 
+## [0.80.0] - a see-through kind that resolves opaque says so
+
+Walk 9050, delco_1997: `M_Skin_glass_delco_1997` exported alphaMode OPAQUE on
+12 GLBs -- the 7 window modules, the teller line, the bus shelter, the
+newspaper box, the parking meter and the car. The pane recipes asked for the
+right kind (`_arch.py` and `window_broken.py` glaze `glass` unless the slot is
+a hollow facade; the teller line, shelter and skylight make `glass`), and
+`_textured` blends whenever a pack declares `import_hints.transparency`. The
+delco_1997 `glass` pack declared none. That is Pixelcoat's to fix and
+Pixelcoat 0.40.0 fixes it; what was Zoo's is that the build log said
+`skin: glass <- glass_delco` and nothing else while it happened.
+
+**`skins.SEE_THROUGH_KINDS` and `skins.is_see_through(pack)`.** The kinds a
+person sees through (`glass`, the same set `dna.OPAQUE_FOR` swaps out of a
+structural slab, and a test holds the two equal), and the one reading of the
+hint: opacity below 1, not a scissor cutout. `_textured` and
+`make_see_through_material` both decide blend-or-not through it now, where
+they had two hand-written conditions. `load_pack` gives a bare legacy pack
+`transparency: None` rather than no key.
+
+**`make_material` warns** when a see-through kind resolves a pack that is not
+see-through, once per material: `[zoo] WARNING: glass is a see-through kind
+and pack glass_delco declares no blended import_hints.transparency -- every
+'glass' surface of theme delco_1997 exports OPAQUE`. It does not override the
+pack. Rebuilding walk 9050's glass modules against cold run 9050's own library
+prints it in all four kit builds that make `glass`, and against Pixelcoat
+0.40.0's prints nothing.
+
+**The car's glass is the theme's glass again.** With every theme's `glass`
+pack authored see-through, `make_see_through_material` takes its first branch
+on a themed build; delco_1997's pack is at 0.38, which is the car's own
+opacity, and the rebuilt car GLB carries `M_Skin_glass_delco_1997` BLEND alpha
+0.38 on its 6 panes. The forced and flat branches stay for a library with no
+`glass` pack. REFUTED in its docstring and kept there: "Godot imports that as
+BaseMaterial3D transparency ALPHA, which also keeps the pane out of the shadow
+pass". Godot 4.7 imports BLEND at transparency 4, ALPHA_DEPTH_PRE_PASS, which
+casts a shadow as solid as an opaque pane (GL Compatibility: 0.463 of open
+ground under the pane either way, 1.000 with it hidden). Level Factory 0.84.0's
+import script moves blended materials to ALPHA.
+
+**Hollow facades stay opaque**, measured rather than assumed: a bank window
+slot tagged `glazing: "facade"` builds its pane in
+`M_Skin_glass_facade_delco_1997`, OPAQUE in the GLB and transparency 0 in
+Godot. The mechanism is `kit.plan_kit` keeping the slot's `glazing` ->
+`dna.resolve_module_plan` setting `glazing_kind` -> `_arch.build_slab`. NOTE,
+not Zoo's: nothing emits that tag today. Deli Counter added it in 501c9db
+(its 0.80.0) and a later commit that also calls itself 0.80.0 (f54ebfe)
+removed the five lines; the two facade shells in `deli_counter/build` have 0
+window slots, so no shipped pane is affected yet.
+
+`tests/test_see_through_glass.py`: the declaration round-trips through
+`load_pack`, `is_see_through` over eight hints, both material paths read it,
+every building pane recipe asks for a see-through kind, an enterable window
+plans `glass` and a facade window `glass_facade`, and a broken window has no
+pane (remnants rise 0.14 and hang 0.09 of the opening, no `_Glass` object).
+Three bpy tests build `window`, a facade `window` and `window_broken` against
+stub packs and read the Blender materials; the suite skips them without
+Blender, and they were run inside Blender 5.1 for this release (3 ok; against
+an opaque stub pack the window and broken-window cases fail, the facade case
+passes). `test_car_forms` pins `skins.is_see_through(pack)` in place of the
+condition it replaced.
+
 ## [0.79.0] - cars with glass you can see through, a cabin behind it, and a body style
 
 The walker, after walking a generated street: "we need our cars to upgrade

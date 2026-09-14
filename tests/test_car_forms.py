@@ -172,7 +172,9 @@ def test_see_through_material_blends_on_every_branch():
     assert '"alpha_mode": "blend"' in body                  # opaque pack, forced
     assert '("blend_method", "BLEND")' in body               # no pack, flat
     assert 'bsdf.inputs["Alpha"].default_value = opacity' in body
-    assert 'float(trans.get("opacity", 1.0)) < 1.0' in body  # authored pack
+    # authored pack: the one reading of the hint `_textured` also uses;
+    # what it accepts is tested without bpy in tests/test_see_through_glass.py
+    assert "skins.is_see_through(pack)" in body
 
 
 # --- the slot's exact dims -----------------------------------------------------

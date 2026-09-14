@@ -132,6 +132,17 @@ def make_material(name, base_color, material_kind):
             return mat
         print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})"
               + (f"  tinted #{tint}" if tint else ""))
+        from ..core import skins
+        if (material_kind in skins.SEE_THROUGH_KINDS
+                and not skins.is_see_through(pack)):
+            # Said once per material (the cache above returns before this),
+            # and not fixed here: the opacity is the pack's to declare. This
+            # line is what the delco_1997 build did not print while every
+            # window in it exported OPAQUE.
+            print(f"[zoo] WARNING: {material_kind} is a see-through kind and "
+                  f"pack {pack['id']} declares no blended "
+                  f"import_hints.transparency -- every '{material_kind}' "
+                  f"surface of theme {_SKINS['theme']} exports OPAQUE")
         return _textured(skin_name, pack, material_kind,
                          tint=(tuple(base_color) if tint else None))
 
@@ -183,15 +194,29 @@ def make_see_through_material(name, tint, opacity, material_kind="glass"):
       * no pack: a flat tinted pane at ``opacity``.
 
     The blend rides the same `_textured` transparency branch as an authored
-    pack, so the glTF exporter writes alphaMode BLEND either way; Godot
-    imports that as BaseMaterial3D transparency ALPHA, which also keeps the
-    pane out of the shadow pass so daylight reaches the cabin.
+    pack, so the glTF exporter writes alphaMode BLEND either way.
+
+    REFUTED, kept above what replaced it: this said Godot "imports that as
+    BaseMaterial3D transparency ALPHA, which also keeps the pane out of the
+    shadow pass so daylight reaches the cabin". Godot 4.7 imports BLEND as
+    transparency 4, ALPHA_DEPTH_PRE_PASS, and a depth-prepass pane casts a
+    shadow as solid as an opaque one -- measured in GL Compatibility on a
+    delco_1997 window module under a shadowed sun, ground under the pane at
+    0.463 of open ground both opaque and blended, 1.000 with the pane hidden.
+    glTF has no word for "casts no shadow"; Level Factory's import script
+    (`zoo_worldskin.gd`, 0.84.0) moves blended materials to ALPHA, which does
+    not cast.
+
+    SINCE PIXELCOAT 0.40.0 every theme's `glass` pack is authored see-through
+    (delco_1997's at 0.38, this helper's own car opacity), so on a themed
+    build the first branch below is the one taken and the car wears the
+    theme's glass. The forced and flat branches remain for a library that
+    has no `glass` pack or predates that release.
     """
+    from ..core import skins
     opacity = max(0.05, min(0.95, float(opacity)))
     pack = _find_pack(material_kind)
-    trans = (pack or {}).get("transparency") or {}
-    if (pack and trans.get("alpha_mode") != "scissor"
-            and float(trans.get("opacity", 1.0)) < 1.0):
+    if pack and skins.is_see_through(pack):
         return make_material(name, tint, material_kind)
     if pack:
         skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}_see_through"
@@ -473,6 +498,7 @@ def _textured(name, pack, material_kind, tint=None):
     # alphaMode=BLEND and Godot imports a transparent material. Facade glass
     # ships no hint (opaque). The blend-method attribute name varies across
     # Blender versions, so set both known spellings best-effort.
+    from ..core import skins
     trans = pack.get("transparency")
     # A CUTOUT pack (road paint, foliage: `alpha_mode: scissor`) carries its
     # alpha in the albedo and asks to be tested, not blended. The glTF
@@ -498,7 +524,7 @@ def _textured(name, pack, material_kind, tint=None):
             mat.use_backface_culling = False       # a card reads from both sides
         except Exception:
             pass
-    elif trans and float(trans.get("opacity", 1.0)) < 1.0:
+    elif skins.is_see_through(pack):
         try:
             bsdf.inputs["Alpha"].default_value = float(trans["opacity"])
         except Exception:
