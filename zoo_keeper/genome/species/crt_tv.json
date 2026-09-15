@@ -43,8 +43,20 @@
    "min": 0,
    "max": 4,
    "default": 2
-  }
+  },
+  "game": [
+   "auto",
+   "you_jawn",
+   "hoag_wit",
+   "jawn_mud",
+   "shor_you",
+   "wdr_scr",
+   "mud_shor",
+   "scr_hoag",
+   "wit_wdr"
+  ]
  },
+ "module_variants": 4,
  "materials": {
   "default": "plastic",
   "options": [

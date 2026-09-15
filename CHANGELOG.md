@@ -1,3 +1,151 @@
+## [0.90.0] - the bar TV is on, and it is showing the game
+
+The walker, after walking cold run 9057's strip club: "I also want the CRTs
+in the Strip club to have a light/glow from the screen as if they are
+on...but we dont have to have a clear image on them...it would be a
+football or baseball game tho". 0.88.0 lit the bracket set's glass a flat
+(0.10, 0.17, 0.26) x 0.35, which read as a dead tube. And 0.88.0 recorded,
+without fixing, that the stand set failed `fit_depth` at every size and hid
+its screen inside its body. Both are closed here.
+
+This does not reduce interventions-per-level by itself: it is the walker's
+second look at a club, answered in the tool that owns the prop. Deli
+Counter 0.135.0 is the other half (the light the screen throws), and Deli
+Counter does not yet write a `variant` on its TVs -- see the last section.
+
+### The picture: `core/crt_screens.py`
+
+A 224 x 168 raster (4:3) painted in plain Python, the vending panel's
+pattern (`vending_forms.Canvas` and its PNG writer, `pixel_type` for the
+lettering), and the same bytes every build -- host Python and Blender's
+paint `hoag_wit` to one CRC.
+
+  * FOOTBALL from the press box: mowing bands, yard lines converging on a
+    vanishing point above the frame, hash marks, the stands over the far
+    sideline, two teams of blobs either side of a line of scrimmage. Scene
+    `line` is midfield; `goal_line` has an end zone in the home colour.
+  * BASEBALL: `pitch` is the centre-field camera, the pitcher's back and
+    number in the foreground, batter, catcher and umpire in the dirt round
+    home, base paths running out of frame; `wide` is the high-home shot of
+    the diamond with the fielders, a batter and sometimes a runner.
+  * A SCORE BUG top left: a team colour chip, abbreviation and score per
+    row, the period beneath. Teams are invented and Delco: `YOU` (youse),
+    `JAWN`, `WDR` (wooder), `SCR` (scrapple), `HOAG`, `WIT`, `MUD` (MacDade
+    mud), `SHOR` (down the shore). The eight bugs:
+    `YOU 14 / JAWN 10 / 4TH 2:07`, `HOAG 21 / WIT 17 / 2ND 0:48`,
+    `JAWN 3 / MUD 7 / 3RD 9:15`, `SHOR 0 / YOU 6 / 1ST 11:32`,
+    `WDR 3 / SCR 2 / TOP 7`, `MUD 5 / SHOR 4 / BOT 9`,
+    `SCR 1 / HOAG 0 / TOP 3`, `WIT 8 / WDR 6 / BOT 5`. A denylist test
+    holds every token against real NFL, MLB, NBA and NHL abbreviations of
+    the period, the Philadelphia teams and nicknames, the local colleges,
+    the leagues, and the networks and stations that carried the games.
+  * NOT A CLEAR IMAGE, measured: the scene blurred twice and the frame once
+    ([1 2 1]), every other row x 0.80, a vignette (corner 0.47 - 0.63 of the
+    centre) and a cold phosphor cast. No two horizontal neighbours differ by
+    more than 96 codes (the bug's white type on navy is 224 crisp).
+
+WHICH GAME is the module's variant: the genome's `module_variants` is 4, and
+`pick_game` walks `game_order(stem without _n)`, which alternates the
+sports -- so variants 0 and 1 of one slot are always a football and a
+baseball game, and the two TV sizes Deli Counter places open on different
+games. `params.game` names one outright.
+
+### The face: `crt_forms.screen_prim`
+
+The glass is a 4:3 grid of 48 quads bulged 14 mm toward the room at the
+centre with its corners 4 mm behind the bezel, so the bezel cuts it to a
+tube's rounded outline; a flat back and four side strips close it. It
+carries its own UVs (`uvs`, per face corner): the picture edge to edge on
+the front, the vignette's darkest pixel everywhere else. `recipes/crt_tv.py`
+builds it outside `prim_mesh` for those UVs, with
+`materials.make_backlit_material` as `M_CRT_Screen_<art>_Face` (Lux's power
+cut), albedo 0.35, and COLOR_0 white (Level Factory's worldskin leaves it
+undimmed). 404 tris against 4000; exact fit and 0 coplanar pairs at the
+genome's corners and Deli Counter's two sizes.
+
+### How bright: 1.5, measured
+
+The two TV modules of `strip_club_a01` (the stems cold run 9057 built)
+rebuilt at 0, 0.5, 1.0, 1.5, 2.0 and 3.0 and swapped into two scratch copies
+of `_runs/walk_9057_rain` with this release's club rigs and Deli Counter
+0.135.0's screen neons baked -- Heavy Rain as shipped, and the same copy on
+delco_summer_afternoon -- Godot 4.7 gl_compatibility, RTX 2060,
+`tools/look_shots.py`, a camera 2 m in front of each of the club's three
+sets. The knob was read back from every GLB before any frame was trusted
+(`emissiveFactor` 0.5 at 0.5, `KHR_materials_emissive_strength` 1.5, 2 and 3
+above 1.0), and the committed constant builds byte-identical to the sweep's
+1.5. Screen pixels are those that brighten by more than 8 codes from 0 to 1;
+ranges over the three sets:
+
+                  strength    0      0.5     1.0     1.5     2.0     3.0
+    rain   luma            12-59  51-80   70-93  103-119 130-142 169-177
+           saturation      .46-.90 .40-.52 .37-.45 .33-.38 .30-.33 .24-.25
+           pinned %           0      0       0       0       0    .06-.11
+           white %            0      0       0       0     0-.01  .86-1.43
+    summer luma            14-66  62-92  84-108 121-138 150-163 191-200
+           pinned %           0      0       0       0    .10-.69 11.2-17.3
+           white %            0      0       0     0-.05  .45-.88 5.4-7.6
+
+1.5 is the highest strength with no pinned pixel in either preset, 2.0 to
+8.6 x the unlit screen's luma in the rain. Its 0.05 % white under the summer
+sun is the bug's type. KEPT, the stricter reading and the first value: 1.0
+is the highest with neither pinned nor white anywhere (the vending panel's
+rule); frames of both were shot.
+
+### The stand set fits its slot and shows its glass
+
+`crt_forms.stand_layout` is the stand set's parts, pure. MEASURED on 0.89.0
+in Blender, kit path: 0.522 m deep for a 0.500 slot, 0.642 for 0.620, 0.372
+for 0.350 (`fit_depth` FAIL), the knobs 22 mm past the front and the screen
+box 10 - 30 mm behind the body's face. Now the body's front stands 18 mm
+inside the slot, the knobs fill that depth to the front plane (buried 6 mm),
+the glass stands 10 mm proud of the body, and the feet are buried 6 mm into
+its underside. Every fit check passes at the sizes measured and the coplanar
+probe finds nothing. The stand set's screen is still dark glass: a set on a
+surface is off. `test_club_bpy`'s pinned digests for the stand set are
+0.90.0's now; 0.86.0's are kept beside them.
+
+### Tests
+
+`tests/test_crt_screens.py`, 89 (16 of them bpy): the picture's bytes, PNG
+and 4:3; soft, scanlined and vignetted; a ballgame on grass under a bug;
+both sports and all four scenes; the denylist; no green jersey; the genome's
+four variants honoured by the kit; variants alternate sports and never
+repeat; the pick by stem and variant; the bracket set's exact fit, face and
+UVs at the corners; the bulge and the sunk corners; the stand layout exact
+at the corners with 0, 2 and 4 knobs; and in Blender: both forms pass fit
+with 0 coplanar pairs, the stand's glass in front of its body, the screen
+the only lit object with white COLOR_0 and an emissive texture at
+`SCREEN_EMISSION` in the GLB, the same GLB twice, four variants four games.
+On 0.89.0 the file does not import (`crt_screens` does not exist); the
+behaviour it pins was measured failing there, as written above.
+`test_club_bpy.py`: the flat-colour screen case removed (the picture is
+tested here) and the stand digests re-pinned.
+
+Host suite 1781 passed, 176 skipped. In Blender 5.1.1 the whole suite 1931
+passed, 26 skipped, at strength 1.0; after the move to 1.5,
+`test_crt_screens`, `test_club_bpy` and `test_club_species` in Blender, 379
+passed, 1 skipped.
+
+### Not done, and why
+
+  * DELI COUNTER CANNOT WRITE A TV VARIANT YET. On Zoo 0.89.0 a `variant`
+    on `crt_tv` is outside `module_variants` and `honour_dressing` drops
+    all three fields -- measured: `form` `bracket` with a `variant` built a
+    STAND set. Until this release is what Deli Counter's hook reads, every
+    TV of one size in a building is variant 0, the same game:
+    `strip_club_a01`'s three sets show two games, both football
+    (`shor_you`, `jawn_mud`). Deli Counter's `wall_tv` piece can take
+    `variants=True` once Zoo 0.90.0 is on main.
+  * Deli Counter's screen neon puts a specular highlight in the middle of
+    the glass (the omni stands 0.25 m in front of it; roughness 0.35). It
+    reads as glare in the frames; nothing measures it.
+  * The kit for the frames used the e2e delco_1997 skin library, not cold
+    run 9057's: 307 of 323 embedded images differ from 9057's kit, while
+    every module's glTF but the two TVs is identical. The before/after sheet
+    carries that confound; the sweep, which moved only the TV modules inside
+    one walk, does not.
+
 ## [0.89.0] - the club's five defects, and the material in the name
 
 0.88.0 built the club and recorded what it found and did not fix: the

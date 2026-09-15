@@ -13,8 +13,14 @@ Skipped without `bpy`; run inside Blender 5.1.1. What only a build answers:
     GLB carries them as glTF emissive;
   * the dressing fields change the module: bar stock stands on a stage's bar
     and a cocktail table, and the stock is measured apart from the slot;
-  * what already shipped is unchanged: crt_tv's stand form and booth_seat's
-    sofa, the digests measured on a `git archive` of Zoo 0.86.0 (5b15338).
+  * what already shipped is unchanged: booth_seat's sofa, the pool table and
+    a stocked table, the digests measured on a `git archive` of Zoo 0.86.0
+    (5b15338). crt_tv's stand form changed ON PURPOSE in 0.90.0 (its knobs
+    hung 22 mm past the slot and its screen was inside the body); its
+    digests are 0.90.0's, the 0.86.0 ones kept beside them.
+
+The bracket TV's lit screen is a picture since 0.90.0 and is tested in
+tests/test_crt_screens.py.
 """
 from __future__ import annotations
 
@@ -30,8 +36,12 @@ _ZOO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #: measured on Zoo 0.86.0 (5b15338), kit path, theme delco_1997, flat
 #: materials: object names, vertices to 0.1 mm, Wear to 1e-4, material names
 MAIN_DIGESTS = {
-    ("crt_tv", (0.55, 0.5, 0.42), ()): "ca85dce48259f1b238fcabd387b3033de8b0446f",
-    ("crt_tv", (0.9, 0.62, 0.7), ()): "3f8cc9bbf7137bb708a200673bf0a86f28b35b86",
+    # 0.86.0 - 0.89.0, the stand set that failed `fit_depth`:
+    #   (0.55, 0.5, 0.42) ca85dce48259f1b238fcabd387b3033de8b0446f
+    #   (0.9, 0.62, 0.7)  3f8cc9bbf7137bb708a200673bf0a86f28b35b86
+    # 0.90.0, measured on the first build of `crt_forms.stand_layout`:
+    ("crt_tv", (0.55, 0.5, 0.42), ()): "ea931596f371006cdda67be9e6f4f6a1bde869f6",
+    ("crt_tv", (0.9, 0.62, 0.7), ()): "13598510af7123b6ce3b4d87fb04d93036c8ecbd",
     ("booth_seat", (2.0, 0.9, 0.85), (("form", "sofa"),)): "13cba2a4abf87dbfe4be1dc10e75cbefeefe8438",
     ("pool_table", (2.0, 1.14, 0.79), ()): "c904dc4002de72713a3111dd26b0787d8c18dbb1",
     ("table", (1.2, 0.8, 0.74), (("stock", "bar"), ("variant", 1))): "1a8cc276ae4b5d5ccb2c4bcde9bf008c05d128a6",
@@ -176,20 +186,17 @@ def test_bpy_bar_stock_stands_on_the_top_and_is_measured_apart(tmp_path, sp, dim
 
 
 def _lit_table():
-    from zoo_keeper.core import club_forms, club_names, crt_forms
+    from zoo_keeper.core import club_forms, club_names
     rope_rgb, rope_s = club_forms.STAGE_EMISSIVE["rope"]
     pink, blue = club_names.palette_for(0)
-    scr_rgb, scr_s = crt_forms.SCREEN_EMISSIVE
     return {"M_ClubStage_rope_Face": max(rope_rgb) * rope_s,
             "M_NeonSign_ff0f52_Face": max(pink) * club_names.NEON_STRENGTH,
-            "M_NeonSign_1a47ff_Face": max(blue) * club_names.NEON_STRENGTH,
-            "M_CRT_Screen_Face": max(scr_rgb) * scr_s}
+            "M_NeonSign_1a47ff_Face": max(blue) * club_names.NEON_STRENGTH}
 
 
 @pytest.mark.parametrize("sp,dims,fields,names", [
     ("club_stage", (4.0, 4.0, 3.6), {"form": "round"}, ("M_ClubStage_rope_Face",)),
     ("neon_sign", (1.4, 0.1, 0.6), {"variant": 0}, ("M_NeonSign_ff0f52_Face", "M_NeonSign_1a47ff_Face")),
-    ("crt_tv", (0.55, 0.62, 0.5), {"form": "bracket"}, ("M_CRT_Screen_Face",)),
 ])
 def test_bpy_the_exported_glb_carries_the_emission(tmp_path, sp, dims, fields, names):
     pytest.importorskip("bpy")

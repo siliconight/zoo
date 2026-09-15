@@ -1,20 +1,24 @@
-"""CRT TV recipe: chunky plastic body, recessed dark screen, small feet and
+"""CRT TV recipe: chunky plastic body, dark glass screen, small feet and
 tuning knobs. 1990s tube-television silhouette. Origin at floor center,
 screen faces -Y.
 
-FORMS (0.87.0). ``stand`` -- and ``auto``, the default -- is the set this
-recipe always built, on its feet on a surface; ``bracket`` is a bar TV up on
-a wall bracket, tipped toward the room with its screen lit, planned in pure
-Python by `core.crt_forms` and built by `bpylayer.prim_mesh`. The stand path
-below is untouched: it returns before ``bracket`` is consulted and draws the
-same streams it always drew.
+FORMS (0.87.0). ``stand`` -- and ``auto``, the default -- is the set on its
+feet on a surface; ``bracket`` is a bar TV up on a wall bracket, tipped
+toward the room, planned in pure Python by `core.crt_forms` and built by
+`bpylayer.prim_mesh`.
+
+0.90.0: the bracket set's screen is ON, showing a ballgame painted by
+`core.crt_screens` (the module's variant picks the game), as a backlit
+texture on a curved face. The stand set's parts come from
+`crt_forms.stand_layout`, which fits the slot exactly and puts its glass in
+front of the body where it can be seen -- 0.86.0 to 0.89.0 hung the knobs
+22 mm past the slot and buried the screen inside the body. The stand set's
+screen is still dark glass: a set on a surface is off.
 """
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials, prim_mesh
-from ..core import crt_forms
-
-FOOT_H = 0.02
+from ..core import crt_forms, crt_screens
 
 
 def _darker(c, f=0.6):
@@ -36,31 +40,30 @@ def build(plan, streams, collection):
         objs.append(geometry.bm_to_object(
             bm, name, collection, bevel=bevel, texel=texel, rng=rng, wear=wear))
 
-    body_h = h - FOOT_H
+    L = crt_forms.stand_layout(w, d, h, n_knobs)
+    c, size = L["body"][0]
     bm = geometry.new_bm()
-    geometry.add_box(bm, (0, 0, FOOT_H + body_h / 2), (w, d, body_h))
+    geometry.add_box(bm, c, size)
     part(bm, "CRT_Body")
     cboxes.append(((-w / 2, -d / 2, 0), (w / 2, d / 2, h)))
 
-    # recessed screen on the front face (-Y), sits just inside the bezel
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0, -d / 2 + 0.02, FOOT_H + body_h * 0.56),
-                     (w * 0.80, 0.02, body_h * 0.64))
-    part(bm, "CRT_Screen")
-
-    # tuning knobs, lower-right of the front face
-    for i in range(min(n_knobs, 4)):
+    # the glass, proud of the body's front face
+    for c, size in L["screen"]:
         bm = geometry.new_bm()
-        geometry.add_cylinder(
-            bm, (w * 0.30 - i * 0.05, -d / 2 - 0.012, FOOT_H + body_h * 0.16),
-            radius=0.016, depth=0.02, segments=12, axis="Y")
+        geometry.add_box(bm, c, size)
+        part(bm, "CRT_Screen")
+
+    # tuning knobs, lower-right of the front face, their caps on the slot's
+    # front plane
+    for i, (c, radius, depth) in enumerate(L["knobs"]):
+        bm = geometry.new_bm()
+        geometry.add_cylinder(bm, c, radius=radius, depth=depth, segments=12, axis="Y")
         part(bm, f"CRT_Knob_{i + 1}")
 
-    # two feet
-    for side, sx in (("L", -1), ("R", 1)):
+    # two feet, buried into the body's underside
+    for side, (c, size) in zip(("L", "R"), L["feet"]):
         bm = geometry.new_bm()
-        geometry.add_box(bm, (sx * w * 0.34, 0, FOOT_H / 2),
-                         (w * 0.14, d * 0.5, FOOT_H))
+        geometry.add_box(bm, c, size)
         part(bm, f"CRT_Foot_{side}")
 
     body_mat = materials.make_material(
@@ -77,7 +80,7 @@ def build(plan, streams, collection):
                      body_mat)
 
     return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_screen_center": (0, -d / 2, FOOT_H + body_h * 0.56)}}
+            "attachments": {"ATT_screen_center": L["screen_centre"]}}
 
 
 def _bracket(plan, streams, collection):
@@ -89,9 +92,34 @@ def _bracket(plan, streams, collection):
     # housing is `crt_forms.MATERIALS` (why is written there)
     mats = {key: (f"M_CRT_{key}_{k}", list(c), k)
             for key, (c, k) in crt_forms.MATERIALS.items()}
-    rgb, strength = crt_forms.SCREEN_EMISSIVE
-    mats["screen"] = ("M_CRT_Screen_Face", list(rgb), "emissive", strength)
-    objs = prim_mesh.build(got["prims"], collection, plan, streams.stream("wear"),
-                           mats, texel=2.0)
+    screens = [p for p in got["prims"] if p["part"] == "CRT_Screen"]
+    rest = [p for p in got["prims"] if p["part"] != "CRT_Screen"]
+    objs = prim_mesh.build(rest, collection, plan, streams.stream("wear"), mats, texel=2.0)
+
+    game = crt_screens.pick_game(plan, streams)
+    canvas, facts = crt_screens.paint(game)
+    image = materials.image_from_png(facts["name"], canvas.png())
+    face = materials.make_backlit_material(f"M_CRT_Screen_{facts['name']}_Face", image,
+                                           crt_forms.SCREEN_EMISSION, crt_forms.SCREEN_ALBEDO)
+    for p in screens:
+        bm = geometry.new_bm()
+        vs = [bm.verts.new(v) for v in p["verts"]]
+        faces = [bm.faces.new([vs[i] for i in f]) for f in p["faces"]]
+        uv = bm.loops.layers.uv.new("UVMap")
+        for face_, corners in zip(faces, p["uvs"]):
+            for loop, co in zip(face_.loops, corners):
+                loop[uv].uv = co
+        bm.normal_update()
+        # a curved face: smooth across the grid, hard at its sides
+        geometry.shade_by_angle(bm)
+        # a lit face does not grime; a white COLOR_0 keeps Level Factory's
+        # import from dimming it
+        geometry.wear_colors(bm, streams.stream("crt_screen_wear"), 0.0)
+        obj = geometry.bm_to_object(bm, "CRT_Screen", collection, finish=False)
+        materials.assign([obj], face)
+        objs.append(obj)
+    print(f"[crt_tv] bracket game={facts['game']} sport={facts['sport']} scene={facts['scene']} "
+          f"bug={' / '.join(facts['bug'])} art={facts['name']}")
     return {"objects": objs, "collision_boxes": got["collision"],
-            "attachments": {"ATT_screen_center": got["screen_centre"]}}
+            "attachments": {"ATT_screen_center": got["screen_centre"]},
+            "crt": {"game": facts["game"], "sport": facts["sport"], "art": facts["name"]}}
