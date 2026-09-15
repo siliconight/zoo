@@ -1,3 +1,175 @@
+## [0.91.0] - a dartboard with the game in chalk, and a cigarette machine by the door
+
+The walker, 2026-09-15, with two photos: "we also need dart boards in the
+strip clubs. The kind where you use chalk to keep your score". And, with
+three more: "we need retro cigarettes' machines in the strip club. (Maybe
+we'll put em in other buildings too, it was the 1990s where smoking in
+public was still legal in PA)". Two species, planned and painted in pure
+Python, built vertex for vertex. Deli Counter 0.136.0 places them.
+
+This does not reduce interventions-per-level by itself: it is the walker's
+next look at a club, answered in the tool that owns the prop.
+
+### `dartboard`: `core/dartboard_forms.py`, `core/dartboard_art.py`
+
+The bar's wall cabinet. Top and bottom boards overhanging the sides, a back
+panel, a lip inside the opening; teal felt; a 40-sided bristle board 451 mm
+across with a steel number ring standing 3 mm proud; two doors on brass
+hinge knuckles, their top edges one gentle arch; a chalkboard panel inset on
+each door's inside, with a dart rail and three darts (point, barrel, shaft,
+crossed flights) along its bottom when the doors are open; a tray under the
+cabinet standing out past the doors, with two or three sticks of chalk and
+an eraser.
+
+FORMS `open` (the default, and `auto` at 0.9 m wide or more) and `closed`.
+THE SLOT IS THE OPEN FOOTPRINT: the doors' free edges are the slot's sides
+and front. `solve` picks the cabinet's width, its depth and the doors' angle
+that fill it -- a variant's preferred angle as the tiebreak, then Newton on
+the measured bounds -- and `prims.fit_exact` takes the rest: under 0.5 % on
+every axis at every corner of each form's range (`FORM_RANGES`; the genome
+is their union) and at Deli Counter's two sizes, where it takes nothing. At
+1.1 x 0.36 x 0.9 the doors stand 128-130 degrees open on a 0.64-0.65 m
+cabinet. REFUTED FIRST, kept here: a search over the cabinet's width alone
+left corners of the first range 1.5-9 % off in depth and width; open at 0.95 x 0.28 cannot be
+filled by any cabinet 0.56 m or wider, and the range starts at 1.0 x 0.30.
+
+THE BULL IS THE SLOT'S CENTRE HEIGHT, by construction: the arch rises over
+the cabinet exactly as far as the tray drops under it (`MARGIN_FRAC` of the
+slot's height), so a consumer hangs a regulation board by lifting the slot's
+centre to 1.73 m. `ATT_bull` marks it. COLLISION IS THE CABINET BOX ONLY --
+the doors, tray and darts are visual; a body is stopped by the cabinet on
+the wall, not by a door in mid-air.
+
+THE BOARD is a 400 px raster at the regulation radii (bull 6.35, outer bull
+15.9, trebles 99-107, doubles 162-170, edge 225.5 mm) in the regulation
+order from 20 clockwise; black and cream singles, red trebles and doubles on
+a black sector and green on a cream one; a one-pixel silver spider; the
+numbers upright in the black band; the brand along the bottom of the rim;
+radial sisal grain; and pocks where a bar throws -- treble 20, the singles
+beside it, the bull, treble 19 -- with the sisal greying round them on the
+later variants. THE CHALK is both doors' panels on one raster, 512 px/m: a
+painted frame, the brand and its tag, HOME / AWAY (even variants) or 01 /
+01, boxed numbers 20 to 15 and a bull; and a game in chalk, drawn from the
+variant (`CHALK_STAGES`): `wiped` (ghosts of old games, smudges),
+`first_rounds` (a few slashes), `mid_game` (slashes, X's, circled closes,
+points in the margin, "x2") and `late_game` (many numbers closed, the
+scores run up, two erased patches). Chalk is grainy, broken and hand-
+jittered; paint is solid. The two doors keep different games.
+
+A VARIANT is a different board: another brand (`brand_order` of the stem
+without `_n`, so a slot's four variants are four brands), another stage of
+the game, stained wood (`wood_stained`) or black paint (`metal_painted`),
+other flights, and 0-2 darts stuck in the board instead of on the rails
+(always six in all; none when closed -- a dart in the board keeps the doors
+from shutting).
+
+THE BRANDS ARE INVENTED (`dartboard_art.BRANDS`): DOUBLE DELCO / BRISTLE,
+MACDADE BRISTLE / CO., THE JAWNBOARD / PRO, YOUSE THROW / LIKE MY NAN,
+BALTIMORE PIKE PRO / TOURNAMENT, WOODER ICE HOUSE / LEAGUE. A denylist test
+holds every painted string against the dart makers a writer reaches for
+(Harrows, Winmau, Unicorn, Bottelsen, Nodor, Target, Viper, Arachnid, Halex,
+Red Dragon, ...), their product lines, and the local brands and teams.
+
+The painted faces are a new `materials.make_painted_material`: the image as
+Base Color at full strength, nearest filter, clamped, its own roughness, no
+emission. `make_backlit_material` at strength 0 was not used for it -- it
+dims the art to 0.35 and sets roughness 0.35, a backlit panel's numbers.
+1,416-1,440 tris (open), 912 (closed), against 2,000.
+
+### `cigarette_machine`: `core/cigarette_forms.py`, `core/cigarette_brands.py`
+
+The floor-standing pull-knob machine of the 1970s-1990s. A near-black body
+on four splayed black legs with pads; woodgrain (`wood_stained`) side panels
+standing 4 mm proud of the front; a chrome top cap with a brass strip and a
+round key lock; the chrome FRAME, one closed solid over a cell grid (the
+vending machine's door) with the display and the delivery tray cut through
+it; the DISPLAY insert behind it; two chrome knob shelves with a PULL KNOB
+per pack column -- shaft and cap, real geometry, chrome or amber by variant;
+a coin plate with its slot, a return plate with its button and mouth; the
+tray's drawer front and handle. The knob caps are the slot's front, the
+splayed pads its sides and the rear pads its back: exact, `fit_exact`
+taking nothing at Deli Counter's sizes and the genome's corners. Collision
+is the cabinet box.
+
+THE DISPLAY is one raster at 700 px/m: the HEADER ad (the brand's gradient,
+a big pack, the logo, the slogan, a taped price card "$3.50 / QUARTERS
+ONLY", and the Surgeon General's warning sticker -- the statutory text, not
+a mark), two ROWS of packs faced out, one pack a knob, over black backing or
+cream display cards with black notches (variants 1 and 2), each over a strip
+"SALES OF CIGARETTES TO MINORS ARE FORBIDDEN BY LAW"; between the rows a
+second brand's ad (form `pull_knob`, the default) or the black panel that
+says CIGARETTES (form `pull_knob_split`). REFUTED FIRST, kept: the middle
+ad was the stem's sixth brand whatever the variant, and the first contact
+sheet showed one brand there on all four; it walks the variant now. The first column of the top row
+sells what the header does. The header is lit and nothing else: the
+insert's front is two quads, the header's `M_CigMachine_<art>_Face`
+(`make_backlit_material`, Lux's power cut takes it) and the rest
+`M_CigMachine_<art>_Display` (painted). 1,456-1,976 tris against 2,500.
+
+TWELVE INVENTED BRANDS in one table beside `brands.py`: DELCO REDS, MACDADE
+MENTHOL, BLUE ROUTE LIGHTS, MARCUS HOOK 100s, NANA'S SLIMS, JAWN KINGS,
+WOODER FILTERS, BOULEVARD BUTTS, DOWN THE SHORE 120s, HAVERTOWN HAZE, DARBY
+DARKS, BALTIMORE PIKE MILDS -- each with a PG-13 slogan ("Smoke 'Em If Youse
+Got 'Em.", "She Quit. Twice.", "Low Tar. High Hopes.") and a plain pack
+design (band, split, stripe, disc, diamond, bars). A denylist holds names
+against real marks as whole words (Kool, Salem, Camel, Merit, More, Eve,
+True, Kent, Basic, Doral, Misty, Capri, Now, Winston, Newport, Marlboro, ...)
+and anywhere (Virginia, Benson, Hedges, Pall Mall, Chesterfield, Old Gold,
+American Spirit, Philip Morris, ...), and designs against real trade dress
+(the red roof chevron, the spinnaker, the camel, a crest). ONE SUGGESTED
+NAME WAS CHANGED, recorded in the module: CHESTER 100s became MARCUS HOOK
+100s -- "Chester" is the first seven letters of a national brand sold in
+1997, and a 100 in a red-and-white pack would read as it.
+
+HOW BRIGHT THE HEADER IS: 0.5, set faint and then measured. `strip_club_a01`'s
+two machines (variants 1 and 3) built at 0, 0.5, 1.0 and 1.5 and swapped
+into a scratch copy of `_runs/walk_9057_rain` (Heavy Rain as shipped),
+Godot 4.7 gl_compatibility, `tools/look_shots.py` 1600 x 900, a camera 1.5 m
+in front of each; the knob read back from every GLB (factor 0.5 and 1.0,
+then factor 1 with `KHR_materials_emissive_strength` 1.5), and the
+constant built byte-identical to the sweep's 0.5 -- before the middle ad
+was made to follow the variant (below), which moves no header pixel. Header pixels
+are those that brighten by more than 8 codes from 0 to 1.5; 8-bit sRGB after
+tonemap and Lux post, Rec.709 luma:
+
+                  strength       0      0.5     1.0     1.5
+    main floor    luma        21.8     47.6    61.2    84.3   (18,697 px)
+    VIP wing      luma        14.9     45.8    58.8    77.4   (19,105 px)
+    both          pinned %       0        0       0       0
+                  white %        0        0       0       0
+
+0.5 is 2.2 - 3.1 x the unlit header and nothing pins even at 1.5. Not
+measured: the summer preset.
+
+### Tests
+
+`tests/test_dartboard.py` and `tests/test_cigarette_machine.py`: the slot
+filled exactly at every corner and Deli Counter's sizes, the bull at the
+centre height, 0 coincident pairs at a 2.2 mm window, every primitive wound
+outward, the budget, collision the cabinet box, the knobs one a column and
+the slot's front, the board at regulation radii and order, the chalk
+stages, the display's bytes and what it says, the brands and the denylists,
+and in Blender: PASS and fit, `tools/coplanar_probe.py` 0 rows, only genome
+parts, the collider and the bull, the painted materials in the file and
+nothing else lit (the machine's header only, at its strength), COLOR_0
+white on the art, two builds byte-identical, four variants four arts.
+REFUTED, kept: the lock's back stood 2.0 mm off the top cap's face, which
+the pure probe passed (float: 0.0020000000000000018 > 0.002) and Blender's
+failed; the pure tests now use 2.2 mm. `test_genome.py`,
+`test_material_options_closed.py` (both on `metal_painted`; the machine
+no longer also offers `metal_bare`) and `test_theme_style_resolution.py`
+(68 species) name the two.
+
+1896 passed / 192 skipped plain (0.90.0 in this worktree: 1783 / 174).
+In Blender 5.1.1 the whole suite 2061 passed / 27 skipped; after the middle
+ad's fix and two unused imports removed, `test_dartboard.py` and
+`test_cigarette_machine.py` again in Blender, 119 passed.
+
+Frames: `strip_club_a01` kit-built from Deli Counter 0.136.0's build (67
+modules, 0 failed), composed with 0 greybox fallbacks and swapped into a
+scratch copy of `_runs/walk_9057_rain`: the three boards at 1.5 and 4 m and
+the two machines at 1.5 m.
+
 ## [0.90.0] - the bar TV is on, and it is showing the game
 
 The walker, after walking cold run 9057's strip club: "I also want the CRTs

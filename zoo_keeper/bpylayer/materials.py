@@ -415,6 +415,37 @@ def make_backlit_material(name, image, strength, albedo_factor):
     return mat
 
 
+def make_painted_material(name, image, roughness):
+    """A face whose artwork is PAINT on it, not light: ``image`` drives Base
+    Color at full strength, nothing drives emission, roughness is the
+    surface's (0.91.0: a dartboard's sisal, a chalkboard's slate, a
+    cigarette machine's pack rows).
+
+    `make_backlit_material` at strength 0 is not this, and was not used for
+    it: it multiplies the artwork by its albedo factor (a backlit panel's
+    0.35) and sets roughness 0.35, which a chalkboard is not. Same image
+    node settings as that one -- nearest filter, clamped, a panel never
+    tiles -- so the pixel art stays crisp. No colour attribute is read: the
+    recipe paints these faces with a white COLOR_0, which Level Factory's
+    import multiplies by, so the artwork arrives as painted."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = float(roughness)
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Emission Strength"].default_value = 0.0
+    tex = tree.nodes.new("ShaderNodeTexImage")
+    tex.image = image
+    tex.interpolation = "Closest"
+    tex.extension = "EXTEND"
+    tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    return mat
+
+
 def _load_image(path, non_color=False):
     img = bpy.data.images.load(path, check_existing=True)
     if non_color:

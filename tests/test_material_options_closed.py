@@ -42,7 +42,11 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # (0.86.0)
            "vault_door",
            # a neon sign's backer is a painted sheet-metal box (0.87.0)
-           "neon_sign")
+           "neon_sign",
+           # a black dartboard cabinet is painted, and a cigarette machine's
+           # body is enamelled sheet steel; their chrome and brass trim is a
+           # constant in each recipe (0.91.0)
+           "dartboard", "cigarette_machine")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign",

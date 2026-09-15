@@ -1,0 +1,148 @@
+{
+ "species": "dartboard",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 0.91.0. A bar's wall dartboard cabinet: bristle board on felt, two chalkboard doors with a cricket grid and a dart rail each, brass hinges, a chalk tray. Planned in core/dartboard_forms.py, painted in core/dartboard_art.py (board sectors, rings and numbers at regulation radii; the chalk marks a game in progress per variant). Brands are INVENTED (dartboard_art.BRANDS), never a real dart maker; the lettering is Pixel Operator, CC0, via Pixelcoat. The slot is the OPEN footprint (the doors' free edges); collision is the cabinet box only. The bull is at the slot's centre height. The back is the slot's +Y face."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.6,
+   "max": 1.35,
+   "default": 1.1
+  },
+  "depth": {
+   "min": 0.14,
+   "max": 0.42,
+   "default": 0.36
+  },
+  "height": {
+   "min": 0.8,
+   "max": 1.0,
+   "default": 0.9
+  }
+ },
+ "parts": [
+  "Dartboard_Cabinet",
+  "Dartboard_Felt",
+  "Dartboard_Board",
+  "Dartboard_NumberRing",
+  "Dartboard_Door",
+  "Dartboard_Chalkboard",
+  "Dartboard_Rail",
+  "Dartboard_Hinge",
+  "Dartboard_Dart",
+  "Dartboard_Tray",
+  "Dartboard_Chalk",
+  "Dartboard_Eraser"
+ ],
+ "params": {
+  "form": [
+   "auto",
+   "open",
+   "closed"
+  ],
+  "brand": [
+   "auto",
+   "double_delco",
+   "macdade_bristle",
+   "jawn_board",
+   "youse_throw",
+   "pike_pro",
+   "wooder_ice"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "wood_stained",
+  "options": [
+   "wood_stained",
+   "metal_painted",
+   "wood"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.25,
+   "bevel": 0.002
+  },
+  "delco": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.45,
+   "bevel": 0.002,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.35,
+   "bevel": 0.002
+  },
+  "center_city": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.2,
+   "bevel": 0.002,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.5,
+   "bevel": 0.002,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "wood_stained",
+   "color": [
+    0.3,
+    0.19,
+    0.12
+   ],
+   "wear": 0.4,
+   "bevel": 0.002,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 2000
+ },
+ "attachments": [
+  "ATT_bull"
+ ],
+ "keywords": [
+  "dartboard",
+  "dart board",
+  "darts",
+  "dart cabinet",
+  "bar darts"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "wall"
+  }
+ }
+}

@@ -110,7 +110,8 @@ def test_delco_1997_reaches_every_species():
     import os as _os
     _minted_path = _os.path.join(_os.path.dirname(genome.genome_dir()), "minted.json")
     _minted = _json.load(open(_minted_path, encoding="utf-8")) if _os.path.exists(_minted_path) else []
-    assert len(_genomes()) == 66 + len(_minted), len(_genomes())
+    # 0.91.0: + dartboard, cigarette_machine
+    assert len(_genomes()) == 68 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

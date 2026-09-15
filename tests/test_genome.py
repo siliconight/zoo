@@ -23,7 +23,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # the club species (0.87.0): a 1997 Delco strip club's
                 # stage, tables, tub chairs, stools and its neon
                 "club_stage", "cocktail_table", "club_chair", "bar_stool",
-                "neon_sign"}
+                "neon_sign",
+                # the club's games and its vice (0.91.0): the chalk-score
+                # dartboard cabinet and the pull-knob cigarette machine
+                "dartboard", "cigarette_machine"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
