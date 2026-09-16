@@ -31,7 +31,12 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # dartboard cabinet and the pull-knob cigarette machine
                 "dartboard", "cigarette_machine",
                 # the club's bar (0.92.0): the lit wall unit behind it
-                "back_bar"}
+                "back_bar",
+                # the card shop (0.95.0): the showcase counter, the gondola
+                # bay of booster displays, the felt pennants along the wall
+                # top, and the play area's table and chair
+                "display_case", "pack_wall", "pennant_row",
+                "folding_table", "folding_chair"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

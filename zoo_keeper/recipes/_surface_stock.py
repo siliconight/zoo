@@ -29,7 +29,16 @@ the room (see `kit.DRESSING_FIELDS`):
   * ``kitchen`` -- ketchup and mustard with the salt and pepper, a tray
     with soda cups on it, a napkin holder;
   * ``vault``   -- cash straps in columns, zippered deposit bags, ledgers;
-  * ``storage`` -- a carton or a banker's box, a clipboard, forms.
+  * ``storage`` -- a carton or a banker's box, a clipboard, forms;
+  * ``cards``   -- THE CARD SHOP'S PLAY TABLE (0.95.0): a playmat with a
+    printed border and a deck of cards on it, piles of loose cards, deck
+    boxes, and dice. NOT TEXTURED, and that is a limit rather than a
+    choice: `prim_mesh.build_stock` has no textured path, so a mat is a
+    colour with a border and not art -- the same trade this module's own
+    `bar_dense` records for its bottle labels. What the textured version
+    would buy is the game's frame on a mat nobody is nearer than a metre
+    to; what it would cost is one atlas per host and an exception to the
+    rule that stock is flat.
 
 CLUSTERS, NOT SCATTER (SET_DRESSING_REFERENCES). A top gets a few clusters,
 about one per AREA_PER_CLUSTER of its area; a cluster is a group of items
@@ -72,7 +81,8 @@ from ..core import liquor_brands as LB
 from ..core import prims as P
 from ..core.brands import srgb_to_linear
 
-FLAVOURS = ("office", "bar", "kitchen", "vault", "storage", "bar_dense")
+FLAVOURS = ("office", "bar", "kitchen", "vault", "storage", "bar_dense",
+            "cards")
 EDGE = 0.02            # items stay this far inside the top's edges
 MIN_GAP = 0.012        # between item footprints (each grown by DETAIL)
 SINK = 0.003           # an item's lowest faces sit this far inside the top
@@ -118,6 +128,18 @@ FINISHES = {
     "cash": ([[0.30, 0.40, 0.25], [0.62, 0.70, 0.55], [0.10, 0.15, 0.08]], "paper"),
     "band": ([[0.75, 0.62, 0.30], [0.10, 0.25, 0.45]], "paper"),
     "bag": ([[0.52, 0.40, 0.24], [0.06, 0.08, 0.20], [0.30, 0.30, 0.30]], "canvas"),
+    # THE CARD TABLE. A playmat is rubber-backed cloth, near black with a
+    # printed border; the card stacks are the long edge of a deck, which is
+    # white board whatever the game; a deck box is moulded plastic in a
+    # strong colour and a die is a light chip. Two candidates each, as the
+    # module's contrast rule wants, and the mat's pale alternative is for a
+    # black cloth table -- the form this species ships by default.
+    "playmat": ([[0.035, 0.038, 0.045], [0.34, 0.30, 0.26]], "cloth"),
+    "mat_edge": ([[0.42, 0.10, 0.10], [0.10, 0.28, 0.45], [0.75, 0.62, 0.15]], "cloth"),
+    "card_edge": ([[0.80, 0.78, 0.72], [0.20, 0.19, 0.18]], "paper"),
+    "card_back": ([[0.24, 0.12, 0.06], [0.06, 0.10, 0.28]], "paper"),
+    "deck_box": ([[0.45, 0.06, 0.08], [0.06, 0.20, 0.42], [0.72, 0.66, 0.12]], "plastic"),
+    "die": ([[0.82, 0.80, 0.74], [0.12, 0.12, 0.14]], "plastic"),
     "ledger_cloth": ([[0.08, 0.20, 0.12], [0.34, 0.07, 0.06], [0.05, 0.05, 0.05]], "paper"),
     "pages": ([[0.80, 0.76, 0.62], [0.30, 0.26, 0.20]], "paper"),
     "masonite": ([[0.36, 0.22, 0.10], [0.62, 0.48, 0.30]], "wood"),
@@ -158,7 +180,10 @@ DETAIL_FINISHES = ("key_plastic", "screen", "led", "pencil", "foam", "ash",
 
 #: square metres of top per cluster, and the most clusters on one call
 AREA_PER_CLUSTER = {"office": 0.33, "bar": 0.22, "kitchen": 0.25,
-                    "vault": 0.22, "storage": 0.45, "bar_dense": 0.22}
+                    "vault": 0.22, "storage": 0.45, "bar_dense": 0.22,
+                    # a playmat is 0.6 x 0.35, so one player's worth of the
+                    # table is about a fifth of a square metre
+                    "cards": 0.30}
 MAX_CLUSTERS = 5
 
 # --- the club bar top (bar_dense) ------------------------------------------
@@ -739,6 +764,105 @@ def _g_clipboard(rng):
     return g
 
 
+# --- the card table (cards) --------------------------------------------------
+#
+# Every one of these keeps the module's own rule: nothing shares a plane with
+# anything, so a printed border is a SEPARATE slab 2.5 mm proud of the mat
+# rather than a face lying in it, and a card stack sits SINK into whatever it
+# stands on. A playmat is 0.60 x 0.35 (the size every one of them is).
+
+#: A HALF-SIZE PLAYMAT, and it had to be. A full one is 0.61 x 0.356, two of
+#: them face to face need 0.71 m, and a folding table is 0.76 deep -- after
+#: this module's `EDGE` (20 mm a side) and the host's own region inset the
+#: half a player gets is 0.318 m, so a full mat NEVER fit and `_place_group`
+#: gave way to card piles every time: measured on a 1.8 x 0.76 table, 0 mats
+#: in the frame. 0.56 x 0.27 is the small mat that is also a real product,
+#: and it has to be 0.27 rather than 0.28 because the module turns every item
+#: off square by up to `min(MAX_JITTER_DEG, JITTER_K / size)` -- 3.57 degrees
+#: for a 0.56 m mat, which is 35 mm of extra depth and was what still missed.
+#:
+#: A playmat is 2 mm of rubber, and this one is 9. `SINK` is 3 and this
+#: module's own rule is that no face of an item lands between the host's
+#: top and SINK + 4 mm above it -- at a true thickness the mat's top face
+#: sat 1.0 mm over the host top, on every seed and every table. The rule
+#: is what keeps stock out of the z-fighting band, so the mat moves.
+MAT_W, MAT_D, MAT_T = 0.56, 0.27, 0.009
+EDGE_W = 0.022
+DECK_W, DECK_D = 0.066, 0.094      # a deck of cards on its back
+
+
+def _playmat(rng):
+    """The mat, with a printed border laid on it rather than in it."""
+    out = [P.box("Stock_Playmat", "playmat",
+                 (-MAT_W / 2, -MAT_D / 2, 0.0), (MAT_W / 2, MAT_D / 2, MAT_T))]
+    e = EDGE_W
+    for tag, (a, b, c, dd) in (
+            ("N", (-MAT_W / 2 + e, MAT_D / 2 - e, MAT_W / 2 - e, MAT_D / 2 - e * 0.4)),
+            ("S", (-MAT_W / 2 + e, -MAT_D / 2 + e * 0.4, MAT_W / 2 - e, -MAT_D / 2 + e))):
+        out.append(P.box(f"Stock_MatEdge{tag}", "mat_edge",
+                         (a, b, MAT_T + 0.0025), (c, dd, MAT_T + 0.0055)))
+    return out
+
+
+def _card_stack(rng):
+    """A stack of cards: the white edge of the block with a coloured back
+    slab on top, overlapping by 4 mm so no two caps share a plane."""
+    hgt = rng.uniform(0.012, 0.040)
+    out = [P.box("Stock_CardStack", "card_edge",
+                 (-DECK_W / 2, -DECK_D / 2, 0.0), (DECK_W / 2, DECK_D / 2, hgt))]
+    out.append(P.box("Stock_CardBack", "card_back",
+                     (-DECK_W / 2 + 0.003, -DECK_D / 2 + 0.003, hgt - 0.004),
+                     (DECK_W / 2 - 0.003, DECK_D / 2 - 0.003, hgt + 0.0025)))
+    return out
+
+
+def _deck_box(rng):
+    w = rng.uniform(0.072, 0.082)
+    dd = rng.uniform(0.098, 0.108)
+    hgt = rng.uniform(0.075, 0.095)
+    return [P.box("Stock_DeckBox", "deck_box",
+                  (-w / 2, -dd / 2, 0.0), (w / 2, dd / 2, hgt)),
+            P.box("Stock_DeckLid", "deck_box",
+                  (-w / 2 + 0.004, -dd / 2 + 0.004, hgt - 0.006),
+                  (w / 2 - 0.004, dd / 2 - 0.004, hgt + 0.010))]
+
+
+def _dice(rng):
+    out = []
+    for k in range(rng.randint(2, 4)):
+        s = rng.uniform(0.013, 0.017)
+        x = -0.03 + k * 0.026 + rng.uniform(-0.004, 0.004)
+        y = rng.uniform(-0.016, 0.016)
+        out.append(P.box(f"Stock_Die{k}", "die",
+                         (x - s / 2, y - s / 2, 0.0), (x + s / 2, y + s / 2, s)))
+    return out
+
+
+def _g_playmat(rng):
+    """A mat with a deck on one corner of it -- a player's side of a game,
+    not a mat here and a deck somewhere."""
+    g = [(_playmat, 0.0, 0.0, rng.uniform(-0.03, 0.03))]
+    g.append((_card_stack, MAT_W * 0.30, -MAT_D * 0.22, rng.uniform(-0.3, 0.3)))
+    if rng.random() < 0.55:
+        g.append((_deck_box, -MAT_W * 0.36, MAT_D * 0.20, rng.uniform(-0.4, 0.4)))
+    return g
+
+
+def _g_card_piles(rng):
+    g = [(_card_stack, 0.0, 0.0, rng.uniform(-0.5, 0.5)),
+         (_card_stack, 0.085, 0.02, rng.uniform(-0.5, 0.5))]
+    if rng.random() < 0.5:
+        g.append((_card_stack, 0.042, 0.11, rng.uniform(-0.5, 0.5)))
+    return g
+
+
+def _g_deck_kit(rng):
+    g = [(_deck_box, 0.0, 0.0, rng.uniform(-0.4, 0.4))]
+    if rng.random() < 0.7:
+        g.append((_dice, 0.095, -0.02, rng.uniform(-0.6, 0.6)))
+    return g
+
+
 #: flavour -> ((group, weight, most per call), ...)
 GROUPS = {
     "office": ((_g_workstation, 3.0, 1), (_g_paperwork, 3.0, 2), (_g_phone, 1.5, 1)),
@@ -748,6 +872,8 @@ GROUPS = {
                 (_g_napkins, 1.0, 1)),
     "vault": ((_g_cash, 3.0, 3), (_g_bags, 2.0, 2), (_g_ledgers, 2.0, 1)),
     "storage": ((_g_carton, 3.0, 2), (_g_banker, 1.5, 1), (_g_clipboard, 2.0, 1)),
+    "cards": ((_g_playmat, 3.0, 2), (_g_card_piles, 2.0, 2),
+              (_g_deck_kit, 1.5, 2)),
 }
 
 

@@ -46,7 +46,15 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a black dartboard cabinet is painted, and a cigarette machine's
            # body is enamelled sheet steel; their chrome and brass trim is a
            # constant in each recipe (0.91.0)
-           "dartboard", "cigarette_machine")
+           "dartboard", "cigarette_machine",
+           # the card shop (0.95.0): a gondola's uprights and shelves are
+           # painted steel, a folding table's leg frame is, a folding chair
+           # is a painted frame under a moulded pan, and a showcase counter
+           # may have a painted body. The case's own frame is mill-finish
+           # aluminium -- `metal_bare` as a CONSTANT in the recipe, the way
+           # the dartboard's chrome and the hydrant's chains are, so it is
+           # not an option a slot can ask for and the species sits here
+           "display_case", "pack_wall", "folding_table", "folding_chair")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign",

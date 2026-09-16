@@ -91,7 +91,16 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # Prop metal (see skins.KNOWN_KINDS). Semi-gloss enamel sits
              # duller than the bare sheet it covers; brushed/polished stock
              # sits tighter than the generic `metal` average.
-             "metal_painted": 0.45, "metal_bare": 0.28}
+             "metal_painted": 0.45, "metal_bare": 0.28,
+             # THE CARD SHOP'S SURFACES (Pixelcoat 0.44.0). `wood_panel` is
+             # the printed hardboard panelling of a 1970s-90s shop's lower
+             # wall: the sheen is the factory lacquer's and not the grain's,
+             # so it sits beside `wood_stained` (0.50) rather than bare
+             # `wood` (0.65). `slatwall` is melamine-faced board and takes
+             # `laminate`'s 0.55 exactly -- it is a separate KIND so it can
+             # resolve its own pack (the grooves are in the texture), not
+             # because it reflects differently from a laminate counter.
+             "wood_panel": 0.52, "slatwall": 0.55}
 # `metal_painted` is listed at 0.0 rather than left to the .get() default:
 # the whole reason it is a separate kind from `metal_bare` is this number, and
 # a value that matters should not be inferred from an omission.

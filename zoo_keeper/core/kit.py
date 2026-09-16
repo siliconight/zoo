@@ -522,6 +522,10 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
     art_cache = {}
     state_notes = []
     dressing_fallbacks = []
+    unknown_materials = []
+    # imported here, as `material_tag` does: `core.skins` is cheap but this
+    # module is imported by the pure planner and by the bpy layer alike
+    from zoo_keeper.core import skins
 
     def _art(sp):
         if sp not in art_cache:
@@ -557,6 +561,20 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         # nothing changes for them.
         slot_style = int(s.get("style") or style or 1)
         slot_material = s.get("material")
+        # A MATERIAL NOBODY KNOWS IS NOT A SUCCESS. `dna.resolve_module_plan`
+        # keeps a slot's material only when it is a `skins.KNOWN_KINDS` kind
+        # and otherwise falls back to the genome default -- correct, because
+        # older manifests carry kinds this vocabulary never had and refusing
+        # would fail buildings that are fine. What was wrong is that it did
+        # it IN SILENCE: `carpet_club` shipped in Pixelcoat 0.42.0 and built
+        # as concrete for a release, and `wood_panel` and `slatwall` shipped
+        # in 0.44.0 and would have done the same. So the fallback stays and
+        # the silence goes -- the same shape as STEM COLLISION below, which
+        # exists for the same reason.
+        if slot_material and slot_material not in skins.KNOWN_KINDS:
+            unknown_materials.append({"slot_id": s.get("slot_id"),
+                                      "type": typ,
+                                      "material": str(slot_material)})
 
         # A VOLUME'S SPECIES HINT (roadmap 44). Deli Counter names what the
         # placement is (`species` on the slot, from the name); this decides
@@ -767,9 +785,21 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
               % (_c["stem"], _c["count"], ",".join(_c["materials"]),
                  ",".join(str(_v) for _v in _c["styles"])))
 
+    for _k in sorted({_u["material"] for _u in unknown_materials}):
+        _n = [_u for _u in unknown_materials if _u["material"] == _k]
+        print("[zoo] UNKNOWN MATERIAL KIND %r on %d slot(s) (%s%s) -- not in "
+              "skins.KNOWN_KINDS, so the genome default is built instead and "
+              "no pack for it can resolve. Add the kind to KNOWN_KINDS and "
+              "ROUGHNESS, or fix the slot."
+              % (_k, len(_n), ",".join(str(_u["slot_id"]) for _u in _n[:4]),
+                 ", ..." if len(_n) > 4 else ""))
+
     return {
         "building_id": manifest.get("building_id"),
         "stem_collisions": stem_collisions,
+        # Slot materials no kind in the vocabulary matches: built as the
+        # genome default, reported rather than dropped in silence.
+        "unknown_materials": unknown_materials,
         "theme": theme,
         "style": style,
         "state": state,

@@ -1,3 +1,316 @@
+## [0.95.0] - a 1990s card shop, and a kind that reached no mesh
+
+The walker, 2026-09-15, naming the next two building types and sending nine
+photographs of the first: "a 90s Trader Card Shop (Fake Pokemon, Fake Magic,
+Fake sports trading cards)". The photos are written up in the factory's
+`docs/SET_DRESSING_REFERENCES.md` under "The walker's trading card shop
+references"; this is the first slice of what that section says Zoo owes --
+the four species that define the room, and the invented brand table every
+one of them paints from.
+
+This does not reduce interventions-per-level by itself. It is the walker's
+next room, answered in the tool that owns the props, and until Deli Counter
+writes the names at the end of this entry no generated shop gets any of it.
+The half of it that might is the second section: a material kind that
+reached no mesh and said nothing has now got a line that says so, which is
+the third time that exact defect has shipped.
+
+### Five species (planned in pure Python, built vertex for vertex)
+
+| species | planner | what it is | tris (pure = built; no bevel) | budget |
+| --- | --- | --- | --- | --- |
+| `display_case` `flat` | `core/display_case_forms.py` | the shop's centrepiece: a glass-top, glass-front, aluminium-framed showcase counter -- toe kick, laminate deck, framed panes on mullions, two or three glass shelves, sliding doors on the staff side, and a register and towers of white card-storage boxes on top | 1,108 at DC's 2.4 x 0.6 x 1.0; 578 at 0.9 x 0.45 x 0.85 | 3,000 |
+| `display_case` `L` | same | the same case turned at one end: ONE L-shaped glass top over two runs, the corner run glazed on two adjacent faces through a single corner column | 1,564 at 3.6 x 2.4 x 1.05, 1,600 at 6.0 x 3.0 x 1.25 | |
+| `pack_wall` | `core/pack_wall_forms.py` | a gondola bay of booster displays in tight rows under a coloured header sign naming the game, on a `slatwall` back with a row of hanging blister packs | 706-720 a bay; 2,752 for a 4.8 m run of four, 4,896 at the genome's 8.0 m | 6,000 |
+| `pennant_row` | `core/pennant_forms.py` | the strip of angled felt pennants along a wall top, overlapping, in the invented local clubs' colours | 892 at 6.0 x 0.10 x 0.35 -- the cap's own arithmetic, see below | 900 |
+| `folding_table` `bare` / `cloth` | `core/folding_forms.py` `plan_table` | the play area's banquet table, on two splayed leg frames or under a black cloth to the floor, dressed with `_surface_stock`'s new `cards` flavour | 312-384 built with `cards` at 3.0 x 0.9 x 0.8; 108-132 of geometry | 600 |
+| `folding_chair` | same, `plan_chair` | a moulded seat pan on four splayed legs, a raked back on two posts under a cap rail; a variant is one back panel or two slats | 180 (panel), 192 (slats) | 500 |
+
+Recipes: `recipes/display_case.py`, `pack_wall.py`, `pennant_row.py`,
+`folding_table.py`, `folding_chair.py`, and `recipes/_card_atlas.py` for the
+two that carry art. Every planner keeps the interior species' rules -- exact
+extents, parts overlapping by millimetres, no two faces within 2 mm of one
+plane, deterministic -- and the tests hold them at every genome corner, both
+forms and every variant. MEASURED in Blender on the built GLBs with
+`tools/coplanar_probe.py`: 0 pairs on all five, at 2.0 mm.
+
+**THE ROOM-LEVEL NUMBER, because a species budget is not a room.** One L
+case, four pack-wall bays, one pennant row a wall, three tables and eight
+chairs, every one at its WORST genome corner and worst variant:
+
+    display_case L at 6.0 x 3.0 x 1.25        1,600
+    pack wall, four bays in one 4.8 m module  2,808   (as four 1.2 m
+                                                       modules: 2,880)
+    pennant_row x4 at 14.0 m                  3,568
+    folding_table x3 at 3.0 x 0.9, with stock 1,152
+    folding_chair x8                          1,536
+                                             ------
+                                             10,664   (10,736)
+
+For scale, one `cubicle_bank` is budgeted 24,000 and the club's `back_bar`
+8,500. The densest thing in the room is the PENNANTS, at a third of it --
+which is the opposite of where the cost was expected, and is the reason
+their cap is derived from the budget rather than chosen (below).
+
+### Where the cost was made to go away
+
+  * **STOCK IS BOXES WITH A TEXTURE**, never modelled cards. A booster box
+    is a box and its face is ONE QUAD carrying a tile out of the specimen's
+    atlas; a pile of loose packs is one box; a graded slab is a box with a
+    quad on top. `recipes/_card_atlas.py` joins every art quad of a module
+    into ONE mesh with ONE material -- a display case stocked to its caps
+    plans 78 of them, and as separate objects that is 78 draws of two
+    triangles each on every client every frame.
+  * **CAPPED BY COUNT, NOT BY FIT**, and the cap is load-bearing rather than
+    decorative. MEASURED at `display_case`'s largest slot (6.0 x 3.0 x 1.25,
+    form L): the caps lifted to 99 -- "as many as fit" -- draws 209 items
+    and 3,434 triangles, which is 114 % of the budget; `CAPS` draws 78 and
+    1,600. A test asserts that removing the cap BLOWS the budget, because a
+    cap that is not the thing holding the number is a comment.
+  * **AND THE FIRST CAPS WERE TOO TIGHT.** They drew 47 items and 1,166 --
+    39 % of budget -- and were loosened, because the reference's shelves are
+    FULL and a half-stocked case is the wrong kind of cheap. What a further
+    raise buys is in `CAPS`: about 21 triangles an item.
+  * **`pennant_row`'s cap is DERIVED from its budget**: `max_pennants` is
+    `(budget - 12) // 20`, 20 being what a pennant costs (a triangular prism
+    of 8 and a hoist band of 12, and a test asserts it still is). Raising
+    the genome budget is the one dial that makes a strip denser, and nothing
+    else has to move with it.
+  * **The legs are rotated boxes, not tubes.** `prims.rod` at eight segments
+    is 48 triangles a leg; a box is 12. A play area carries eight chairs and
+    three tables, so that is 8 x 4 x 36 = 1,152 triangles of section nobody
+    can see at play distance.
+
+### What the cheap version loses, said rather than quietly narrowed
+
+  * **A playmat is a colour with a printed border, not art.**
+    `prim_mesh.build_stock` has no textured path -- the same limit
+    `bar_dense` recorded for its bottle labels in 0.92.0 -- so the `cards`
+    stock flavour is flat. The expensive version is one more atlas per host
+    and about two triangles a mat; it is not built because nothing else in
+    `_surface_stock` is textured and making one flavour the exception is how
+    a rule stops being one.
+  * **A card face carries no type at any size**, and a test asserts
+    `card_art.card_face` never grows any. At `TEXEL` a card is 16 px.
+  * **A pennant carries no type at all.** Its ink would be under two pixels,
+    so it is a colour and a band, which is what a pennant at ceiling height
+    reads as.
+  * **The case's stock is invisible without a glass PACK.** Zoo does not
+    decide opacity -- the pack does, through `import_hints.transparency`
+    (`skins.SEE_THROUGH`) -- so on the flat fallback the shelves, the slabs
+    and the tins are all behind an opaque pane. That is the pipeline's own
+    division and not a defect here, but it means a card shop is only a card
+    shop once delco_1997 ships a `glass` pack, and it is worth knowing
+    before somebody looks at a frame and reports an empty case.
+  * **`prims.rod` sections and a true folding-chair X frame** were not
+    built, and the chair reads a little more dining-chair than folding
+    chair as a result. 192 triangles against 500 says the budget was not
+    what stopped it; the silhouette at play distance was judged good enough,
+    and a frame of it is in this release's notes.
+
+### `TEXEL` is 256, and the pixel face is why
+
+REFUTED, kept: 160 px/m first, on the argument that nothing in a card shop
+is read closely. It is not the reading distance that sets this, it is the
+FACE. `pixel_type`'s glyphs trim to 11 rows at scale 1, so at 160 px/m a
+0.18 m booster-box front had 29 rows to spend and could not carry its game's
+name over its figure at all -- MEASURED on the contact sheet, 0 of 12
+lettered. At 256 the same box is 46 rows and all twelve carry it, and the
+atlas a whole pack wall needs is still one 303 x 259 PNG.
+
+A second thing came out of the same sheet and is worth recording because it
+was invisible in the code: the four card FRAMES the reference names --
+monster, wizard, sci-fi, sport -- were drawn as three vertical tapers and a
+figure, and all three tapers read as the SAME MOUND on a panel about as wide
+as it is tall. The frame colour was carrying the entire difference. The
+silhouettes are four families now (a horned lump, a robe under a tall cone,
+a hull ACROSS the frame, a player over a colour chip), and the fix came from
+looking at the picture rather than from reading the function.
+
+### The brands: `core/card_brands.py`, `core/card_art.py`
+
+TWELVE INVENTED GAMES in one table beside `brands.py`,
+`cigarette_brands.py`, `liquor_brands.py` and `club_names.py`, because a box
+on a pack wall, a sealed box in a case and a header over a bay must carry
+the same game without a second list drifting from this one: JAWN BEASTS
+("Collect the Whole Jawn."), WOODER WIGGLERS ("They Live in the Crick."),
+SCRAPPLE HORRORS ("Nine Parts. No Questions."), HEXES & HOAGIES ("Cast It,
+Hon."), NANA'S GRIMOIRE, BLUE ROUTE 2099 ("The Merge Never Ends."), ORBIT
+ESSINGTON, DELCO DIAMOND LEAGUE ("Six Innings and a Hoagie."), PIKE GRIDIRON
+'97, YOUSE VS. THEM, MACDADE MIDNIGHT and TINICUM TROOPERS. Six invented
+printers (PIKE PRESS, WOODER WORKS, DELCO DECK CO., SCRAPPLE PRESS, NANA'S
+ATTIC, HOAGIE MOUTH CARDS), sixteen invented local clubs for the pennants
+and the sports cards, and six things a shop says on a hand-lettered sign.
+
+A DENYLIST test holds every PAINTED string -- not the table, which is a
+different set the moment somebody letters something new -- against the card
+games, publishers, graders, leagues, clubs and players a writer reaches for:
+whole words for the ones that are also English (SCORE, LEAF, CLASSIC, ULTRA,
+PRO, UNION) and anywhere for the rest. THREE NAMES WERE CHANGED and the
+module keeps them as the record: FOLSOM FLYERS became FOLSOM FLOUNDERS (the
+denylist caught it); the monster game's first slogan was the national
+monster game's own tagline with a Delco word stapled on; and MACDADE MYSTICS
+became MACDADE MIDNIGHT, which the denylist did NOT catch -- a WNBA club
+founded the year after this game is set, so no 1997 reader would have taken
+it that way and every reader since would. A guard is a floor, not the
+decision.
+
+### `wood_panel` and `slatwall`, and a kind that reached no mesh
+
+Pixelcoat 0.44.0 shipped `wood_panel_delco`, `slatwall_retail` and
+`carpet_tournament`. Read through this repo by that release: `KNOWN_KINDS`
+had neither `wood_panel` nor `slatwall`, and `dna.resolve_module_plan` keeps
+a slot's material ONLY when it is listed there. A card shop asking for its
+own panelling would have built whatever the genome defaulted to and said
+nothing -- which is exactly what `carpet_club` did for a release after
+Pixelcoat 0.42.0, and `tar`, `gravel` and `vegetation` before it.
+
+Both kinds are in `skins.KNOWN_KINDS` and `materials.ROUGHNESS` now (the
+vocabulary's two homes, and `test_kind_vocabulary` is what keeps them in
+step). `wood_panel` is 0.52: a printed hardboard panel's sheen is its
+factory lacquer's and not its grain's, so it sits beside `wood_stained`
+(0.50) rather than bare `wood` (0.65). `slatwall` takes `laminate`'s 0.55
+exactly -- it IS melamine-faced board, and it is a separate kind so it can
+resolve its own pack, not because it reflects differently.
+`carpet_tournament` needs no kind: a pack directory is `<kind>_<theme>`, so
+it is `carpet` under a `tournament` theme.
+
+**AND THE SILENCE IS GONE.** `kit.plan_kit` collects every slot material no
+kind in the vocabulary matches, prints one loud line a kind, and returns
+them as `unknown_materials`. The fallback STAYS -- older manifests carry
+kinds this vocabulary never had and failing a building that is otherwise
+fine would be worse -- so what changed is that a material reaching no mesh
+no longer looks like success. It is the same shape as the STEM COLLISION
+line beside it, and for the same reason.
+
+Proven end to end rather than added to a list: `card_shop.slots.json` builds
+a `wood_panel` wall and a `wood_panel` display case and two `slatwall` pack
+walls, and the stems carry `_mwood_panel` and `_mslatwall`.
+
+### `_surface_stock` flavour `cards`
+
+The play table's dressing, and the seventh flavour: a playmat with a printed
+border, stacks of cards, deck boxes and dice, planned once per SIDE of the
+top so two players' worth face each other across it. `desk`, `table`,
+`counter` and `filing_cabinet` take it too, as they take the other six.
+
+A HALF-SIZE PLAYMAT, and it had to be. A full one is 0.61 x 0.356; two face
+to face need 0.71 m; a folding table is 0.76 deep, and after the module's own
+`EDGE` and the host's region inset the half a player gets is 0.318 m. So a
+full mat NEVER fit and `_place_group` quietly drew card piles instead --
+MEASURED as zero mats in the frame, which is how it was found, by rendering
+the table and looking at it. It is 0.56 x 0.27 now, and 0.27 rather than 0.28
+because the module turns every item off square by up to `JITTER_K / size`
+degrees: 3.57 for a 0.56 m mat, which is 35 mm of depth the first arithmetic
+had not counted. The mat is also 9 mm thick against a real 2, because this
+module's rule is that no face of an item lands between the host's top and
+`SINK` + 4 mm above it, and at a true thickness its top face sat 1.0 mm over
+the table on every seed.
+
+### What the probe found, and what it changed
+
+`prims.coincident_pairs` at 2.2 mm over every genome corner, both forms and
+every variant, was run before anything was believed, and it decided eleven
+constants in this release. The ones worth carrying forward:
+
+  * **A quad's offset must come from the item's OWN face**, not from the
+    surface it stands on. A box that sinks `SINK` into a shelf has its top
+    `SINK / 2` lower than that arithmetic assumes, so a 3.5 mm art offset
+    measured 2.0 -- the tolerance exactly -- on every faced-out product.
+  * **Two parts inset by the SAME number meet on every plane their other
+    two ranges share.** On one 2.4 m pack wall that was 28 pairs from four
+    collisions of one inset, and the fix is the `X_IN` / `Y_IN` ladders:
+    every part has its own number and they step by `JOIN`.
+  * **An L's glass top is THREE quads, not two.** Two quads cancel a shared
+    side face only when they share the WHOLE edge; with two, one ring's
+    short side lay inside the other's long one over the corner -- measured
+    as `Top` against `Top`, 0.0096 m2, which is `TOP_T` times the case
+    depth, the corner joint exactly.
+  * **The outside corner of an L is a POST**, because two glazed faces'
+    frames otherwise occupy the same square. Trimming both back to one
+    column is also what an extruded showcase frame does. Its rails run one
+    `JOIN` into that column and its panes two -- MEASURED the other way
+    round first, and the two rails then reached past each other's 30 mm
+    depth and met inside it, which is a worse pair for the same reason.
+  * **A variant has to move geometry.** Four variants of a FLAT display case
+    built three distinct shapes, because the variant turns an L's corner and
+    a flat case has no corner to turn; four variants of a pennant row built
+    ONE, because only its colours moved. The case's stock is nudged by
+    variant now (clamped, so a nudge cannot push a box off the shelf it
+    stands on -- which it did at 0.9 x 0.45, 1.9 mm from the shelf's end),
+    and the pennant row phases its tilt.
+
+### Tests
+
+  * `tests/test_card_brands.py`, 11: the tables are well formed, every card
+    frame is stocked, no painted string carries a real mark, the denylist
+    can actually fire, the three changed names stayed changed, every painted
+    string is spellable in the factory face, the atlas is deterministic and
+    named from its own pixels, every tile kind paints and fills its box, all
+    twelve box fronts are lettered at ship size, a card face is not, and the
+    game and team orders rotate.
+  * `tests/test_card_shop.py`, 55: each species discovered, validating and
+    planning through the kit; 0 coincident pairs, exact slot fit, the
+    triangle budget, and colliders inside bounds at every genome corner,
+    form and variant; the variants are different modules; the plan is
+    deterministic; the L is ONE case with one top mesh and one corner
+    column, and its collision leaves the inside of the corner open; the
+    stock cap is what holds the budget; a 4.8 m pack wall is four bays with
+    four different games; the pennant cap is the budget's arithmetic and a
+    pennant costs what that arithmetic assumes; overlapping pennants are
+    never in one layer; the pennant row declares no collision and its genome
+    agrees; and a playmat fits the half of a folding table it has to.
+  * `tests/test_kind_vocabulary.py`: the two card-shop kinds are in both
+    homes, and an unknown slot material is REPORTED rather than dropped in
+    silence. Both fail on 0.94.0.
+  * `test_genome.py`, `test_material_options_closed.py` and
+    `test_theme_style_resolution.py` (75 species) name the five.
+  * Host suite 2,130 passed / 203 skipped (0.94.0 in this worktree:
+    2,027 / 198).
+
+Built: `card_shop.slots.json` through `--build-kit`, nine modules, 0 failed,
+every one PASS -- two display cases (flat and L, one in `wood_panel`), two
+pack walls in `slatwall` (a 1.2 m bay and a 4.8 m run of four), a 6 m pennant
+row, two folding tables with `cards` stock, a chair, and a `wood_panel` wall.
+`tools/coplanar_probe.py` on the built GLBs: 0 pairs on all of them.
+Frames shot with `tools/preview_specimen.py` (Blender 5.1.1, Cycles CPU) of
+all five, plus the table with its stock.
+
+### Not done
+
+  * **Deli Counter writes none of these names yet**, so no generated shop
+    gets any of it. The stems are at the end of this entry.
+  * The rest of the reference's list is unbuilt: `slatwall` / `pegboard` as
+    a species of its own, `booster_box_stack`, `framed_jersey`,
+    `curio_cabinet`, and the hand-lettered banner over the back wall.
+  * The `cards` flavour has no textured path (above), and no Pixelcoat
+    `glass` pack exists for delco_1997, so a display case reads as an opaque
+    box on the flat fallback.
+  * NOT MEASURED: what any of this costs in a real frame. Every number here
+    is triangles, which is what a budget is written in and is not the same
+    thing as milliseconds on somebody else's machine. There is still no
+    runtime telemetry from a real session, so the budgets are conservative
+    on purpose and can be reopened when there is.
+
+### The stems Deli Counter has to ask for
+
+    prop_display_case_<theme>_<style:02d>_w<cm>_d<cm>_h<cm>[_f<flat|L>][_n<0..3>][_m<kind>]
+    prop_pack_wall_<theme>_<style:02d>_w<cm>_d<cm>_h<cm>[_n<0..3>][_m<kind>]
+    prop_pennant_row_<theme>_<style:02d>_w<cm>_d<cm>_h<cm>[_n<0..3>][_m<kind>]
+    prop_folding_table_<theme>_<style:02d>_w<cm>_d<cm>_h<cm>[_f<bare|cloth>][_s<cards>][_n<0..1>][_m<kind>]
+    prop_folding_chair_<theme>_<style:02d>_w<cm>_d<cm>_h<cm>[_n<0..1>][_m<kind>]
+
+built by `card_shop_probe` at delco_1997 style 01:
+
+    prop_display_case_delco_1997_01_w240_d60_h100_fflat_n2
+    prop_display_case_delco_1997_01_w360_d240_h105_fL_n1_mwood_panel
+    prop_pack_wall_delco_1997_01_w120_d50_h240_n3_mslatwall
+    prop_pack_wall_delco_1997_01_w480_d50_h240_n1_mslatwall
+    prop_pennant_row_delco_1997_01_w600_d10_h35_n2
+    prop_folding_table_delco_1997_01_w180_d76_h74_fcloth_scards_n1
+    prop_folding_table_delco_1997_01_w180_d76_h74_fbare_scards
+    prop_folding_chair_delco_1997_01_w46_d50_h85_n1
+
 ## [0.94.0] - the porthole is a lamp, not a sun, and the club's light has hardware
 
 The walker, 2026-09-16, walking cold run 9060 with two frames of the strip

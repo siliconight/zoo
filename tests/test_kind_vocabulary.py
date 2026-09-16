@@ -133,6 +133,48 @@ def test_dressing_kinds_are_present():
             f"{kind} missing from ROUGHNESS"
 
 
+def test_the_card_shop_kinds_are_present():
+    """Pixelcoat 0.44.0's `wood_panel_delco` and `slatwall_retail`, named so
+    a regression says which library broke rather than just "the vocabulary".
+    `carpet_tournament` came with them and needs NO kind: a pack directory is
+    `<kind>_<theme>`, so it is `carpet` under a `tournament` theme.
+
+    THIS FAILS ON 0.94.0, where neither kind exists and a card shop asking
+    for one built the genome default in silence."""
+    for kind in ("wood_panel", "slatwall"):
+        assert kind in skins.KNOWN_KINDS, f"{kind} missing from KNOWN_KINDS"
+        assert kind in _dict_literal(_MATERIALS, "ROUGHNESS"),             f"{kind} missing from ROUGHNESS"
+    assert "carpet" in skins.KNOWN_KINDS
+
+
+def test_an_unknown_slot_material_is_reported_and_not_dropped_in_silence():
+    """The defect this release closes, and the reason it is a REPORT rather
+    than a refusal: older manifests carry kinds this vocabulary never had,
+    and failing a building that is otherwise fine would be worse than
+    building the genome default. What was wrong was the silence --
+    `carpet_club` shipped in Pixelcoat 0.42.0 and built as concrete for a
+    release because nothing said so.
+
+    FAILS ON 0.94.0: `plan_kit` has no `unknown_materials` key at all, so
+    this cannot even read the answer."""
+    from zoo_keeper.core import kit
+    plan = kit.plan_kit({"building_id": "t", "slots": [
+        {"slot_id": "w0", "role": "wall", "size_mod": "full", "style": 1,
+         "material": "unobtainium",
+         "fit": {"dims": [2.0, 0.2, 3.0], "pivot": "center"}},
+        {"slot_id": "w1", "role": "wall", "size_mod": "full", "style": 1,
+         "material": "wood_panel",
+         "fit": {"dims": [2.0, 0.2, 3.0], "pivot": "center"}}]},
+        theme="delco_1997", style=1)
+    said = plan["unknown_materials"]
+    assert [u["material"] for u in said] == ["unobtainium"], said
+    assert said[0]["slot_id"] == "w0"
+    # and the known one reaches a module NAME, which is the end-to-end claim
+    stems = [m["stem"] for m in plan["modules"]]
+    assert any(s.endswith("_mwood_panel") for s in stems), stems
+    assert not any("unobtainium" in s for s in stems), stems
+
+
 def test_species_count_matches_the_genome_folder():
     """`genome.list_species` and the folder must agree — a stray or missing
     file is how a species goes untested without anything going red."""

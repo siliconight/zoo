@@ -111,8 +111,9 @@ def test_delco_1997_reaches_every_species():
     _minted_path = _os.path.join(_os.path.dirname(genome.genome_dir()), "minted.json")
     _minted = _json.load(open(_minted_path, encoding="utf-8")) if _os.path.exists(_minted_path) else []
     # 0.91.0: + dartboard, cigarette_machine; 0.92.0: + back_bar;
-    # 0.94.0: + club_fixture
-    assert len(_genomes()) == 70 + len(_minted), len(_genomes())
+    # 0.94.0: + club_fixture; 0.95.0: + display_case, pack_wall,
+    # pennant_row, folding_table, folding_chair
+    assert len(_genomes()) == 75 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

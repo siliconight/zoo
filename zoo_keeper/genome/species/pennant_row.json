@@ -1,0 +1,169 @@
+{
+  "species": "pennant_row",
+  "version": 1,
+  "collision": false,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.95.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md. Construction knowledge only: no brand, no trade dress and no mark from any of them reaches the tools -- every name the species paints comes from core/card_brands.py, which is invented, and a denylist test holds every painted string against the real card games, publishers, graders, leagues, teams and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.0,
+      "max": 14.0,
+      "default": 4.0
+    },
+    "depth": {
+      "min": 0.06,
+      "max": 0.12,
+      "default": 0.08
+    },
+    "height": {
+      "min": 0.22,
+      "max": 0.5,
+      "default": 0.3
+    }
+  },
+  "parts": [
+    "PennantRow_Batten",
+    "PennantRow_Felt",
+    "PennantRow_Band"
+  ],
+  "params": {
+    "colours": 6,
+    "pennant_w": 0.0
+  },
+  "materials": {
+    "default": "cloth",
+    "options": [
+      "cloth",
+      "canvas",
+      "velvet"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "cloth",
+      "color": [
+        0.45,
+        0.45,
+        0.44
+      ],
+      "wear": 0.14,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "cloth",
+      "color": [
+        0.4,
+        0.3,
+        0.18
+      ],
+      "wear": 0.36,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "cloth",
+      "color": [
+        0.4,
+        0.3,
+        0.18
+      ],
+      "wear": 0.3,
+      "bevel": 0.005
+    },
+    "1990s": {
+      "material": "cloth",
+      "color": [
+        0.45,
+        0.45,
+        0.44
+      ],
+      "wear": 0.26,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "cloth",
+      "color": [
+        0.62,
+        0.62,
+        0.6
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "cloth",
+      "color": [
+        0.45,
+        0.45,
+        0.44
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "cloth",
+      "color": [
+        0.38,
+        0.38,
+        0.36
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "cloth",
+      "color": [
+        0.62,
+        0.62,
+        0.6
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "cloth",
+      "color": [
+        0.4,
+        0.3,
+        0.18
+      ],
+      "wear": 0.36,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "cloth",
+      "color": [
+        0.45,
+        0.45,
+        0.44
+      ],
+      "wear": 0.26,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 900
+  },
+  "attachments": [],
+  "keywords": [
+    "pennant_row",
+    "pennants",
+    "pennant row",
+    "felt pennants",
+    "team pennants"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  },
+  "notes": "The strip of angled felt pennants along the top of a shop's wall, overlapping, in many colours. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)' -- the 1990s sports-card shop it is built to. The colours are `card_brands.TEAMS`, the invented local clubs; NOTHING IS LETTERED, because a pennant at ceiling height is a colour and a band and its ink would be under two pixels. COLLISION: none, and that is deliberate -- a body cannot reach a pennant and a collider up there is a shape the navmesh bake carries for nothing. RANGES: width 1.0 to 14.0 (a long wall); depth 0.06 to 0.12, which is the batten plus two layers of felt; height 0.22 to 0.50, a pennant's drop. BUDGET: 900 triangles, and the pennant count is DERIVED from it -- `pennant_forms.max_pennants` is (budget - 12) // 20, so raising this number is the one dial that makes a strip denser. Measured worst 892.",
+  "module_variants": 4,
+  "match_priority": 0
+}

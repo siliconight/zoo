@@ -1,0 +1,192 @@
+{
+  "species": "folding_table",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.95.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md. Construction knowledge only: no brand, no trade dress and no mark from any of them reaches the tools -- every name the species paints comes from core/card_brands.py, which is invented, and a denylist test holds every painted string against the real card games, publishers, graders, leagues, teams and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.2,
+      "max": 3.0,
+      "default": 1.8
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 0.9,
+      "default": 0.76
+    },
+    "height": {
+      "min": 0.7,
+      "max": 0.8,
+      "default": 0.74
+    }
+  },
+  "parts": [
+    "FoldingTable_Top",
+    "FoldingTable_Leg",
+    "FoldingTable_Foot",
+    "FoldingTable_Brace",
+    "FoldingTable_Cloth",
+    "FoldingTable_Hem"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "cloth",
+      "bare"
+    ],
+    "stock": [
+      "none",
+      "cards",
+      "office",
+      "storage"
+    ]
+  },
+  "materials": {
+    "default": "plastic",
+    "options": [
+      "plastic",
+      "laminate",
+      "wood",
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "plastic",
+      "color": [
+        0.8,
+        0.79,
+        0.75
+      ],
+      "wear": 0.14,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "plastic",
+      "color": [
+        0.66,
+        0.58,
+        0.42
+      ],
+      "wear": 0.36,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "plastic",
+      "color": [
+        0.66,
+        0.58,
+        0.42
+      ],
+      "wear": 0.3,
+      "bevel": 0.005
+    },
+    "1990s": {
+      "material": "plastic",
+      "color": [
+        0.8,
+        0.79,
+        0.75
+      ],
+      "wear": 0.26,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "plastic",
+      "color": [
+        0.86,
+        0.86,
+        0.84
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "plastic",
+      "color": [
+        0.8,
+        0.79,
+        0.75
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "plastic",
+      "color": [
+        0.74,
+        0.72,
+        0.66
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "plastic",
+      "color": [
+        0.86,
+        0.86,
+        0.84
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "plastic",
+      "color": [
+        0.66,
+        0.58,
+        0.42
+      ],
+      "wear": 0.36,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "plastic",
+      "color": [
+        0.8,
+        0.79,
+        0.75
+      ],
+      "wear": 0.26,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 600
+  },
+  "attachments": [
+    "ATT_surface_center"
+  ],
+  "keywords": [
+    "folding_table",
+    "folding table",
+    "banquet table",
+    "play table",
+    "tournament table"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {
+      "ATT_surface_center": {
+        "type": "surface",
+        "shape": "area",
+        "size_rel": [
+          0.85,
+          0.85
+        ]
+      }
+    }
+  },
+  "notes": "The play area's long folding table, bare (white plastic) or under a black cloth to the floor. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)' -- 'long folding tables (white plastic or covered in a black tablecloth) with black folding chairs, card playmats on the table, piles of cards, deck boxes, dice'. WHAT IS ON IT IS STOCK: `_surface_stock`'s `cards` flavour, planned once per SIDE of the top so two players' worth of dressing face each other. A VARIANT is where the leg frames stand. RANGES: width 1.2 to 3.0 (a 6 ft banquet table is 1.83); depth 0.6 to 0.9; height 0.70 to 0.80. BUDGET: 1,200; measured worst 132 for the table itself plus whatever the stock flavour draws.",
+  "module_variants": 2,
+  "match_priority": 0
+}

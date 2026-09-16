@@ -89,7 +89,20 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                # species that can wear `metal`, only 12 declare a style colour
                # with chroma >= 0.10; the other 30 are already near-grey and
                # correctly keep `metal`.
-               "metal_painted", "metal_bare")
+               "metal_painted", "metal_bare",
+               # THE CARD SHOP'S SURFACES, Pixelcoat 0.44.0 (`wood_panel_delco`,
+               # `slatwall_retail`). Read through this file by that release the
+               # way 0.42.0's club kinds were: `dna.resolve_module_plan` keeps a
+               # slot's material only when it is listed HERE, so a card shop
+               # asking for `wood_panel` built in whatever the genome defaulted
+               # to and said nothing -- the same failure `carpet_club` had. A
+               # kind absent from this tuple is a kind no slot can ask for,
+               # whatever the pack library holds.
+               #
+               # `carpet_tournament` came with them and needs NO kind: a pack
+               # directory is `<kind>_<theme>`, so it is the `carpet` kind under
+               # a `tournament` theme and `carpet` has been here since Layer 3.
+               "wood_panel", "slatwall")
 
 # THE KINDS A PERSON SEES THROUGH. Every enterable window pane, a broken
 # window's remnants, a teller line's screen, a bus shelter's panes and a

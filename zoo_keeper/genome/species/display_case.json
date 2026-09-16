@@ -1,0 +1,203 @@
+{
+  "species": "display_case",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.95.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md. Construction knowledge only: no brand, no trade dress and no mark from any of them reaches the tools -- every name the species paints comes from core/card_brands.py, which is invented, and a denylist test holds every painted string against the real card games, publishers, graders, leagues, teams and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.9,
+      "max": 6.0,
+      "default": 2.4
+    },
+    "depth": {
+      "min": 0.45,
+      "max": 3.0,
+      "default": 0.6
+    },
+    "height": {
+      "min": 0.85,
+      "max": 1.25,
+      "default": 1.0
+    }
+  },
+  "parts": [
+    "DisplayCase_Top",
+    "DisplayCase_Kick",
+    "DisplayCase_Deck",
+    "DisplayCase_End",
+    "DisplayCase_Back",
+    "DisplayCase_Door",
+    "DisplayCase_RailLo",
+    "DisplayCase_RailHi",
+    "DisplayCase_Post",
+    "DisplayCase_Corner",
+    "DisplayCase_Glass",
+    "DisplayCase_Shelf",
+    "DisplayCase_Box",
+    "DisplayCase_Tin",
+    "DisplayCase_Slab",
+    "DisplayCase_Pile",
+    "DisplayCase_Store",
+    "DisplayCase_Till",
+    "DisplayCase_Art"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "flat",
+      "L"
+    ],
+    "case_depth": 0.6,
+    "shelves": 2,
+    "bay_max": 1.2
+  },
+  "materials": {
+    "default": "laminate",
+    "options": [
+      "laminate",
+      "wood",
+      "wood_panel",
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "laminate",
+      "color": [
+        0.66,
+        0.63,
+        0.57
+      ],
+      "wear": 0.14,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "laminate",
+      "color": [
+        0.5,
+        0.36,
+        0.2
+      ],
+      "wear": 0.36,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "laminate",
+      "color": [
+        0.5,
+        0.36,
+        0.2
+      ],
+      "wear": 0.3,
+      "bevel": 0.005
+    },
+    "1990s": {
+      "material": "laminate",
+      "color": [
+        0.66,
+        0.63,
+        0.57
+      ],
+      "wear": 0.26,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "laminate",
+      "color": [
+        0.8,
+        0.79,
+        0.76
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "laminate",
+      "color": [
+        0.66,
+        0.63,
+        0.57
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "laminate",
+      "color": [
+        0.58,
+        0.5,
+        0.38
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "laminate",
+      "color": [
+        0.8,
+        0.79,
+        0.76
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "laminate",
+      "color": [
+        0.5,
+        0.36,
+        0.2
+      ],
+      "wear": 0.36,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "laminate",
+      "color": [
+        0.66,
+        0.63,
+        0.57
+      ],
+      "wear": 0.26,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 3000
+  },
+  "attachments": [
+    "ATT_surface_center"
+  ],
+  "keywords": [
+    "display_case",
+    "showcase",
+    "showcase_counter",
+    "display case",
+    "glass counter",
+    "card counter"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {
+      "ATT_surface_center": {
+        "type": "surface",
+        "shape": "area",
+        "size_rel": [
+          0.8,
+          0.7
+        ]
+      }
+    }
+  },
+  "notes": "The card shop's centrepiece: a glass-top, glass-front, aluminium-framed showcase counter with two or three glass shelves inside, sealed booster boxes, tins and graded slabs on them, and white card-storage boxes and a register on top. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)'. FORMS: `flat` and `L`; the L's corner is one case and not two boxes -- its glass top is a single L-shaped slab and its corner run is glazed on two adjacent faces through one corner column. RANGES: width from 0.9 (one bay and its frame) to 6.0; depth from 0.45 (a flat case against a wall) to 3.0, which is what an L needs to carry a return run with a staff aisle behind the main one; height 0.85 to 1.25, the range a counter a customer leans on covers. BUDGET: 3,000 triangles; measured worst case 1,600 at 6.0 x 3.0 x 1.25 form L. The stock caps in `display_case_forms.CAPS` are what hold it -- uncapped, the same slot measures 3,434.",
+  "module_variants": 4,
+  "match_priority": 0
+}

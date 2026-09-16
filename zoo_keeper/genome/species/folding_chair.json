@@ -1,0 +1,170 @@
+{
+  "species": "folding_chair",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.95.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md. Construction knowledge only: no brand, no trade dress and no mark from any of them reaches the tools -- every name the species paints comes from core/card_brands.py, which is invented, and a denylist test holds every painted string against the real card games, publishers, graders, leagues, teams and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.4,
+      "max": 0.5,
+      "default": 0.46
+    },
+    "depth": {
+      "min": 0.44,
+      "max": 0.56,
+      "default": 0.5
+    },
+    "height": {
+      "min": 0.78,
+      "max": 0.92,
+      "default": 0.85
+    }
+  },
+  "parts": [
+    "FoldingChair_Pan",
+    "FoldingChair_Lip",
+    "FoldingChair_Post",
+    "FoldingChair_Back",
+    "FoldingChair_Cap",
+    "FoldingChair_Leg",
+    "FoldingChair_Foot",
+    "FoldingChair_Brace"
+  ],
+  "params": {},
+  "materials": {
+    "default": "plastic",
+    "options": [
+      "plastic",
+      "metal_painted",
+      "wood",
+      "laminate"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "plastic",
+      "color": [
+        0.1,
+        0.1,
+        0.11
+      ],
+      "wear": 0.14,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "plastic",
+      "color": [
+        0.32,
+        0.2,
+        0.1
+      ],
+      "wear": 0.36,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "plastic",
+      "color": [
+        0.32,
+        0.2,
+        0.1
+      ],
+      "wear": 0.3,
+      "bevel": 0.005
+    },
+    "1990s": {
+      "material": "plastic",
+      "color": [
+        0.1,
+        0.1,
+        0.11
+      ],
+      "wear": 0.26,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "plastic",
+      "color": [
+        0.58,
+        0.58,
+        0.57
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "plastic",
+      "color": [
+        0.1,
+        0.1,
+        0.11
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "plastic",
+      "color": [
+        0.12,
+        0.12,
+        0.13
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "plastic",
+      "color": [
+        0.58,
+        0.58,
+        0.57
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "plastic",
+      "color": [
+        0.32,
+        0.2,
+        0.1
+      ],
+      "wear": 0.36,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "plastic",
+      "color": [
+        0.1,
+        0.1,
+        0.11
+      ],
+      "wear": 0.26,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 500
+  },
+  "attachments": [],
+  "keywords": [
+    "folding_chair",
+    "folding chair",
+    "play chair",
+    "tournament chair"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {}
+  },
+  "notes": "The play area's black folding chair: a moulded seat pan on four splayed legs with a raked back on two posts under a cap rail. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)'. A VARIANT is the back -- one panel or two slats. RANGES: width 0.40 to 0.50, depth 0.44 to 0.56, height 0.78 to 0.92, which is the range a real folding chair covers; the seat is `folding_forms.SEAT_H` (0.455) or 55 % of the slot height, whichever is less. BUDGET: 500; measured worst 192 (the slatted back). BOXES AND NOT TUBES: a `prims.rod` leg at eight segments is 48 triangles against a box's 12, and a play area carries eight of these.",
+  "module_variants": 2,
+  "match_priority": 0
+}

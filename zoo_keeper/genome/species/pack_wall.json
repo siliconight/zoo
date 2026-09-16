@@ -1,0 +1,175 @@
+{
+  "species": "pack_wall",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.95.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md. Construction knowledge only: no brand, no trade dress and no mark from any of them reaches the tools -- every name the species paints comes from core/card_brands.py, which is invented, and a denylist test holds every painted string against the real card games, publishers, graders, leagues, teams and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 8.0,
+      "default": 1.2
+    },
+    "depth": {
+      "min": 0.35,
+      "max": 0.6,
+      "default": 0.5
+    },
+    "height": {
+      "min": 1.6,
+      "max": 3.2,
+      "default": 2.2
+    }
+  },
+  "parts": [
+    "PackWall_Back",
+    "PackWall_Upright",
+    "PackWall_Kick",
+    "PackWall_Base",
+    "PackWall_Shelf",
+    "PackWall_Header",
+    "PackWall_Box",
+    "PackWall_Peg",
+    "PackWall_Art"
+  ],
+  "params": {
+    "bay_max": 1.2
+  },
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted",
+      "laminate",
+      "wood_panel",
+      "slatwall"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.78,
+        0.77,
+        0.74
+      ],
+      "wear": 0.14,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.52,
+        0.36
+      ],
+      "wear": 0.36,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.52,
+        0.36
+      ],
+      "wear": 0.3,
+      "bevel": 0.005
+    },
+    "1990s": {
+      "material": "metal_painted",
+      "color": [
+        0.78,
+        0.77,
+        0.74
+      ],
+      "wear": 0.26,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "metal_painted",
+      "color": [
+        0.86,
+        0.86,
+        0.84
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "metal_painted",
+      "color": [
+        0.78,
+        0.77,
+        0.74
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.7,
+        0.68,
+        0.62
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.86,
+        0.86,
+        0.84
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.62,
+        0.52,
+        0.36
+      ],
+      "wear": 0.36,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.78,
+        0.77,
+        0.74
+      ],
+      "wear": 0.26,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 6000
+  },
+  "attachments": [],
+  "keywords": [
+    "pack_wall",
+    "gondola",
+    "booster_wall",
+    "pack wall",
+    "card shelving",
+    "booster display"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {}
+  },
+  "notes": "A gondola bay of booster displays under a coloured header sign naming the game, with a slatwall back carrying a row of hanging blister packs. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)' -- 'floor-to-ceiling gondola shelving of booster displays in tight rows, each row a different product, with a coloured header sign over each bay'. A BAY IS THE UNIT AND A RUN IS BAYS: `bay_max` 1.20 divides a wide slot and each bay takes its own game, so an aisle authored as one volume is a row of different bays, and `module_variants` walks the table a different way so four separate 1.2 m slots differ too. RANGES: width from 0.8 (one bay) to 8.0 (the walker's aisle); depth 0.35 to 0.6, which is what a gondola shelf is; height 1.6 to 3.2. BUDGET: 6,000 for the MODULE, which at 8.0 m is seven bays; measured worst case 4,896, and 578 a bay.",
+  "module_variants": 4,
+  "match_priority": 0
+}
