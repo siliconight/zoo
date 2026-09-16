@@ -1,0 +1,131 @@
+{
+ "species": "club_fixture",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. The hardware a club's coloured light comes out of: a surface-mounted downlight can (form 'can', for a club_wash) or a PAR can on a yoke with barn doors (form 'par', for a stage_light). Built for the light-anchor pipeline: bottom (the lit lens) sits at the DC anchor point, body rises above it."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.1,
+   "max": 0.42,
+   "default": 0.16
+  },
+  "depth": {
+   "min": 0.1,
+   "max": 0.42,
+   "default": 0.16
+  },
+  "height": {
+   "min": 0.12,
+   "max": 0.55,
+   "default": 0.25
+  }
+ },
+ "parts": [
+  "ClubFixture_Trim",
+  "ClubFixture_Body",
+  "ClubFixture_Baffle",
+  "ClubFixture_Yoke",
+  "ClubFixture_Clamp",
+  "ClubFixture_Door",
+  "ClubFixture_Lens"
+ ],
+ "params": {
+  "form": [
+   "can",
+   "par"
+  ]
+ },
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.18,
+    0.18,
+    0.19
+   ],
+   "wear": 0.14,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.14,
+    0.14,
+    0.15
+   ],
+   "wear": 0.34,
+   "bevel": 0.003,
+   "ambient": 0.1
+  },
+  "1990s": {
+   "material": "metal",
+   "color": [
+    0.15,
+    0.15,
+    0.16
+   ],
+   "wear": 0.3,
+   "bevel": 0.003,
+   "ambient": 0.1
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.2,
+    0.2,
+    0.21
+   ],
+   "wear": 0.12,
+   "bevel": 0.003
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.16,
+    0.155,
+    0.15
+   ],
+   "wear": 0.48,
+   "bevel": 0.003,
+   "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.19,
+    0.2,
+    0.21
+   ],
+   "wear": 0.22,
+   "bevel": 0.003,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 900
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "ceiling"
+  }
+ },
+ "keywords": [
+  "club fixture",
+  "club_fixture",
+  "par can",
+  "downlight can",
+  "stage light",
+  "club wash"
+ ]
+}

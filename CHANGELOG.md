@@ -1,3 +1,163 @@
+## [0.94.0] - the porthole is a lamp, not a sun, and the club's light has hardware
+
+The walker, 2026-09-16, walking cold run 9060 with two frames of the strip
+club. Standing 4.15 m from `back_bar_r1d196568_2`: "we can soften/diffuse
+this back bar light a bit. it looks like a sun, we just want a soft glow".
+And on the main floor, a warm pool and a matching wash on the ceiling above
+it, both circled: "awesome lighting in the strip club, but it doesn't look
+like that light is coming out of any viewable light fixtures".
+
+Both are this release's. The spill half of the first is Lux 0.40.0's, and the
+two were measured together on the same walk; Level Factory 0.90.0 grew an
+instrument for the second so it cannot go three releases unseen again.
+
+This does not reduce interventions-per-level. It is a look defect a person
+found by playing the level, fixed in the tools that own the geometry -- and
+the second half of it shipped an instrument, which is the part that might.
+
+### The porthole: `core/back_bar_art.py`, `core/back_bar_forms.py`
+
+0.92.0 built the niche's lit face as one flat emissive n-gon: 16 segments,
+colour (1.0, 0.78, 0.52) linear at strength 1.6. MEASURED at the walker's own
+station (Heavy Rain, Godot 4.7, GL Compatibility, RTX 2060, 1600 x 900,
+`tools/look_shots.py`), the 0.74 m disc:
+
+    mean luma 200.8, 1.330% of it pinned at 250 or more, channel peak 255,
+    and its brightest pixels reading (250, 250, 250) -- WHITE, with the
+    tungsten gone.
+
+ATTRIBUTED BEFORE IT WAS PATCHED, because two things light that disc. Killing
+Lux's back-bar omni alone, same scene, same station, took the same patch to
+mean 121.5 with nothing above 239 -- so the omni owned the clipping and the
+FLAT EMISSIVE owned a hard white 239 disc on its own. That second half is
+this file's, and no change to the spill would have fixed it.
+
+`back_bar_art.paint_niche` paints the lit face instead: a 64 px square raster,
+the colour held flat over the inner 18% of the radius and smoothstepped to
+zero at the rim of the inscribed circle. The falloff is applied in LINEAR
+light and encoded to sRGB afterwards (`_srgb_byte`) -- fading the bytes would
+hold the mid-tones up and draw the disc edge this exists to dissolve -- and
+the encode is also what makes the texture decode back to the same linear
+colour the glTF `emissiveFactor` used to carry. `niche_art` names the image
+from its own pixels, the way `label_atlas` does, so the same colour gives the
+same bytes and the same material name in every build.
+
+The disc carries UVs now (`_disc`), mapping its BOUNDING SQUARE onto that
+raster so the inscribed circle is exactly the geometry and the raster's
+corners fall off the mesh. The recipe builds it through `_uv_object` with
+`materials.make_backlit_material` -- backlit rather than plain emissive, so
+the face is dimmed as albedo too (`NICHE_ALBEDO` 0.22): a lamp behind glass
+is not a mirror of the room, and a porthole with the power cut is a dark
+glass hole in a dark cabinet. The name keeps the `_Face` suffix, so Lux's
+power cut still takes it.
+
+Three numbers came down with it, and none may drift back without a frame:
+
+  * `NICHE_STRENGTH` 1.6 -> 1.2, and it is the PEAK of a gradient now rather
+    than the value of a flat face. 1.2 x the preset's 0.95 exposure sits just
+    over Heavy Rain's 1.1 glow threshold, so the core alone blooms and the
+    rest of the disc does not -- a glow with an edge to it.
+  * `BULB_STRENGTH` 2.0 -> 1.5. A pygmy lamp may be the brightest thing on
+    the shelf; it may not be WHITE, and at 2.0 the brightest channel and the
+    dimmest both landed on the dither's 239 step. It is a 4.4 cm sphere
+    either way.
+  * `NICHE_SEGMENTS` 16 -> 32. 16 put a visible facet every 22.5 degrees
+    round a 0.74 m disc read at 4 m. Belt and braces now that the rim is
+    black; 16 more triangles against a unit that already carries 8,100.
+
+In the frame, control -> 0.94.0 + Lux 0.40.0 (the two are not separable in a
+picture): the disc goes mean 200.8 -> 114.8, peak (250,255,255) ->
+(234,228,228), and the share of it pinned at 250 or more goes 1.330% -> 0.000%.
+The whole frame keeps 25 pixels at 250+ where it had 123. The bottles in
+front of it go 54.6 -> 84.4.
+
+### `club_fixture`: `core/club_fixture_forms.py`, the genome, the recipe
+
+Lux 0.37.0 wrote the club set -- `club_wash`, `stage_light`, `neon`,
+`room_ambient`, and 0.39.0's `back_bar` -- with "no hardware and no marker
+today" in its own docstring, while every older anchor type has had a Zoo
+fixture at it since v0.28. Two of the five are a LAMP and can have one; the
+other three already do or cannot, and `FIXTURES` now says which is which
+instead of reporting all five as "no fixture species for this type":
+
+  * `neon` IS its sign, and `sign_box` builds it;
+  * `back_bar` is the bar's own bulbs and porthole, built above;
+  * `room_ambient` is a ReflectionProbe with nothing to hang.
+
+FORM `can` -- a surface-mounted downlight for a `club_wash`: a trim collar, a
+barrel, a dark cast baffle in the mouth and a lit disc seated in the throat.
+FORM `par` -- a PAR can for a `stage_light`: a wider barrel, a yoke of two
+arms and a clamp, four barn doors round the mouth, and a lit lens.
+
+THE LENS WEARS THE POOL'S OWN COLOUR. `GEL` is a second copy of Lux's
+`CLUB_PALETTE`, and being a second copy it is a contract: the names are
+Lux's, the values are the palette's own sRGB multipliers, and an unknown name
+falls back to a warm lamp rather than guessing -- a club still builds, one
+lens is tungsten where it should have been chartreuse, and no build fails
+over it. A white-hot lens under a magenta pool is the disagreement the walker
+photographed, so the copy earns its keep.
+
+A PAR CAN POINTS AT ITS TARGET. `rot_y` on a `stage_light` is the ROW's axis,
+not the barrel's; the anchor carries a `target`, and `tilt_for` derives the
+bearing and the tilt off plumb from it, per lamp point. This is only sound
+because Zoo builds from the PER-BUILDING manifest, where `pos` and `target`
+are in one frame: Lot's merge transforms `pos` and copies `target` verbatim,
+which is the defect Lux 0.40.0 now refuses a light over. A target at or above
+the fixture clamps to 90 degrees rather than swinging the barrel over the
+top -- a stage light that has to aim up is a manifest error, and clamping
+says so without refusing the build.
+
+### Two things in `core/fixtures.py` and `bpylayer/build.py` that are not the club
+
+`marker: False` on a FIXTURES row. Every row before this emits a `LuxEmit`
+empty and `LuxFixtureSpawner` puts the lamp there, which is how lights ship.
+The club rows must not: the spawner hands `LuxLightLoader.rig_for_anchor`
+only {type, id, drop}, so a wash would lose its zone colour and pool radius
+and take a hash pick instead, and a stage light would lose its target and be
+refused outright. Their light stays on the manifest bake, which has the whole
+anchor -- and a marker here would DOUBLE every club light rather than replace
+it. `markerless_fixtures` is written into the index and `emitter_markers` is
+no longer a copy of `fixtures_built`: measured on the shipped club, 25
+fixtures and 18 markers.
+
+Mount `hang`: body below the emitter with its TOP at it, and unlike `below`
+it does not stretch the fixture to grade. THE FIRST BUILD USED `above` AND IT
+WAS WRONG -- a club anchor's `pos` IS the ceiling plane, so bottom-at-the-
+emitter put the whole can inside the slab and left its lens recessed in a
+throat nobody on the floor can see. Caught by shooting the walker's own
+station and LOOKING at it: two par cans visible, five wash cans not. The same
+frame set `LENS_SEAT`, which moved the lit disc from the top of the baffle to
+under half of it so the disc is in view from about 60 degrees off the axis.
+
+A placement may also carry `params` (the can's form) and a `tilt_deg`, and
+`build_fixtures` composes the mount as `T(pos) @ Rz @ Ry(-tilt) @ T(lift)` so
+a fixture that aims tilts about its MOUNTED POINT. At tilt 0 that is the line
+it replaces to the bit, so every fixture built before this lands where it did.
+
+### Tests
+- `tests/test_back_bar.py`: the diffuser's core, rim, monotone falloff and
+  stable name; the disc's uvs on its own bounding square; both strengths held
+  under what clipped. All fail on 0.92.0.
+- `tests/test_fixtures.py`: the two new rows build, the forms they take, the
+  mount, the absent marker, the par's bearing and tilt from its target, the
+  no-target and aim-up cases, the gel and its fallback, and the three club
+  types whose hardware is built elsewhere saying so.
+- `tests/test_genome.py` and `tests/test_theme_style_resolution.py`: 70
+  species.
+- Host suite 2013 passed / 193 skipped; in-Blender suite (Blender 5.1.1)
+  2178 passed / 28 skipped.
+
+### Not done
+- The can is a black cylinder from across a dark room, because a can is not
+  lit by its own lamp and nothing else in the club lights the ceiling. It
+  reads as hardware over a pool, which is what was asked for; making it read
+  as a fixture from every angle is a lighting question, not a geometry one.
+- The `can`'s lit disc is `LENS_SEAT` x the baffle up its throat and Lux
+  hangs a club wash's lamp 0.25 m below the anchor, so the lamp is a hand's
+  width under the mouth rather than at the disc. That is the same offset the
+  fluorescent troffer has carried since v0.28, and the co-location gate's
+  0.25 m tolerance is written for it.
+
 ## [0.93.0] - a cubicle bank, which is not a desk
 
 The walker, cold run 9060, standing 2.68 m from `office_stepped`'s

@@ -16,6 +16,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # the below-grade bare bulb (DC >= 0.98 `pendant` anchors --
                 # basements and objective rooms; roadmap 57's 90s palette)
                 "pendant_fixture",
+                # the club set's own hardware (0.94.0): the can a wash
+                # comes out of and the par can a stage light does
+                "club_fixture",
                 # the interior species (0.84.0): what a generated room was
                 # missing besides tables and chairs
                 "carton_stack", "furnace", "dust_sheet", "pool_table",

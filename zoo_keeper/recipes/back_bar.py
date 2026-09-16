@@ -9,11 +9,13 @@ carrying its own UVs into the atlas and a painted material, the way the
 dartboard's board and the bracket TV's screen are built.
 
 WHAT IS LIT, and therefore what a power cut takes. The bulbs behind the
-shelves and the porthole's disc are emissive: ``M_BackBar_bulb_Face`` and
-``M_BackBar_niche_Face``, the ``_Face`` suffix Lux's emissive binder cuts
-with the room's power. `prim_mesh.build` paints a lit material with no wear
-and no ambient, so its COLOR_0 stays white and Level Factory's import
-leaves the albedo alone.
+shelves and the porthole's face are emissive: ``M_BackBar_bulb_Face`` and
+``M_BackBar_backbar_niche_<n>_<digest>_Face``, the ``_Face`` suffix Lux's
+emissive binder cuts with the room's power. `prim_mesh.build` paints a lit
+material with no wear and no ambient, so its COLOR_0 stays white and Level
+Factory's import leaves the albedo alone. The porthole is a BACKLIT RASTER
+rather than a flat emissive colour (0.94.0): a flat lit n-gon is a sun, and
+the walker's frame of one said so.
 
 FORMS: ``straight`` (a mirror in the centre bay) and ``niche`` (the round
 lit porthole); ``auto`` takes the porthole wherever the centre bay is wide
@@ -34,6 +36,11 @@ from ..core import back_bar_forms as F
 #: A printed paper label on glass: matte, a touch less than the dartboard's
 #: chalk panel (0.86) and its sisal (0.92).
 LABEL_ROUGHNESS = 0.88
+#: How much of the diffuser's artwork also drives its BASE colour. The
+#: vending panel's 0.35 is a backlit advert, which is meant to be readable
+#: with the tubes off; a porthole with the power cut is a dark glass hole in
+#: a dark cabinet, so it keeps less.
+NICHE_ALBEDO = 0.22
 
 
 def _hex(c):
@@ -76,10 +83,9 @@ def build(plan, streams, collection):
             for k, (c, kk) in F.materials(plan["color"], plan["material"]).items()}
     mats["bulb"] = ("M_BackBar_bulb_Face", list(F.BULB_COLOUR), "emissive",
                     F.BULB_STRENGTH)
-    mats["niche_lit"] = ("M_BackBar_niche_Face", list(F.NICHE_COLOUR),
-                         "emissive", F.NICHE_STRENGTH)
     labels = [p for p in prims if p["mat"] == "label"]
-    rest = [p for p in prims if p["mat"] != "label"]
+    glow = [p for p in prims if p["mat"] == "niche_lit"]
+    rest = [p for p in prims if p["mat"] not in ("label", "niche_lit")]
     objs = prim_mesh.build(rest, collection, plan, streams.stream("wear"), mats,
                            texel=1.0)
 
@@ -88,6 +94,21 @@ def build(plan, streams, collection):
     paint = materials.make_painted_material(f"M_BackBar_{atlas['name']}", image,
                                             LABEL_ROUGHNESS)
     objs.append(_uv_object(labels, "BackBar_Label", collection, paint, rng))
+
+    # THE PORTHOLE IS A DIFFUSER, NOT A LIT DISC (0.94.0). A flat emissive
+    # face of one colour is a sun at any strength that reads as a light (see
+    # `back_bar_art.NICHE_PX` for the frame that says so); a raster with a
+    # core and a falloff is a frosted lamp. Backlit rather than plain
+    # emissive so the face is DIMMED as albedo too -- a lamp behind glass is
+    # not a mirror of the room -- and named `_Face` so the power cut still
+    # takes it with the room, exactly as the flat material was.
+    if glow:
+        art = ART.niche_art(F.NICHE_COLOUR)
+        lit = materials.make_backlit_material(
+            f"M_BackBar_{art['name']}_Face",
+            materials.image_from_png(art["name"], art["canvas"].png()),
+            F.NICHE_STRENGTH, NICHE_ALBEDO)
+        objs.append(_uv_object(glow, "BackBar_NicheLamp", collection, lit, rng))
 
     f = got["facts"]
     print(f"[back_bar] form={got['form']} bays={f['bays']} tiers={f['tiers']} "

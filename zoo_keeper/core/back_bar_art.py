@@ -161,6 +161,78 @@ def label_atlas(brand_ids, key: str = "", variant: int = 0) -> dict:
             "name": f"backbar_labels_{w}x{h}_{digest:08x}"}
 
 
+#: THE PORTHOLE'S DIFFUSER (0.94.0). The niche used to be a flat n-gon of
+#: one emissive colour, and a flat emissive n-gon is a sun: at 4.15 m on the
+#: walk of cold run 9060 the 0.74 m disc came back at mean luma 200.8 with
+#: 1.57% of it pinned at 250 or more, a channel maximum of 255 and its
+#: brightest pixels reading (250, 250, 250) -- white, with the tungsten gone.
+#: Killing the Lux omni in front of it left 121.5 and a flat 239 ceiling, so
+#: the emission owned that half on its own. The walker: "it looks like a sun,
+#: we just want a soft glow".
+#:
+#: So the lit face is a RASTER now, and the raster is the softness: a bright
+#: core, a smooth falloff, and zero exactly at the rim -- which is what
+#: dissolves the polygon edge the geometry still has. 64 px over a disc that
+#: is 0.34 m across at its smallest is 5 mm a pixel, and the gradient is
+#: smooth enough at that size that the dither does the rest.
+NICHE_PX = 64
+#: The share of the radius the core holds at full brightness before the
+#: falloff starts. A frosted lamp has a visible source behind it; a pure
+#: gradient reads as fog.
+NICHE_CORE = 0.18
+
+
+def _srgb_byte(linear: float) -> int:
+    """A LINEAR value as the sRGB byte a PNG stores.
+
+    The niche's colour is stated linearly (`back_bar_forms.NICHE_COLOUR`,
+    which is what a glTF `emissiveFactor` carries) and the texture that
+    replaces it is sRGB, which Godot decodes on import. Encoding here is
+    what makes the two the same light: without it the core would land at
+    linear 0.78 x 0.78, a stop and a half dark and the wrong hue.
+    """
+    c = max(0.0, min(1.0, float(linear)))
+    s = c * 12.92 if c <= 0.0031308 else 1.055 * (c ** (1.0 / 2.4)) - 0.055
+    return int(round(s * 255.0))
+
+
+def paint_niche(colour) -> "Canvas":
+    """The porthole's lit face: `colour` (LINEAR rgb) at the core, falling
+    smoothly to black at the rim of the inscribed circle.
+
+    Square, `NICHE_PX` a side, uv (0, 0) at the top-left -- the disc's own
+    uvs map its bounding square onto it, so the inscribed circle is exactly
+    the disc and the corners are off the mesh.
+    """
+    n = NICHE_PX
+    c = Canvas(n, n, (0, 0, 0))
+    r = n / 2.0
+    for y in range(n):
+        dy = (y + 0.5) - r
+        for x in range(n):
+            dx = (x + 0.5) - r
+            d = (dx * dx + dy * dy) ** 0.5 / r
+            # THE FALLOFF IS APPLIED IN LINEAR LIGHT, then encoded. Fading
+            # the sRGB bytes instead would hold the mid-tones up and draw a
+            # visible disc edge where this one has none.
+            t = (1.0 - d) / (1.0 - NICHE_CORE)
+            t = 0.0 if t <= 0.0 else (1.0 if t >= 1.0 else t * t * (3.0 - 2.0 * t))
+            if t <= 0.0:
+                continue
+            c.px(x, y, tuple(_srgb_byte(v * t) for v in colour))
+    return c
+
+
+def niche_art(colour) -> dict:
+    """``{canvas, size, name}`` for the porthole's diffuser. Named from its
+    own pixels, like `label_atlas`: the same colour gives the same raster
+    and therefore the same name in every build."""
+    c = paint_niche(colour)
+    digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
+    return {"canvas": c, "size": (c.w, c.h),
+            "name": f"backbar_niche_{NICHE_PX}_{digest:08x}"}
+
+
 def painted_strings(brand_ids) -> list:
     """Every string an atlas of these brands paints: for the denylist."""
     out = []

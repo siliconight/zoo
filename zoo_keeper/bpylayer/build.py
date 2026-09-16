@@ -673,6 +673,7 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     bpy.context.scene.collection.children.link(coll)
 
     built = 0
+    markerless = 0
     for i, p in enumerate(plan["placements"]):
         species = p["species"]
         genome = genome_mod.load_species(species)
@@ -701,6 +702,15 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # Recipes with per-anchor resolution needs (sign pack picks) key on
         # the anchor id — stable across rebuilds, unique across the site.
         sp_plan["anchor_id"] = p["anchor_id"]
+        # v0.94: a FIXTURES row may pin recipe params (the club can's form),
+        # and an anchor may carry a gel colour for the lit lens. Merged over
+        # whatever `dna.resolve_plan` chose, not instead of it.
+        if p.get("params") or p.get("gel"):
+            params = dict(sp_plan.get("params") or {})
+            params.update(p.get("params") or {})
+            if p.get("gel"):
+                params["gel"] = p["gel"]
+            sp_plan["params"] = params
 
         before = set(coll.objects)
         result = recipes.get(species)(sp_plan, streams, coll)
@@ -714,12 +724,30 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # -> lift +h/2. Mount 'below': top (+h/2) at the anchor -> drop -h/2.
         # Mount 'center': the anchor IS the centre (sign faces) -> no lift.
         half_h = sp_plan["dimensions"]["height"] / 2.0
-        lift = {"above": half_h, "below": -half_h,
+        # 'hang' is 'below' without the stretch: the pole branch above keys
+        # on the STRING, so a can that drops under a ceiling keeps the size
+        # its genome gave it while a streetlight still reaches grade.
+        lift = {"above": half_h, "below": -half_h, "hang": -half_h,
                 "center": 0.0}[p["mount"]]
         rot = mathutils.Matrix.Rotation(math.radians(p["rot_z"]), 4, "Z")
-        trans = mathutils.Matrix.Translation(mathutils.Vector(
-            (p["pos"][0], p["pos"][1], p["pos"][2] + lift)))
-        m = trans @ rot
+        # v0.94: A FIXTURE THAT AIMS TILTS ABOUT ITS MOUNTED POINT, not about
+        # its own centre, so the lit face stays exactly on the emitter while
+        # the barrel swings. That needs the lift applied INSIDE the rotations
+        # rather than folded into the translation:
+        #
+        #     T(pos) @ Rz @ Ry(-tilt) @ T(0, 0, lift)
+        #
+        # which for tilt 0 is T(pos) @ Rz @ T(0,0,lift) = T(pos + lift) @ Rz,
+        # the line this replaces, to the bit -- every fixture built before
+        # this lands where it always did. Ry NEGATIVE: Ry(-t) takes the
+        # fixture's own -Z (the lens's aim) to (+sin t, 0, -cos t), which
+        # leans it toward local +X, and `core.fixtures` sets `rot_z` to the
+        # bearing of the target so local +X points at it.
+        tilt = mathutils.Matrix.Rotation(
+            math.radians(-float(p.get("tilt_deg", 0.0))), 4, "Y")
+        m = (mathutils.Matrix.Translation(mathutils.Vector(p["pos"]))
+             @ rot @ tilt
+             @ mathutils.Matrix.Translation(mathutils.Vector((0.0, 0.0, lift))))
         for obj in new_objs:
             obj.matrix_world = m @ obj.matrix_world
 
@@ -727,6 +755,15 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # pos itself, NOT the lifted hardware centre — named by the LuxEmit
         # contract, payload in custom props (exported as glTF extras; Godot
         # imports them as node metadata). Lux spawns the lamp here.
+        # v0.94: a row may say its light does NOT come from the marker path
+        # (the club set: `core.fixtures.FIXTURES`, `marker: False`). Its
+        # hardware is built like any other; a marker would hand the spawner
+        # an anchor it cannot tune and DOUBLE a light the manifest bake
+        # already makes.
+        if not p.get("marker", True):
+            built += 1
+            markerless += 1
+            continue
         mk = bpy.data.objects.new(fixtures_mod.marker_name(p), None)
         mk.empty_display_type = "PLAIN_AXES"
         mk.empty_display_size = 0.15
@@ -754,7 +791,12 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     index = {"tool_version": TOOL_VERSION, "scope_id": scope,
              "theme": theme, "seed": seed, "space": plan["space"],
              "counts": plan["counts"], "fixtures_built": built,
-             "emitter_markers": built,
+             # NOT `built` any more (v0.94): a club fixture is hardware
+             # with no marker on purpose, so the two numbers differ and a
+             # reader who conflates them would count lights that are not
+             # there. `markerless_fixtures` is the difference, named.
+             "emitter_markers": built - markerless,
+             "markerless_fixtures": markerless,
              "marker_prefix": fixtures_mod.MARKER_PREFIX,
              "skipped": plan["skipped"], "placements": plan["placements"],
              "files": files}

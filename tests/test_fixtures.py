@@ -235,3 +235,246 @@ def test_drop_rides_every_lamp_placement():
     per_lamp = [pl["drop"] for pl in p["placements"]
                 if pl["anchor_id"] == "hall_ceiling"]
     assert per_lamp == [5.6, 5.6, 5.6]
+
+
+# --- the club set's hardware (v0.94) ------------------------------------------
+
+
+def _wash(aid="main_floor_wash_1", pos=(-14.25, -1.5, 3.2), color="amber"):
+    return {"id": aid, "type": "club_wash", "source": "derived",
+            "pos": list(pos), "rot_y": 0.0, "room": "main_floor",
+            "color": color, "radius": 4.667, "row": {"count": 1, "spacing": 0.0},
+            "drop": 3.2, "reacts_to_alarm": True}
+
+
+def _stage(aid="main_floor_stage", pos=(-1.5, -5.0, 3.2),
+           target=(-6.0, -5.0, 1.68), count=2):
+    return {"id": aid, "type": "stage_light", "source": "derived",
+            "pos": list(pos), "rot_y": 90.0, "room": "main_floor",
+            "color": "amber", "target": list(target), "radius": 1.5,
+            "row": {"count": count, "spacing": 1.2}, "cycle_s": 4.0,
+            "drop": 3.2, "reacts_to_alarm": True}
+
+
+def test_a_club_wash_and_a_stage_light_now_have_hardware():
+    """Walked 2026-09-16: "it doesn't look like that light is coming out of
+    any viewable light fixtures". Before 0.94 both came back skipped with
+    "no fixture species for this type"."""
+    plan = fixtures.plan(_manifest([_wash(), _stage()]))
+    assert plan["counts"] == {"club_fixture": 3}      # 1 wash + a 2-lamp row
+    forms = sorted(p["params"]["form"] for p in plan["placements"])
+    assert forms == ["can", "par", "par"]
+    # HANG, not above: a club anchor's pos is the CEILING PLANE, and 'above'
+    # (bottom at the emitter, body upward) buried the whole can in the slab
+    # -- shot at the walker's own station and looked at before this line was
+    # written. 'hang' drops it under the ceiling, mouth down, and unlike
+    # 'below' it does not stretch the fixture to grade.
+    assert all(p["mount"] == "hang" for p in plan["placements"])
+    assert not plan["skipped"]
+
+
+def test_the_club_hardware_carries_no_emitter_marker_on_purpose():
+    """The marker path hands `rig_for_anchor` only {type, id, drop}: a wash
+    would lose its colour and radius, a stage light its target. Their light
+    stays on `bake_club`, and a marker here would DOUBLE it."""
+    plan = fixtures.plan(_manifest([_wash(), _stage(), _fluoro(), _street()]))
+    by_type = {}
+    for p in plan["placements"]:
+        by_type.setdefault(p["type"], set()).add(p["marker"])
+    assert by_type["club_wash"] == {False}
+    assert by_type["stage_light"] == {False}
+    # and nothing that shipped before this changed
+    assert by_type["fluorescent"] == {True}
+    assert by_type["streetlight"] == {True}
+
+
+def test_a_par_can_points_at_the_anchors_own_target():
+    """rot_y on a stage_light is the ROW's axis, not the barrel's. A can
+    that does not point at the target the light aims at is a prop."""
+    plan = fixtures.plan(_manifest([_stage(count=1)]))
+    p = plan["placements"][0]
+    # target is 4.5 m west and 1.52 m below: bearing 180, tilt off plumb
+    # atan(4.5 / 1.52) = 71.34 degrees
+    assert p["rot_z"] == pytest.approx(180.0, abs=1e-3)
+    assert p["tilt_deg"] == pytest.approx(
+        math.degrees(math.atan2(4.5, 1.52)), abs=1e-3)
+    # ...and the anchor's own rot_y (90) is NOT what shipped
+    assert p["rot_z"] != 90.0
+
+
+def test_a_stage_light_with_no_target_hangs_plumb_rather_than_failing():
+    a = _stage(count=1)
+    del a["target"]
+    p = fixtures.plan(_manifest([a]))["placements"][0]
+    assert p["tilt_deg"] == 0.0
+    assert p["rot_z"] == 90.0          # the anchor's own, untouched
+
+
+def test_a_target_at_or_above_the_fixture_clamps_instead_of_flipping():
+    """A stage light that has to aim UP is a manifest error; swinging the
+    barrel over the top would hide it."""
+    from zoo_keeper.core import club_fixture_forms as cff
+    assert cff.tilt_for((0, 0, 3.2), (4, 0, 3.2))[1] == 90.0
+    assert cff.tilt_for((0, 0, 3.2), (4, 0, 5.0))[1] == 90.0
+    assert cff.tilt_for((0, 0, 3.2), (0, 0, 0.0)) == (0.0, 0.0)
+
+
+def test_the_lens_wears_the_pools_own_colour():
+    plan = fixtures.plan(_manifest([_wash(color="magenta")]))
+    assert plan["placements"][0]["gel"] == "magenta"
+    from zoo_keeper.core import club_fixture_forms as cff
+    assert cff.gel("magenta") == cff.GEL["magenta"]
+    # an unknown name is the warm lamp, never a guess and never a failure --
+    # Lux owns that palette and this is a second copy of it
+    assert cff.gel("chartreuse") == cff.GEL_DEFAULT
+    assert cff.gel(None) == cff.GEL_DEFAULT
+
+
+def test_the_club_types_with_hardware_elsewhere_say_so():
+    """"no fixture species for this type" was a lie about all three: a neon
+    IS its sign, a back_bar is the bar's own bulbs, a room_ambient is a
+    probe."""
+    anchors = [{"id": "n", "type": "neon", "pos": [0, 0, 2.2], "rot_y": 0.0},
+               {"id": "b", "type": "back_bar", "pos": [0, 0, 1.7], "rot_y": 0.0},
+               {"id": "r", "type": "room_ambient", "pos": [0, 0, 1.6],
+                "rot_y": 0.0}]
+    plan = fixtures.plan(_manifest(anchors))
+    assert plan["placements"] == []
+    assert {s["type"] for s in plan["skipped"]} == {"neon", "back_bar",
+                                                    "room_ambient"}
+    for s in plan["skipped"]:
+        assert s["reason"].startswith("hardware built elsewhere")
+
+
+def test_the_can_and_the_par_put_their_lit_face_at_the_anchor():
+    """Mount 'above' is bottom-at-the-emitter, and the lens is the bottom:
+    the light Lux bakes at the anchor comes out of the face a player sees."""
+    from zoo_keeper.core import club_fixture_forms as cff
+    for form in cff.FORMS:
+        got = cff.plan(form, 0.16, 0.16, 0.25)
+        lens = [p for p in got["parts"] if p["part"] == "lens"]
+        assert len(lens) == 1
+        # within the lens plate's own half-thickness of the fixture's bottom
+        assert lens[0]["center"][2] <= -0.25 / 2.0 + got["facts"]["throat"] + 0.02
+        assert got["facts"]["lens_r"] > 0.0
+        assert got["facts"]["parts"] >= 3
+
+
+# --- the club's hardware, built in Blender (v0.94) ----------------------------
+
+
+def _club_manifest():
+    return {"light_manifest_version": "1.2.0", "building_id": "club_bpy",
+            "space": "Blender Z-up, meters", "anchors": [
+                {"id": "wash", "type": "club_wash", "pos": [0.0, 0.0, 3.2],
+                 "rot_y": 0.0, "color": "magenta", "radius": 4.0,
+                 "row": {"count": 1, "spacing": 0.0}, "drop": 3.2},
+                {"id": "stage", "type": "stage_light", "pos": [6.0, 0.0, 3.2],
+                 "rot_y": 90.0, "color": "amber", "target": [2.0, 0.0, 1.0],
+                 "row": {"count": 1, "spacing": 0.0}, "drop": 3.2},
+                {"id": "tube", "type": "fluorescent", "pos": [-6.0, 0.0, 3.2],
+                 "rot_y": 0.0, "row": {"count": 2, "spacing": 2.0},
+                 "drop": 3.2}]}
+
+
+def _built(tmp_path):
+    import json
+    import os
+    from zoo_keeper.bpylayer import build
+    res = build.build_fixtures(_club_manifest(), str(tmp_path), theme="delco",
+                               options={"save_blend": False})
+    with open(os.path.join(str(tmp_path), "club_bpy_fixtures.built.json"),
+              encoding="utf-8") as fh:
+        index = json.load(fh)
+    return res, index, os.path.join(str(tmp_path), index["files"]["glb"])
+
+
+def _gltf(path):
+    import json
+    import struct
+    raw = open(path, "rb").read()
+    assert raw[:4] == b"glTF"
+    ln, kind = struct.unpack_from("<I4s", raw, 12)
+    assert kind == b"JSON"
+    return json.loads(raw[20:20 + ln])
+
+
+def test_bpy_the_club_gets_hardware_and_no_marker_with_it(tmp_path):
+    """Walked 2026-09-16: "it doesn't look like that light is coming out of
+    any viewable light fixtures". A marker as well would DOUBLE the light,
+    because the manifest bake already makes it."""
+    pytest.importorskip("bpy")
+    res, index, glb = _built(tmp_path)
+    assert res["counts"]["club_fixture"] == 2
+    # one marker for the two-lamp fluorescent row, none for the club
+    assert index["emitter_markers"] == 2
+    assert index["markerless_fixtures"] == 2
+    assert index["fixtures_built"] == 4
+    j = _gltf(glb)
+    names = [n["name"] for n in j["nodes"]]
+    assert any(n.startswith("ClubFixture") for n in names)
+    assert sum(1 for n in names if n.startswith("LuxEmit")) == 2
+    assert not any(n.startswith("LuxEmit_club") or n.startswith("LuxEmit_stage")
+                   for n in names)
+
+
+def test_bpy_the_lens_is_emissive_in_the_anchors_own_gel(tmp_path):
+    """A white-hot lens under a magenta pool is the disagreement the frame
+    showed. `_Lens` so Lux's power cut takes it with the room."""
+    pytest.importorskip("bpy")
+    from zoo_keeper.core import club_fixture_forms as cff
+    _res, _index, glb = _built(tmp_path)
+    j = _gltf(glb)
+    lit = {m["name"]: m for m in j["materials"]
+           if m["name"].startswith("M_ClubFixture") and m["name"].endswith("_Lens")}
+    assert len(lit) == 2, sorted(lit)
+    got = set()
+    for m in lit.values():
+        ef = m["emissiveFactor"]
+        assert any(v > 0.0 for v in ef)
+        base = m["pbrMetallicRoughness"]["baseColorFactor"][:3]
+        got.add(tuple(round(v, 2) for v in base))
+    assert got == {tuple(round(v, 2) for v in cff.GEL["magenta"]),
+                   tuple(round(v, 2) for v in cff.GEL["amber"])}
+
+
+def test_bpy_a_par_can_leans_at_its_target_and_hangs_below_the_ceiling(tmp_path):
+    """The anchor IS the ceiling plane, so a fixture mounted `above` it is
+    inside the slab -- measured in a frame before the mount was `hang`. And
+    a par can that does not point at the target the light aims at is a prop.
+    """
+    pytest.importorskip("bpy")
+    import bpy
+    _res, _index, _glb = _built(tmp_path)
+    objs = {}
+    for o in bpy.context.scene.objects:
+        if o.type != "MESH" or not o.name.startswith("ClubFixture"):
+            continue
+        pts = [o.matrix_world @ v.co for v in o.data.vertices]
+        objs[o.name] = pts
+    assert objs, sorted(o.name for o in bpy.context.scene.objects)
+    # WHAT POKES ABOVE THE CEILING PLANE, and how much. A `hang` fixture
+    # pivots about its own TOP, which is the anchor, so a can hanging plumb
+    # has nothing above it -- but a par can tilted 73 degrees off plumb
+    # sweeps its barrel rim and clamp up past that point. MEASURED at this
+    # manifest: 0.146 m, which is inside the 0.1-0.2 m gap Deli Counter
+    # leaves between a room's ceiling and the slab over it, so the clamp is
+    # half-buried in the tiles the way a bolted fixture is and nothing
+    # reaches the floor above. Held to the gap, not to zero.
+    top = max(p.z for pts in objs.values() for p in pts)
+    assert 3.2 <= top <= 3.2 + 0.2, top
+    # ...and the whole of it hangs within a fixture's depth below it
+    bottom = min(p.z for pts in objs.values() for p in pts)
+    assert 3.2 - 0.6 <= bottom < 3.2
+    # THE PAR CAN LEANS TOWARD ITS TARGET. The anchor is at x 6.0 and the
+    # target at x 2.0, and a `hang` fixture pivots about its TOP -- so it is
+    # the barrel and the lens that swing toward -x while the clamp stays
+    # over the anchor. (Written the other way round first, from the `above`
+    # mount it no longer uses, and the build said so: 5.648 to 6.057.)
+    par = [pts for name, pts in objs.items() if any(p.x > 5.0 for p in pts)]
+    assert par, sorted(objs)
+    xs = [p.x for pts in par for p in pts]
+    assert 6.0 - min(xs) > max(xs) - 6.0, (min(xs), max(xs))
+    # and it really is off plumb: a can hanging straight down would be
+    # symmetric about its anchor to the millimetre
+    assert (6.0 - min(xs)) - (max(xs) - 6.0) > 0.2, (min(xs), max(xs))

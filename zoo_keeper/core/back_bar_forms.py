@@ -174,12 +174,28 @@ SHOULDER_F = 0.72
 BULB_R = 0.022
 BULB_OUT = 0.02         # the bulb's glass, off the back panel
 BULB_COLOUR = [1.0, 0.72, 0.42]
-BULB_STRENGTH = 2.0
+#: 2.0 down to 1.5 (0.94.0). A pygmy lamp is allowed to be the brightest
+#: thing on the shelf; it is not allowed to be WHITE, and at 2.0 the
+#: brightest channel and the dimmest both landed on the dither's 239 step in
+#: the walk of cold run 9060 -- a colourless dot. 1.5 keeps the tungsten in
+#: it at the same station. It is a 4.4 cm sphere either way: this changes a
+#: speck, and the porthole below is the change the walker asked for.
+BULB_STRENGTH = 1.5
 #: The niche's lit back. Warmer still and larger, so the porthole reads as
-#: a light and not as a lamp.
+#: a light and not as a lamp. LINEAR rgb -- `back_bar_art.paint_niche`
+#: encodes it for the diffuser raster.
 NICHE_COLOUR = [1.0, 0.78, 0.52]
-NICHE_STRENGTH = 1.6
-NICHE_SEGMENTS = 16
+#: 1.6 down to 1.2 (0.94.0), and now the PEAK of a gradient rather than the
+#: value of a flat face (see `back_bar_art.NICHE_PX` for what the flat face
+#: measured). 1.2 x the preset's 0.95 exposure sits just over Heavy Rain's
+#: 1.1 glow threshold, so the core alone blooms and the rest of the disc
+#: does not -- a glow with an edge to it, which is what a frosted lamp is.
+NICHE_STRENGTH = 1.2
+#: 16 up to 32 (0.94.0). 16 put a visible facet every 22.5 degrees round a
+#: 0.74 m disc read at 4 m; the diffuser's rim is black now, so this is
+#: belt and braces -- and 16 more triangles against a unit that already
+#: carries 8,100.
+NICHE_SEGMENTS = 32
 NICHE_RING = 0.035      # the surround's width round the lit disc
 
 
@@ -478,14 +494,22 @@ def plan(w, d, h, form="auto", variant=0, key=""):
 
 
 def _disc(out, part, mat, cx, y, cz, r, segments=NICHE_SEGMENTS):
-    """A flat disc in the XZ plane facing -Y: the niche's lit back."""
-    verts, faces = [], []
+    """A flat disc in the XZ plane facing -Y: the niche's lit back.
+
+    Carries its own UVs (0.94.0), mapping the disc's BOUNDING SQUARE onto
+    the diffuser raster so the inscribed circle is exactly the disc and the
+    raster's corners fall off the mesh. v is flipped because a Canvas keeps
+    row 0 at the top and +z is up.
+    """
+    verts, faces, uvs = [], [], []
     for k in range(segments):
         a = 2.0 * math.pi * k / segments
         verts.append((cx + r * math.cos(a), y, cz + r * math.sin(a)))
     faces.append(tuple(range(segments)))
+    uvs.append(tuple((0.5 + (v[0] - cx) / (2.0 * r),
+                      0.5 - (v[2] - cz) / (2.0 * r)) for v in verts))
     out.append({"part": part, "mat": mat, "bevel": False, "verts": verts,
-                "faces": faces})
+                "faces": faces, "uvs": uvs})
 
 
 def _ring(out, cx, y, cz, r0, r1, segments=NICHE_SEGMENTS):

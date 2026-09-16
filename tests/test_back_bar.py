@@ -154,13 +154,74 @@ def test_the_lit_materials_carry_the_face_suffix_lux_cuts():
               encoding="utf-8") as fh:
         src = fh.read()
     assert '"M_BackBar_bulb_Face"' in src
-    assert '"M_BackBar_niche_Face"' in src
+    # The porthole's name carries its raster's digest (0.94.0) -- it is a
+    # backlit texture now, not a flat emissive colour -- so the contract
+    # that survives is the SUFFIX, which is all the binder reads.
+    assert '_Face"' in src
+    assert 'make_backlit_material' in src
     assert '"emissive"' in src
     # and nothing ELSE in the unit is lit: a lit shelf is a lit shelf, not
     # a whole cabinet glowing
     mats = F.materials([0.3, 0.2, 0.1], "wood_stained")
     assert all(len(v) == 2 for v in mats.values())
     assert "bulb" not in mats and "niche_lit" not in mats
+
+
+def test_the_porthole_is_a_diffuser_and_not_a_flat_lit_disc():
+    """0.94.0. Walked on cold run 9060 at 4.15 m: the flat 0.74 m face came
+    back at mean luma 200.8, 1.57% of it pinned at 250+, brightest pixels
+    (250, 250, 250) -- white, with the tungsten gone. A raster with a core
+    and a smooth falloff to zero at the rim is what a frosted lamp is."""
+    from zoo_keeper.core import back_bar_art as ART
+    art = ART.niche_art(F.NICHE_COLOUR)
+    c = art["canvas"]
+    n = ART.NICHE_PX
+    assert (c.w, c.h) == (n, n)
+    # the CORE is the colour, encoded to sRGB so it decodes back to the
+    # linear value a glTF emissiveFactor used to carry
+    assert c.get(n // 2, n // 2) == tuple(ART._srgb_byte(v) for v in F.NICHE_COLOUR)
+    # ...and every channel of the core is warm, in that order
+    r, g, b = c.get(n // 2, n // 2)
+    assert r > g > b
+    # THE RIM IS (all but) ZERO, which is what dissolves the polygon edge.
+    # Not exactly zero: a pixel CENTRE sits half a pixel inside the rim, and
+    # 3/255 is what the smoothstep leaves there -- under the preset's own
+    # 24-level dither, so it is black on screen.
+    assert max(c.get(n // 2, 0)) <= 6
+    assert max(c.get(0, n // 2)) <= 6
+    assert c.get(0, 0) == (0, 0, 0)           # off the inscribed circle
+    # and it falls MONOTONICALLY from the core out along a radius
+    row = [c.get(x, n // 2)[0] for x in range(n // 2, n)]
+    assert row == sorted(row, reverse=True)
+    assert row[0] == 255 and row[-1] <= 6
+    # the same colour gives the same bytes and the same name, every build
+    assert ART.niche_art(F.NICHE_COLOUR)["name"] == art["name"]
+    assert ART.niche_art([1.0, 0.5, 0.2])["name"] != art["name"]
+
+
+def test_the_lit_face_carries_uvs_onto_its_own_bounding_square():
+    """The disc's uvs map the raster's inscribed circle onto it exactly, so
+    the core lands at the centre and the falloff reaches zero at the edge of
+    the geometry rather than somewhere inside it."""
+    got = _plan((5.0, 0.5, 2.4), "niche")
+    lit = [p for p in got["prims"] if p["mat"] == "niche_lit"]
+    assert len(lit) == 1
+    uvs = lit[0]["uvs"][0]
+    assert len(uvs) == F.NICHE_SEGMENTS == len(lit[0]["verts"])
+    # every corner sits on the unit circle in uv space, to the tolerance
+    # `fit_exact`'s sub-percent rescale of the vertices leaves
+    for u, v in uvs:
+        assert abs(((u - 0.5) ** 2 + (v - 0.5) ** 2) ** 0.5 - 0.5) < 5e-3
+        assert -1e-6 <= u <= 1.0 + 1e-6 and -1e-6 <= v <= 1.0 + 1e-6
+
+
+def test_the_lit_strengths_stay_under_the_presets_clipping():
+    """Both numbers came down in 0.94.0 and neither may drift back up
+    without a frame to justify it: 1.6 flat and 2.0 on the bulbs both read
+    as colourless white at the walker's station."""
+    assert F.NICHE_STRENGTH < 1.6
+    assert F.BULB_STRENGTH < 2.0
+    assert F.NICHE_SEGMENTS >= 32
 
 
 def test_every_bay_and_tier_has_a_bulb():

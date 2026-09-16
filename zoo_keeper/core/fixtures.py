@@ -32,9 +32,10 @@ import zlib
 
 # anchor type -> which species builds its hardware and how it hangs off the
 # emitter point: 'above' (body above the emitter — troffers, wall packs),
-# 'below' (body below — poles), 'center' (emitter IS the body's centre —
-# sign faces). Extending the pipeline is one row here + one genome + one
-# recipe.
+# 'below' (body below AND stretched to grade — poles), 'center' (emitter IS
+# the body's centre — sign faces), 'hang' (v0.94: body below, its TOP at the
+# emitter, NOT stretched — a can under a ceiling). Extending the pipeline is
+# one row here + one genome + one recipe.
 FIXTURES = {
     "fluorescent": {"species": "fluorescent_fixture", "mount": "above"},
     "streetlight": {"species": "streetlight", "mount": "below"},
@@ -54,10 +55,50 @@ FIXTURES = {
     # species" -- and a skipped anchor emits NO MARKER, so on the marker
     # path (the one this pipeline ships) every basement was silently dark.
     "pendant": {"species": "pendant_fixture", "mount": "above"},
+    # v0.94 the club set (Lux 0.37.0's anchors, walked 2026-09-16 as
+    # "it doesn't look like that light is coming out of any viewable light
+    # fixtures"). Both mount 'above', so the LIT LENS sits on the emitter
+    # point and the barrel rises into the ceiling gap behind it.
+    #
+    # `marker: False` IS THE LOAD-BEARING FIELD HERE. Every row above emits
+    # a LuxEmit empty and LuxFixtureSpawner puts the lamp there, which is
+    # how lights ship. These two must not: the spawner hands
+    # `LuxLightLoader.rig_for_anchor` only {type, id, drop}, so a club_wash
+    # would lose the zone COLOUR and the pool RADIUS Deli Counter measured
+    # and take a hash pick instead, and a stage_light would lose its TARGET
+    # and be refused outright. Their light stays on the manifest bake
+    # (`bake_club`), which has the whole anchor -- and a marker here would
+    # DOUBLE every club light rather than replace it. Moving the club set
+    # onto markers means widening the marker payload first.
+    # MOUNT 'hang', NOT 'above', AND THE FIRST BUILD GOT IT WRONG. A club
+    # anchor's pos IS the ceiling plane (Deli Counter writes z = the storey's
+    # 3.2 m), so 'above' -- bottom at the emitter, body upward -- put the
+    # whole can inside the slab and left a 7 cm lens recessed in a throat
+    # nobody can see from the floor. Shot at the walker's own station and
+    # looked at: two par cans visible, five wash cans not. 'hang' is the
+    # mirror of it -- TOP at the emitter, body below, no pole stretch -- so
+    # the can hangs under the ceiling with its mouth down, which is also
+    # where Lux hangs the lamp (`FLUORESCENT_MOUNT` -0.25 m, which the club
+    # wash inherits).
+    "club_wash": {"species": "club_fixture", "mount": "hang", "marker": False,
+                  "params": {"form": "can"}},
+    "stage_light": {"species": "club_fixture", "mount": "hang",
+                    "marker": False, "params": {"form": "par"}, "aim": True},
 }
 
 # anchor types that are light without hardware, by design.
 DAYLIGHT = {"window", "sun"}
+
+# ...and the club anchors that ALREADY have hardware, built by something
+# else, so "no fixture species for this type" would be a lie about them.
+# A `neon` IS its sign and `sign_box` builds it; a `back_bar` is the bar's
+# own bulbs and porthole and the `back_bar` species builds those; a
+# `room_ambient` is a ReflectionProbe and has nothing to hang.
+HARDWARE_ELSEWHERE = {
+    "neon": "the sign it is mounted on (species sign_box)",
+    "back_bar": "the bar's own bulbs and porthole (species back_bar)",
+    "room_ambient": "a probe, not a lamp -- nothing to build",
+}
 
 # Emitter marker contract (v0.30): every placement's EMITTER point (the
 # anchor pos itself, before any mount lift) is exported into the fixtures
@@ -163,6 +204,11 @@ def plan(manifest: dict, types=None) -> dict:
             skipped.append({"id": aid, "type": t,
                             "reason": "daylight/preset — no hardware"})
             continue
+        if t in HARDWARE_ELSEWHERE:
+            skipped.append({"id": aid, "type": t,
+                            "reason": "hardware built elsewhere: %s"
+                                      % HARDWARE_ELSEWHERE[t]})
+            continue
         fx = FIXTURES.get(t)
         if fx is None:
             skipped.append({"id": aid, "type": t,
@@ -191,7 +237,35 @@ def plan(manifest: dict, types=None) -> dict:
                 # the arena's 5.6 m hall lit-ceiling-over-black-floor.
                 "drop": float(a.get("drop", 0.0) or 0.0),
                 "seed_offset": _seed_offset(aid, j),
+                # v0.94: whether this placement emits a LuxEmit marker (see
+                # the club rows in FIXTURES). Every row that does not say
+                # otherwise does, so nothing above this changes.
+                "marker": bool(fx.get("marker", True)),
             }
+            if fx.get("params"):
+                placement["params"] = dict(fx["params"])
+            if fx.get("aim"):
+                # A FIXTURE THAT AIMS OVERRIDES THE ANCHOR'S OWN rot_y, and
+                # takes a tilt with it. `rot_y` on a stage_light is the row's
+                # axis, not the barrel's: the anchor carries a `target`, and
+                # a par can that does not point at it is a prop. Both are in
+                # the MANIFEST'S OWN FRAME, so this is only sound on the
+                # per-building manifest Zoo builds from -- Lot's merge
+                # transforms `pos` and copies `target` verbatim, which is
+                # the defect Lux 0.40.0 refuses a light over. A placement
+                # with no usable target keeps the anchor's rot_y and hangs
+                # plumb, which is what an untargeted spot means.
+                tgt = a.get("target")
+                if isinstance(tgt, (list, tuple)) and len(tgt) >= 3:
+                    from . import club_fixture_forms as _cff
+                    bearing, tilt = _cff.tilt_for(p, tgt)
+                    placement["rot_z"] = bearing
+                    placement["tilt_deg"] = tilt
+                else:
+                    placement["tilt_deg"] = 0.0
+            if a.get("color"):
+                # the gel: the lens reads in the colour of the pool it makes
+                placement["gel"] = str(a.get("color"))
             size = a.get("size")
             if (isinstance(size, (list, tuple)) and len(size) >= 2):
                 # DC sizes the panel (signs); the builder clamps it into the
