@@ -1,0 +1,176 @@
+{
+  "species": "hanging_banner",
+  "version": 1,
+  "collision": false,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.98.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md under 'The card shop is not dense enough, and what dense means'. Construction knowledge only. The walker's own words on the fourth poster reference -- 'obviously we can't copy this intellectual property, but it is comps of what it could look like' -- are the standing arrangement for the whole file: the COMPOSITION travels and the content does not. No character, name, logo, set or mark from any reference reaches a texture; every string this species paints comes from core/card_brands.py, which is invented, and tests/test_card_brands.py holds every painted string against a denylist of the real card games, publishers, graders, leagues, clubs and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 3.0,
+      "default": 1.8
+    },
+    "depth": {
+      "min": 0.03,
+      "max": 0.1,
+      "default": 0.05
+    },
+    "height": {
+      "min": 0.4,
+      "max": 1.6,
+      "default": 0.7
+    }
+  },
+  "parts": [
+    "Banner_StrapL",
+    "Banner_StrapR",
+    "Banner_Rod",
+    "Banner_Hem",
+    "Banner_Cloth",
+    "Banner_Art"
+  ],
+  "params": {},
+  "materials": {
+    "default": "cloth",
+    "options": [
+      "cloth",
+      "canvas",
+      "plastic",
+      "paper"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "cloth",
+      "color": [
+        0.52,
+        0.5,
+        0.47
+      ],
+      "wear": 0.14,
+      "bevel": 0.003
+    },
+    "1970s": {
+      "material": "cloth",
+      "color": [
+        0.34,
+        0.28,
+        0.2
+      ],
+      "wear": 0.34,
+      "bevel": 0.003
+    },
+    "1980s": {
+      "material": "cloth",
+      "color": [
+        0.34,
+        0.28,
+        0.2
+      ],
+      "wear": 0.28,
+      "bevel": 0.003
+    },
+    "1990s": {
+      "material": "cloth",
+      "color": [
+        0.52,
+        0.5,
+        0.47
+      ],
+      "wear": 0.24,
+      "bevel": 0.003
+    },
+    "modern": {
+      "material": "cloth",
+      "color": [
+        0.68,
+        0.67,
+        0.64
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "cloth",
+      "color": [
+        0.52,
+        0.5,
+        0.47
+      ],
+      "wear": 0.14,
+      "bevel": 0.003
+    },
+    "delco": {
+      "material": "cloth",
+      "color": [
+        0.52,
+        0.5,
+        0.47
+      ],
+      "wear": 0.26,
+      "bevel": 0.003,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "cloth",
+      "color": [
+        0.68,
+        0.67,
+        0.64
+      ],
+      "wear": 0.07,
+      "bevel": 0.003,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "cloth",
+      "color": [
+        0.34,
+        0.28,
+        0.2
+      ],
+      "wear": 0.34,
+      "bevel": 0.003,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "cloth",
+      "color": [
+        0.52,
+        0.5,
+        0.47
+      ],
+      "wear": 0.24,
+      "bevel": 0.003,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 160
+  },
+  "attachments": [],
+  "keywords": [
+    "hanging banner",
+    "hanging_banner",
+    "banner",
+    "cloth banner",
+    "cloth_banner",
+    "print banner",
+    "print_banner",
+    "wall banner",
+    "wall_banner",
+    "banner sign",
+    "banner_sign"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  },
+  "notes": "THINGS HANG -- property 3 of the card-shop reference: 'banners and pennant strips run above the shelving', and 'a printed banner behind the play area'. A printed cloth on a rod, hung from two straps off the top of its own slot box, with a weighted hem bar along the foot (a printed banner without one curls, and every one in the references has a visible bar). RANGES: width 0.80 to 3.00 -- the cap is a TEXTURE decision and not a geometry one, because the tile is painted at `card_art.TEXEL` and a 3.0 m banner is a 768 px tile; height 0.40 to 1.60; depth 0.03 to 0.10, the rod plus the cloth. COLLISION: none, for `poster`'s reason. BUDGET: 160 triangles; it measures 62 at every corner. VARIANTS: four, and the straps' spread is what moves -- `kit.honour_dressing` refuses a species whose variants differ only in wear noise, so four banners over one wall run have to be four modules.",
+  "module_variants": 4,
+  "match_priority": 0
+}

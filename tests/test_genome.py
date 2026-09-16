@@ -36,7 +36,13 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # bay of booster displays, the felt pennants along the wall
                 # top, and the play area's table and chair
                 "display_case", "pack_wall", "pennant_row",
-                "folding_table", "folding_chair"}
+                "folding_table", "folding_chair",
+                # the flat art (0.98.0): the cheap half of "the card shop is
+                # not dense enough" -- the poster on the wall above the
+                # shelving, the printed banner, the painted board on a drop
+                # chain, and the hand-lettered sign over an aisle. Two
+                # triangles and a texture apiece; the cost is the atlas.
+                "poster", "hanging_banner", "ceiling_hanger", "aisle_sign"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

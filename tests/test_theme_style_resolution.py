@@ -112,8 +112,10 @@ def test_delco_1997_reaches_every_species():
     _minted = _json.load(open(_minted_path, encoding="utf-8")) if _os.path.exists(_minted_path) else []
     # 0.91.0: + dartboard, cigarette_machine; 0.92.0: + back_bar;
     # 0.94.0: + club_fixture; 0.95.0: + display_case, pack_wall,
-    # pennant_row, folding_table, folding_chair
-    assert len(_genomes()) == 75 + len(_minted), len(_genomes())
+    # pennant_row, folding_table, folding_chair; 0.98.0: + poster,
+    # hanging_banner, ceiling_hanger, aisle_sign -- each authored with its
+    # own `delco` row, so this count moves and `_NO_DELCO_1997` does not
+    assert len(_genomes()) == 79 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

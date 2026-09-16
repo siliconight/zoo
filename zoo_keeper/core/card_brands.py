@@ -169,6 +169,26 @@ SHOP_SAYS = (
     "WE BUY WHOLE COLLECTIONS",
 )
 
+#: What a sign HUNG OVER AN AISLE says: the section under it, hand-lettered
+#: on board (0.98.0, `flat_art.aisle_letters`). Separate from `SHOP_SAYS`
+#: because that is what a card-storage box's end carries and this is read
+#: across a room over somebody's head -- the two are different lengths for
+#: different distances, and one list would have made a 28-character price
+#: notice into an aisle sign.
+#:
+#: SELECT, CLASSIC, ULTRA, PRO, ACTION and SCORE are all things a writer
+#: would put on a shop sign and all of them are card brands; `DENY_WORDS`
+#: holds them and the test below is what caught the first draft's "SELECT
+#: SINGLES".
+AISLE_SAYS = (
+    "STRATEGY",
+    "SINGLES AND SLEEVES",
+    "SEALED BOXES",
+    "BUY SELL TRADE",
+    "DICE AND DOODADS",
+    "BACK ISSUES HON",
+)
+
 #: Real marks as WHOLE WORDS (upper case), matched as tokens so a short mark
 #: that is also an English word catches the mark and not a word containing
 #: it. SCORE, LEAF, CLASSIC, ULTRA, PRO and UNION are card brands or clubs

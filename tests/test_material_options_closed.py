@@ -54,8 +54,20 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # aluminium -- `metal_bare` as a CONSTANT in the recipe, the way
            # the dartboard's chrome and the hydrant's chains are, so it is
            # not an option a slot can ask for and the species sits here
-           "display_case", "pack_wall", "folding_table", "folding_chair")
+           "display_case", "pack_wall", "folding_table", "folding_chair",
+           # the flat art (0.98.0): a ceiling hanger's board and an aisle
+           # sign's may be painted sheet rather than card or plywood. In
+           # both it is an OPTION and not the default -- the hanger defaults
+           # to `paper` and the sign to `wood` -- so a slot has to ask.
+           # Their drop chains are a `metal_bare` CONSTANT in each recipe,
+           # the way the display case's aluminium frame is, and the banner
+           # has no metal option at all for the same reason: its rod is one
+           "ceiling_hanger", "aisle_sign")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
+        # a poster's frame is mill-finish aluminium -- the reference's
+        # SILVER frame -- so the mesh supplies the hue. `metal` would have
+        # been theme-owned and the building's pack would have repainted it
+        "poster",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign",
         # a bar stool's column, footring and base are chrome (0.87.0)

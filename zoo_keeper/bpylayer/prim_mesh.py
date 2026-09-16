@@ -88,22 +88,46 @@ def build_stock(plan, streams, collection, regions, host_rgb):
     flavour is ``none``: a host with no stock draws nothing from a "stock"
     stream, so its geometry and its wear are what they were before stock
     existed.
+
+    THE TEXTURED PATH (0.98.0), which is finding 5 of the card-shop
+    reference. A flavour may return ``tiles`` beside its prims, and the
+    prims that name one are built through `recipes/_card_atlas.py` into ONE
+    mesh carrying ONE painted material -- so a play table's printed
+    playmats are one extra draw call for the whole top however many mats
+    are on it. `_surface_stock`'s own 0.95.0 docstring recorded the absence
+    of this path as the reason a mat shipped as a flat colour.
+
+    A FLAVOUR WITH NO TILES TAKES EXACTLY THE OLD ROAD, and that matters
+    more than the new one: `tiles` is empty for office, bar, kitchen,
+    vault, storage and bar_dense, the atlas is never built, the "card_art"
+    stream is never drawn from, and every one of those hosts ships the
+    geometry and the wear it shipped before.
     """
     from ..recipes import _surface_stock
     flavour = (plan.get("params") or {}).get("stock") or "none"
     if flavour == "none":
         return []
     srng = streams.stream("stock")
-    prims, mats = [], {}
+    prims, mats, tiles = [], {}, {}
     for x0, x1, y0, y1, z0, facing, clear, keep_out in regions:
         got = _surface_stock.plan_surface(srng, flavour, x0, x1, y0, y1, z0,
                                           host_rgb=host_rgb, facing=facing,
                                           clear=clear, keep_out=keep_out)
         prims += got["prims"]
         mats.update(got["materials"])
+        tiles.update(got.get("tiles") or {})
     if not prims:
         return []
     table = {k: (f"M_Stock_{k}_{kind}", list(rgb), kind)
              for k, (rgb, kind) in mats.items()}
-    return build(prims, collection, dict(plan, bevel=0.0),
+    solid = [p for p in prims if not p.get("tile")]
+    objs = build(solid, collection, dict(plan, bevel=0.0),
                  streams.stream("stock_wear"), table, texel=1.0)
+    if tiles:
+        from ..core import flat_art as FA
+        from ..recipes._card_atlas import build_art
+        art, _atlas = build_art(prims, collection,
+                                dict(plan, _tiles=tiles), streams, "Stock",
+                                roughness=FA.MAT_ROUGHNESS)
+        objs += art
+    return objs

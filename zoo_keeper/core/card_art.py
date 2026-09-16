@@ -72,6 +72,12 @@ BOX_ROUGHNESS = 0.78
 #: The ink of a shop's hand lettering, and the kraft of an unlabelled box.
 MARKER = (26, 26, 30)
 KRAFT = (168, 132, 84)
+#: The tile kinds `flat_art` paints, named HERE because `paint` below is the
+#: one dispatcher and a kind it does not recognise must fail rather than
+#: fall through. Kept as a literal tuple rather than imported from that
+#: module, because importing it at module scope is the cycle.
+#: `tests/test_flat_art.py` holds the two tuples equal.
+FLAT_KINDS = ("poster", "banner", "hanger", "aisle", "playmat")
 
 
 class Roll:
@@ -446,9 +452,26 @@ def paint(spec):
     kind = spec["kind"]
     key = spec.get("key", "")
     maker = next((m for m in CB.MAKERS if m["id"] == spec.get("maker")), None)
+    # THE FLAT ART (0.98.0) -- posters, banners, ceiling hangers, aisle signs
+    # and playmats -- is painted in `flat_art`, which imports THIS module for
+    # its Canvas, its rolls and its ink helpers. The import is local because
+    # of that cycle and for no other reason: `paint` stays the one dispatcher
+    # a planner calls, so a planner never chooses between two painters and
+    # `recipes/_card_atlas.py` needs no second door.
+    if kind in FLAT_KINDS:
+        from . import flat_art as FA
+        return FA.paint(spec, w, hgt)
     if kind == "label":
         return storage_label(maker or CB.MAKERS[0], w, hgt,
                              spec.get("says", ""), key)
+    # AN UNKNOWN KIND FAILS HERE AND NOT FIVE LINES LOWER. The line below
+    # reads `spec["game"]`, so before 0.98.0 an unrecognised kind raised
+    # KeyError('game') -- which is a failure, but one that names the wrong
+    # thing and sends the reader after a missing field instead of a typo in
+    # the kind. The ValueError at the bottom could never fire for a spec
+    # that had no game.
+    if kind not in ("box", "header", "tin", "slab", "card"):
+        raise ValueError(f"card_art.paint: unknown tile kind {kind!r}")
     game = CB.BY_ID[spec["game"]]
     if kind == "box":
         return box_face(game, w, hgt, key, maker)
@@ -474,11 +497,18 @@ def build_atlas(tiles, name_prefix="cardshop"):
     return atlas([(k, paint(tiles[k])) for k in sorted(tiles)], name_prefix)
 
 
-def painted_strings(games=None, makers=None, teams=None, says=None):
+def painted_strings(games=None, makers=None, teams=None, says=None,
+                    aisle=None):
     """Every string this module can paint, for the denylist test. It is
     deliberately built from the ART's inputs and not from `card_brands`'
     tables: the two are the same set today and stop being the same set the
-    moment somebody letters something new."""
+    moment somebody letters something new.
+
+    0.98.0: `aisle` is `card_brands.AISLE_SAYS`, which `flat_art` letters on
+    an aisle sign. It is here and not in a second function because the whole
+    point of this one is that ONE list is what the denylist test walks --
+    the flat art paints through `paint` and must be held by the same guard.
+    """
     out = []
     for g in (games if games is not None else CB.GAMES):
         out += [g["name"], g["short"], g["slogan"]]
@@ -487,4 +517,5 @@ def painted_strings(games=None, makers=None, teams=None, says=None):
     for t in (teams if teams is not None else CB.TEAMS):
         out.append(t[0])
     out += list(says if says is not None else CB.SHOP_SAYS)
+    out += list(aisle if aisle is not None else CB.AISLE_SAYS)
     return tuple(out)

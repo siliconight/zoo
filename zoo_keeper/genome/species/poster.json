@@ -1,0 +1,180 @@
+{
+  "species": "poster",
+  "version": 1,
+  "collision": false,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 0.98.0 from the walker's own photographs of 1990s and modern trading-card shops, written up in docs/SET_DRESSING_REFERENCES.md under 'The card shop is not dense enough, and what dense means'. Construction knowledge only. The walker's own words on the fourth poster reference -- 'obviously we can't copy this intellectual property, but it is comps of what it could look like' -- are the standing arrangement for the whole file: the COMPOSITION travels and the content does not. No character, name, logo, set or mark from any reference reaches a texture; every string this species paints comes from core/card_brands.py, which is invented, and tests/test_card_brands.py holds every painted string against a denylist of the real card games, publishers, graders, leagues, clubs and players a writer would reach for."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.4,
+      "max": 1.4,
+      "default": 0.6
+    },
+    "depth": {
+      "min": 0.02,
+      "max": 0.08,
+      "default": 0.04
+    },
+    "height": {
+      "min": 0.5,
+      "max": 1.8,
+      "default": 0.9
+    }
+  },
+  "parts": [
+    "Poster_Frame",
+    "Poster_Mat",
+    "Poster_Plate",
+    "Poster_Art"
+  ],
+  "params": {
+    "form": [
+      "auto",
+      "framed",
+      "bare",
+      "tilted"
+    ]
+  },
+  "materials": {
+    "default": "metal_bare",
+    "options": [
+      "metal_bare",
+      "wood",
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_bare",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.12,
+      "bevel": 0.003
+    },
+    "1970s": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.28,
+        0.18
+      ],
+      "wear": 0.32,
+      "bevel": 0.003
+    },
+    "1980s": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.28,
+        0.18
+      ],
+      "wear": 0.26,
+      "bevel": 0.003
+    },
+    "1990s": {
+      "material": "metal_bare",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.22,
+      "bevel": 0.003
+    },
+    "modern": {
+      "material": "metal_bare",
+      "color": [
+        0.82,
+        0.83,
+        0.85
+      ],
+      "wear": 0.05,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "metal_bare",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.12,
+      "bevel": 0.003
+    },
+    "delco": {
+      "material": "metal_bare",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.24,
+      "bevel": 0.003,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "metal_bare",
+      "color": [
+        0.82,
+        0.83,
+        0.85
+      ],
+      "wear": 0.06,
+      "bevel": 0.003,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.28,
+        0.18
+      ],
+      "wear": 0.32,
+      "bevel": 0.003,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "metal_bare",
+      "color": [
+        0.72,
+        0.73,
+        0.75
+      ],
+      "wear": 0.22,
+      "bevel": 0.003,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [],
+  "keywords": [
+    "poster",
+    "wall poster",
+    "wall_poster",
+    "set poster",
+    "set_poster",
+    "art print",
+    "art_print",
+    "framed print",
+    "framed_print",
+    "picture frame",
+    "picture_frame"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  },
+  "notes": "THE WALL ABOVE THE SHELVING IS WHERE THE POSTERS LIVE -- property 4 of the card-shop reference. Painted fantasy art from the invented brand table, mounted high and slightly tilted, in a frame or bare. FORMS: `framed` is three rectangles (frame ring, mat ring, plate), `bare` is the plate alone (14 triangles), `tilted` is a bare plate turned 2.5 to 6.5 degrees in the wall plane. A fourth reference the walker sent alone on 2026-09-16 settles the plate's layout and corrects the first three: the TITLE IS AT THE TOP in a serif, over the art; the only thing at the bottom is a small maker's mark in the corner; one creature centred, filling the frame and looking out of it; one strong warm ground with architecture behind. RANGES: width 0.40 to 1.40 and height 0.50 to 1.80, which covers a small framed print and a full set poster; depth 0.02 (a bare sheet on the wall) to 0.08 (a deep frame). THE DEPTH LADDER IS FRACTIONAL, not absolute -- every plane is a fraction of the slot's depth, so the coincident-face window is cleared at the 0.02 m minimum (6.4 mm worst rung there) and a deeper slot builds a chunkier frame rather than being squeezed by `fit_exact`. COLLISION: none. A poster hung above the shelving is out of a body's reach and a collider up there is a shape the navmesh bake carries for nothing (`pennant_row`'s reasoning, 0.95.0). BUDGET: 200 triangles; the framed form measures 78 at every genome corner, the other two 14. THE COST IS THE TEXTURE, not the geometry -- one atlas per module, one draw call, and the figures are in the 0.98.0 release note. THE FRAME IS `metal_bare` AND NOT `metal`, which is the split-kind rule (skins.KNOWN_KINDS): `metal` is theme-owned architectural metal and a frame asking for it would be repainted by the building's pack, while `metal_bare` is object-owned -- the mesh supplies the hue, which is how the reference's SILVER frame stays silver in a delco shop. The three worn eras take `wood` instead, because a 1970s frame is.",
+  "module_variants": 3,
+  "match_priority": 0
+}

@@ -324,7 +324,14 @@ RESIDUE = {
 #: not build at all. The sum of the three has to be every genome there is, or
 #: the census has a hole in it that nobody can see.
 DID_NOT_BUILD = {"boots"}
-CENSUS_BUILDS = 300
+#: 0.98.0: the flat art adds four species, so the census is 12 builds longer.
+#: They were run through the same tool on the same Blender the same day --
+#: `blender -b --python tools/coplanar_census.py -- --species poster
+#: hanging_banner ceiling_hanger aisle_sign` -- and reported "12 builds, 0
+#: with coincident pairs, 0 that did not build", so all four land in `clean`
+#: and neither `RESIDUE` nor the 3009 below moves. Counting them WITHOUT
+#: running the census would have been the defect this test exists to catch.
+CENSUS_BUILDS = 312
 
 
 def test_the_census_covers_every_species_there_is():

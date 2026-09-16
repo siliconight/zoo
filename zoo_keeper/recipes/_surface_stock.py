@@ -789,18 +789,48 @@ def _g_clipboard(rng):
 MAT_W, MAT_D, MAT_T = 0.56, 0.27, 0.009
 EDGE_W = 0.022
 DECK_W, DECK_D = 0.066, 0.094      # a deck of cards on its back
+#: How far the printed face floats over the mat's own top. Above `SINK` + 4
+#: mm (this module's own band, which nothing may have a face in) and above
+#: the 2.2 mm coincident window with room for the float.
+PRINT_PROUD = 0.003
 
 
 def _playmat(rng):
-    """The mat, with a printed border laid on it rather than in it."""
+    """The mat, PRINTED (0.98.0). Was two flat slabs standing for a border.
+
+    THE TEXTURED PATH, WHICH IS FINDING 5 OF THE CARD-SHOP REFERENCE. The
+    0.95.0 entry records the gap in this module's own docstring -- "NOT
+    TEXTURED, and that is a limit rather than a choice: `prim_mesh`'s
+    `build_stock` has no textured path, so a mat is a colour with a border
+    and not art" -- and the walker's close-up reference is exactly this
+    surface: a neon playmat with a pack held over it. So the mat now carries
+    ONE art quad naming a tile in `core.flat_art`, and the printed border
+    the two `Stock_MatEdge` slabs used to stand for is IN the print, where
+    a real one is. That is 24 triangles back per mat and one tile out.
+
+    The quad is a separate prim `PRINT_PROUD` over the mat's top face rather
+    than a face lying in it, which is this module's rule and not a
+    preference: `tests/test_surface_stock.py` runs the coincident-face
+    measurement over every flavour and every seed.
+    """
+    from ..core import card_brands as CB
     out = [P.box("Stock_Playmat", "playmat",
                  (-MAT_W / 2, -MAT_D / 2, 0.0), (MAT_W / 2, MAT_D / 2, MAT_T))]
-    e = EDGE_W
-    for tag, (a, b, c, dd) in (
-            ("N", (-MAT_W / 2 + e, MAT_D / 2 - e, MAT_W / 2 - e, MAT_D / 2 - e * 0.4)),
-            ("S", (-MAT_W / 2 + e, -MAT_D / 2 + e * 0.4, MAT_W / 2 - e, -MAT_D / 2 + e))):
-        out.append(P.box(f"Stock_MatEdge{tag}", "mat_edge",
-                         (a, b, MAT_T + 0.0025), (c, dd, MAT_T + 0.0055)))
+    gid = CB.IDS[rng.randrange(len(CB.IDS))]
+    e = EDGE_W * 0.5
+    x, y = MAT_W / 2 - e, MAT_D / 2 - e
+    z = MAT_T + PRINT_PROUD
+    q = P.mesh("Stock_MatPrint", "playmat",
+               [(-x, -y, z), (x, -y, z), (x, y, z), (-x, y, z)], [(0, 1, 2, 3)])
+    # ONE TILE PER GAME, not per mat: two mats of the same game on two
+    # tables share one rect in the atlas, which is the whole reason the
+    # planners name tiles instead of images (`_card_atlas`).
+    q["tile"] = f"playmat_{gid}"
+    q["uvs"] = [((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))]
+    q["tile_spec"] = {"kind": "playmat", "game": gid,
+                      "w_m": round(2 * x, 4), "h_m": round(2 * y, 4),
+                      "key": gid}
+    out.append(q)
     return out
 
 
@@ -964,10 +994,16 @@ def plan_surface(rng, flavour, x0, x1, y0, y1, z0, host_rgb=None, facing=None,
     this top (0.0: they stand at -Y); None lets each cluster face any of
     the four ways, which is a table. ``keep_out`` is ``[(x, y, radius)]``
     left empty -- a counter's register stations. Returns
-    ``{"prims": [...], "materials": {key: (rgb, kind)}, "items": [...]}``,
-    items being ``{"group", "poly", "top"}`` per placed item.
+    ``{"prims": [...], "materials": {key: (rgb, kind)}, "items": [...],
+    "tiles": {key: spec}}``, items being ``{"group", "poly", "top"}`` per
+    placed item.
+
+    ``tiles`` (0.98.0) is the ART a flavour asks for -- today only the card
+    table's printed playmat. It is EMPTY for every other flavour and every
+    host, so a desk with office stock plans exactly what it planned before.
+    `prim_mesh.build_stock` is what turns it into one atlas.
     """
-    out = {"prims": [], "materials": {}, "items": []}
+    out = {"prims": [], "materials": {}, "items": [], "tiles": {}}
     if flavour == "bar_dense":
         return plan_bar_dense(rng, x0, x1, y0, y1, z0, host_rgb=host_rgb,
                               clear=clear, keep_out=keep_out)
@@ -1015,5 +1051,12 @@ def plan_surface(rng, flavour, x0, x1, y0, y1, z0, host_rgb=None, facing=None,
                 idx, rgb = resolve_finish(q["mat"], host_rgb)
                 key = f"{q['mat']}_{idx}"
                 out["materials"][key] = (rgb, FINISHES[q["mat"]][1])
+                # AN ART PRIM CARRIES ITS OWN SPEC UP, because the builder
+                # that paints it is not the one that placed it: the item
+                # knows which game its mat is printed with and `plan_surface`
+                # is the only thing that sees all of them. Two mats of one
+                # game land on the same key and share one rect.
+                if q.get("tile") and q.get("tile_spec"):
+                    out["tiles"][q["tile"]] = q["tile_spec"]
                 out["prims"].append(P.recolour(q, mat=key))
     return out

@@ -1,3 +1,252 @@
+## [0.98.0] - the flat art, which is two triangles and a texture
+
+The walker walked cold run 9061's `card_shop_a01` and sent the frame back:
+"the card shop should feel saturated with posters, ads, playmats, content,
+fantasy, ect ect." `docs/SET_DRESSING_REFERENCES.md` splits that into five
+properties the room lacks; this is Zoo's cheap half of three of them --
+things hang, posters live above the shelving, and the play tables carry
+printed surfaces. Four species and one path through `_surface_stock`.
+
+    poster           framed / bare / tilted       78 / 14 / 14 tris
+    hanging_banner   cloth on a rod, two straps   62 tris
+    ceiling_hanger   a painted board on a chain   52 tris
+    aisle_sign       a hand-lettered section sign 88 tris
+    _surface_stock   the playmat is PRINTED now   14 tris a mat, was 36
+
+### The density costs 948 triangles and 2.4 MiB, and here is the arithmetic
+
+The walker asked for MORE and the standing call is performance over look, so
+the only honest way to ship a density pass is with the figure attached.
+`tools/flat_art_cost.py` (new) stands a saturated card shop -- eight posters
+in the three forms, three banners, four ceiling hangers, three aisle signs
+and the two play tables' mats -- through `kit.plan_kit` and
+`build.build_module`, the road a kit build takes, and reports what the scene
+holds. Blender 5.1.1, 2026-09-16, theme delco_1997, style 1:
+
+    20 placements, 19 modules built     the kit builds one module per
+                                        distinct species+dims+variant
+    114 mesh objects, 1,408 triangles   948 of them the flat art; the rest
+                                        is the two folding tables
+    18 art images, 2.392 MiB            decoded RGB8, the figure that is
+                                        spent on every client
+    18 art meshes for 25 art quads      one mesh and one material per
+                                        module, however many quads it has
+
+948 triangles against the 10,664 the shipped card shop measured is 8.9% for
+every poster, banner, hanger and sign in the room. One `cubicle_bank` is
+budgeted 24,000, so the whole set is 4% of one of those. Geometry is not
+where flat art costs anything and the caps on these four genomes are not
+what will hold the room back.
+
+THE TEXTURE IS WHERE IT COSTS, and 2.4 MiB is a real number on a low-end GL
+Compatibility client. Two things hold it down and both are measured rather
+than asserted:
+
+  * ONE ATLAS PER MODULE (`recipes/_card_atlas.py`, 0.95.0's argument). 25
+    art quads arrive as 18 meshes carrying 18 materials, not 25 and 25 --
+    a two-sided hanging sign is one tile on two quads in one mesh, and a
+    play table's mats are one mesh however many are on it.
+  * THE ATLAS IS NAMED BY A DIGEST OF ITS OWN PIXELS, so two placements
+    whose art is identical share one image. The room stands eight posters
+    and holds seven poster images.
+
+WHAT THE EXPENSIVE VERSIONS WOULD BUY, in figures, so they can be chosen
+later rather than argued about:
+
+  * A SHARED ATLAS ACROSS MODULES would take the 18 texture binds to 1. It
+    saves almost no bytes -- the same pixels are packed either way -- and it
+    needs a building-wide paint pass, which is a `kit` change and not a
+    species one. Named here; not built.
+  * 512 px/m INSTEAD OF `card_art.TEXEL` (256) would put a poster 1:1 with
+    the screen at three metres. It quadruples every poster tile: 1.18 MiB of
+    poster art becomes 4.70 MiB, +3.52 MiB for the room, and nothing else
+    moves. See the reading arithmetic below.
+  * A DIE-CUT HANGER -- an alpha-tested silhouette instead of a rectangular
+    board -- is what the reference's dragon and kraken actually are. The
+    pipeline has the kind (`foliage`, the tree crown cards) so it is
+    reachable; it costs a transparency pass on a mesh hanging over the
+    middle of the room, which is exactly the shape this repo has refused
+    before. Not built, and the hanger is honestly a painted BOARD.
+
+### Reads as art at three metres, a coloured rectangle at ten
+
+That was the brief's gate and it is arithmetic about a display, not a taste.
+One metre at distance z subtends `2*atan(0.5/z)`; on 1920 px across a 70
+degree horizontal FOV that is 27.43 px per degree, so one metre is 519
+screen px at 3 m and 157 at 10 m. `flat_art.reads_at` is that arithmetic and
+`tests/test_flat_art.py` holds the numbers.
+
+At `card_art.TEXEL` -- 256 px/m, the factory's 4 mm pixel -- a 0.6 m poster
+is a 154 px tile shown across 313 screen px at three metres (magnified 2.03
+to 1, so blocky, which is the house look and not a defect) and across 94 at
+ten metres (minified 1.63 to 1, which is the coloured rectangle, and comes
+free). The frames were rendered at 2.17 m and 7.23 m rather than 3 and 10,
+because `preview_specimen`'s 40 mm lens on a 960 px render is 19.81 px per
+degree against the target's 27.43 -- a factor of 1.384, and rendering at the
+nominal distance would have shown a poster 38% bigger than the game does.
+
+### What a thing hangs from, which nothing here had ever answered
+
+Three candidates, checked in order:
+
+  1. THE CEILING GRID'S OWN GEOMETRY. There is none. A dropped ceiling is a
+     `ceiling` slot built by `recipes/ceiling.py` into ONE solid
+     `Ceiling_Panel`, and the grid is a Pixelcoat `ceiling_tile` skin on its
+     underside. No T-bars, no runners, no tile edges in the mesh.
+  2. A DELI COUNTER LIGHT ANCHOR. `core/fixtures.py` has exactly the
+     mechanism -- `mount: "hang"`, added in 0.94.0 after a club can was
+     built inside the slab, TOP at the emitter and body below. But its input
+     is a `<building>.lights.json` and every row in `FIXTURES` is a lamp; a
+     painted dragon on that manifest makes Lux spawn a Light3D at it.
+  3. A PROP SLOT, HUNG. This is the one, and it already ships.
+     `level_design._piece`'s `under` is the gap between a piece's top and
+     the ceiling PLANE and `_piece_lift` turns it into a centre height --
+     `_clear_height(spec) - under - h/2`. `pennant_row` has hung from it
+     since 0.95.0, and Deli Counter's own test says why it is `under` and
+     not a fixed lift: "a fixed 2.95 would have been right at the card
+     shop's 3.4 m storey and 0.6 m inside the slab at the strip club's
+     3.6 m one".
+
+So Zoo's side of the contract is one sentence: THE TOP OF THE SLOT BOX IS
+THE CEILING PLANE. A `ceiling_hanger`'s chain starts at z = h and the board
+hangs below it. Deli Counter needs one `_piece(..., under=_CEILING_AIR)` row
+per species and nothing else.
+
+HEADROOM, DERIVED AND NOT CHOSEN. Both hanging genomes top out at 0.60 m.
+`deli_counter/agent_contract.json` clearances.min_headroom_m is 2.0 (read
+2026-09-16); `_clear_height` is the storey less the thicker slab less
+`_CEILING_AIR`; the piece's own `under` spends that air again. At the
+library's shortest storey: 3.0 - 0.3 - 0.05 - 0.05 - 2.0 = 0.60.
+`flat_forms.hang_max_height()` is that formula and the test asks the genomes
+for it. A THICKER SLAB MAKES IT SMALLER and Zoo cannot see the slab, so this
+is a genome cap and not a guarantee -- the placement is Deli Counter's.
+
+### The poster's layout, which a fourth reference corrected mid-build
+
+The first three poster references read as a title block along the BOTTOM,
+and that is what the first draft painted. The walker then sent a framed
+magazine cover -- silver frame, red fabric mat, a green horned ogre filling
+the plate and looking out of it, a small armoured figure held against its
+chest, burning sky and a castle behind -- and it settles the layout the
+other way: TITLE AT THE TOP, over the art, in a serif; the only thing at the
+bottom is a small publisher mark in a corner.
+
+`tests/test_flat_art.py` holds that as a PIXEL measurement rather than a
+reading of the source -- it paints the plate again with the title's ink
+removed, then again with the maker's, and asks where the pixels moved. The
+title's are all above 30% of the plate; the mark's are all below 85% and
+right of the middle.
+
+A FRAMED POSTER IS THREE RECTANGLES. "The mat is what makes it read as
+framed rather than taped to the wall", so it is a ring of geometry that
+drops the art 4 mm behind the frame, not a border painted into the tile. It
+costs 64 of the framed form's 78 triangles; the `bare` form does not want
+them and does not get them.
+
+And the walker's own words on sending it are now the standing arrangement
+for every reference in that file: "obviously we can't copy this intellectual
+property, but it is comps of what it could look like." The composition
+travels; the content does not. Every string these species paint comes from
+`core/card_brands.py`, which is invented, and `AISLE_SAYS` (new -- what a
+sign over an aisle says, a separate table from `SHOP_SAYS` because that is
+read at 0.15 m and this across a room) goes into `card_art.painted_strings`
+so the same denylist test walks it. The first draft of that table said
+"SELECT SINGLES"; SELECT is a real card brand and `DENY_WORDS` caught it.
+
+### Four boxes cannot make a ring, and one mesh can
+
+A frame is a rectangular ring and the obvious way to build one is four
+rails. Every variation of that fails the same measurement: wherever two
+rails overlap they share the ring's own outer silhouette -- x = +/- w/2 is a
+face of the left rail AND of the top rail over the top rail's depth, whatever
+inset either is given -- and wherever they butt they meet face to face.
+Measured on the first draft, 8 pairs per poster at 0.00 mm, 4.4 cm2 apiece.
+
+One mesh has none, because its four front trapezoids are coplanar but
+ADJACENT: they share edges and overlap in zero area. It is also cheaper --
+32 triangles against a box ring's 48. Its winding is hand-written, so a test
+steps a millimetre out of every face along its own normal and checks the
+point has left the solid.
+
+THE DEPTH LADDER IS FRACTIONAL, and that is the one decision in `flat_forms`
+worth arguing with. An absolute ladder is what a real frame has -- a 3 mm
+mat is 3 mm wherever it hangs -- but a plan has to fill its slot's depth
+exactly, so an absolute ladder gets squeezed by `fit_exact` and every
+separation moves with it. Fractions scale instead, the worst case is the
+genome's minimum depth, and there is exactly one place to check it: at the
+poster's 0.02 m minimum the closest rung is 3.2 mm against a 2.2 mm window.
+
+### The playmat is printed, which was recorded as a limit in 0.95.0
+
+`_surface_stock`'s own docstring said it: "NOT TEXTURED, and that is a limit
+rather than a choice: `prim_mesh.build_stock` has no textured path, so a mat
+is a colour with a border and not art." That path exists now. A flavour may
+return `tiles` beside its prims and `build_stock` sends the prims that name
+one through `_card_atlas` into one mesh with one material, so a table's mats
+are one extra draw however many are on it. The two `Stock_MatEdge` slabs
+that stood in for a printed border are gone -- the border is in the print,
+where a real one is -- which is 22 triangles back per mat.
+
+A FLAVOUR WITH NO TILES TAKES EXACTLY THE OLD ROAD, and that matters more
+than the new one: `tiles` is empty for office, bar, kitchen, vault, storage
+and bar_dense, so the atlas is never built and the "card_art" stream is
+never drawn from. The `cards` flavour's own LAYOUTS do move, because
+`_playmat` now draws one number from the stock stream to pick its game.
+
+### Three defects the frames caught and the tests did not
+
+The 0.96.0 entry's lesson, repeating. 65 tests passed over geometry that had
+all three of these in it.
+
+  * THE CREATURE'S HEAD FLOATED. Head centred at 0.30 of the sub-frame and
+    the torso starting at 0.46 left ten pixels of sky between them on a
+    154 x 230 plate. The shoulder line is DERIVED from the head now -- three
+    quarters of a head-radius below its centre -- so the two overlap at any
+    aspect.
+  * THE HORNS FLOATED TOO, and for a measurable reason: three blocks a side
+    at 0.70, 1.02 and 1.34 head-radii out and 0.85 up, against a skull whose
+    ellipse is 0.38 radii wide at that height. All six were clear of the
+    head and read as antennae. The sweep starts inside the ellipse now and
+    each step overlaps the one below.
+  * "YOUSE VS. THEM" RENDERED AS "YOUSE VS_ THEM". `_serif` widened the top
+    and bottom row of every inked column, and a full stop's ink IS both its
+    own top row and its own bottom row, so it came out three pixels wide. A
+    serif is a foot on a STEM: only a column whose ink spans half the line
+    gets one.
+
+A fourth was caught by a test doing the same job -- asking where the pixels
+went rather than whether a function was called. The maker's mark was stamped
+into a band `pt.LINE // 2` tall, which is 8 rows for a face whose capitals
+trim to 11, and `card_art._stamp` paints NOTHING rather than a smear when
+the ink does not fit. Every poster shipped with no mark at all and nothing
+said so -- the same shape of mistake `_stamp`'s own docstring records for
+the booster-box fronts, "0 of 12 lettered, then 12".
+
+### The gates
+
+`tools/coplanar_census.py`, Blender 5.1.1, 2026-09-16, the four new species
+at min/default/max: **12 builds, 0 with coincident pairs, 0 that did not
+build**. `tests/test_coincident_faces.py`'s `CENSUS_BUILDS` goes 300 -> 312
+and `RESIDUE` does not move.
+
+Two library-wide gates caught genome defects before any of this was looked
+at, and both are the kind that would have shipped silently:
+
+  * `test_species_by_name` -- `ceiling hanger` resolved to `ceiling` (a
+    shorter keyword at the same start) and `aisle sign` matched nothing at
+    all. Every keyword list carries both spellings now.
+  * `test_material_options_closed` -- the poster's frame was offered raw
+    `metal`, which is theme-owned, so a building's pack would have repainted
+    the reference's SILVER frame. It is `metal_bare` (object-owned, the mesh
+    supplies the hue); the two hung species' chains are a `metal_bare`
+    constant in the recipe.
+
+`card_art.paint` also learned to fail properly: an unknown kind used to
+raise `KeyError('game')` from the line below the dispatch, which is a
+failure that names the wrong thing.
+
+Suite: 2,288 passed, 273 skipped.
+
 ## [0.97.0] - the stop sign's back faces, and a census of every other one
 
 A coincident face pair is two faces of one prop on one plane, overlapping,
