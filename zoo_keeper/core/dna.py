@@ -37,8 +37,17 @@ OPAQUE_FOR = {"glass": "glass_facade"}
 #: `club_forms.VELVETS`, vinyl or velvet per variant from `SEATS`, so the
 #: value here is the kind when the planner does not say. For them any slot
 #: material is the frame's, options or not.
+#:
+#: `cubicle_bank` (0.93.0) joins them for the same reason and a sharper one.
+#: Deli Counter authors all ten of the library's cubicle volumes
+#: `material: drywall` -- the building's own partition surface -- and the
+#: screens are the bank's entire mass, so without this row a cubicle farm
+#: would be a lump of wall standing in a room made of the same wall. The
+#: fabric is the species' (`cloth`, which delco_1997 dresses as
+#: `linen_neutral`) and the slot's kind names the frame, exactly as `wood` on
+#: a sofa names its legs.
 UPHOLSTERED = {"booth_seat": None, "club_chair": "velvet",
-               "bar_stool": "plastic"}
+               "bar_stool": "plastic", "cubicle_bank": "cloth"}
 
 # Boot construction constants — single source of truth. The DNA hook writes
 # the resolved values into the plan; the recipe executes them verbatim so the

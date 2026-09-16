@@ -1,0 +1,181 @@
+{
+  "species": "cubicle_bank",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-09-16 by tools/new_species.py from 'desk' and shaped the same day. REFERENCE: 1990s panel-system office (Herman Miller Action Office / Steelcase 9000): fabric-covered acoustic screens 1.2-1.7 m tall on levelling feet, painted steel frame with a top trim cap; work surfaces cantilevered off the panel rails at 0.74 m; a 0.42 m drawer pedestal under each; an overhead binder bin on the spine panel where the panel is tall enough to carry one; pods back to back in rows with a circulation aisle between them."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.0,
+      "max": 16.0,
+      "default": 8.0
+    },
+    "depth": {
+      "min": 1.6,
+      "max": 12.0,
+      "default": 6.0
+    },
+    "height": {
+      "min": 1.0,
+      "max": 2.0,
+      "default": 1.2
+    }
+  },
+  "parts": [
+    "CubicleBank_Spine",
+    "CubicleBank_Cross",
+    "CubicleBank_Cap",
+    "CubicleBank_Foot",
+    "CubicleBank_Surface",
+    "CubicleBank_Rail",
+    "CubicleBank_Pedestal",
+    "CubicleBank_Drawer",
+    "CubicleBank_Handle",
+    "CubicleBank_Bin"
+  ],
+  "params": {
+    "bay_max": 2.0,
+    "row_max": 2.4,
+    "row_min": 1.7,
+    "aisle_min": 1.1,
+    "surface_h": 0.74,
+    "surface_d": 0.75,
+    "stock": [
+      "office",
+      "none"
+    ]
+  },
+  "materials": {
+    "default": "cloth",
+    "options": [
+      "cloth",
+      "canvas",
+      "velvet"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "cloth",
+      "color": [
+        0.55,
+        0.55,
+        0.52
+      ],
+      "wear": 0.18,
+      "bevel": 0.004
+    },
+    "1970s": {
+      "material": "cloth",
+      "color": [
+        0.45,
+        0.33,
+        0.18
+      ],
+      "wear": 0.38,
+      "bevel": 0.006
+    },
+    "1980s": {
+      "material": "cloth",
+      "color": [
+        0.44,
+        0.42,
+        0.36
+      ],
+      "wear": 0.32,
+      "bevel": 0.004
+    },
+    "1990s": {
+      "material": "cloth",
+      "color": [
+        0.43,
+        0.45,
+        0.42
+      ],
+      "wear": 0.3,
+      "bevel": 0.004
+    },
+    "modern": {
+      "material": "cloth",
+      "color": [
+        0.66,
+        0.66,
+        0.64
+      ],
+      "wear": 0.06,
+      "bevel": 0.003
+    },
+    "office": {
+      "material": "cloth",
+      "color": [
+        0.46,
+        0.47,
+        0.43
+      ],
+      "wear": 0.22,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "cloth",
+      "color": [
+        0.36,
+        0.4,
+        0.36
+      ],
+      "wear": 0.34,
+      "bevel": 0.004,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "cloth",
+      "color": [
+        0.5,
+        0.5,
+        0.48
+      ],
+      "wear": 0.1,
+      "bevel": 0.004,
+      "ambient": 0
+    },
+    "industrial_flats": {
+      "material": "cloth",
+      "color": [
+        0.42,
+        0.4,
+        0.36
+      ],
+      "wear": 0.4,
+      "bevel": 0.004,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "cloth",
+      "color": [
+        0.47,
+        0.48,
+        0.44
+      ],
+      "wear": 0.3,
+      "bevel": 0.004,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 24000
+  },
+  "attachments": [],
+  "keywords": [
+    "cubicle",
+    "cubicles",
+    "workstation_bank"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    },
+    "sockets": {}
+  },
+  "notes": "WHY THIS SPECIES EXISTS. Ten volumes in the library carry `cubicle` in their name -- `cubicles_w_0` .. `cubicles_e_2` in `office` and `office_stepped`, every one 8.0 x 6.0 x 1.2 m -- and every one of them was routed to `desk`, whose genome takes width to 12 and depth to 6, so it FIT and built as desk geometry at that size: four 8 m work surfaces butted edge to edge over 6 m of depth (`desk.py`'s `row_max` rows), a raft with no aisle. The walker, cold run 9060, standing 2.68 m from `cubicles_w_0_col`: \"these desks are too close to each other?\". A cubicle bank is not a desk: it is rows of workstations inside 1.2-1.5 m partition screens with an aisle between the rows. `desk` keeps desks. RANGES: width from 2.0 (one bay plus its cross screens) to 16.0; depth from 1.6 (one pod band: a spine screen, a 0.75 m surface and a knee) to 12.0; height 1.0 to 2.0, which is the panel range the reference covers -- below 1.0 it is a bench, above 2.0 it is a partition wall and Deli Counter has partitions. AISLE: `aisle_min` 1.1 is Deli Counter's `agent_contract.clearances.min_corridor_width_m` read 2026-09-16, itself `2 * nav_bake.agent_radius_m (0.4) + 0.3` body margin -- so a bank wide enough for two bands carries an aisle this pipeline's own body fits down, and one that is not stays a single band rather than shipping an aisle nobody can use.",
+  "module_variants": 4,
+  "match_priority": 0
+}

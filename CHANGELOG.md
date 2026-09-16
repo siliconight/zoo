@@ -1,3 +1,102 @@
+## [0.93.0] - a cubicle bank, which is not a desk
+
+The walker, cold run 9060, standing 2.68 m from `office_stepped`'s
+`cubicles_w_0_col`: "these desks are too close to each other?" -- a raft of
+desk tops butted edge to edge with no aisle, filling a rectangle.
+
+He was looking at a desk, and the desk was right. Ten volumes in Deli
+Counter's 132-spec library carry `cubicle` in their name -- `cubicles_w_0`
+through `cubicles_e_2` in `office` and `office_stepped`, every one
+8.0 x 6.0 x 1.2 m, every one `drywall` -- and `prop_species` routed all ten
+to `desk`. The desk genome takes width to 12.0 and depth to 6.0 (opened in
+0.84.0 for exactly these, whose notes call them "a cubicle block, rows of
+desks back to back"), so the slot FIT. It did not fall back to a box: it
+built as desk geometry at 8 x 6 m -- four 8 m work surfaces, one per
+`row_max` row, butted along the depth. Which is a raft.
+
+A cubicle bank is not a desk. It is rows of workstations inside partition
+screens with an AISLE between the rows, and the aisle is the whole point.
+
+### `cubicle_bank`: `core/cubicle_forms.py`, `recipes/cubicle_bank.py`
+
+Minted by `tools/new_species.py` from `desk` and shaped the same day.
+Reference in the genome's licence notes: a 1990s panel system (Herman Miller
+Action Office, Steelcase 9000) -- fabric-faced acoustic screens on levelling
+feet, a painted frame with a top trim cap, work surfaces cantilevered off
+the panel rails, a drawer pedestal under each, an overhead binder bin where
+the panel reaches over one.
+
+BANDS along the depth, BAYS along the width. Two pod bands back to back with
+an aisle between them when the depth carries both -- `row_min` 1.7 for a
+band (a spine screen, a 0.75 m surface and a knee) plus `aisle_min` for the
+gap -- and one band filling the depth when it does not. A band is capped at
+`row_max` 2.4 and every surplus metre goes to the aisle, because a 3 m deep
+cubicle is not a thing and a wide aisle is. The library's 8.0 x 6.0 slot
+therefore builds two 2.4 m bands and a 1.2 m aisle. Bays come from `_bays`
+at `bay_max` 2.0: four 2.0 m workstations across 8 m, equal and never a
+sliver. A cross screen stands on every bay boundary and both ends, running
+`CROSS_F` 0.62 of the band's depth inward from the spine -- the pod is open
+to the aisle, which is what a cubicle is.
+
+`aisle_min` 1.1 IS DERIVED, not chosen: it is Deli Counter's
+`agent_contract.clearances.min_corridor_width_m`, read 2026-09-16, itself
+`2 * nav_bake.agent_radius_m (0.4) + 0.3` body margin. So a bank wide enough
+for two bands carries an aisle this pipeline's own body fits down, and one
+that is not stays a single band rather than shipping an aisle nobody can
+use. The spine screens stand on the bank's own outer edges at every depth,
+so the built bounds are the slot's exactly -- which `validate.fit_*`
+measures to 2 cm and `core.pivot` re-centres from.
+
+THE SCREENS ARE CLOTH WHATEVER THE SLOT SAYS. `dna.UPHOLSTERED` gains
+`cubicle_bank: "cloth"`. All ten library volumes are authored `drywall` --
+the building's own partition surface -- and the screens are the bank's
+entire mass, so without that row a cubicle farm would be a lump of wall
+standing in a room made of the same wall. The slot's kind names the FRAME,
+exactly as `wood` on a sofa names its legs. delco_1997 dresses `cloth` as
+`linen_neutral`. The frame, caps, feet, rails, handles and bins are
+`metal_painted` and the work surfaces, pedestals and drawer fronts
+`laminate`: the species' own palette, because those are what make it read as
+a cubicle rather than as whatever the slot happened to say.
+
+COLLISION IS PER PART. Spine and cross screens, work surfaces, pedestals and
+bins declare their own -- 28 boxes on the library's slot -- and drawer
+fronts, handles, rails, caps and levelling feet declare none, each sitting
+inside or under something that already does. The aisle and the knee space
+under every surface declare nothing at all. Deli Counter 0.138.0's half of
+this is that its greybox stops drawing the volume's convex box, which was
+the only thing a body ever met.
+
+EVERY SCREEN IS SHADED FLAT (`smooth_angle=1.0`). A spine is the slot's full
+width -- 8 m on every one of the library's banks -- and `bm_to_object`'s own
+docstring records what the default crease does to a panel that size: the
+chamfer is smoothed into the face, a box face has no interior vertices to
+hold the middle flat, and the panel shades as a dome with a diagonal wedge
+across it. That is the defect `wall_delco_01_w200` was measured with, and a
+cubicle screen is a wall panel by every dimension that matters here.
+
+VARIANTS AND STOCK. `module_variants` 4: which end of a bay the pedestal
+takes, how many drawers it has, and which bays carry a bin where one fits.
+`stock` defaults to `office`, so `_surface_stock`'s monitors, paperwork and
+phones stand on every work surface facing that band's sitter -- a cubicle
+with nothing on the desk is not one.
+
+BINS ARE A HEIGHT, NOT A TOGGLE. A binder bin needs a panel that reaches
+over it (`BIN_Z + BIN_H` = 1.34), so the library's 1.2 m banks have none and
+a 1.7 m one does. That is the reference's own rule.
+
+### Tests
+
+`tests/test_cubicle_bank.py`, 12, pure: the species is discovered and
+validates; it plans at the dims all ten library volumes are authored at; the
+library slot carries a 1.2 m aisle; the bands fill the slot depth exactly at
+nine depths from 1.6 to 12.0; a depth below 4.5 gets one band rather than an
+aisle a body does not fit down; the screens resolve to cloth from a
+`drywall` slot; four bays, none a sliver; no bin at 1.2 m and one at 1.7;
+the built plan fills the slot box exactly; NOTHING the species builds stands
+in the aisle; the collision it declares is 28 per-part boxes of four kinds
+and none of them in the aisle; and the four variants are four different
+banks.
+
 ## [0.92.0] - the club's back bar, lit, and a bar top with something on it
 
 The walker, 2026-09-15, with three photos of a lounge bar and the
