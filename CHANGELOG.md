@@ -1,3 +1,196 @@
+## [0.96.0] - a post with something on it
+
+The walker, cold run 9060, on a screenshot of the sidewalk beside
+`office_stepped`: "no signs on the stop signs here anymore?" That turned out
+to be two things with one word on them. Lot 0.73.0 measured the first and
+closed it: the site has NO stop sign because none of its three junction legs
+is stop-controlled -- `docs/STREET_RULES.md` working, not failing. The poles
+in the photograph were `sign_post`, which `tools/new_species.py` minted as a
+placeholder on 2026-09-12 and nobody had drawn: a 0.10 x 0.10 x 2.40 m
+galvanised pole with nothing on it. That is the half this release is.
+
+WHETHER IT MOVES THE DELIVERABLE. Not by itself, and not in the way the
+metric counts: nobody's intervention-per-level number changes because a post
+grew a sign. What it does close is a gap of the OTHER kind the repo file
+names -- "works" and "good" are different gates, and this was a defect only
+the second gate could see. No instrument in the toolchain reported it. A
+person looked at a screen. That is the third of three, and the tally is
+tracked as roadmap item 18.
+
+### Three blades, and the standard each one is
+
+`core/sign_blade_forms.py` plans the post and the blade in pure Python;
+`recipes/sign_post.py` builds it with `bpylayer.prim_mesh`. The `form` is the
+slot's dressing (`kit.DRESSING_FIELDS`), and Lot 0.73.0 already names one on
+every post it stands.
+
+| form | what it is | tris (pure = plan; built = in the GLB) | budget |
+| --- | --- | --- | --- |
+| `no_parking` | **MUTCD R8-3a**, the SYMBOLIC No Parking sign: a square white sign with a black border and a black P inside a red circle with a red slash through it (FHWA MUTCD, Figure 2B-17 long description). At a junction corner, where parking is prohibited within 30 ft of a signal or stop sign (75 Pa.C.S. 3353) | 272 pure, 368 built | 900 |
+| `ped_crossing` | **MUTCD W11-2** Pedestrian warning -- a yellow diamond, black border, black walking figure -- over the **W16-7P** diagonal downward arrow plaque, which the Manual requires under a post-mounted W11-2 placed at the crossing point | 184 pure, 280 built | |
+| `bus_stop` | the stop's flag: a 12 x 18 in vertical flag, BUS over STOP in white on a transit field. NOT a MUTCD sign -- no part of the Manual governs a transit agency's flag, so this is the one blade here that is a design rather than a standard | 576 pure, 672 built | |
+| (none) | the bare u-channel, which is what the species was and what a slot with no form still gets | 36 pure, 132 built | |
+
+The budget was set at 900 BEFORE the blades were planned, against
+`club_fixture` (900) and `pennant_row` (900) rather than against `stop_sign`
+(450), because a lettered flag was expected to be the expensive one and it
+is: 516 of the bus stop's 576 are the seven glyphs. The two that carry a
+PICTOGRAM cost a third of that. Every count is at every genome corner and a
+test holds them there; zero coincident faces at `tools/coplanar_probe.py`'s
+own defaults, measured on the built GLBs and not only in the pure port.
+
+### The slot is the sign's size plus its mounting height
+
+A sign's size and where it is mounted are the standard; the module's box is
+what they add up to. That is arithmetic and it is written down twice --
+`sign_blade_forms.MODULE_DIMS` here, `lot/site_furniture.BLADE_DIMS` there,
+each pinned to literals by its own repo's test, because neither can import
+the other.
+
+    no_parking     0.3048 x 0.060 x 2.4384    12 in sign, bottom at 7 ft
+    ped_crossing   1.0776 x 0.060 x 3.2112    30 in diamond over a 24 x 12
+                                              plaque, bottoms at 7 ft and 5 ft
+    bus_stop       0.3048 x 0.060 x 2.5908    12 x 18 in flag, bottom at 7 ft
+
+Mounting is MUTCD Section 2A.18: 7 ft to the bottom of a major sign in a
+business, commercial or residential area where parking or pedestrian
+movements occur, 5 ft to a plaque under it. **A 30 x 30 in diamond is a 30 in
+SQUARE stood on its point**, so it needs 30 * sqrt(2) = 42.43 in of box --
+which is why the crossing sign is 1.08 m across and 3.21 m tall where the
+parking sign is 0.30 by 2.44. A pedestrian crossing sign really is that much
+bigger than a parking sign, and a street where the two came out the same size
+is a street nobody looked at.
+
+`SPECIES["sign_post"]`'s 0.10 x 0.10 x 2.40 was the PLACEHOLDER's box. Lot
+now writes the blade's box as the slot and keeps the pole as the plan
+footprint, the way `FOOTPRINT["traffic_signal"]` has kept an 8 m mast arm off
+the sidewalk since 0.72.0 -- so no station moves and no census changes. Had
+the slot stayed the pole's, `fit_exact` would have squeezed a 1.08 m diamond
+to ten centimetres across: the same defect as no blade at all, and harder to
+see.
+
+### The landing order, which is the part that could have gone wrong
+
+Three mirrors construct this name and none of them parses it. TWO OF THEM
+ALREADY SPELLED `_f<form>`: `core/kit.module_stem` and
+`deli_counter/themed_tscn.module_stem` have carried it since 0.84.0 and
+needed no change for this at all -- checked, not assumed
+(`resolve_themed_stem` on a sign-post slot returns
+`prop_sign_post_delco_1997_01_w30_d6_h244_fno_parking` on Deli Counter 0.138.0
+untouched). Only `lot.cover_module_stem` lacked it.
+
+Lot 0.73.0 held it back on the argument that spelling it against a genome
+listing no forms would resolve a name Zoo had not built. That was right and
+it was half the picture: landing THIS release first breaks it the other way
+round, because `plan_kit` then builds only the dressed name while Lot still
+asks for the plain one. Either single-repo order sends every post on the site
+to greybox -- which is worse than the bare pole it replaces.
+
+So the order is not a sequence of safe steps, and pretending it is would be
+the mistake. **Lot goes first, and it goes first carrying a fallback.** Lot
+0.74.0's `cover_module_refs` asks for the dressed name and then the plain one
+-- the ladder `deli_counter.themed_tscn.resolve_slot_choice` already climbs --
+so against a Zoo that cannot draw the blade the post keeps the pole it has
+today, and against this one it gets the sign. With that rung in, the window
+between the two releases costs nothing and the order stops being load-bearing.
+Measured end to end on `central_vault`, `septa_station` and
+`warehouse_district` (12, 8 and 10 posts, all three blades between them): the
+stems Zoo plans and the stems Lot resolves are the same list, with no species
+fallbacks and no dressing fallbacks.
+
+### Two defects the tests did not catch and a frame did
+
+1. **EVERY BARE POST IN THE LIBRARY BUILT A NO PARKING SIGN.**
+   `dna._default_params` takes a list param's FIRST entry as its canonical
+   default -- which is why every other species with forms lists `auto` first,
+   and `resolve_module_plan`'s own comment says so in as many words. The
+   genome here listed the three blades and nothing else, so an undressed
+   module took `no_parking` and drew a 12 in sign squeezed into a 0.1 m
+   pole, under a stem that said `w10_d10_h240` with no `_f` on it. Sixty-five
+   tests passed over it, because every one of them called `plan` directly;
+   the preview frame showed it in one look. `auto` is first in the list now,
+   it means NO BLADE here rather than "read the dims", and
+   `test_an_undressed_post_is_still_a_bare_pole` goes through `dna`.
+2. **A QUARTER OF THE POST WAS ZERO-AREA TRIANGLES.** Every `sign_post`
+   style carries bevel 0.006, and a 6 mm bevel on an 8 mm u-channel flange
+   collapses its corners: 32 of the post's 132 triangles came out degenerate
+   on the no-parking module and 28 on the other two, drawing nothing on every
+   client, every frame. Nothing counts them -- `prims.tri_count` counts the
+   plan and not the bevel, and `build_module`'s own tally counts them as
+   triangles. The only signal was `tools/coplanar_probe.py` reporting FEWER
+   triangles than the GLB has, because it skips a degenerate normal, and that
+   gap was noticed while writing the table above. `post_bevel` caps the bevel
+   at a quarter of the thinnest section (2 mm); the post is still 132
+   triangles and 0 of them are zero-area.
+
+### The look, and what the cheap version costs
+
+**The faces are geometry, not texture, and that was priced rather than
+assumed.** A pictogram painted into an atlas is two triangles and this one is
+128 (the ring) or 76 (the walking figure). What geometry buys back is no
+image: a textured blade would add a unique PNG and a material per form, on a
+prop a street carries a dozen of, and Zoo has no atlas that street furniture
+already shares -- `_card_atlas`'s argument is that MANY quads share ONE
+image, which is not the shape of this problem. `stop_sign` made the same call
+for the same reason in 0.78.0. The expensive version is worth reopening when
+there is runtime telemetry from a real session and a street-furniture atlas
+to put it in; the budget it would free is about 200 triangles a post.
+
+**No glyph was added to `recipes/_legend`, and that is the result rather than
+an omission.** The set leaves out K M N V W X Y Z because a diagonal stroke
+does not fit a three-by-five grid whose only cut is a stroke-square corner --
+`_legend`'s docstring has said so since 0.82.0, and it is a decision, not a
+gap. Drawing R8-3a instead of R7-1's NO PARKING ANY TIME and W11-2 instead of
+a word keeps it one: sixteen letters become one glyph and none, and BUS STOP
+spells out of the stop sign's own four glyphs plus the B and U the container
+stencil added. A test asserts both halves, so the next person to want a
+lettered blade finds the constraint rather than the workaround.
+
+**A blade's borders and its legend gaps have a floor, and the floor is the
+probe's own tolerance.** `border_of` will not draw a border thinner than
+2 x 2 mm, because the border IS the perpendicular gap between the blade's rim
+wall and the coloured field's -- at the genome's 0.09 m corner the plaque's
+field stood 1.11 mm inside its blade and the probe reported the pair.
+`min_width` is the same argument for the flag: `_legend` puts 0.08 of the
+legend height between two letters, the legend is 0.26 of the flag's width, so
+two letters meet the tolerance at 0.096 m and the floor is 0.097. Lot's flag
+is 0.3048, three times over, and a test says so rather than leaving the floor
+to be an excuse for not measuring.
+
+### Left standing and named
+
+  * **`stop_sign` has three coincident face pairs at nil separation**, and
+    they are not new: `tools/coplanar_probe.py --species stop_sign --dims
+    0.75 0.08 2.85` reports StopSign_Border against StopSign_Face over
+    2,394 cm2 and 1,436 cm2, and StopSign_Border against StopSign_Post over
+    177 cm2, all at 0.00 mm. `FACE_PROUD` puts the red face's BACK exactly on
+    the white border's front, and the border's back exactly on the post's
+    front. That is z-fighting on the face of every stop sign in the game and
+    it predates the interior-species rules the new species keep. Not fixed
+    here: it is a change to shipped geometry with its own frames to shoot,
+    and folding it into this release would have made the residue after the
+    next run unreadable.
+  * **The W16-7P arrow points down and to the driver's left, and that is a
+    choice this repo is making rather than reading.** The Manual's plaque
+    comes in a left and a right; Lot's `BLADE_AT_PATH` says only that the
+    post stands at a footpath cut. Down-left aims it at the carriageway the
+    crossing runs across. When Lot passes the side, `_arrow` takes it.
+  * **Nothing has walked one.** The frames are `tools/preview_specimen.py`
+    against a ground plane and the 0.117 m ruler, not a site and not the
+    shipped walk package. Four posts, four forms, built and looked at; a
+    street of them is the next thing to see.
+
+### Tests
+
+`tests/test_sign_post.py` keeps its two original assertions and adds the
+interior species' four measurements over every form at every genome corner
+(clamped to each form's own `min_width`, because this genome spans a bare
+pole at 0.09 m and a diamond at 1.08 m and its minimum is not a size every
+form can be), plus the MUTCD arithmetic, the ranges Lot's dims have to sit
+inside, the collider, the `auto` default through `dna`, the bevel cap, the
+ladder of y offsets, and the stem both repos construct. Suite 2,194 passing,
+204 skipped.
+
 ## [0.95.0] - a 1990s card shop, and a kind that reached no mesh
 
 The walker, 2026-09-15, naming the next two building types and sending nine
