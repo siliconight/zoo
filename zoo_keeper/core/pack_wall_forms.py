@@ -33,6 +33,16 @@ variant.
 
 STOCK IS BOXES WITH A TEXTURE, capped by `CAPS` -- see there for the
 measurement.
+
+HOW MANY SHELVES A BAY CARRIES IS THE BAY'S OWN HEIGHT, AND THE CAP IS
+DERIVED (0.99.0). It was `CAPS["shelves_per_bay"] = 6`, which bound at
+every height the genome allows, so raising a bay from 2.2 m to 3.2 m drew
+exactly the same triangles -- 1,416 on a 2.4 m bay at both -- and bought
+nothing but a wider gap between the same six shelves: a 0.259 pitch became
+a 0.401 one over a 0.092 m booster box. `max_rows` derives the cap from
+`budgets.tris_per_bay` and `budgets.tris_lod0` instead, and the height
+derives the count. See `BAY_BUDGET` for why the per-BAY budget is the one
+that binds.
 """
 from __future__ import annotations
 
@@ -87,25 +97,160 @@ BOX_W, BOX_H, BOX_D = 0.135, 0.092, 0.072
 #: at 22 the whole pack sat INSIDE the panel and its front face landed
 #: 2 mm in front of the panel's, on every peg of every peg row.
 PEG_W, PEG_H, PEG_D = 0.078, 0.145, 0.030
-SHELF_CLEAR = BOX_H + 0.075
+#: WHAT ONE ROW NEEDS OF THE BAY'S HEIGHT, and it is measured from the
+#: TALLEST thing a row stands, which is the blister pack and not the box.
+#: `BOX_H + 0.075` was the whole of it until 0.99.0 and it was 53 mm short
+#: of a peg row, which is why the peg row needed a MEASURED-clear escape
+#: hatch below: the count said a row fitted and the row did not. The 0.075
+#: is the original author's reach-in and is kept as it was written.
+SHELF_CLEAR = max(BOX_H, PEG_H) + 0.075
+#: ...and the PLANK is part of the pitch. `int(room / SHELF_CLEAR)` never
+#: produced a pitch of `SHELF_CLEAR`; it produced `room / (n + 1)`, which is
+#: a different number, and the cap hid that at every height in the genome's
+#: range. Pitch is derived from this one value now, so the guards below --
+#: `BOX_H + 0.020` and `PEG_H + 0.025` -- sit 50 mm under it and no
+#: threshold is asked of two spellings of one quantity.
+SHELF_PITCH_MIN = SHELF_CLEAR + SHELF_T
 
 GLASS, METAL, BODY, BACK, STOCK, ART = "glass", "metal", "body", "back", "stock", "art"
 
-#: WHAT THE CAPS BUY, measured at the genome's largest slot (8.0 x 0.5 x
-#: 2.4, seven bays) rather than asserted:
+#: WHAT THE CAPS BUY AND WHICH QUESTION THEY ANSWER, re-measured on
+#: 0.99.0's derived shelf count at the genome's largest slot (8.0 x 0.6 x
+#: 3.2, seven bays):
 #:
-#:     caps lifted to 99        406 items    5,684 tris
-#:     these caps               287 items    4,046 tris
+#:     these caps          322 items   5,470 tris   766 a bay, 7 shelves
+#:     caps lifted to 99   280 items   4,630 tris   646 a bay, 4 shelves
 #:
-#: against a budget of 6,000 for the module. A bay is 1.2 m and a booster
-#: box is 0.135 m, so "as many as fit" is 8 a shelf; 6 leaves the gap a real
-#: gondola has where somebody has taken one. The per-bay figure is the one
-#: to compare with the other species: 578 triangles.
+#: against 6,000 for the module and `BAY_BUDGET` for a bay. THEY NO LONGER
+#: HOLD THE BUDGET -- `max_rows` does -- and lifting them makes a bay
+#: CHEAPER rather than dearer: a wider row costs more, so fewer rows fit
+#: the bay budget, and seven shelves of six become four shelves of seven.
+#: What these caps decide now is the SHAPE of the spend, and a gondola is
+#: read as rows. A bay is 1.2 m and a booster box is 0.135 m, so "as many
+#: as fit" is 8 a shelf; 6 leaves the gap a real gondola has where somebody
+#: has taken one.
+#:
+#: At 99 a peg row carries TWELVE against a box row's seven, so the peg row
+#: is the DEARER of the two -- which is why `bay_tris` prices the worst of
+#: the four variants instead of assuming the pegged row is the cheap one.
+#:
+#: THE 0.95.0 FIGURES THIS COMMENT CARRIED WERE WRONG, kept here so nobody
+#: rediscovers them. It recorded "406 items 5,684 tris" with the caps at 99,
+#: "287 items 4,046 tris" with them on, and "578 triangles a bay", all at
+#: 8.0 x 0.5 x 2.4. The ITEM count reproduces -- 287 -- and not one of the
+#: triangle figures does: 0.98.0 draws 4,896 and 684 a bay at that slot, and
+#: 637 items / 10,300 with the caps lifted. 578 travelled: it is in this
+#: species' genome note beside the correct 4,896 (a sentence that disagrees
+#: with itself, since 4,896 over seven bays is 699), and in Deli Counter's
+#: `_PIECES` comment as "578 triangles a bay against 6,000".
 CAPS = {
     "boxes_per_shelf": 6,
     "pegs_per_row": 5,
-    "shelves_per_bay": 6,
 }
+
+#: ONE ROW IN `PEG_EVERY` IS HUNG BLISTER PACKS rather than faced boxes.
+#: Read by the planner AND by `bay_tris`, because the cap has to price the
+#: mix the planner actually builds -- one quantity, one spelling.
+PEG_EVERY = 4
+
+#: WHAT THE PIECES COST, so the caps below are arithmetic rather than
+#: taste. `prims.box` is 12 triangles and `_quad` is 2, so a faced product
+#: is 14; a shelf plank is one box; a bay's own frame is its kick, its
+#: base, its header and the header's art (12 + 12 + 12 + 2); a module
+#: carries one slatwall back and one upright per bay edge.
+#: `test_card_shop` asserts every one of these against the planner, the way
+#: `pennant_row`'s does -- a cap whose arithmetic has gone stale is a
+#: comment.
+TRIS_ITEM = 14
+TRIS_SHELF = 12
+TRIS_BAY_FRAME = 38
+TRIS_BACK = 12
+TRIS_UPRIGHT = 12
+
+#: THE MODULE BUDGET, `budgets.tris_lod0` in the genome. Defaulted here so
+#: the planner runs without a kit; `test_card_shop` holds it against the
+#: genome so the two cannot drift.
+BUDGET = 6000
+
+#: THE BAY BUDGET, `budgets.tris_per_bay`, AND WHY THE MODULE BUDGET IS NOT
+#: WHAT HOLDS THIS SPECIES.
+#:
+#: Every other species in the card shop is placed once or twice. A room
+#: stands EIGHT pack walls: Deli Counter 0.140.0's `_PIECES` allows four
+#: wall runs (`most` 4, worst palette size 3.6 m, three bays each) and two
+#: islands (`most` 2), each of which is `twin` and therefore two modules of
+#: 2.4 m, two bays each. Twenty bays in one room. 6,000 a module never
+#: binds on any of them -- at 3.6 m it would pay for nineteen shelves a bay
+#: -- so a cap derived from it alone would be a cap that cannot fire, which
+#: is indistinguishable from no cap at all.
+#:
+#: The room is what binds, and its budget is Deli Counter's
+#: `_CARD_SHOP_ROOM_TRIS` = 24,000, which is one `cubicle_bank` -- the
+#: figure this changelog offered for scale in 0.95.0. The rest of that
+#: room's worst case is 8,192 (two display cases 2 x 1,148, two returns
+#: 2 x 760, four pennant rows 4 x 892, two CRTs 2 x 404), and the eight
+#: gondola modules carry 432 of frame between them (4 x (12 + 4 x 12) for
+#: the 3.6 m runs, 4 x (12 + 3 x 12) for the islands). So:
+#:
+#:     24,000 - 8,192 - 432 = 15,376, over twenty bays = 768 a bay
+#:
+#: MEASURED, not asserted: at 768 a bay carries seven shelves and draws
+#: 766; an eighth costs 862 and puts the room at 25,864. Seven puts it at
+#: 23,944 of 24,000. The expensive version -- pitch held at
+#: `SHELF_PITCH_MIN` at every height, which is ten shelves at 3.2 m -- is
+#: 1,054 a bay and 30,008 a room, 125 % of the budget. What the room cannot
+#: afford is written into the release entry rather than quietly dropped.
+#:
+#: This is the one dial. Raising `budgets.tris_per_bay` makes a gondola
+#: denser and nothing else has to move with it.
+BAY_BUDGET = 768
+
+
+def bay_tris(rows, cols_box, cols_peg, variant=None):
+    """What ONE bay draws with `rows` product rows, and therefore
+    ``rows - 1`` shelves -- the bottom row stands on the base and needs no
+    plank under it.
+
+    `variant` None prices the WORST of the four, which is what a cap has to
+    use: the peg row's phase moves with the variant, and a bay whose rows
+    do not divide by `PEG_EVERY` carries one more cheap row in some phases
+    than in others.
+    """
+    def items(v):
+        peg = sum(1 for si in range(rows) if (si + v) % PEG_EVERY == 3)
+        return peg * cols_peg + (rows - peg) * cols_box
+
+    n = (max(items(v) for v in range(PEG_EVERY)) if variant is None
+         else items(int(variant)))
+    return TRIS_BAY_FRAME + (rows - 1) * TRIS_SHELF + n * TRIS_ITEM
+
+
+def module_tris(rows, n_bays, cols_box, cols_peg, variant=None):
+    """What the whole module draws: the slatwall back, an upright per bay
+    edge, and `n_bays` bays of `bay_tris`."""
+    return (TRIS_BACK + TRIS_UPRIGHT * (n_bays + 1)
+            + n_bays * bay_tris(rows, cols_box, cols_peg, variant))
+
+
+def max_rows(n_bays, cols_box, cols_peg, budget=BUDGET, bay_budget=BAY_BUDGET):
+    """THE CAP, DERIVED: the most product rows a bay can carry with BOTH
+    budgets still met -- the bay's own and the module's.
+
+    Replaces a hand-set ``CAPS["shelves_per_bay"] = 6``, which bound at
+    every height in the genome's range (2.2 to 3.2) and therefore made
+    height buy nothing: a 2.4 m bay measured 1,416 triangles at 2.2 m and
+    1,416 at 3.2 m, and the only thing a taller bay did was re-space the
+    same six shelves from a 0.259 pitch to a 0.401 one over 0.092 m boxes.
+    """
+    rows = 1
+    while rows < 256:
+        nxt = rows + 1
+        if bay_tris(nxt, cols_box, cols_peg) > int(bay_budget):
+            break
+        if module_tris(nxt, n_bays, cols_box, cols_peg) > int(budget):
+            break
+        rows = nxt
+    return rows
 
 
 def _quad(part, tile, verts):
@@ -130,7 +275,8 @@ def _faced(prims, tiles, part, tile, spec, cx, y_front, z0, sx, sy, sz, mat=STOC
                         (cx + w / 2, y, cz + hgt / 2), (cx - w / 2, y, cz + hgt / 2)]))
 
 
-def plan(w, d, h, params=None, variant=0, key="pack_wall"):
+def plan(w, d, h, params=None, variant=0, key="pack_wall",
+         budget=BUDGET, bay_budget=BAY_BUDGET):
     """Everything the recipe builds: ``{"prims", "tiles", "collision",
     "facts"}``."""
     w, d, h = float(w), float(d), float(h)
@@ -144,6 +290,16 @@ def plan(w, d, h, params=None, variant=0, key="pack_wall"):
     y0, y1 = -d / 2.0, d / 2.0
     runs = bays(w, bay_max)
     items = 0
+    # THE CAP, BEFORE THE LOOP, because it is the module's as well as the
+    # bay's. `bays` divides a run into EQUAL bays, so every bay takes the
+    # same columns and the same cap -- if that ever stops being true this
+    # has to move inside the loop.
+    ax_w = runs[0][1] - 2 * X_IN["shelf"]
+    cols_box = min(CAPS["boxes_per_shelf"], int(ax_w / (BOX_W + 0.010)))
+    cols_peg = min(CAPS["pegs_per_row"], int(ax_w / (PEG_W + 0.012)))
+    cap_rows = max_rows(len(runs), cols_box, cols_peg, budget, bay_budget)
+    rows = n_shelf = 0
+    pitch = 0.0
 
     # THE BACK -- slatwall, owning +Y. It stops short of z = 0 and z = h,
     # which are the uprights'.
@@ -202,10 +358,16 @@ def plan(w, d, h, params=None, variant=0, key="pack_wall"):
         ax0, ax1 = bx("shelf")
         aby = byk("shelf")
         room = hz0 - 0.040 - BASE_H
-        n_shelf = min(CAPS["shelves_per_bay"], int(room / SHELF_CLEAR))
-        pitch = room / max(1, n_shelf + 1)
+        # HOW MANY ROWS THE BAY'S OWN HEIGHT TAKES, then the budgets. The
+        # first term is what the reference asks for ("product goes to the
+        # ceiling, not to waist height"); the second is what a room with
+        # twenty of these bays in it can pay for. `rows` rows means
+        # `rows - 1` shelves: the bottom row stands on the base.
+        rows = max(1, min(int(room / SHELF_PITCH_MIN), cap_rows))
+        n_shelf = rows - 1
+        pitch = room / rows
         clear = pitch - SHELF_T
-        for si in range(n_shelf + 1):
+        for si in range(rows):
             z = BASE_H + pitch * si
             if si:
                 prims.append(P.box(f"PackWall_Shelf{bi}_{si}", METAL,
@@ -217,9 +379,9 @@ def plan(w, d, h, params=None, variant=0, key="pack_wall"):
             # check the peg row ran its tops into the shelf above, 2.14 mm,
             # on every bay narrow enough to pitch its shelves tight.
             gg = games[(bi + variant + si) % len(games)]
-            if ((si + variant) % 4 == 3 and PEG_D + 0.02 < aby - fy
+            if ((si + variant) % PEG_EVERY == 3 and PEG_D + 0.02 < aby - fy
                     and PEG_H + 0.025 < clear):
-                cols = min(CAPS["pegs_per_row"], int((ax1 - ax0) / (PEG_W + 0.012)))
+                cols = cols_peg
                 pp = (ax1 - ax0) / max(1, cols)
                 for k in range(cols):
                     t = f"box_{gg['id']}"
@@ -232,7 +394,7 @@ def plan(w, d, h, params=None, variant=0, key="pack_wall"):
                 continue
             if BOX_H + 0.02 > clear or BOX_D + 0.02 > aby - fy:
                 continue
-            cols = min(CAPS["boxes_per_shelf"], int((ax1 - ax0) / (BOX_W + 0.010)))
+            cols = cols_box
             pp = (ax1 - ax0) / max(1, cols)
             for k in range(cols):
                 t = f"box_{gg['id']}"
@@ -245,6 +407,9 @@ def plan(w, d, h, params=None, variant=0, key="pack_wall"):
     facts = {"bays": len(runs), "items": items, "variant": variant,
              "tiles": len(tiles), "tris": P.tri_count(prims),
              "per_bay_tris": round(P.tri_count(prims) / max(1, len(runs))),
+             "shelves_per_bay": n_shelf, "rows_per_bay": rows,
+             "cap_rows": cap_rows, "pitch_m": round(pitch, 4),
+             "bay_budget": int(bay_budget), "budget": int(budget),
              "games": [games[(b + variant) % len(games)]["id"]
                        for b in range(len(runs))]}
     return {"prims": prims, "tiles": tiles,

@@ -32,7 +32,10 @@ def build(plan, streams, collection):
     h = plan["dimensions"]["height"]
     params = plan.get("params") or {}
     stem = (plan.get("module") or {}).get("stem") or "pack_wall"
-    got = PF.plan(w, d, h, params, params.get("variant") or 0, key=stem)
+    budgets = plan.get("budgets") or {}
+    got = PF.plan(w, d, h, params, params.get("variant") or 0, key=stem,
+                  budget=int(budgets.get("tris_lod0") or PF.BUDGET),
+                  bay_budget=int(budgets.get("tris_per_bay") or PF.BAY_BUDGET))
 
     mats = dict(PALETTE)
     mats[PF.BODY] = (f"M_PackWall_body_{plan['material']}",
@@ -47,6 +50,8 @@ def build(plan, streams, collection):
 
     f = got["facts"]
     print(f"[pack_wall] {w:.2f} x {d:.2f} x {h:.2f} bays={f['bays']} "
+          f"shelves={f['shelves_per_bay']} (cap {f['cap_rows'] - 1} from a "
+          f"{f['bay_budget']} bay budget) pitch={f['pitch_m']:.3f} "
           f"items={f['items']} variant={f['variant']} tiles={f['tiles']} "
           f"games={','.join(f['games'])} "
           f"atlas={atlas['name'] if atlas else '-'} "

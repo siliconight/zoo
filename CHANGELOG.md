@@ -1,3 +1,169 @@
+## [0.99.0] - a taller bay carries more shelves, and the cap that says how many is arithmetic now
+
+Deli Counter 0.140.0 took `card_shop_a01`'s pack walls from 2.2 m to 2.70 m
+because the walker's verdict on cold run 9061 was that the shop reads as a
+hall, and reference property 1 in `docs/SET_DRESSING_REFERENCES.md` is
+"product goes to the ceiling, not to waist height -- the top shelf is as
+full as the bottom". Deli Counter's own note records what it got for the
+half-metre: nothing. MEASURED here first, against `pack_wall_forms.plan` at
+0.98.0, depth 0.5, variant 0, over Deli Counter's palette widths:
+
+    width   2.20    2.55    2.70    3.20
+      1.2    720     720     720     720
+      2.4  1,416   1,416   1,416   1,416
+      3.6  2,112   2,112   2,112   2,112
+      8.0  4,896   4,896   4,896   4,896
+
+Not close -- IDENTICAL, at every width and every height in the genome's
+range. `n_shelf` was `min(CAPS["shelves_per_bay"], int(room / SHELF_CLEAR))`
+and `CAPS` won everywhere: at 2.2 m the fit term is already 10.8. So the
+height bought a re-spacing of the same six shelves and nothing else. On a
+2.4 m bay the pitch went 0.259 (h=2.2) -> 0.331 (2.70) -> 0.401 (3.2), over
+a booster box 0.092 m tall. A frame of it is in this release's notes and the
+white underside of a shelf plank is the biggest thing in it.
+
+### The count is the height now, and the cap is two budgets
+
+`max_rows` replaces `CAPS["shelves_per_bay"]`. A bay takes as many product
+rows as its own height fits, `int(room / SHELF_PITCH_MIN)`, and the cap is
+derived from what a row costs against what a bay may spend:
+
+    a faced product  14 tris   a box (12) and its art quad (2)
+    a shelf plank    12        one box
+    a bay's frame    38        kick, base, header, header art
+    a module's frame 12 + 12 a bay edge   the slatwall back and the uprights
+
+`bay_tris` and `module_tris` price the row mix the planner actually builds,
+including that one row in `PEG_EVERY` is hung blister packs and carries
+`pegs_per_row` rather than `boxes_per_shelf` -- and `PEG_EVERY` is read by
+the planner and by the pricing, one quantity with one spelling.
+`test_a_bay_costs_what_the_cap_assumes_it_costs` holds the model against the
+planner at every genome corner and every variant, the way `pennant_row`'s
+does, because a cap whose arithmetic has gone stale is a comment.
+
+### THE MODULE BUDGET IS NOT WHAT HOLDS THIS SPECIES, and that is the finding
+
+6,000 (`budgets.tris_lod0`) bounds one module. At 3.6 m it would pay for
+NINETEEN shelves a bay. A cap derived from it alone is a cap that cannot
+fire, which is indistinguishable from no cap at all (0.95.0's own rule, one
+layer up).
+
+What binds is the ROOM, because a pack wall is the one species a room stands
+eight of. Deli Counter 0.140.0's `_PIECES` allows four wall runs (`most` 4,
+worst palette size 3.6 m, three bays each) and two islands (`most` 2), each
+`twin` and therefore two modules of 2.4 m, two bays each: twenty bays. Its
+room budget is `_CARD_SHOP_ROOM_TRIS` = 24,000, which is one `cubicle_bank`
+-- the figure THIS changelog offered for scale in 0.95.0. The rest of that
+room's worst case is 8,192 and the eight modules carry 432 of frame, so:
+
+    24,000 - 8,192 - 432 = 15,376, over twenty bays = 768 a bay
+
+That is `budgets.tris_per_bay`, new, and it is the one dial. Both caps are
+load-bearing and each bites where the other does not: lift BOTH at the
+genome's largest slot (8.0 x 0.6 x 3.2) and the module draws 7,486 against
+6,000; lift only the bay budget and the module budget still holds 8.0 m --
+seven bays share it -- but a 3.6 m run goes to ten shelves a bay and the
+room goes to 29,704. `test_both_pack_wall_caps_are_load_bearing_and_neither
+_alone_is_enough` asserts both, and it is the test 0.95.0's entry claimed
+this species had: the "removing the cap BLOWS the budget" test written then
+was `display_case`'s. `pack_wall` never had one.
+
+### What it draws now, and what it cost
+
+Depth 0.5, variant 0; triangles / shelves a bay:
+
+    width   1.60        2.20        2.55        2.70        3.20
+      1.2    528/4       720/6       802/7       802/7       802/7
+      1.8  1,032/4     1,416/6     1,580/7     1,580/7     1,580/7
+      2.4  1,032/4     1,416/6     1,580/7     1,580/7     1,580/7
+      3.6  1,536/4     2,112/6     2,358/7     2,358/7     2,358/7
+      4.8  2,040/4     2,808/6     3,136/7     3,136/7     3,136/7
+      8.0  3,552/4     4,896/6     5,470/7     5,470/7     5,470/7
+
+Worst bay 766 of 768; worst module 5,470 of 6,000. The card-shop room goes
+from 22,304 to 23,944 of 24,000 -- 93 % to 99.8 % -- and the cap is what
+lands it there rather than luck: an eighth shelf is 862 a bay and puts the
+room at 25,864.
+
+**h = 2.2 IS BYTE-IDENTICAL.** 72 of the 360 plans in the corner sweep are
+unchanged prim for prim, and they are exactly the 2.2 m ones -- the height
+Deli Counter shipped before 0.140.0, and the height the 0.95.0 measurements
+were taken at. Nothing that was standing at 2.2 m moves.
+
+### What the cheap version loses, said rather than quietly narrowed
+
+ONE EXTRA SHELF IS ALL THE ROOM CAN BUY, and at 3.2 m a bay still reads
+airy. Held at `SHELF_PITCH_MIN` at every height -- which is what the
+reference actually shows -- a bay takes eight shelves at 2.70 m (pitch
+0.257) and ten at 3.2 m (0.256), costs 1,054 a bay, and puts the room at
+25,864 (108 %) and 29,704 (124 %). The expensive frame is in this release's
+notes beside the shipped one and it is the better picture: the shipped bay
+at 2.70 m pitches at 0.289 against the expensive one's 0.257. The standing
+call is performance over look when the two compete (CLAUDE.md), there is
+still no runtime telemetry from a real session, and `tris_per_bay` is the
+dial to turn when there is. What is missing is 192 triangles a 2.4 m module.
+
+A SHORT BAY LOSES TWO SHELVES AND GAINS ITS BLISTER ROW. At 1.6 m, 0.98.0
+drew six shelves at a 0.173 pitch; 0.99.0 draws four at 0.242. That is the
+second half of the same defect and it is worth naming separately.
+
+### `SHELF_CLEAR` was measured off the wrong product
+
+`BOX_H + 0.075`. The tallest thing a row stands is the hanging blister pack,
+`PEG_H` = 0.145, which is 53 mm taller than a box -- so the count said a row
+fitted where it did not, and the peg row's own MEASURED-clear check (0.95.0,
+written because peg tops ran into the shelf above by 2.14 mm) quietly
+dropped it instead. MEASURED over the genome's corner set: 0.98.0 draws ZERO
+blister rows at sixteen of them, every one of the 1.6 m corners. It is
+`max(BOX_H, PEG_H) + 0.075` now, the 0.075 reach-in kept exactly as it was
+written, and `SHELF_PITCH_MIN` adds the plank -- which `int(room /
+SHELF_CLEAR)` never did either, because it produced `room / (n + 1)` and not
+`SHELF_CLEAR`. The cap hid both at every height in the range.
+
+The two guards under it, `BOX_H + 0.020` and `PEG_H + 0.025`, now sit 50 mm
+below the pitch the count derives, so no threshold is asked of two spellings
+of one quantity and the guards are a backstop rather than the plan.
+
+### One for Deli Counter, with the numbers
+
+`test_card_shop._WORST_TRIS` pins `pack_wall` at 2112 with the comment
+"HEIGHT DOES NOT MOVE IT" and `pack_wall_island` at 1416. Both are 0.98.0
+readings and both are stale: at any height at or above 2.55 they are 2,358
+and 1,580, and `test_the_room_budget_is_zoo_s_only_real_one_and_the_caps_fit
+_under_it` asserts `worst == 22304`, which is 23,944. The caps themselves
+still fit -- 23,944 of 24,000, and one more island is still over it -- so
+this is a re-reading, not a re-capping. `test_the_measured_module_costs_are
+_still_zoo_s` is the test that will say so first, which is what it is for.
+
+### The 0.95.0 `CAPS` comment's triangle figures do not reproduce
+
+Found while re-measuring to set `tris_per_bay`, and kept in the file above
+the numbers that replaced them. `pack_wall_forms.CAPS` has carried, since
+0.95.0 and unchanged by any commit since, "caps lifted to 99: 406 items,
+5,684 tris", "these caps: 287 items, 4,046 tris" and "578 triangles a bay",
+all at 8.0 x 0.5 x 2.4. Re-run against 0.98.0's own planner: the ITEM count
+is right (287) and NOT ONE of the triangle figures is. That slot draws
+**4,896**, which is 684 a bay, and the lifted-cap case draws **637 items and
+10,300** -- 172 % of the module budget, not the 95 % the comment implies.
+
+578 travelled, which is why it is worth an entry rather than a quiet fix. It
+is in this species' own genome note beside the correct 4,896, in a sentence
+that disagrees with itself (4,896 over seven bays is 699), and it is in Deli
+Counter's `_PIECES` as "578 triangles a bay against 6,000" -- a figure that
+was read as headroom while deciding how tall to build a pack wall.
+
+### Tests
+
+Five, all in `tests/test_card_shop.py`, all failing on 0.98.0:
+`test_the_shelf_count_follows_the_bay_s_height`,
+`test_the_shelf_pitch_takes_the_tallest_product_the_row_stands`,
+`test_a_bay_costs_what_the_cap_assumes_it_costs`,
+`test_both_pack_wall_caps_are_load_bearing_and_neither_alone_is_enough`,
+`test_the_bay_budget_is_the_one_dial_that_makes_a_gondola_denser`. The whole
+suite is 2,293 passing, and the corner tests every interior species keeps --
+exact extents, no two faces within 2.2 mm of a plane, deterministic, budget
+at every corner -- pass unchanged at the new pitches.
+
 ## [0.98.0] - the flat art, which is two triangles and a texture
 
 The walker walked cold run 9061's `card_shop_a01` and sent the frame back:

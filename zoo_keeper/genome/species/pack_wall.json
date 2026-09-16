@@ -152,7 +152,8 @@
     }
   },
   "budgets": {
-    "tris_lod0": 6000
+    "tris_lod0": 6000,
+    "tris_per_bay": 768
   },
   "attachments": [],
   "keywords": [
@@ -169,7 +170,7 @@
     },
     "sockets": {}
   },
-  "notes": "A gondola bay of booster displays under a coloured header sign naming the game, with a slatwall back carrying a row of hanging blister packs. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)' -- 'floor-to-ceiling gondola shelving of booster displays in tight rows, each row a different product, with a coloured header sign over each bay'. A BAY IS THE UNIT AND A RUN IS BAYS: `bay_max` 1.20 divides a wide slot and each bay takes its own game, so an aisle authored as one volume is a row of different bays, and `module_variants` walks the table a different way so four separate 1.2 m slots differ too. RANGES: width from 0.8 (one bay) to 8.0 (the walker's aisle); depth 0.35 to 0.6, which is what a gondola shelf is; height 1.6 to 3.2. BUDGET: 6,000 for the MODULE, which at 8.0 m is seven bays; measured worst case 4,896, and 578 a bay.",
+  "notes": "A gondola bay of booster displays under a coloured header sign naming the game, with a slatwall back carrying a row of hanging blister packs. Reference: docs/SET_DRESSING_REFERENCES.md, 'The walker's trading card shop references (2026-09-15)' -- 'floor-to-ceiling gondola shelving of booster displays in tight rows, each row a different product, with a coloured header sign over each bay'. A BAY IS THE UNIT AND A RUN IS BAYS: `bay_max` 1.20 divides a wide slot and each bay takes its own game, so an aisle authored as one volume is a row of different bays, and `module_variants` walks the table a different way so four separate 1.2 m slots differ too. RANGES: width from 0.8 (one bay) to 8.0 (the walker's aisle); depth 0.35 to 0.6, which is what a gondola shelf is; height 1.6 to 3.2. BUDGETS: 6,000 for the MODULE, which at 8.0 m is seven bays, and 768 for a BAY. The bay budget is the one that binds, because a card shop stands EIGHT of these modules -- twenty bays -- and a per-module cap that no room-scale count can reach is a cap that cannot fire; `core/pack_wall_forms.BAY_BUDGET` carries the arithmetic (24,000 room, less 8,192 of other furnishing, less 432 of gondola frame, over twenty bays). HOW MANY SHELVES: the bay's own height, `int(room / SHELF_PITCH_MIN)`, capped by the two budgets through `max_rows` -- 0.98.0 pinned it at six, which bound at every height in the range and made a taller bay emptier per metre rather than fuller. Measured worst case 5,470 at 8.0 m, and 766 a bay.",
   "module_variants": 4,
   "match_priority": 0
 }

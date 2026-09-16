@@ -263,6 +263,108 @@ def test_four_separate_bays_differ_by_variant():
     assert len(set(games)) == len(games), games
 
 
+def test_the_shelf_count_follows_the_bay_s_height():
+    """0.99.0. `CAPS["shelves_per_bay"]` was 6 and bound at EVERY height the
+    genome allows, so a taller bay was emptier per metre rather than fuller:
+    a 2.4 m bay measured 1,416 triangles at 2.2 m and 1,416 at 3.2 m, and
+    the only thing height bought was re-spacing the same six shelves from a
+    0.259 pitch to a 0.401 one over a 0.092 m booster box.
+
+    Fails on 0.98.0 on the first assert: the counts are equal there."""
+    tall = PW.plan(2.4, 0.5, 2.70, {}, 0, key="bay")["facts"]
+    short = PW.plan(2.4, 0.5, 2.20, {}, 0, key="bay")["facts"]
+    assert tall["shelves_per_bay"] > short["shelves_per_bay"], (tall, short)
+    assert tall["tris"] > short["tris"], (tall["tris"], short["tris"])
+    # and the gap NARROWS rather than growing with the height
+    assert tall["pitch_m"] - short["pitch_m"] < 0.045, (tall, short)
+
+
+def test_the_shelf_pitch_takes_the_tallest_product_the_row_stands():
+    """`SHELF_CLEAR` was `BOX_H + 0.075` and the tallest thing a row stands
+    is the BLISTER PACK, 53 mm taller than a box. The count therefore said
+    a row fitted where it did not, and the peg row's own measured-clear
+    check dropped it -- silently, and at sixteen of the genome's corners.
+
+    Fails on 0.98.0: at 1.6 m the pitch there is 0.173 and every bay in the
+    corner set draws zero peg rows."""
+    assert PW.SHELF_CLEAR >= PW.PEG_H + 0.025
+    assert PW.SHELF_PITCH_MIN == PW.SHELF_CLEAR + PW.SHELF_T
+    for w, d, h, params, v in _cases("pack_wall"):
+        got = PW.plan(w, d, h, params, v, key="k")
+        pegs = [p for p in got["prims"]
+                if p["part"].startswith("PackWall_Peg") and "Art" not in p["part"]]
+        assert pegs, ("no blister row", w, d, h, v)
+        # ...and the pitch the count derived is really the pitch that got
+        # built, so the two guards below it can never straddle a threshold
+        f = got["facts"]
+        assert f["pitch_m"] >= PW.SHELF_PITCH_MIN - 1e-9, (w, d, h, v, f)
+
+
+def test_a_bay_costs_what_the_cap_assumes_it_costs():
+    """The cap's arithmetic is only sound while `bay_tris` and `module_tris`
+    really are what the planner draws -- add a part to a bay and the cap
+    silently stops holding the budget. `pennant_row` has the same test for
+    the same reason."""
+    for w, d, h, params, v in _cases("pack_wall"):
+        got = PW.plan(w, d, h, params, v, key="k")
+        f = got["facts"]
+        ax_w = (w / max(1, f["bays"])) - 2 * PW.X_IN["shelf"]
+        cols_box = min(PW.CAPS["boxes_per_shelf"], int(ax_w / (PW.BOX_W + 0.010)))
+        cols_peg = min(PW.CAPS["pegs_per_row"], int(ax_w / (PW.PEG_W + 0.012)))
+        assert PW.module_tris(f["rows_per_bay"], f["bays"],
+                              cols_box, cols_peg, v) == f["tris"], \
+            (w, d, h, v, f)
+        # and the variant-free pricing a cap uses is never OPTIMISTIC
+        assert PW.module_tris(f["rows_per_bay"], f["bays"],
+                              cols_box, cols_peg) >= f["tris"], (w, d, h, v, f)
+
+
+def test_both_pack_wall_caps_are_load_bearing_and_neither_alone_is_enough():
+    """The 0.95.0 rule, kept: a cap that is not the thing holding the number
+    is a comment, so the claim is that REMOVING it blows a budget.
+
+    `shelves_per_bay` was one hand-set number; `max_rows` is two derived
+    ones, and each bites somewhere the other does not:
+
+      * lift BOTH at the genome's largest slot (8.0 x 0.6 x 3.2) and the
+        MODULE draws 7,486 against a 6,000 budget;
+      * lift only the bay budget and the module budget still holds 8.0 m --
+        seven bays share it -- but a 3.6 m run goes to ten shelves a bay,
+        and four of those plus four islands put Deli Counter's card-shop
+        room at 29,704 against 24,000.
+
+    Fails on 0.98.0: neither `max_rows` nor the budgets it reads exist."""
+    big = (8.0, 0.6, 3.2)
+    budget = _budget("pack_wall")
+    capped = PW.plan(*big, {}, 0, key="c")["facts"]["tris"]
+    uncapped = PW.plan(*big, {}, 0, key="c",
+                       budget=10 ** 9, bay_budget=10 ** 9)["facts"]["tris"]
+    assert capped <= budget < uncapped, (capped, budget, uncapped)
+    # the MODULE budget alone is what holds seven bays
+    assert PW.plan(*big, {}, 0, key="c", bay_budget=10 ** 9)["facts"]["tris"] \
+        == capped
+    # ...and the BAY budget alone is what holds three, which is what a room
+    # actually stands four of
+    run = PW.plan(3.6, 0.5, 3.2, {}, 0, key="r")["facts"]
+    loose = PW.plan(3.6, 0.5, 3.2, {}, 0, key="r", bay_budget=10 ** 9)["facts"]
+    assert loose["tris"] > run["tris"] and loose["tris"] <= budget, (run, loose)
+
+
+def test_the_bay_budget_is_the_one_dial_that_makes_a_gondola_denser():
+    """`pennant_row`'s rule, applied to the species a ROOM stands eight of:
+    raising the genome budget raises the count and nothing else has to move
+    with it."""
+    g = genome.load_species("pack_wall")
+    assert PW.BUDGET == g["budgets"]["tris_lod0"]
+    assert PW.BAY_BUDGET == g["budgets"]["tris_per_bay"]
+    base = PW.plan(1.2, 0.5, 3.2, {}, 0, key="d")["facts"]
+    rich = PW.plan(1.2, 0.5, 3.2, {}, 0, key="d",
+                   bay_budget=PW.BAY_BUDGET * 2)["facts"]
+    assert rich["shelves_per_bay"] > base["shelves_per_bay"], (base, rich)
+    # the cap is a real bound at the shipped height, not a formality
+    assert base["shelves_per_bay"] == base["cap_rows"] - 1
+
+
 def test_the_pack_wall_faces_its_product_out():
     """A booster display is read from the aisle: every art quad on a product
     faces -Y, and none of them is behind the shelf it stands on."""
