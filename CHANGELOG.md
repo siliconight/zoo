@@ -1,3 +1,180 @@
+## [0.92.0] - the club's back bar, lit, and a bar top with something on it
+
+The walker, 2026-09-15, with three photos of a lounge bar and the
+bartender's side of one: "in the strip club there should be a bar with lots
+of bottles like this". THE CLUB'S BAR, NOT THE DIVE BAR -- the same day:
+"this will be different from the dive bar species we make later" -- so the
+species is parameterised by FORM and by STYLE, and nothing here is the
+neighbourhood dive's. The brief is written up in the factory's
+`docs/SET_DRESSING_REFERENCES.md` under "The walker's club bar reference";
+Deli Counter 0.137.0 places all of it and Lux 0.39.0 lights it.
+
+This does not reduce interventions-per-level by itself. It is the walker's
+next look at a club, answered in the tool that owns the prop -- and one
+piece of it is more than dressing: a back bar only makes sense with a
+working aisle behind the counter, which is Deli Counter's half.
+
+### `back_bar`: `core/back_bar_forms.py`, `core/back_bar_art.py`
+
+The lit wall unit behind a bar. A recessed plinth, a lower CABINET RUN at
+counter height with two doors and a brass handle to a bay and a worktop
+carrying the working bottles and a tower of rocks glasses; above it TIERED
+GLASS SHELVES crowded with bottles in rows and stemware on the top tier,
+each shelf with a brass edge rail; PILASTERS dividing an ODD number of bays
+(odd because the reference's mirror and porthole are in the CENTRE bay, and
+an even run has no centre bay); a cornice over them.
+
+FORMS `straight` (a mirror in the centre bay) and `niche` (a round lit
+porthole -- the first photo's), `auto` taking the porthole wherever the
+centre bay can hold one. A VARIANT is another rotation of the liquor table
+across the shelves, another stage of label wear, and the worktop's towers
+and bottles swapped bay for bay.
+
+WARM BULBS BEHIND THE SHELVES, one to a bay to a tier -- 1997, so bulbs and
+not an LED strip: small emissive spheres at the back panel under each shelf,
+`M_BackBar_bulb_Face`, and the porthole's disc `M_BackBar_niche_Face`. The
+`_Face` suffix is what Lux's emissive binder cuts with the room's power, so
+a club that loses its power loses its back bar with it. A lit material
+lights nothing round it under GL Compatibility; the spill is Lux 0.39.0's
+`back_bar` anchor, which Deli Counter writes at each unit.
+
+BOTTLES ARE SIZED TO THE SHELF, not pinned: the tier pitch is the shelf
+zone over the tiers plus one (the top tier needs headroom too) and a bottle
+is `pitch - BOTTLE_HEADROOM`, held to 0.16-0.34 m. A pinned 0.30 m bottle is
+right at one unit height and through the shelf above at another, and every
+back bar in the library is a different height.
+
+THE PITCH IS THE BUDGET'S once the budget bites. A 6.0 x 3.0 m unit has 18 m
+of bottle shelf, which at the row pitch is 171 bottles and 16,876 triangles
+-- nearly twice the heaviest thing in the genome. `MAX_BOTTLES` and
+`MAX_STEMS` multiply the pitch instead, so a wide unit thins its rows:
+measured over 80 builds (ten sizes, both forms, four variants),
+1,892-8,112 triangles against a budget of 8,500.
+
+NO TWO FACES SHARE A PLANE, and this species had to be taught that in four
+places at once -- the first plan measured 18 coincident pairs on ONE size:
+
+  * parts that MEET overlap by `JOIN`, never butt;
+  * things that STAND on a surface sink `SINK` into it, as `_surface_stock`
+    does;
+  * parts reaching the same wall or the same end are STEPPED (`BACK_INSET`,
+    `SIDE_INSET`). Two parts flush to one plane are coplanar with each
+    other however carefully each is joined to its neighbours, and
+    overlapping by `JOIN` leaves their SIDE faces sharing a plane over
+    exactly that overlap -- the cabinet and its worktop are both `w` wide.
+  * and where a plane is parallel to another BY CONSTRUCTION -- a
+    pilaster's face and a shelf's row of label quads -- the distance is
+    DERIVED (`PILASTER_CLEAR`) and not chosen. A chosen 0.6 of the shelf's
+    depth put the two within 1.5 mm at two of the nine sizes then measured;
+    a fixed pair of fractions has sizes where they meet, and the sweep
+    finds them one size at a time.
+
+`tests/test_back_bar.py` runs `prims.coincident_pairs` at 2.2 mm over ten
+sizes, both forms and four variants: zero pairs, and the extents are exactly
+the slot's.
+
+A LABEL IS ONE QUAD and its plane is parallel to nothing: the bottles are
+hexagonal prisms drawn with `phase = pi / 6`, which puts a VERTEX toward the
+room and every facet at 30 degrees or more off the label's plane. With a
+facet facing the room instead, it sat 2 mm behind the quad -- inside the
+probe's window.
+
+### The labels: `core/liquor_brands.py`, painted
+
+One atlas a unit, 96 x 128 px a label -- about 0.78 mm a pixel on the glass,
+so the 13-row Pixel Operator face at scale 1 stands 10 mm and is legible at
+1.5 m, which is the walker's frame for the shelves. Ground, foil bands, the
+mark at the largest whole scale that fits, a rule, the slogan wrapped, the
+proof on the bottom band, and deterministic grime by variant.
+
+FOURTEEN INVENTED BRANDS in one table beside `brands.py` and
+`cigarette_brands.py`, because a bottle on a shelf, a bottle in a speed rail
+and a bottle on a counter must be able to carry the same label: MACDADE GOLD
+("Aged Since Last Tuesday"), WOODER SHINE ("Cut With Wooder. Allegedly."),
+JAWN ROYALE, YOUSE FIRST ("Youse First. No, Youse."), CHESTER CREEK RYE
+("Straight. Mostly."), HOAGIE MOUTH, NANA'S CORDIAL ("Two Fingers and a
+Nap."), PIKE SILVER ("Worm Sold Separately."), RIDLEY DARK, TINICUM TRIPLE
+SEC ("Orange-ish."), BOOTHWYN BARREL ("Barrel Aged in a Basement."), CRUM
+CREEK CREAM ("Curdles With Attitude."), DELCO DEVIL ("Burns Twice. Sorry.")
+and ESSINGTON EEL ("Tastes Like the Airport Smells."). A denylist test holds
+every PAINTED string -- not the table, which is a different set the moment
+somebody adds a word to the art -- against the national spirits, the
+Pennsylvania distillers a Delco bar would actually stock (Rittenhouse, Dad's
+Hat, Bluecoat, Kinsey, Publicker), the brewers and the local marks. Two
+candidates were cut while writing it and are kept in the module as the
+record.
+
+THE BLOCK FITS ITS BOX, and each line fitting the WIDTH is not that:
+CHESTER CREEK RYE takes three lines at scales 1, 2 and 3 -- every one inside
+the margins -- and stood 62 rows in a 56-row box, running "RYE" through
+"STRAIGHT. MOSTLY.". The tallest line gives up a step until the block fits.
+A slogan that will not wrap into the space under the mark RAISES rather than
+truncating: five of the fourteen were being cut mid-word at the first
+`LOGO_BOTTOM`.
+
+### `bar_dense`: the club bar's TOP (`recipes/_surface_stock.py`)
+
+LANES, not clusters, and that is why it is a new flavour rather than a
+denser `bar`. The reference is a liquor row along the WHOLE top with towers
+of rocks glasses and cocktail glasses among it and a speed rail of spouted
+bottles on the service run; a cluster planner cannot draw a row, and making
+`bar` dense would have moved every cocktail table and stage rail in the
+library, which the same photo is not about. `bar` is untouched.
+
+Three lanes from the SERVICE side (+Y -- a counter's top overhangs the
+customer side): the speed rail, the liquor row, and the glass lane nearest
+the customer, plus a magnum standing forward of the rows where there is
+room. A top too shallow for all three keeps the ones that fit. A REAL SPEED
+RAIL HANGS UNDER THE COUNTER'S SERVICE LIP; this planner owns the top and
+nothing else, so the rail stands on the service edge of it -- the bottles,
+the spouts and the reach are the photo's, the shelf they sit on is not.
+
+`DENSE_MAX_ITEMS` multiplies every pitch once the run is long enough to
+blow it: measured before, a 4.0 m bay drew 96 items and 8,176 triangles, six
+times what `bar` puts on the same top; after, 72 items and 5,132 at 4.0 m
+and 78 and 6,124 at 8.0 m. A LABEL is a coloured ring 4 mm proud of the
+glass in the brand's own ground colour -- flush, its facets lay in the
+bottle's -- and the words are not painted here: `prim_mesh.build_stock` has
+no textured path and a 60 mm label read across a bar is a colour. The back
+bar's own labels are painted, and they are the ones a player reads.
+
+The four hosts (`desk`, `table`, `counter`, `filing_cabinet`) all offer the
+flavour, as they offer the other five.
+
+### `counter` form `bar`: the bartender's side
+
+A brass FOOT RAIL on posts along the customer front, BEER TAP TOWERS with
+two handles each along the service edge, and a 1997 REGISTER at each
+`ATT_register` station. PARTS, not stock, and the difference is what each
+one is: stock is what is left out on a top and is jittered off square by
+`_surface_stock`'s own rule, while a foot rail is a continuous straight tube
+bolted to the front and a tap tower is plumbed at a fixed pitch. A jittered
+foot rail is not a foot rail.
+
+The rail lives INSIDE the slot, under the top's customer overhang where a
+real one is; the taps and the register are returned as `dressing_objects`,
+so they stand ON the top without moving the module's fit bounds -- the same
+rule that lets a monitor stand on a desk without failing `fit_height`. A TAP
+TOWER DOES NOT STAND ON THE TILL: the registers are placed first and a tap
+whose column falls inside one is skipped. Measured the other way round, the
+third tap of a 4.0 x 0.8 counter landed inside the register and the two
+shared their base plane. 128 triangles inside the slot and 372 above it;
+BUDGET 1600 -> 7000 for the dense top the club's counters now carry.
+
+`auto` and `straight` build exactly what this recipe always built, and a
+counter without the form or the flavour is byte for byte what it was.
+
+### Where the counter's fit-out lives
+
+In `core/back_bar_forms.counter_fitout`, not in `recipes/counter.py` where
+it was first written: the recipe imports `bpy` at module scope, so a test of
+it cannot run in the suite that runs without Blender -- which is the suite
+that measures whether a foot rail is inside its slot. Moving it exposed a
+second thing worth writing down: the counter's own `FORMS` tuple came with
+it and rebound this module's, so `back_bar.plan` refused every `niche` it
+was asked for and quietly built a mirror. The centre-bay test in the same
+run caught it, which is the only reason it is a footnote and not a frame.
+
 ## [0.91.0] - a dartboard with the game in chalk, and a cigarette machine by the door
 
 The walker, 2026-09-15, with two photos: "we also need dart boards in the

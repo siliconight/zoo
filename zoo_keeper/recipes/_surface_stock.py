@@ -19,6 +19,13 @@ the room (see `kit.DRESSING_FIELDS`):
     forms on them, a desk phone, a mug, a pencil cup;
   * ``bar``     -- beer bottles in a loose knot, pints on coasters, an
     ashtray with two butts in it, a napkin holder;
+  * ``bar_dense`` -- THE CLUB'S BAR TOP (0.92.0), and not a denser draw
+    of the flavour above: LANES, not clusters. The walker's photo is a
+    liquor row along the WHOLE top with towers of rocks glasses and
+    cocktail glasses among it, and a speed rail of spouted bottles on the
+    service (+Y) run. A cluster planner cannot draw a row, and making
+    ``bar`` dense would have moved every cocktail table and stage rail in
+    the library, which the same photo is not about;
   * ``kitchen`` -- ketchup and mustard with the salt and pepper, a tray
     with soda cups on it, a napkin holder;
   * ``vault``   -- cash straps in columns, zippered deposit bags, ledgers;
@@ -61,9 +68,11 @@ from __future__ import annotations
 import math
 
 from ..core import carton_forms as CF
+from ..core import liquor_brands as LB
 from ..core import prims as P
+from ..core.brands import srgb_to_linear
 
-FLAVOURS = ("office", "bar", "kitchen", "vault", "storage")
+FLAVOURS = ("office", "bar", "kitchen", "vault", "storage", "bar_dense")
 EDGE = 0.02            # items stay this far inside the top's edges
 MIN_GAP = 0.012        # between item footprints (each grown by DETAIL)
 SINK = 0.003           # an item's lowest faces sit this far inside the top
@@ -117,7 +126,26 @@ FINISHES = {
     "tape": ([list(CF.MATERIALS["tape"][0])], "plastic"),
     "label": ([list(CF.MATERIALS["label"][0])], "paper"),
     "hole": ([list(CF.MATERIALS["hole"][0])], "paper"),
+    # THE CLUB BAR TOP (0.92.0). Spirit bottles are darker and clearer
+    # than the beer bottles above, and the tumblers are glass rather than
+    # the pint's beer.
+    "liquor_amber": ([[0.19, 0.08, 0.02], [0.66, 0.50, 0.16]], "plastic"),
+    "liquor_clear": ([[0.72, 0.76, 0.74], [0.10, 0.11, 0.12]], "plastic"),
+    "liquor_green": ([[0.04, 0.16, 0.06], [0.58, 0.72, 0.60]], "plastic"),
+    "tumbler": ([[0.70, 0.74, 0.72], [0.12, 0.13, 0.14]], "plastic"),
+    "spout": ([[0.62, 0.63, 0.65]], "metal_bare"),
+    "drink": ([[0.72, 0.36, 0.06], [0.24, 0.06, 0.10]], "plastic"),
 }
+#: A LABEL PER BRAND, generated from `core.liquor_brands` so the bottle on
+#: a counter carries the same ground colour as the one on the back bar's
+#: shelf. The words are not painted here -- `prim_mesh.build_stock` has no
+#: textured path, and a 60 mm label read from three metres across a bar is
+#: a colour. The back bar's own labels are painted (`back_bar_art`).
+for _b in LB.BRANDS:
+    FINISHES["lbl_" + _b["id"]] = (
+        [[round(srgb_to_linear(c), 4) for c in _b["ground"]],
+         [round(srgb_to_linear(c), 4) for c in _b["ink"]]], "paper")
+del _b
 
 #: Finishes that sit on their own item rather than on the host's top -- a
 #: screen in a monitor, foam on a pint, tape on a carton -- and are judged
@@ -125,12 +153,35 @@ FINISHES = {
 #: must contrast with the top it stands on.
 DETAIL_FINISHES = ("key_plastic", "screen", "led", "pencil", "foam", "ash",
                    "butt", "straw", "tape", "label", "hole", "bottle_cap",
-                   "cap_white", "lid", "band", "pages", "napkin")
+                   "cap_white", "lid", "band", "pages", "napkin",
+                   "spout", "drink") + tuple("lbl_" + b["id"] for b in LB.BRANDS)
 
 #: square metres of top per cluster, and the most clusters on one call
 AREA_PER_CLUSTER = {"office": 0.33, "bar": 0.22, "kitchen": 0.25,
-                    "vault": 0.22, "storage": 0.45}
+                    "vault": 0.22, "storage": 0.45, "bar_dense": 0.22}
 MAX_CLUSTERS = 5
+
+# --- the club bar top (bar_dense) ------------------------------------------
+#: Along a lane, centre to centre. The back bar's own row is 0.095 for a
+#: 0.075 m bottle; a counter is read from further away and carries the same
+#: bottle, so it keeps the same pitch.
+LIQUOR_PITCH = 0.095
+SPOUT_PITCH = 0.085
+GLASS_PITCH = 0.150
+#: A lane's half depth (the widest item on it) and the gap between lanes.
+LANE_GAP = 0.02
+#: The lanes from the SERVICE edge (+Y) inward: the speed rail against the
+#: service run, the liquor row behind the customers' reach, and the glass
+#: lane nearest the customer. A top too shallow for all three keeps the
+#: ones that fit, in this order.
+LANES = ("rail", "liquor", "glass")
+#: ITEMS ON ONE REGION, and therefore the pitch once a run is long enough
+#: to blow it. Measured before the cap: a 4.0 m counter bay drew 96 items
+#: and 8,176 triangles, six times what the flavour above puts on the same
+#: top. Every pitch is multiplied by whatever it takes to hold this count,
+#: so a bar top's cost stops growing with its length -- measured after,
+#: 72 items and 5,132 triangles at 4.0 m, 78 and 6,124 at 8.0 m.
+DENSE_MAX_ITEMS = 80
 
 
 def luminance(c):
@@ -394,6 +445,200 @@ def _clipboard(rng):
             P.box("Stock_Clip", "steel", (-0.04, 0.13, 0.0095), (0.04, 0.155, 0.026))]
 
 
+# --- the club bar top: bottles, spouts, towers, cocktails ---------------------
+#
+# Every one of these is drawn so that no two of its own faces share a plane
+# (`prims.coincident_pairs`, the rule the whole module keeps): a stacked
+# section overlaps the one below by 4 mm so their caps differ, and a label
+# ring stands 4 mm PROUD of the glass rather than flush with it -- flush,
+# its side facets lay in the bottle's, 0 mm apart, over the whole ring.
+
+LIQUOR_GLASS = {"amber": "liquor_amber", "clear": "liquor_clear",
+                "green": "liquor_green"}
+_JOIN = 0.004
+LABEL_PROUD = 0.004
+
+
+def _liquor_bottle(rng, brand, r=0.034, hgt=0.30, spout=False):
+    """A spirit bottle, its label ring in the brand's own ground colour and
+    (on the speed rail) a steel pour spout in its neck."""
+    glass = LIQUOR_GLASS[brand["glass"]]
+    body = hgt * 0.64
+    neck_r = r * 0.34
+    ph = math.pi / 6.0
+    # FOUR PRIMITIVES, not five: the shoulder runs straight into the neck
+    # in one frustum. The separate neck is 20 triangles a bottle and a bar
+    # top carries eighty of them -- it reads at the back bar's arm's
+    # length and not across a counter.
+    out = [P.cyl("Stock_Liquor", glass, (0.0, 0.0), r, 0.0, body, segments=6,
+                 phase=ph),
+           P.cyl("Stock_Liquor", glass, (0.0, 0.0), r, body - _JOIN, hgt,
+                 segments=6, phase=ph, r_top=neck_r),
+           P.cyl("Stock_Label", "lbl_" + brand["id"], (0.0, 0.0),
+                 r + LABEL_PROUD, body * 0.28, body * 0.68, segments=6, phase=ph)]
+    if spout:
+        out.append(P.rod("Stock_Spout", "spout", (0.0, 0.0, hgt - 0.006),
+                         (0.0, -0.035, hgt + 0.045), neck_r * 0.55,
+                         neck_r * 0.30, segments=5))
+    else:
+        out.append(P.cyl("Stock_Liquor", "bottle_cap", (0.0, 0.0), neck_r * 1.15,
+                         hgt - 0.012, hgt + 0.004, segments=5, phase=ph))
+    return out
+
+
+def _magnum(rng):
+    return _liquor_bottle(rng, LB.BY_ID[LB.IDS[rng.randrange(len(LB.IDS))]],
+                          r=0.049, hgt=0.42)
+
+
+def _rocks_tower(rng, n=None):
+    """A tower of rocks glasses: one tapered body with a lip ring where each
+    glass sits in the one below (the back bar's own tower, same reason --
+    nested cylinders of one taper are coplanar with each other)."""
+    n = n or rng.randint(3, 5)
+    r, t = 0.039, 0.088
+    step = t * 0.66
+    out = [P.cyl("Stock_Tumbler", "tumbler", (0.0, 0.0), r, 0.0,
+                 step * (n - 1) + t, segments=6, r_top=r * 1.12)]
+    for k in range(1, n):
+        out.append(P.cyl("Stock_Tumbler", "tumbler", (0.0, 0.0), r * 1.10,
+                         step * k, step * k + 0.005, segments=6))
+    return out
+
+
+def _cocktail(rng):
+    """A cocktail glass with a drink in it."""
+    hgt = 0.155
+    r = hgt * 0.30
+    return [P.cyl("Stock_Cocktail", "tumbler", (0.0, 0.0), r * 0.62, 0.0,
+                  hgt * 0.42, segments=5, r_top=r * 0.10),
+            P.cyl("Stock_Cocktail", "tumbler", (0.0, 0.0), r * 0.12,
+                  hgt * 0.42 - _JOIN, hgt, segments=6, r_top=r),
+            # 5 mm of drink, not 2: at 2 mm its own two caps are 2.0 mm
+            # apart, which is inside the coincidence probe's window
+            P.cyl("Stock_Drink", "drink", (0.0, 0.0), r * 0.72, hgt * 0.80,
+                  hgt * 0.80 + 0.005, segments=6)]
+
+
+#: lane -> (builder, pitch, half depth). The half depth is the widest the
+#: lane's items get, and it is what decides whether a top is deep enough.
+_LANE = {
+    "rail": (lambda rng, brand: _liquor_bottle(rng, brand, r=0.030, hgt=0.265,
+                                               spout=True), SPOUT_PITCH, 0.042),
+    "liquor": (lambda rng, brand: _liquor_bottle(rng, brand), LIQUOR_PITCH, 0.040),
+    "glass": (None, GLASS_PITCH, 0.055),
+}
+
+
+def _blocked(poly, placed, keep_out):
+    if any(not P.poly_separated(poly, q, MIN_GAP) for q in placed):
+        return True
+    return any(not P.poly_separated(poly, P.rect_poly(kx, ky, 2 * kr, 2 * kr, 0.0), 0.0)
+               for kx, ky, kr in keep_out)
+
+
+def plan_bar_dense(rng, x0, x1, y0, y1, z0, host_rgb=None, clear=0.6,
+                   keep_out=()):
+    """The club bar's top: LANES along the run, not clusters.
+
+    The service side is +Y (a counter's top overhangs the customer side,
+    `recipes/counter.py`), so the speed rail takes the +Y lane. Returns the
+    same shape `plan_surface` does.
+
+    A REAL SPEED RAIL HANGS UNDER THE COUNTER'S SERVICE LIP. This planner
+    owns the TOP and nothing else, so the rail stands on the service edge
+    of it instead -- the bottles, the spouts and the reach are the photo's;
+    the shelf they sit on is not. Say so rather than calling it a rail.
+    """
+    out = {"prims": [], "materials": {}, "items": []}
+    rx0, rx1, ry0, ry1 = x0 + EDGE, x1 - EDGE, y0 + EDGE, y1 - EDGE
+    if rx1 - rx0 < 0.12 or ry1 - ry0 < 0.12 or clear - HEADROOM < 0.03:
+        return out
+    order = [LB.BY_ID[b] for b in LB.order("%08x" % (rng.getrandbits(32)))]
+    placed = []
+    cursor = ry1
+    pick = 0
+    # the pitch multiplier that holds `DENSE_MAX_ITEMS` over the lanes this
+    # top is deep enough for (see the constant)
+    run = rx1 - rx0
+    fit, y = [], ry1
+    for lane in LANES:
+        half = _LANE[lane][2]
+        if y - 2 * half >= ry0:
+            fit.append(lane)
+            y -= 2 * half + LANE_GAP
+    dense = sum(run / _LANE[ln][1] for ln in fit) if fit else 0.0
+    k = max(1.0, dense / DENSE_MAX_ITEMS) if DENSE_MAX_ITEMS else 1.0
+    for lane in LANES:
+        builder, pitch, half = _LANE[lane]
+        pitch *= k
+        if cursor - 2 * half < ry0:
+            continue
+        ly = cursor - half
+        cursor -= 2 * half + LANE_GAP
+        n = int((rx1 - rx0 - 2 * half) / pitch) + 1
+        if n < 1:
+            continue
+        start = (rx0 + rx1) / 2.0 - (n - 1) * pitch / 2.0
+        for i in range(n):
+            lx = start + i * pitch
+            ly_i = ly + rng.uniform(-0.006, 0.006)
+            if lane == "glass":
+                prims = (_rocks_tower(rng) if (i + pick) % 2 == 0
+                         else _cocktail(rng))
+            else:
+                brand = order[pick % len(order)]
+                prims = builder(rng, brand)
+            pick += 1
+            cx, cy, sx, sy, top = _local_rect(prims)
+            if top > clear - HEADROOM:
+                continue
+            yaw = rng.uniform(-0.25, 0.25) if lane != "rail" else 0.0
+            pcx = lx + math.cos(yaw) * cx - math.sin(yaw) * cy
+            pcy = ly_i + math.sin(yaw) * cx + math.cos(yaw) * cy
+            poly = P.rect_poly(pcx, pcy, sx + 2 * DETAIL, sy + 2 * DETAIL, yaw)
+            if not P.poly_inside_rect(poly, rx0, rx1, ry0, ry1):
+                continue
+            if _blocked(poly, placed, keep_out):
+                continue
+            placed.append(poly)
+            out["items"].append({"group": lane, "poly": poly,
+                                 "top": z0 - SINK + top})
+            for p in prims:
+                q = P.translate(P.rotate_z(p, yaw), (lx, ly_i, z0 - SINK))
+                idx, rgb = resolve_finish(q["mat"], host_rgb)
+                key = f"{q['mat']}_{idx}"
+                out["materials"][key] = (rgb, FINISHES[q["mat"]][1])
+                out["prims"].append(P.recolour(q, mat=key))
+    # THE MAGNUM IN FRONT, where the photo has it: one bottle standing
+    # forward of the rows, on the customer half, where there is room.
+    tall = _magnum(rng)
+    _cx, _cy, sx, sy, top = _local_rect(tall)
+    if out["items"] and top <= clear - HEADROOM:
+        for _try in range(12):
+            mx = rng.uniform(rx0 + sx, rx1 - sx)
+            my = rng.uniform(ry0 + sy / 2.0, min(cursor, ry1) - sy / 2.0) \
+                if cursor - sy / 2.0 > ry0 + sy / 2.0 else None
+            if my is None:
+                break
+            poly = P.rect_poly(mx, my, sx + 2 * DETAIL, sy + 2 * DETAIL, 0.0)
+            if not P.poly_inside_rect(poly, rx0, rx1, ry0, ry1):
+                continue
+            if _blocked(poly, placed, keep_out):
+                continue
+            placed.append(poly)
+            out["items"].append({"group": "magnum", "poly": poly,
+                                 "top": z0 - SINK + top})
+            for p in tall:
+                q = P.translate(p, (mx, my, z0 - SINK))
+                idx, rgb = resolve_finish(q["mat"], host_rgb)
+                key = f"{q['mat']}_{idx}"
+                out["materials"][key] = (rgb, FINISHES[q["mat"]][1])
+                out["prims"].append(P.recolour(q, mat=key))
+            break
+    return out
+
+
 # --- groups: an anchor and the items about it ---------------------------------
 #
 # A group is ``[(builder, dx, dy, yaw), ...]`` in the cluster's frame, the
@@ -597,6 +842,9 @@ def plan_surface(rng, flavour, x0, x1, y0, y1, z0, host_rgb=None, facing=None,
     items being ``{"group", "poly", "top"}`` per placed item.
     """
     out = {"prims": [], "materials": {}, "items": []}
+    if flavour == "bar_dense":
+        return plan_bar_dense(rng, x0, x1, y0, y1, z0, host_rgb=host_rgb,
+                              clear=clear, keep_out=keep_out)
     if flavour not in GROUPS:
         return out
     rx0, rx1, ry0, ry1 = x0 + EDGE, x1 - EDGE, y0 + EDGE, y1 - EDGE

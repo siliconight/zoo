@@ -44,7 +44,8 @@
       "bar",
       "kitchen",
       "vault",
-      "storage"
+      "storage",
+      "bar_dense"
     ]
   },
   "materials": {

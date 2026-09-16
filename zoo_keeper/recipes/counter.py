@@ -8,14 +8,35 @@ STOCK (0.84.0). The ``stock`` param -- ``none`` by default, which builds
 exactly the counter this recipe always built -- sets `_surface_stock`
 clusters on each bay of the top, keeping REGISTER_CLEAR round every
 ``ATT_register`` so a register placed there later has room.
+
+FORM ``bar`` (0.92.0): THE BARTENDER'S SIDE. The walker's second club
+photo is a working bar -- "a brass FOOT RAIL on posts along the customer
+front; along the top edge a ROW OF BEER TAP handles and two register
+terminals on the service side". Those three are PARTS here and not stock,
+and the difference is what each one is: stock is what is left out on a top
+and is jittered off square by `_surface_stock`'s own rule, while a foot
+rail is a continuous straight tube bolted to the front, a tap tower is
+plumbed to the bar at a fixed pitch, and a register stands at the station
+this recipe has reserved clearance round since 0.84.0. A jittered foot
+rail is not a foot rail.
+
+The rail lives INSIDE the slot, under the top's overhang, where a real one
+is; the taps and the register stand ON the top and are returned as
+``dressing_objects``, so the module's fit bounds stay the counter's (the
+same rule that lets a monitor stand on a desk without failing fit_height).
+Nothing changes for any other form: ``auto`` and ``straight`` build what
+this recipe always built.
 """
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials, prim_mesh
+from ..core import back_bar_forms as BB
 from ._bays import bay_max_of, bays
 
 #: kept clear of stock round each register station, metres
 REGISTER_CLEAR = 0.22
+
+FORMS = ("straight", "bar")
 
 
 def _darker(c, f=0.6):
@@ -114,5 +135,29 @@ def build(plan, streams, collection):
         regions.append((x0, x1, -d / 2, d / 2, h, None, 0.6, keep))
     stock = prim_mesh.build_stock(plan, streams, collection, regions,
                                   _darker(plan["color"], 0.85))
-    return {"objects": objs + stock, "dressing_objects": stock,
+
+    # --- FORM `bar`: the foot rail, the taps and the register -------------
+    form = (plan["params"].get("form") or "auto")
+    form = "straight" if form in ("auto", "", None) else str(form)
+    fit_objs, top_objs = [], []
+    if form == "bar":
+        inside, on_top = BB.counter_fitout(w, d, h, attachments, top_w)
+        mats = {
+            "brass": ("M_Counter_brass", [0.58, 0.44, 0.16], "metal_bare"),
+            "steel": ("M_Counter_steel", [0.60, 0.61, 0.63], "metal_bare"),
+            "tap_handle": ("M_Counter_taphandle", [0.06, 0.07, 0.08], "plastic"),
+            "beige": ("M_Counter_register", [0.60, 0.57, 0.48], "plastic"),
+            "key_dark": ("M_Counter_registerkeys", [0.16, 0.16, 0.17], "plastic"),
+        }
+        fit_objs = prim_mesh.build(inside, collection, plan,
+                                   streams.stream("bar_fitout"), mats, texel=1.0)
+        top_objs = prim_mesh.build(on_top, collection, plan,
+                                   streams.stream("bar_fitout"), mats, texel=1.0)
+        print(f"[counter] form=bar rail_posts={sum(1 for p in inside) - 1} "
+              f"taps={sum(1 for p in on_top if p['part'] == 'Counter_TapTower') // 2} "
+              f"registers={sum(1 for p in on_top if p['part'] == 'Counter_Register') // 2}")
+
+    dressing = stock + top_objs
+    return {"objects": objs + fit_objs + stock + top_objs,
+            "dressing_objects": dressing,
             "collision_boxes": cboxes, "attachments": attachments}

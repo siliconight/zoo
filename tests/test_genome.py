@@ -26,7 +26,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "neon_sign",
                 # the club's games and its vice (0.91.0): the chalk-score
                 # dartboard cabinet and the pull-knob cigarette machine
-                "dartboard", "cigarette_machine"}
+                "dartboard", "cigarette_machine",
+                # the club's bar (0.92.0): the lit wall unit behind it
+                "back_bar"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

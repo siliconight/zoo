@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line. STOCK (0.84.0): the bare counter is 176 tris at 2.2 x 0.8 x 1.05; with `stock` it measured 272-780 there and 508-1364 at 8.0 x 0.9 x 1.05 (bar the most: bottles are 64 tris each). BUDGET 500 -> 1600 for that, and the bare counter is unchanged."
+    "notes": "Original procedural construction. Service counter: solid body, proud overhanging top toward the customer side (-Y), recessed kick base. The generic sibling of the bank teller_line. STOCK (0.84.0): the bare counter is 176 tris at 2.2 x 0.8 x 1.05; with `stock` it measured 272-780 there and 508-1364 at 8.0 x 0.9 x 1.05 (bar the most: bottles are 64 tris each). BUDGET 500 -> 1600 for that, and the bare counter is unchanged. FORM `bar` and STOCK `bar_dense` (0.92.0), the club's bar: a brass foot rail on posts under the top's customer overhang (inside the slot), beer tap towers and a 1997 register on the service side (returned as dressing, so they stand ON the top without moving the module's fit bounds), and a top of liquor rows, glass towers, cocktails and a speed rail of spouted bottles. Measured: 5,132 triangles of stock on a 4.0 m bay and 6,124 on 8.0 m, the pitch capped by DENSE_MAX_ITEMS; BUDGET 1600 -> 7000 for that, and every other form and flavour is unchanged."
   },
   "dimensions": {
     "width": {
@@ -25,7 +25,14 @@
   "parts": [
     "Counter_Body",
     "Counter_Top",
-    "Counter_Base"
+    "Counter_Base",
+    "Counter_Shelf",
+    "Counter_FootRail",
+    "Counter_TapTower",
+    "Counter_TapSpout",
+    "Counter_TapHandle",
+    "Counter_Register",
+    "Counter_RegisterKeys"
   ],
   "params": {
     "overhang": {
@@ -45,7 +52,13 @@
       "bar",
       "kitchen",
       "vault",
-      "storage"
+      "storage",
+      "bar_dense"
+    ],
+    "form": [
+      "auto",
+      "straight",
+      "bar"
     ]
   },
   "materials": {
@@ -113,7 +126,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 1600
+    "tris_lod0": 7000
   },
   "attachments": [
     {

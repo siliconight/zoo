@@ -1,0 +1,163 @@
+{
+ "species": "back_bar",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 0.92.0. The lit wall unit behind a bar: a lower cabinet run at counter height on a recessed plinth, tiered GLASS shelves above it crowded with bottles in rows and stemware on the top tier, a brass edge rail on every shelf, pilasters dividing an ODD number of bays, a cornice, and in the CENTRE bay either a mirror (form straight) or a round lit porthole niche (form niche). Warm BULBS behind the shelves, one to a bay to a tier -- 1997, not an LED strip -- emissive as M_BackBar_bulb_Face and M_BackBar_niche_Face, the suffix Lux's power cut takes. Planned in core/back_bar_forms.py; the labels are painted in core/back_bar_art.py, one atlas a unit, and every liquor brand is INVENTED (core/liquor_brands.py, with a denylist a test holds every painted string against) -- no real mark and no Pennsylvania distiller. Lettering is Pixel Operator, CC0, via Pixelcoat. Measured over 88 builds: 1,834-8,112 triangles, zero coincident face pairs, exact slot extents. The back is the slot's +Y face; collision is the whole unit's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.6,
+   "max": 6.0,
+   "default": 3.0
+  },
+  "depth": {
+   "min": 0.35,
+   "max": 0.75,
+   "default": 0.5
+  },
+  "height": {
+   "min": 1.8,
+   "max": 3.0,
+   "default": 2.4
+  }
+ },
+ "parts": [
+  "BackBar_Plinth",
+  "BackBar_Cabinet",
+  "BackBar_Door",
+  "BackBar_Handle",
+  "BackBar_Counter",
+  "BackBar_Back",
+  "BackBar_Pilaster",
+  "BackBar_Cornice",
+  "BackBar_Shelf",
+  "BackBar_ShelfRail",
+  "BackBar_Bulb",
+  "BackBar_Mirror",
+  "BackBar_Niche",
+  "BackBar_NicheLamp",
+  "BackBar_Bottle",
+  "BackBar_Cap",
+  "BackBar_Label",
+  "BackBar_Stem",
+  "BackBar_Glass"
+ ],
+ "params": {
+  "form": [
+   "auto",
+   "straight",
+   "niche"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "wood_stained",
+  "options": [
+   "wood_stained",
+   "wood",
+   "laminate"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "wood_stained",
+   "color": [
+    0.28,
+    0.17,
+    0.11
+   ],
+   "wear": 0.25,
+   "bevel": 0.003
+  },
+  "delco": {
+   "material": "wood_stained",
+   "color": [
+    0.26,
+    0.15,
+    0.1
+   ],
+   "wear": 0.45,
+   "bevel": 0.003,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "wood_stained",
+   "color": [
+    0.28,
+    0.17,
+    0.11
+   ],
+   "wear": 0.35,
+   "bevel": 0.003
+  },
+  "center_city": {
+   "material": "wood_stained",
+   "color": [
+    0.22,
+    0.15,
+    0.13
+   ],
+   "wear": 0.2,
+   "bevel": 0.003,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "laminate",
+   "color": [
+    0.3,
+    0.26,
+    0.22
+   ],
+   "wear": 0.5,
+   "bevel": 0.003,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "wood_stained",
+   "color": [
+    0.27,
+    0.16,
+    0.1
+   ],
+   "wear": 0.4,
+   "bevel": 0.003,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 8500
+ },
+ "attachments": [
+  {
+   "name": "ATT_niche",
+   "pos": [
+    0.0,
+    0.2,
+    1.7
+   ]
+  },
+  {
+   "name": "ATT_shelf",
+   "pos": [
+    0.0,
+    0.0,
+    1.4
+   ]
+  }
+ ],
+ "collision": true,
+ "keywords": [
+  "back bar",
+  "backbar",
+  "bar back",
+  "bottle shelves",
+  "liquor shelves",
+  "bar display"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "wall"
+  }
+ }
+}
