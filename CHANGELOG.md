@@ -1,3 +1,266 @@
+## [0.97.0] - the stop sign's back faces, and a census of every other one
+
+A coincident face pair is two faces of one prop on one plane, overlapping,
+with nothing between them: the depth test decides per pixel and the pixel
+flickers. Zoo has said since 0.84.0 that an interior species ships none of
+them and `tools/coplanar_probe.py` measures it. `stop_sign` predates that
+rule and nothing gated it, so it shipped THREE pairs at 0.00 mm at every
+genome corner -- on the one prop that stands at every stop-controlled
+approach in every level.
+
+    OPP  gap 0.00 mm  2394.15 cm2  StopSign_Border <-> StopSign_Face
+    OPP  gap 0.00 mm  1436.49 cm2  StopSign_Border <-> StopSign_Face
+    OPP  gap 0.00 mm   177.12 cm2  StopSign_Border <-> StopSign_Post
+
+### Three rows, two defects, and one of them is the instrument
+
+Before patching a gate's output, account for every item in it. The first two
+rows are ONE defect: the red face's back cap lying on the white border's
+front cap, over the whole inner octagon, 3830.64 cm2 of it. The probe splits
+it in two because its aggregation key carries `normal_of_a` -- the outward
+normal of whichever of the pair's two triangles sorted first.
+
+This was reasoned about once and then printed, because a float question that
+survives one round of reasoning should be printed rather than reasoned about
+again. The first answer was "the two offsets are the same float to the last
+bit, so the sort ties". They are not. After `geometry.fit_to` the border's
+front cap sits at -0.03228921778311645 and the red face's back cap at
+-0.03228922012972646 -- two nanometres apart, and the twelve triangles of the
+two fans interleave down the sorted list, so `normal_of_a` comes out +Y for
+five eighths of the overlap and -Y for three. A tie would have produced ONE
+row; what produced two is that there is no tie.
+
+`core/prims.coincident_pairs`, the
+pure port, keys the same pair WITHOUT the normal and reports it as one row.
+Neither is wrong and they do not disagree about the geometry, but a count
+compared across the two instruments is not comparable, and this entry's
+numbers are the bpy probe's throughout.
+
+The third row is a second defect of the same shape: the border's back cap on
+the post's front face. `FACE_PROUD` separated the red face's FRONT, which is
+the relief you can see, and nothing separated any back cap -- the recipe's
+own docstring claimed "no legend face shares a plane with any face of the
+sign", which was true of the legend and of nothing else.
+
+### AND THEY WERE NOT VISIBLE. The frames are the same picture
+
+The brief this came from said every stop-controlled approach in every level
+stands one of these, which is true, and that they z-fight, which the frames
+do not support. Rendered at 3 m, 8 m and 20 m from a 1.7 m eye, before and
+after, the sign is identical: no speckle, no white through the red.
+
+Coplanar is not visible. A pair on one plane can only be argued over by a
+depth buffer where a viewer can reach it, and all three of these sit INSIDE
+the sign: the red plate's own front cap stands 4 mm in front of the first
+two, and the border's 15 mm body in front of the third. So
+`tools/coplanar_census.py` (new) adds what the probe does not measure --
+after probing a build it casts a ray out of each pair along its normal, both
+ways, and reports `cover`, the distance to the first surface it meets.
+
+    cover 0.00 mm            the pair is on the outside of the prop. The
+                             depth test decides it at every distance.
+    cover > 0                buried. It fights only once the depth buffer
+                             stops resolving `cover`.
+
+On a 24-bit fixed-point depth buffer at Godot's `Camera3D` defaults (near
+0.05, far 4000, classic non-reversed z -- what the GL Compatibility target
+gets), the separation a buffer can still resolve at distance z is
+`z^2 * (f - n) / (f * n * (2^24 - 1))`, so a cover of `s` metres survives out
+to `sqrt(s * 838871)` metres. The stop sign's worst cover is 2.70 mm at the
+genome's smallest size: it would have started fighting at about 48 m, which
+is further than a stop sign is read from.
+
+**So this change is made because the rule is the rule and because it costs
+nothing, not because a frame showed it.** 372 triangles before and 372 after.
+Saying otherwise would be exactly the substitution this repo keeps catching:
+a cheap observable standing in for the expensive truth with nothing recording
+the substitution.
+
+### The fix is a ladder, and the rung is derived
+
+`core/sign_blade_forms.py` solved this geometry for `sign_post` in 0.96.0 and
+its rule is the one applied here: eleven parallel planes stack up behind a
+sign face, every one overlaps every other in projection, so the rule binds on
+all pairs at once and a solid is pushed THROUGH its neighbour rather than
+laid on it. `stop_sign` now has eight planes and its closest two are 3.5 mm
+apart:
+
+    -53.0 mm  legend front        -41.5 mm  face back
+    -49.0 mm  face front          -37.5 mm  legend back
+    -45.0 mm  border front        -30.0 mm  post front
+                                  -26.5 mm  border back
+                                  +30.0 mm  post back
+
+`SEP` is derived rather than picked, and its derivation is a test rather than
+a comment. `geometry.fit_to` scales the recipe's authored 83 mm of depth into
+the slot's, which at the genome's smallest depth (0.056) is a factor of
+0.675, so an authored rung reaches the probe multiplied by that. The probe
+reports anything within 2 mm and floats land ON that number
+(`0.0020000000000000018 > 0.002`, 0.91.0), which is why the pure tests have
+asked 2.2 mm since `test_card_shop.py`. `0.0022 / 0.675 = 3.26 mm`, so 3.5 mm
+is the next half-millimetre up and leaves 2.36 mm in the smallest built sign.
+Narrow it to 3.0 and the min corner has 2.02 mm, inside the cushion; a test
+asserts both halves of that.
+
+**From the front nothing moved; from behind the blade is 3.4 mm thicker, and
+that is a real change rather than a rounding.** The red face still stands
+4 mm proud of the border and the legend 4 mm proud of the red face, and the
+front-view frames are the same picture to 42 pixels in 614,400. But the
+border's back cap is the blade's back, it is visible from behind everywhere
+except over the pole's own 6 cm, and the only way to get it off the post's
+front plane while the blade still TOUCHES the post is to push it through:
+14.5 mm of white rim at the default size becomes 17.8 mm. Measured at 1.6 m
+from a rear three-quarter, 3920 pixels of 614,400 differ by more than 8
+codes.
+
+The two alternatives were priced and are worse. Pulling the blade forward
+instead leaves 3.5 mm of daylight between sign and pole -- the defect cold
+run 9048 reported in mirror image. Thickening the POST to 63.5 mm so its
+front face clears the blade's back is arguably more correct (a 3 lb/ft
+u-channel really is 2.5 in, which is what `sign_blade_forms.POST_W` uses) and
+it changes the collider and makes the pole's section rectangular, which is a
+bigger change than a white rim nobody is measuring. What the expensive
+version would buy is the rim held at exactly 14.5 mm, and it costs a
+re-derivation of `LEGEND_BURY` and `BLADE_T` together because the legend's
+back cap is pinned to half the blade -- worth doing the day somebody objects
+to the rim, and not before.
+
+A prism's triangle count does not depend on its thickness, which is why none
+of this costs a triangle.
+`ATT_face` is now written as `red_front` rather than as an offset from the
+plate's centre, which is the same coordinate it always was and stops being so
+the moment the plate's thickness is not `FACE_PROUD`.
+
+### mailbox was the same cause, and its census row went 15 -> 6
+
+The census found the identical shape on `mailbox`: the collection box's lip
+had its back cap exactly on the body's front face (0.00 mm over 117-238 cm2)
+and the door's back cap 0.5 mm behind it, 0.46 mm once the depth was
+squeezed. Both are now pushed through the face -- `BACK_BURY` 2.5 mm for the
+door, twice that for the lip so the two back caps do not land on each other
+either. Its squeeze is NOT the stop sign's (0.9245, because it is the lip
+that stands proud of the slot), so it derives its own rung and a shared
+constant would have been wrong in both places. 264 triangles before and 264
+after.
+
+`mailbox` is gated at its remaining TWO pairs and not at zero, named by part:
+the lid's foot on the body's top face and the legs' tops on its underside,
+164 mm and 220 mm inside a closed solid. Those are BUTT JOINTS, a different
+cause, and this release does not touch that cause anywhere -- fixing it on
+one species and nowhere else would be the fix that does not generalise.
+
+### The census: every species, every corner
+
+`tools/coplanar_census.py`, Blender 5.1.1, 2026-09-16. Every species with a
+genome, at its min, default and max corner, planned through `kit.plan_kit`
+and built through `build.build_module` -- the path a `zoo_kit_build` takes --
+then probed at the probe's own defaults (2 mm, 1 mm^2, normal 1e-3). A
+species whose NAME is a role (`wall`, `floor`, `doorway` ...) is planned
+under that role, because a `prop` slot asking for `wall` gets a slab.
+
+    300 builds
+      3 did not build      boots, KeyError 'shaft_h' at all three corners.
+                           A different defect; not this release's, and
+                           recorded rather than skipped.
+     38 built clean
+     61 reported pairs     3027 of them
+
+Split by whether a viewer can reach the pair. The head of each half, with the
+full table in `tests/test_coincident_faces.py`:
+
+**Exposed (cover 0.00 mm) -- 24 species, 973 pairs.** These fight at every
+distance and are the ones worth a triangle. `stop_sign` is not among them.
+
+    species              pairs  SAME   OPP  exposed   largest cm2
+    safe_deposit_boxes     884   822    62      411        1169.8
+    cubicle_bank           583   290   293      127        8315.9
+    stair_rail             162   162     0      100         148.4
+    glass_shard            118    64    54      118         258.0
+    teller_line            114    31    83       25        3882.2
+    flat_top_grill          92    69    23       60       15163.2
+    bus_shelter             87    66    21       30         469.4
+    street_tree             39    22    17        6      437884.4
+    pin_oak                 31    21    10        7      391635.0
+    cheesesteak             29     4    25       20           0.2
+    red_maple               28    17    11        9      235404.6
+    callery_pear            26    11    15        5      116580.0
+    london_plane            21    10    11        4      350560.2
+    honey_locust            19    10     9        7      113356.1
+    cash_stack              16    16     0       16          28.9
+    hvac_unit               13     7     6        7       96445.4
+    vault_door              12     4     8        1          43.5
+    parking_meter            9     3     6        3         781.2
+    club_fixture             7     3     4        3        1323.6
+    water_barrel             6     6     0        6        4652.1
+    rubble_frag              3     2     1        3          53.4
+    payphone                 2     2     0        2           2.4
+    weed_tuft                2     2     0        2           2.4
+    security_camera          2     1     1        1          55.9
+
+**Buried -- 37 species, the rest.** Ordered by the thinnest cover, which is
+what decides the distance at which each starts to fight:
+
+    species           pairs   min cover   fights beyond
+    soda_cup              7      0.21 mm          13.3 m
+    litter_scrap          1      0.34 mm          16.9 m
+    mailbox              15      0.95 mm          28.3 m   (now 6, see above)
+    stop_sign             9      2.70 mm          47.6 m   (now 0)
+    ladder              110      5.00 mm          64.8 m
+    newspaper_box         7     10.77 mm          95.1 m
+    desk                182     15.75 mm         114.9 m
+    filing_cabinet       83     18.00 mm         122.9 m
+    ...
+    bench                18     40.00 mm         183.2 m
+    floor/ceiling/roof   40      8.00 m          2590.6 m
+
+The shapes the part names show, which is a reading of the table and not a
+measurement of the recipes: many instances of one flat piece landing on one
+plane (`glass_shard`, `rubble_frag`, `weed_tuft`, `litter_scrap`, the
+cheesesteak's seeds); one shape built as a pile of separate boxes with their
+internal walls facing each other at nil separation, which is exactly what
+`sign_blade_forms`' second note warns about (`cubicle_bank`'s caps,
+`safe_deposit_boxes`, `stair_rail`, `teller_line`, `bus_shelter`,
+`flat_top_grill`'s splash guards); tree crowns whose lobes intersect
+(`street_tree` and the four named species, the largest overlaps in the
+library at 11-44 m2); a thin band or rim laid on a body (`cash_stack`,
+`soda_cup`); and butt joints between closed solids, which is nearly all of
+the buried half.
+
+**None of that is fixed here and none of it is a verdict.** It is a named,
+measured residue with a test that holds each species to the count it shipped
+at, so a species that gets fixed -- or that gets worse -- turns the suite red
+and says by how much.
+
+### What this does and does not move
+
+Nothing in the interventions-per-level number. No level needed a hand-patch
+for a stop sign and none will. What it closes is one species' distance from a
+rule the library already states, and what it ADDS is the first instrument in
+this repo that distinguishes a coincidence a player can see from one buried
+in a solid -- 3027 rows that read as one problem are two problems in a 973 /
+2054 split, and before the census there was no way to say which was which.
+
+A strict xfail was tried on the residue first and was the wrong instrument:
+asked at the default corner it went XPASS on six species that are dirty at
+one corner only (`ceiling`, `floor`, `roof`, `payphone`, `security_camera`,
+`vault_door`). The count replaced it. One strict xfail is kept, on the claim
+that the whole library keeps the rule, so that the claim is red on the board
+rather than true in a paragraph.
+
+THE SUITE, both ways. Without Blender: 2209 passed, 269 skipped, 1 xfailed
+(0.96.0: 2196 / 202). Inside Blender 5.1.1, where the bpy half runs:
+2443 passed, 35 skipped, 1 xfailed. The gate was run against 0.96.0 with
+THIS release's probe and census copied in, so that the only difference
+between the two sides is the recipe -- six failures, three stop signs and
+three mailboxes, each naming the pairs it found.
+
+`tools/coplanar_probe.py` gained one optional argument, `samples`, default 0,
+which records points inside each row's overlap for the census to cast rays
+from. With it off the rows are what they always were, which is why the census
+and the probe cannot drift apart: there is still one pairing implementation
+and the tests exec it rather than re-implementing it.
+
+
 ## [0.96.0] - a post with something on it
 
 The walker, cold run 9060, on a screenshot of the sidewalk beside

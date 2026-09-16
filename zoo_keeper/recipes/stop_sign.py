@@ -16,8 +16,12 @@ a red octagon with a white rim and no word on it ("the stop sign has no
 legend", the walker). The white STOP is four faceted glyphs from
 `_legend` -- a third of the sign's width tall, centred, each a closed solid
 whose front stands LEGEND_PROUD in front of the red face and whose back is
-buried LEGEND_BURY behind it, in the border, so no legend face shares a
-plane with any face of the sign.
+buried LEGEND_BURY behind it, in the border.
+
+NO TWO OF THIS SIGN'S FACES SHARE A PLANE. That was said of the legend from
+0.78.0 and was never true of the sign: the red face's back cap lay on the
+border's front cap and the border's back cap lay on the post's front face,
+both at 0.00 mm over the whole octagon. See the y ladder below.
 
 Collision is the POST only: a body walks into a pole, never into a blade
 2 m over its head. Centre pivot; extents exactly (w, d, h).
@@ -30,20 +34,68 @@ from ..bpylayer import geometry, materials
 from . import _legend
 
 POST = 0.06
-BLADE_T = 0.015
-#: How far the red face stands proud of the white border. Enough that the two
-#: never share a plane at any distance the depth buffer resolves.
-FACE_PROUD = 0.004
+BLADE_T = 0.015       # the blade's nominal thickness, edge-on
 BORDER = 0.035        # white margin around the red face
-#: How far the legend's front stands in front of the red face: the same
-#: depth-buffer argument as FACE_PROUD, so the same number.
+#: How far the red face stands proud of the white border's front. The relief
+#: that makes the octagon read as a raised sign rather than a painted disc.
+FACE_PROUD = 0.004
+#: How far the legend's front stands in front of the red face's front.
 LEGEND_PROUD = FACE_PROUD
+
+# --- the y ladder ------------------------------------------------------------
+#
+# EVERY PLANE IN THIS SIGN IS A RUNG AND NONE OF THEM MAY SHARE ONE. Up to
+# 0.96.0 two pairs did, both at 0.00 mm over the whole octagon: the red face's
+# BACK cap lay exactly on the border's FRONT cap, and the border's BACK cap
+# exactly on the post's FRONT face. FACE_PROUD separated the face's front and
+# nothing separated its back -- the recipe's own docstring claimed "no legend
+# face shares a plane with any face of the sign", which was true of the legend
+# and of nothing else. `core/sign_blade_forms.py` (0.96.0) spells the rule out
+# for the same geometry: eleven parallel planes stack up behind a sign face,
+# every one overlaps every other in projection, so the rule binds on all pairs
+# at once and a solid is pushed THROUGH its neighbour rather than laid on it.
+#
+#: The window `tools/coplanar_probe.py` reports on, its own `--tol` default.
+PROBE_TOL = 0.002
+#: Floats land ON that number in a built scene -- 0.91.0 measured
+#: `0.0020000000000000018 > 0.002` after the pure probe passed a pair
+#: Blender's failed, and `tests/test_card_shop.py` has asked pure tests for
+#: 2.2 mm ever since. The same tenth here.
+PROBE_CUSHION = 1.1
+#: What this recipe authors, front to back: the legend's front to the post's
+#: back. `geometry.fit_to` scales exactly this into the slot's depth.
+DEPTH_AUTHORED = POST + BLADE_T + FACE_PROUD + LEGEND_PROUD
+#: The genome's smallest depth (`genome/species/stop_sign.json`, pinned by
+#: tests/test_stop_legend.py). The smallest slot is the worst squeeze, and the
+#: squeeze is what decides whether an authored gap survives into the GLB.
+DEPTH_MIN = 0.056
+#: THE FLOOR EVERY RUNG HAS TO CLEAR, computed rather than remembered: an
+#: authored gap reaches the probe multiplied by DEPTH_MIN / DEPTH_AUTHORED
+#: (0.675), so it has to be at least this much before the squeeze. Move any
+#: of the four numbers above and this moves with them -- 3.26 mm today.
+SEP_FLOOR = PROBE_TOL * PROBE_CUSHION * DEPTH_AUTHORED / DEPTH_MIN
+#: THE SEPARATION: the next half-millimetre above that floor, which leaves
+#: 2.36 mm in the smallest built sign. It is not a taste, and a test holds it
+#: to the floor from both sides -- narrow it and the min corner fails.
+SEP = 0.0035
+#: The red plate is built thick enough to stand FACE_PROUD in front of the
+#: border's front plane AND end SEP behind it, so neither of its caps shares
+#: a plane with the border. Thickening a prism costs no triangles.
+FACE_T = FACE_PROUD + SEP
+#: The border likewise runs SEP past the post's front face, into the channel,
+#: instead of stopping on it. THIS IS VISIBLE FROM BEHIND: the blade's back
+#: cap is the blade's back everywhere except over the pole's own 6 cm, so the
+#: white rim goes from 14.5 mm to 17.8 mm at the default size. Pulling the
+#: blade forward instead would leave daylight between sign and pole, which is
+#: cold run 9048's defect in mirror image; see the 0.97.0 entry for what the
+#: version that held the rim at 14.5 mm would have cost.
+BORDER_T = BLADE_T + SEP
 #: How far the legend's back sits behind the red face's front: through the red
 #: face and half-way into the border. FACE_PROUD / 2 was tried first and put
 #: the back cap 1.93 mm from both of the red face's planes at the default
-#: size and 1.35 mm at the genome's smallest, where `fit_to` squeezes the
-#: depth -- enclosed, but inside the 2 mm tools/coplanar_probe.py reports.
-#: Half the border's 15 mm keeps it 7.5 mm (5 mm squeezed) from every plane.
+#: size and 1.35 mm at the genome's smallest -- enclosed, but inside the
+#: window. At FACE_PROUD + BLADE_T / 2 its nearest neighbour is the red
+#: face's back cap, 4.0 mm in front of it (2.7 mm squeezed).
 LEGEND_BURY = FACE_PROUD + BLADE_T / 2.0
 
 
@@ -119,20 +171,24 @@ def build(plan, streams, collection):
     # THE BLADE HANGS ON THE POST'S FRONT (the face looks toward -Y). It
     # used to sit inside the post's 6 cm depth, which put the post's front
     # face 19 mm in front of the red face: the pole in front of the sign (the
-    # walker, cold run 9048). The border's back now touches the post's front
-    # face; the red face stands FACE_PROUD in front of the border.
-    border_c = -(POST / 2.0 + BLADE_T / 2.0)
+    # walker, cold run 9048). The border's front is one blade thickness in
+    # front of the post's front face and its back runs SEP past it, into the
+    # channel, so the two never share a plane.
+    border_front = -(POST / 2.0 + BLADE_T)
+    border_c = border_front + BORDER_T / 2.0
     bm = geometry.new_bm()
-    _octagon(bm, (0.0, border_c, blade_c), w, BLADE_T)
+    _octagon(bm, (0.0, border_c, blade_c), w, BORDER_T)
     border = part(bm, "StopSign_Border", [], part_bevel=0.0)
 
-    face_c = -(POST / 2.0 + BLADE_T + FACE_PROUD / 2.0)
+    # the red face stands FACE_PROUD in front of the border and ends SEP
+    # behind its front plane, so neither cap lands on it
+    red_front = border_front - FACE_PROUD
+    face_c = red_front + FACE_T / 2.0
     bm = geometry.new_bm()
-    _octagon(bm, (0.0, face_c, blade_c), w - 2.0 * BORDER, FACE_PROUD)
+    _octagon(bm, (0.0, face_c, blade_c), w - 2.0 * BORDER, FACE_T)
     part(bm, "StopSign_Face", faces, part_bevel=0.0)
 
     # the legend: STOP, a third of the width tall, centred on the blade
-    red_front = -(POST / 2.0 + BLADE_T + FACE_PROUD)
     glyphs, _size = _legend.legend("STOP", w * _legend.LEGEND_H_OF_WIDTH)
     bm = geometry.new_bm()
     for verts2d, gfaces in glyphs:
@@ -152,6 +208,9 @@ def build(plan, streams, collection):
     # the slot is exact; the detail is not (geometry.fit_to)
     cboxes = geometry.fit_to(objs, (w, d, h), cboxes)
 
+    # the attachment is the RED FACE'S FRONT PLANE, which is where a Pixelcoat
+    # sign face would land. It is `red_front` and not an offset from the
+    # plate's centre: the plate's thickness is now FACE_T, so `face_c` less
+    # half of FACE_PROUD stopped naming that plane.
     return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_face": (0.0, face_c - FACE_PROUD / 2.0,
-                                         blade_c)}}
+            "attachments": {"ATT_face": (0.0, red_front, blade_c)}}

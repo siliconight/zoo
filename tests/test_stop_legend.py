@@ -51,19 +51,30 @@ def test_the_recipe_constants_are_readable():
     """Guard the guard: every check below reads these."""
     c = _constants(_RECIPE)
     for name in ("POST", "BLADE_T", "FACE_PROUD", "BORDER", "LEGEND_PROUD",
-                 "LEGEND_BURY"):
+                 "LEGEND_BURY", "SEP", "FACE_T", "BORDER_T"):
         assert name in c, name
 
 
 def test_the_legend_stands_proud_and_its_back_is_clear_of_every_plane():
+    """REFUTED AND REWRITTEN IN 0.97.0. This test listed the planes as
+    (0, FACE_PROUD, FACE_PROUD + BLADE_T) -- the red face's front, the red
+    face's back AND the border's front at one offset, the border's back at
+    the other. Three planes named where there were four, because two of them
+    were the same number: exactly the coincidence the sign shipped, written
+    into the check that was supposed to find it. It passed all along. The
+    list is now every plane behind the red face's front, and there are four.
+    """
     c = _constants(_RECIPE)
     assert c["LEGEND_PROUD"] >= 0.002
-    # measured from the red face's front, going back: the red face's back,
-    # then the border's back. The cap must be inside the blade and at least
-    # 3 mm from each plane -- fit_to squeezes depth to 0.675 at the smallest
-    # sign, and the probe reports anything within 2 mm
-    planes = (0.0, c["FACE_PROUD"], c["FACE_PROUD"] + c["BLADE_T"])
+    # measured from the red face's front, going back
+    planes = (0.0,                                  # the red face's front
+              c["FACE_PROUD"],                      # the border's front
+              c["FACE_T"],                          # the red face's back
+              c["FACE_PROUD"] + c["BORDER_T"])      # the border's back
+    assert len(set(planes)) == len(planes), planes
     assert c["LEGEND_BURY"] < planes[-1]
+    # fit_to squeezes depth to 0.675 at the smallest sign and the probe
+    # reports anything within 2 mm, so 3 mm authored is the floor
     for p in planes:
         assert abs(c["LEGEND_BURY"] - p) >= 0.003, p
 

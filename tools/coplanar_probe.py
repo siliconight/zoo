@@ -148,7 +148,12 @@ def _canon(n, tol):
     return q, sign
 
 
-def probe(bpy, mathutils, objs, tol, min_area, normal_tol):
+def probe(bpy, mathutils, objs, tol, min_area, normal_tol, samples=0):
+    """Rows of coincident face pairs. ``samples`` > 0 additionally records up
+    to that many world-space points inside each row's overlap, on the plane
+    half-way between the two faces, under the row's ``samples`` key -- the
+    seed `tools/coplanar_census.py` needs to ask whether anything stands in
+    front of the pair. Zero (the default) changes nothing about the rows."""
     tris = _triangles(bpy, mathutils, objs)
     groups = {}
     for name, p, n in tris:
@@ -157,6 +162,7 @@ def probe(bpy, mathutils, objs, tol, min_area, normal_tol):
         d = cn.dot(p[0])
         groups.setdefault(key, []).append((d, sign, name, p, cn))
     agg = {}
+    pts = {}
     for key, items in groups.items():
         items.sort(key=lambda t: t[0])
         cn = items[0][4]
@@ -191,9 +197,17 @@ def probe(bpy, mathutils, objs, tol, min_area, normal_tol):
                 k = (pair[0], pair[1], facing, gap_mm,
                      tuple(round(c, 3) for c in (cn * si)))
                 agg[k] = agg.get(k, 0.0) + a
+                if samples and len(pts.setdefault(k, [])) < samples:
+                    dm = (di + dj) / 2.0
+                    cx = sum(c[0] for c in inter) / len(inter)
+                    cy = sum(c[1] for c in inter) / len(inter)
+                    pts[k].append(tuple(cn * dm + u * cx + v * cy))
     rows = [{"a": k[0], "b": k[1], "facing": k[2], "gap_mm": k[3],
              "normal_of_a": list(k[4]), "overlap_m2": round(v, 6)}
             for k, v in agg.items()]
+    if samples:
+        for r, k in zip(rows, agg.keys()):
+            r["samples"] = [[round(c, 6) for c in p] for p in pts.get(k, [])]
     rows.sort(key=lambda r: (r["facing"] != "SAME", -r["overlap_m2"]))
     return rows, len(tris)
 
