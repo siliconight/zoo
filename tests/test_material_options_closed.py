@@ -62,7 +62,14 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # Their drop chains are a `metal_bare` CONSTANT in each recipe,
            # the way the display case's aluminium frame is, and the banner
            # has no metal option at all for the same reason: its rod is one
-           "ceiling_hanger", "aisle_sign")
+           "ceiling_hanger", "aisle_sign",
+           # the till (1.0.0): a register's body is moulded plastic by
+           # default and enamelled sheet steel in the `industrial_flats`
+           # style. Its drawer lock is `metal_bare` as a CONSTANT in the
+           # recipe, the way the display case's aluminium frame is, so
+           # bare metal is not an option a slot can ask for and the
+           # species sits here rather than in BARE
+           "cash_register")
 BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
         # a poster's frame is mill-finish aluminium -- the reference's
         # SILVER frame -- so the mesh supplies the hue. `metal` would have

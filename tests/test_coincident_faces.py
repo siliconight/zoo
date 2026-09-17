@@ -331,7 +331,14 @@ DID_NOT_BUILD = {"boots"}
 #: with coincident pairs, 0 that did not build", so all four land in `clean`
 #: and neither `RESIDUE` nor the 3009 below moves. Counting them WITHOUT
 #: running the census would have been the defect this test exists to catch.
-CENSUS_BUILDS = 312
+#:
+#: 1.0.0: `cash_register`, three builds more. Run through the same tool --
+#: `blender -b --python tools/coplanar_census.py -- --species cash_register
+#: display_case` -- and reported "6 builds, 0 with coincident pairs, 0 that
+#: did not build", so it lands in `clean`, `display_case` is confirmed
+#: unmoved by its new `till` parameter, and neither `RESIDUE` nor the 3009
+#: below changes.
+CENSUS_BUILDS = 315
 
 
 def test_the_census_covers_every_species_there_is():

@@ -1,3 +1,243 @@
+## [1.0.0] - the card shop's register is a register now, and its display is lit
+
+The walker photographed `card_shop_a01`'s counter on cold run 9062 and what
+stands on it is "a brown box with a white post and a smaller box on top -- it
+reads as a mistake, not a register". ATTRIBUTED BEFORE ANYTHING MOVED, because
+the brief that arrived with the frame said the register comes from
+`_surface_stock` and it does not: `_surface_stock` has no register in any of
+its seven flavours, and neither does the `cards` flavour the card shop's play
+tables use. What draws it is `display_case_forms._register`, inside the
+showcase counter species itself, and it is exactly four boxes:
+
+    DisplayCase_Till       0.34 x 0.36 x 0.15   BODY   the slot's own material
+    DisplayCase_TillKeys   0.26 x 0.12 x 0.012  STOCK  (0.55, 0.52, 0.47) paper
+    DisplayCase_TillStem   0.035 sq x 0.18      METAL  mill aluminium
+    DisplayCase_TillHead   0.16 x 0.05 x 0.08   BODY   the slot's own material
+
+48 triangles, no artwork, nothing lit. In a wood-panelled shop BODY is the
+wood, so the box and the head are brown and the stem is a white post. The
+walker's sentence is a correct reading of what the tool built.
+
+A second thing was wrong the same way and is worth recording: there is another
+register inside `counter.py`'s `bar` form, three more boxes in
+`back_bar_forms.counter_fitout`. That one is the club's and is untouched here.
+
+### `cash_register`, and it stands on its own slot
+
+`core/register_forms.py` (the whole shape, pure), `recipes/cash_register.py`
+(the build), `genome/species/cash_register.json`,
+`tests/test_cash_register.py`. 0.40 x 0.42 x 0.46 m by default, 0.32-0.52 x
+0.34-0.52 x 0.38-0.56 over the genome. From the walker's photograph: a squat
+moulded body on a DEEPER cash drawer with a full-width pull bar and a round
+lock barrel, a raised CUSTOMER display on a short post, a reflective operator
+panel tipped toward the clerk, a receipt printer with a curl of paper in it,
+and a keypad in a raised well.
+
+The top face is three lanes, and that is the one structural decision:
+
+    -Y  [ pole lane ][ keypad (operator's right) | printer / panel ]  +Y
+
+-Y is the CUSTOMER side, so the operator stands at +Y and THEIR right hand
+points toward -X. The reference photograph was taken from the operator's side
+-- it shows the keypad and the drawer's pull -- so its "keypad on the right,
+printer on the left" is that frame, and the lanes are laid out in it.
+
+### The budget was set before the layout was drawn: 200 triangles
+
+For scale, in the package this ships into: `crt_tv` bracket form 168,
+`poster` framed 78, `vending_machine` 464. It builds **134**, and it builds
+134 at every one of the 27 genome corners and for every price in the table --
+one number, because every part is a box or a fixed-segment cylinder and no
+style asks for a bevel.
+
+    Register_Drawer   12   Register_Pull    12   Register_Lock    20 (6-gon)
+    Register_Body     12   Register_Keypad  12   Register_Keys     2 (art)
+    Register_Printer  12   Register_Paper   12   Register_OpBezel 12
+    Register_OpLcd     2 (art)              Register_Stem        12
+    Register_Bezel    12   Register_Screen   2 (art)        total 134
+
+The keypad is the line item that decided it. Twenty modelled keys are 240
+triangles on their own, more than the whole rest of the register, so the keys
+are PAINTED into the atlas on one quad and the raised well around them is real
+geometry. That is `card_art`'s own call one shelf along -- "a figure is a blob
+and a rules box is a run of dashes, because at this size that is what a figure
+and a rules box ARE". What the modelled version would buy is a key's own
+shadow at arm's length, which is nearer than any player stands to a shop
+counter; reopen it the day somebody is meant to use one.
+
+### The green display, which is the point
+
+"Cash registers in the 90s had this green font on a black screen." The
+customer display is the artwork's own light: ONE image, two materials --
+`M_Register_<art>_Face` is backlit (the pole screen) and
+`M_Register_<art>_Panel` is painted (the operator's LCD and the keypad). The
+`_Face` suffix is what Lux's emissive binder cuts with the building's power,
+and `params.lit` 0 is a register with its plug pulled, the switch
+`vending_machine` has carried since 0.87.0.
+
+IT IS A MATERIAL AND NOT A LAMP. Compatibility allows `max_lights_per_object`
+8 and this package already ships 84 lights, so nothing in the recipe makes a
+Light3D and a test reads the recipe's source to say so.
+
+THE TYPE IS THE FACTORY'S OWN FACE. `pixel_type` -- Pixelcoat's Pixel Operator
+Bold at 16 px -- which is what `card_art`'s letterer sets every card-shop sign
+in and what `vending_forms.paint_display` already sets a LIT PRICE READOUT in.
+The other face in this repo, `neon_forms.FONT_5X7`, is not a raster where it
+is used: `glyph_runs` turns a glyph into the skeleton of a bent glass tube and
+the recipe builds rods from it. A fourth table of glyphs -- a true
+seven-segment set -- was not minted, and what it would have bought is the
+slanted, broken-stroke silhouette of a real VFD. Said rather than narrowed
+quietly; reopen it the day a second species wants segment digits.
+
+The digits set at the largest whole scale the window fits, and holding that at
+2 across the whole genome was a measurement rather than a preference:
+`POLE_BEZEL_F` was 0.46, which gave the SHORTEST slot a 28 px window against
+the 26 px a scale-2 line needs plus 2 px of margin each side. One pixel short,
+and the display halved its digits for it. At 0.55 the slack is 3 px at every
+width, and a test holds the scale at all 27 corners. The result is 35.2 mm of
+green at the default slot and 52.7 mm at the tallest.
+
+WHAT IT READS AT, measured in `tools/preview_specimen.py` frames at customer
+eye height over a 1.0 m counter, 960 x 640, style 4 delco_1997: crisp at 1.2 m
+and 2.5 m, clearly legible at 4 m, still readable as a price at 6 m -- which
+is longer than any card shop this library builds.
+
+### The glow was A/B-ed, and the rule that picked the other two did not decide it
+
+Four builds of the same register, 1.6 m straight on, Cycles CPU 40 samples,
+world 0.55. Screen pixels are the green-dominant ones; "pinned" is any channel
+>= 250, "white" all >= 235; saturation is (max - min) / max.
+
+    strength        0.6     1.0     1.5     2.5
+    luma          145.1   159.3   172.8   180.8
+    saturation    0.479   0.411   0.357   0.311
+    pinned %          0       0       0       0
+    white %           0       0       0       0
+
+NOTHING PINS AT ANY OF THEM, so "the highest strength with no pinned and no
+white pixel" -- the rule `vending_forms` and `crt_forms` each chose by -- does
+not decide this one, and taken literally here it picks 2.5. What moves is
+SATURATION: the artwork's own is 0.77 and the screen has lost a third of it by
+1.5. The walker's word was "bright green". 1.0 keeps 0.41 at 159 luma; the
+extra 8 % of luma at 1.5 costs 13 % of the green.
+
+WHAT IS NOT MEASURED, said rather than implied: this is Cycles under a sun,
+not `gl_compatibility` under Heavy Rain and delco_summer_afternoon with Lux
+post, which is what the other two lit species carry and the only measurement
+that describes a client. Re-run it there before moving the number.
+
+### The texture, which is the whole cost
+
+ONE image per register, stacked rather than packed side by side: the screen is
+wide and short and the keypad tall and narrow, and beside each other they
+leave 84 x 133 px of filler -- 91 KiB decoded against 37. At the default slot
+the atlas is **84 x 151 px, 37.2 KiB** decoded RGB8 (0.5 KiB as PNG); at the
+widest corner 112 x 195, 65.5 KiB. For scale, the card shop's flat art is
+2.392 MiB across 18 images.
+
+The screens are drawn at `vending_forms.LABEL_TEXEL` (512 px/m) because a
+GLYPH needs it -- `pixel_type`'s line is 13 px tall whatever the metres are.
+The keypad is drawn at `card_art.TEXEL` (256, the factory's 4 mm pixel)
+because a key face is a rectangle: 44 x 64 px instead of 88 x 128, which is
+24 KiB of the atlas. And the keypad's per-key shade is keyed on the GRID and
+not on the module's stem, so two counters in one shop share one image instead
+of paying another 37 KiB for a 3 % grey nobody can see.
+
+### Exact, and no two faces in a plane
+
+Exact on every axis at every corner with no scaling: the drawer is the full
+width and reaches the back plane, the pull bar's face IS the front plane, the
+drawer's underside IS the bottom and the bezel's top IS the top. Extents land
+on the slot to 0.0, not to a tolerance.
+
+`tools/coplanar_census.py` on `cash_register` and `display_case`, min /
+default / max: **0 pairs, 6 of 6 builds**. Three real ones were found and
+fixed on the way, and each was an overlap rather than a tolerance:
+
+  * the keypad island ran the full depth of the top and shared its base plane
+    with the pole stem -- 5.7 cm2, measured, which is what `POLE_LANE` exists
+    for;
+  * the keypad's side plane sat 1.6 mm from the operator bezel's;
+  * the receipt was modelled at the 1.6 mm a receipt is, so its own two faces
+    were inside the 2 mm window. It is 4 mm now: a solid thinner than the
+    probe's window cannot exist here, and that is the probe's number rather
+    than a stationer's.
+
+### Two things only a frame could have caught
+
+Both were invisible to every other check in the file, which is the argument
+for rendering one.
+
+  * THE OPERATOR PANEL WAS SET UPSIDE DOWN AND MIRRORED -- both axes
+    backwards, which is a 180 degree rotation. `_UV` puts vertex 0 at the
+    tile's bottom-left, and for a clerk standing at +Y "up" is the -Y edge and
+    "right" is -X, so vertex 0 has to be the (+X, +Y) corner. `_top_art` is
+    that one decision, in one place, for both face-up quads.
+  * THE RECEIPT read as a flat white card at 24 degrees off upright, because
+    at that angle it foreshortens to nothing in the clerk's own frame. 15
+    degrees now, and 3.2 x the printer's height rather than 2.2.
+
+### `display_case` gained `params.till`, and what Deli Counter has to do
+
+Default 1: **nothing changes for anybody who does not ask**. A placer that has
+not learned to stand a `cash_register` still gets a shape in the right place,
+which is better than a bare counter.
+
+MEASURED AT EVERY SHIPPED WIDTH before it was claimed: at 1.8, 2.4 and 3.6 m,
+flat and L, turning the till off leaves every non-till primitive and the item
+count identical and removes exactly 48 triangles. Only on the genome's
+narrowest case (0.9 m) does the till's keep-out cost anything, and there it is
+one storage item, 32 against 33.
+
+WHY A SLOT AND NOT A BETTER BOX INSIDE THE CASE. A till built inside
+`display_case_forms` cannot carry an atlas, cannot be lit, and cannot stand on
+a deli counter, a pharmacy counter or a bank teller line. It is the same
+hand-authoring the gap protocol forbids downstream, one layer up.
+
+WHAT DELI COUNTER WOULD CHANGE, stated here because this repo does not touch
+that one:
+
+  1. a `_piece("cash_register", ((0.40, 0.42, 0.46),), "pair", front=True,
+     variants=4, collision="none", ...)` -- `pair` for the reason `back_bar`
+     and `display_case_end` are: it belongs to a counter and nothing should
+     place one on its own;
+  2. a row in `prop_species.PROP_SPECIES` before any broader keyword:
+     `(("cash_register", "register", "till"), "cash_register")`;
+  3. `card_shop_counters` stands one per showcase counter at that counter's
+     till station, the way it already stands a pack wall behind one, and lifts
+     it to the counter's top;
+  4. `params.till: 0` on the `display_case` it stands it on, in the same
+     breath. All four, or none: a case with its till off and no register
+     standing is a bare counter.
+
+### And an ATM is not a cash register
+
+`atm`'s keyword list held "cash register", and on 0.99.0
+`intent.parse("cash register")` returned `atm`. It is off the ATM now; `atm`,
+`cash machine` and `cashpoint` still resolve to it. A sweep over every keyword
+of every species in the library is a test now: four resolve elsewhere and all
+four are deliberate shared words that predate this release.
+
+### Tests
+
+`tests/test_cash_register.py`: 171, of which 165 are pure and 6 need Blender.
+Every corner for fit, budget, coplanarity and type scale; every price for the
+denylist; the winding of both face-up quads and of the lit one; the atlas's
+cap and its name; the `till` switch on both settings.
+
+Three library-wide counters moved, each because a species landed rather than
+because anything is wrong: `CENSUS_BUILDS` 312 -> 315 (and the census was
+actually run, which is the thing that comment exists to promise),
+`test_theme_style_resolution`'s styled count 79 -> 80, and
+`test_material_options_closed`'s PAINTED set, which `cash_register` joins
+because its `industrial_flats` style is enamelled sheet steel.
+
+Suite **2,295 -> 2,465 passed**, 271 -> 278 skipped, 1 xfailed. Both figures
+are with Pixelcoat beside this repo; in a `git worktree` under `scratchpad/`
+it is not, two `test_club_species` / `test_vending_machine` cases skip instead
+of passing, and the same suite reads 2,293 -> 2,463 / 273 -> 280. Worth
+writing down because the difference looks like a regression and is a path.
+
 ## [0.99.0] - a taller bay carries more shelves, and the cap that says how many is arithmetic now
 
 Deli Counter 0.140.0 took `card_shop_a01`'s pack walls from 2.2 m to 2.70 m

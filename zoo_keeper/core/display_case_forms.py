@@ -651,12 +651,27 @@ def plan(w, d, h, params=None, variant=0, key="display_case"):
     main = runs[0][1]
     till_x = min(main[0][1] - 0.25,
                  main[0][0] + (main[0][1] - main[0][0]) * 0.82)
+    # THE SEAM FOR THE `cash_register` SPECIES (1.0.0). `_register` is four
+    # boxes with no artwork and nothing lit, and the walker's frame from cold
+    # run 9062 read them as "a brown box with a white post and a smaller box
+    # on top -- a mistake, not a register". The species that replaces it is
+    # its own module on its own slot, because a till built inside this file
+    # cannot carry an atlas, cannot be lit, and cannot stand on a deli
+    # counter or a pharmacy counter or a bank teller line.
+    #
+    # DEFAULT 1, so nothing changes for anybody who does not ask: a placer
+    # that has not learned to stand a `cash_register` still gets a shape in
+    # the right place, which is better than a bare counter. Deli Counter
+    # turns it off with `params.till: 0` in the same breath as it places one.
+    till_on = int(params.get("till", 1)) != 0
     items = 0
     for tag, body, step, glazed, ends, backs in runs:
         items += _run(prims, tiles, tag, body, h, top_z0, step, glazed, ends,
                       backs, games, maker, key, variant, params,
-                      till=(till_x - 0.17, till_x + 0.17) if tag == "M" else None)
-    _register(prims, "", till_x, (main[1][0] + main[1][1]) / 2.0, h)
+                      till=(till_x - 0.17, till_x + 0.17)
+                      if (till_on and tag == "M") else None)
+    if till_on:
+        _register(prims, "", till_x, (main[1][0] + main[1][1]) / 2.0, h)
 
     # COLLISION IS THE TOP'S OWN FOOTPRINT, one box per quad of it, and for
     # an L that is the point: a single box over the slot would wall off the
@@ -669,6 +684,7 @@ def plan(w, d, h, params=None, variant=0, key="display_case"):
     facts = {"form": form, "runs": len(runs), "case_depth_m": round(case_d, 4),
              "shelves": max(1, min(3, int(params.get("shelves", 2)))),
              "items": items, "variant": variant, "tiles": len(tiles),
+             "till": till_on,
              "tris": P.tri_count(prims), "maker": maker["id"],
              "colliders": len(collision),
              "games": [g["id"] for g in games[:4]]}

@@ -115,7 +115,11 @@ def test_delco_1997_reaches_every_species():
     # pennant_row, folding_table, folding_chair; 0.98.0: + poster,
     # hanging_banner, ceiling_hanger, aisle_sign -- each authored with its
     # own `delco` row, so this count moves and `_NO_DELCO_1997` does not
-    assert len(_genomes()) == 79 + len(_minted), len(_genomes())
+    # 1.0.0: 80, the till added. A literal rather than a
+    # `len(list_species())` on purpose -- this test is the audit of what
+    # somebody actually styled, and a count that updates itself audits
+    # nothing.
+    assert len(_genomes()) == 80 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

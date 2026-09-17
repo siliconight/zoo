@@ -1,0 +1,191 @@
+{
+  "species": "cash_register",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-16 for Zoo 1.0.0 from the walker's own photograph of a 1990s electronic cash register, described in core/register_forms.py. Construction knowledge only: no manufacturer, no model, no moulded badge and no sticker from that photograph reaches the tools. The only strings the species paints are a price in digits and the word TOTAL, and a denylist test holds both against core/card_brands.py's list of real marks."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.32,
+      "max": 0.52,
+      "default": 0.4
+    },
+    "depth": {
+      "min": 0.34,
+      "max": 0.52,
+      "default": 0.42
+    },
+    "height": {
+      "min": 0.38,
+      "max": 0.56,
+      "default": 0.46
+    }
+  },
+  "parts": [
+    "Register_Drawer",
+    "Register_Pull",
+    "Register_Lock",
+    "Register_Body",
+    "Register_Keypad",
+    "Register_Printer",
+    "Register_Paper",
+    "Register_OpBezel",
+    "Register_Stem",
+    "Register_Bezel",
+    "Register_Screen",
+    "Register_Art"
+  ],
+  "params": {
+    "lit": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    "price": [
+      "auto",
+      "4.95",
+      "9.95",
+      "2.50",
+      "14.95",
+      "24.99",
+      "7.25",
+      "34.95",
+      "1.75"
+    ]
+  },
+  "module_variants": 4,
+  "materials": {
+    "default": "plastic",
+    "options": [
+      "plastic",
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "plastic",
+      "color": [
+        0.055,
+        0.055,
+        0.06
+      ],
+      "wear": 0.16,
+      "bevel": 0.0
+    },
+    "1970s": {
+      "material": "plastic",
+      "color": [
+        0.42,
+        0.36,
+        0.26
+      ],
+      "wear": 0.38,
+      "bevel": 0.0
+    },
+    "1980s": {
+      "material": "plastic",
+      "color": [
+        0.6,
+        0.56,
+        0.46
+      ],
+      "wear": 0.32,
+      "bevel": 0.0
+    },
+    "1990s": {
+      "material": "plastic",
+      "color": [
+        0.055,
+        0.055,
+        0.06
+      ],
+      "wear": 0.24,
+      "bevel": 0.0
+    },
+    "modern": {
+      "material": "plastic",
+      "color": [
+        0.08,
+        0.08,
+        0.085
+      ],
+      "wear": 0.05,
+      "bevel": 0.0
+    },
+    "office": {
+      "material": "plastic",
+      "color": [
+        0.2,
+        0.2,
+        0.21
+      ],
+      "wear": 0.18,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "plastic",
+      "color": [
+        0.055,
+        0.055,
+        0.06
+      ],
+      "wear": 0.3,
+      "bevel": 0.0,
+      "ambient": 0.05
+    },
+    "center_city": {
+      "material": "plastic",
+      "color": [
+        0.08,
+        0.08,
+        0.085
+      ],
+      "wear": 0.12,
+      "bevel": 0.0,
+      "ambient": 0.0
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.21,
+        0.2
+      ],
+      "wear": 0.4,
+      "bevel": 0.0,
+      "ambient": 0.1
+    },
+    "rockay": {
+      "material": "plastic",
+      "color": [
+        0.055,
+        0.055,
+        0.06
+      ],
+      "wear": 0.28,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 200
+  },
+  "attachments": [
+    "ATT_screen_center",
+    "ATT_keypad_center"
+  ],
+  "keywords": [
+    "cash_register",
+    "cash register",
+    "register",
+    "till",
+    "point of sale"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "surface"
+    }
+  },
+  "notes": "A 1997 electronic cash register: a squat moulded body on a deeper cash drawer, a raised customer display on a short post carrying green type on a black screen, a reflective green operator panel angled at the clerk, a receipt printer with a curl of paper in it and a painted keypad in a raised well. BEVEL IS 0 IN EVERY STYLE and that is the point of the budget: no primitive asks for one, so the module ships the 134 triangles core/register_forms.triangles counts, at every one of the 27 genome corners. tris_lod0 is register_forms.TRI_BUDGET and the two are held equal by a test. THE CUSTOMER DISPLAY IS EMISSIVE AND IS NOT A LIGHT: params.lit 0 is a register with its plug pulled (the same switch vending_machine has had since 0.87.0), and nothing in the recipe spawns a Light3D -- GL Compatibility allows 8 lights on one mesh and the card-shop package already ships 84. Front (-Y) is the CUSTOMER side, so the operator stands at +Y and the keypad sits on the -X half of the top, which is that operator's right hand."
+}
