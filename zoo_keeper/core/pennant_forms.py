@@ -31,6 +31,37 @@ width, so two pennants in ONE y-plane would share it over that overlap.
 They alternate between two layers `LAYER_STEP` apart, and the pitch is set
 so a pennant and its SECOND neighbour -- the next one in its own layer --
 never meet: `OVERLAP` below 0.5 is what guarantees that, and a test holds it.
+
+REFUTED 2026-09-21: THIS ROW CANNOT BE A MULTIMESH, AND THE REASON IS THE
+ENGINE. 1.1.0 left the choice open above the merge result -- "a MultiMesh
+would also reach 2 draw calls for the whole row with per-instance colour,
+which is Lot's dressing pattern one shelf along" -- and it was chosen. It
+does not work, for a reason nobody had measured: **Godot 4.7 does not
+implement `EXT_mesh_gpu_instancing`**, the only way a .glb can express
+instancing, and it discards it without a word. Three instances of one
+triangle reach the engine as one triangle, by both the runtime
+(`GLTFDocument.append_from_file`) and the editor (`load()`) paths, and the
+extension's name does not occur anywhere in the engine executable. On a
+44-pennant row that is 43 pennants deleted from a file that still validates
+and still censuses correctly, because the loss happens on import.
+
+So the row stays one mesh per colour. `tools/instancing_probe.py` is the
+instrument, `tests/test_gpu_instancing.py` holds the rule with its positive
+control, and the two corrections worth carrying forward are these:
+
+  * **It would have been 3 draw calls, not 2.** A pennant wears TWO team
+    colours -- `colours[i]` is a (primary, secondary) pair, the felt takes
+    the first and the hoist band the second -- so per-instance colour buys
+    one MultiMesh per colour ROLE. Batten + felt + band is three. Two needs
+    the band's colour in `INSTANCE_CUSTOM` and a shader to choose between
+    them, which is a custom material for a prop that today has none.
+  * **The capability is not Zoo's.** A MultiMesh reaches Godot here as
+    .tscn text from `level_factory/.../dressing_scene.py`, over meshes
+    `extract_meshes.gd` pulls out of Zoo's GLBs. Zoo's job would be to emit
+    ONE pennant worth instancing; the instancing is the composer's. Note
+    that path writes `transform_format`, `instance_count` and `buffer` and
+    has no `use_colors`, so per-instance colour does not exist there yet
+    either.
 """
 from __future__ import annotations
 

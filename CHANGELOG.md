@@ -1,3 +1,107 @@
+## [1.1.1] - the pennant row cannot be a MultiMesh, and the engine is why
+
+1.1.0 left a choice open under its own merge result: the pennant row is
+"colour variation wearing materials", and "a MultiMesh would also reach 2
+draw calls for the whole row with per-instance colour, which is Lot's
+dressing pattern one shelf along. Left for the walker to choose rather than
+decided here." It was chosen. It does not work, and nothing in this repo had
+measured the thing that stops it.
+
+**Godot 4.7 does not implement `EXT_mesh_gpu_instancing`** -- the only way a
+.glb can express instancing -- and it discards it without a word. The
+instancing node keeps its mesh and loses its instance table, so every
+instance after the first stops existing. Three instances of one triangle,
+exported by Blender 5.1.1 with `export_gpu_instances=True`:
+
+    the GLB      extensionsUsed ['EXT_mesh_gpu_instancing'], one node
+                 "Row", 3 instances, TRANSLATION/ROTATION/SCALE
+    runtime      GLTFDocument.append_from_file -> MeshInstance3D,
+                 1 surface, 3 verts, 1 triangle
+    editor       load("res://probe.glb") -> the same, 3 verts
+    the binary   the string "EXT_mesh_gpu_instancing" does not occur in
+                 the engine executable at all
+
+Three instruments, one answer. On a 44-pennant row that would be **43
+pennants deleted** from a file that still validates, still censuses at 892
+triangles and 11 materials, and still opens -- because the loss happens on
+import, downstream of every gate Zoo owns.
+
+### SO THE ROW SHIPS EXACTLY AS 1.1.0 SHIPPED IT
+
+`pennant_row_14809a.glb` at w400 builds **byte-for-byte identical** to the
+1.1.0 build, 100,064 bytes: 11 mesh nodes, 11 materials, 11 submissions,
+892 triangles. No geometry moved, no collider changed, no pixel differs,
+because nothing was built. Draw calls per row before and after: **11 and
+11.** There is no frame measurement here and there should not be one -- a
+change that writes the same bytes cannot move a frame, and a station sweep
+reporting "below the noise floor" would be dressing a zero up as a result.
+
+### TWO CORRECTIONS THE ATTEMPT TURNED UP
+
+  * **It would have been 3 draw calls, not 2.** A pennant wears TWO team
+    colours -- `colours[i]` is a (primary, secondary) pair, the felt takes
+    the first and the hoist band the second -- so per-instance colour buys
+    one MultiMesh per colour ROLE, not one per row: batten + felt + band.
+    Reaching 2 needs the band's colour in `INSTANCE_CUSTOM` and a shader to
+    choose between them, which is a custom material on a prop that has
+    none, on the renderer packages ship.
+  * **The capability is not Zoo's to grow.** A MultiMesh reaches Godot in
+    this factory as .tscn TEXT, written by
+    `level_factory/packages/exporting/dressing_scene.py` as a
+    `[sub_resource type="MultiMesh"]` block with a `PackedFloat32Array`
+    buffer, over meshes `level_factory/assets/godot/extract_meshes.gd`
+    pulls out of Zoo's GLBs into `.res`. That is where Lot's 4,107
+    instances in 4 draw calls actually live. Zoo's half would be to emit
+    ONE pennant worth instancing; the instancing is the composer's. Per
+    `USING_THE_FACTORY.md`'s gap protocol that makes instanced pennants a
+    Level Factory capability. Note that path writes `transform_format`,
+    `instance_count` and `buffer` and has **no `use_colors`**, so
+    per-instance colour does not exist there yet either -- the row needs
+    both halves built, not one.
+
+### THE INSTRUMENT, AND WHY IT HAS A POSITIVE CONTROL
+
+`tools/instancing_probe.py` builds the N-instance file and censuses any
+GLB; `tools/instancing_probe.gd` loads one both ways Godot can and prints
+the tree it got. They are kept because the question will be asked again the
+next time somebody reads the MultiMesh rule.
+
+The census counts submissions per (node, primitive) and not per mesh, which
+is the trap the whole question sits on: three nodes sharing one mesh are
+three draw calls, and a census counting `meshes` would report 1 and read
+like instancing had worked on a file carrying none.
+
+Two controls, because an instrument that can only report absence cannot
+tell "Zoo does not emit this" from "the probe cannot see it":
+
+  * the same probe on the same Blender DOES report instancing when it is
+    there -- `claims_instancing True`, 3 instances, TRANSLATION/ROTATION/
+    SCALE;
+  * the same .gd on a hand-written `.tscn` carrying a real MultiMesh reads
+    `MULTIMESH instances=3 use_colors=true`, so its `MeshInstance3D verts=3`
+    on the instanced GLB is a reading and not a blind spot.
+
+And one control on the control: with the flag set but the instances left as
+scene-root SIBLINGS rather than children of one parent, Blender writes no
+extension at all -- 3 ordinary nodes, 3 submissions. Blender emits the
+extension only for objects sharing a parent, and writes it onto that parent.
+So "I turned instancing on" is not evidence that a file has it.
+
+### Tests
+
+`tests/test_gpu_instancing.py`, 6 of them: the census arithmetic, the
+extension reported when present and not invented when absent, both controls
+above, and the rule on the built article -- **no GLB Zoo exports may claim
+`EXT_mesh_gpu_instancing`**, asked of `pennant_row`, the module that would
+have carried it. It is a data-loss switch on this engine, and the loss is
+invisible to every instrument that reads the GLB rather than the scene
+Godot made of it.
+
+Suite under Blender 5.1.1: **2,739 passed, 40 skipped, 1 xfailed** (1.1.0:
+2,733 / 40 / 1, plus these 6). Plain Python beside the sibling repos: 2,488
+passed, 285 skipped, 1 xfailed unchanged at 1.1.0, and 3 of the 6 run
+there.
+
 ## [1.1.0] - one mesh per material per module, and the draw calls that buys
 
 Zoo shipped every part of every prop as its own object, so a prop reached

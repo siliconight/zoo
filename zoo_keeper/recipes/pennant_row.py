@@ -9,6 +9,12 @@ ONE MATERIAL PER TEAM COLOUR, not per pennant. A strip draws its `colours`
 pairs whatever its length -- the felt and the hoist band of one team share
 the pair -- so a 44-pennant strip is 12 materials rather than 88.
 
+AND ONE MATERIAL PER COLOUR IS WHERE IT STOPS, because the cheaper packing
+is not available in this engine: Godot 4.7 discards `EXT_mesh_gpu_instancing`
+on import, silently, keeping the node's mesh and dropping every instance
+after the first. `core/pennant_forms.py`'s header carries the measurement
+and `tests/test_gpu_instancing.py` holds the rule.
+
 COLLISION: NONE, and the genome agrees. A pennant hangs at ceiling height,
 a body cannot reach it, and a collider up there is a shape the navmesh bake
 has to carry for nothing.
