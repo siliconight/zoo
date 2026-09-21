@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import bpy
 
-from ..core import partnames
+from ..core import gltf_textures, partnames
 from . import geometry, merge
 
 
@@ -19,7 +19,7 @@ def _select_only(objs):
         bpy.context.view_layer.objects.active = objs[0]
 
 
-def export_glb(filepath, collection, merge_parts=True):
+def export_glb(filepath, collection, merge_parts=True, share_textures=True):
     """Write ``collection`` to a GLB.
 
     ``merge_parts`` packs the module's visual parts into one mesh per
@@ -30,6 +30,14 @@ def export_glb(filepath, collection, merge_parts=True):
     same skins and the same commit. `tools/zoo_cli.py --no-merge-parts` is
     that control.
 
+    ``share_textures`` moves the embedded images out to `_tex/` beside the
+    GLB, named by a hash of their pixels, so modules that use one pack
+    texture name one file (`core.gltf_textures` carries the measurement and
+    the reason). Blender's GLB writer embeds unconditionally and has no
+    setting for this, so it is a pass over the file it just wrote rather than
+    an export option. A keyword for the same reason as `merge_parts`: the two
+    states have to be measurable against each other from one build.
+
     The merged objects are torn down before this returns, so the scene
     `save_blend` writes is the one the recipe built either way.
     """
@@ -38,10 +46,33 @@ def export_glb(filepath, collection, merge_parts=True):
     try:
         _select_only(objs)
         _export_selection(filepath)
+        if share_textures:
+            _share_textures(filepath)
     finally:
         if packed is not None:
             packed.discard()
     return packed.stats if packed is not None else None
+
+
+def _share_textures(filepath):
+    """Externalise the GLB's images, and say so on stdout.
+
+    NEVER FATAL. A module that exported is a module that exists, and the
+    embedded form it already has is the form every Zoo build before this one
+    shipped -- so a file this pass cannot rewrite is left exactly as Blender
+    wrote it and the reason is printed. Refusing the export instead would
+    turn a size optimisation into a build failure.
+    """
+    try:
+        st = gltf_textures.externalise_file(filepath)
+    except (gltf_textures.GlbFormatError, OSError, ValueError) as exc:
+        print(f"[zoo] textures stay embedded in {filepath}: {exc}")
+        return None
+    if st["images"]:
+        print(f"[zoo] textures: {st['images']} images -> {st['written']} new "
+              f"+ {st['shared']} already beside the GLB; "
+              f"{st['bytes_before']} -> {st['bytes_after']} bytes")
+    return st
 
 
 def _export_selection(filepath):

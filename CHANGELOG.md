@@ -1,3 +1,144 @@
+## [1.2.0] - a pack texture is one file, not sixty copies
+
+Cold run 9066's shipped package carries **961 embedded images across 215 GLBs,
+25.69 MiB of payload of which 1.41 MiB is unique** -- 58 distinct pictures, so
+94.5% of it is a copy. One wood texture is embedded 77 times over 60 files.
+That was known. What nobody had measured is what it costs once the engine has
+it, and the answer is the whole reason this release exists.
+
+### Godot does not deduplicate. Twenty GLBs, one control, one floor
+
+Godot 4.7, GL Compatibility, twenty single-quad GLBs each carrying one 512x512
+RGBA image, counted by distinct texture RID in the loaded scene tree and by
+`RENDERING_INFO_TEXTURE_MEM_USED` against an empty-scene baseline:
+
+    twenty GLBs, IDENTICAL embedded bytes    20 textures   27,962,000 B
+    twenty GLBs, DIFFERENT embedded bytes    20 textures   27,962,000 B
+    twenty GLBs -> one external PNG           1 texture     1,398,100 B
+    one GLB instanced twenty times            1 texture     1,398,100 B
+
+The first two rows are the finding: byte-identical and distinct payloads cost
+**exactly the same**, to the byte. The second row is the control and it is
+what makes the first row mean anything -- an instrument that reported 20 for
+both without it could simply have been counting nodes. So a texture embedded
+sixty times is sixty textures resident, uncompressed, on somebody else's
+machine, every frame.
+
+### What changed
+
+`core/gltf_textures` rewrites a GLB's embedded images to `images[].uri`
+references and writes the pixels to `_tex/` beside the file, named
+`<image>_<sha1[:8]>.png`. `bpylayer.export.export_glb` runs it on every module
+it writes (`share_textures=True`, a keyword so the two states stay measurable
+against each other from one build, exactly as `merge_parts` is). Blender's GLB
+writer embeds unconditionally and offers no setting for this, so it is a pass
+over the file it just wrote.
+
+The bytes are **copied, not re-encoded**: the PNG beside the GLB is the PNG
+that was inside it. Nothing resizes, recompresses or reformats, which is what
+lets the look argument below be about the importer and not about this module.
+
+STANDALONE IS PRESERVED, which is the rule that decided the shape. A GLB plus
+a relative texture folder is ordinary glTF 2.0 -- Blender, Godot and three.js
+all open it with none of these tools present. A Zoo-supplied import script
+would not have been, and was not considered for long.
+
+### Measured on the real package, not only on the controls
+
+Cold run 9066's `LF_club_block_005.portable-godot`, every GLB externalised,
+loaded in Godot 4.7 on GL Compatibility and counted the same way:
+
+    distinct texture resources      1,841  ->    157     -91.5%
+    texture memory            332,867,236  ->  47,090,266 B    -85.9%
+    video memory              348,897,688  ->  63,120,718 B    -81.9%
+    scene load                   2,383.8   ->  1,592-1,856 ms  -22% to -33%
+    package on disk                45.43   ->    23.45 MiB     -48.4%
+    import cache                   89.28   ->    38.37 MiB     -57.0%
+
+Load is given as a range because it is the one figure here that moved between
+runs of the same build; texture memory did not move at all, reading
+47,090,266 B on two separate imports, so it is quoted exactly.
+
+961 embedded images became 145 files in 7 folders -- one per directory the
+GLBs sit in, because a relative URI cannot reach across the package. Hoisting
+those 145 to the 58 distinct pictures is a further 4-ish MiB and it belongs to
+whoever lays the package out, not here.
+
+Draw calls did not change and are not claimed to: this moves where texels
+live, not how many submissions are made.
+
+### The look did not move, and it took two instruments to say so
+
+The frame comparison alone could not answer it. Six stations chosen by the
+scene graph (51%-100% non-black, so not the 99.7%-black frames that once
+reported "pixel-identical" in this repo), and the SAME build rendered twice
+already differs in 87.110% of pixels at mean |delta| 3.5529 -- something in
+the presentation layer is animated. Against that floor:
+
+    before vs before (noise floor)          87.110%   mean 3.5529
+    before vs after (this change)           87.142%   mean 3.5560
+    before vs VRAM-compressed (control)     87.874%   mean 4.2646
+
+The control moves the mean by +0.71 and this change by +0.003, so the change
+sits in the noise of a build compared with itself while the instrument is
+demonstrably able to register one. That is suggestive and it is not proof, so
+the question was asked again of the texels themselves -- the decoded level-0
+RGBA8 of the same source through each import path:
+
+    embedded, gltf/embedded_image_handling=3     0.000% differ, max delta 0
+    external PNG, lossless + fix_alpha_border    0.000% differ, max delta 0
+    external PNG, VRAM compressed (control)    100.000% differ, max delta 255
+
+Byte-identical, with a control that shouts. Two instruments, one answer.
+
+### The two engine defaults that would have changed it quietly
+
+A PNG beside a GLB is imported by Godot's *texture* importer, whose defaults
+are not the GLTF importer's. Both of these were found by measuring rather than
+by reading, and either one alone breaks the guarantee above:
+
+  * `compress/mode` defaults to **2, VRAM compressed** -- 100% of pixels
+    differ. Same call as `gltf/embedded_image_handling=3`: roadmap 89 is a
+    compression setting silently changing a shipped build's look.
+  * `process/fix_alpha_border` defaults to **true** and rewrites RGB under
+    transparent texels -- **7.755% of pixels differ, max channel delta 255**,
+    which is not a rounding artefact. With it off, 0.000%.
+
+Pinning them is Level Factory's job because the sidecars are written at export;
+see its 0.99.0. **Zoo's output alone is not sufficient** -- a consumer who
+imports these GLBs with engine defaults gets VRAM-compressed textures with
+altered alpha borders, and that is a real gap in this release rather than a
+detail. It is the price of the standalone rule: a module cannot ship import
+settings without shipping tooling.
+
+### What VRAM compression would have bought, since it was measured anyway
+
+On the same package: texture memory 47,090,266 -> 21,504,802 B, video memory
+65,250,910 -> 37,535,254 B, load 1,856 -> 1,440 ms. A further 25.6 MiB and 400
+ms, for a texture that is no longer the one Pixelcoat drew. Not taken, per the
+standing call on roadmap 89, and recorded here so the next person can reopen
+it with numbers instead of starting over.
+
+### Mipmaps, and a claim this release found to be wrong
+
+It has been said in this repo that a shipped package has no mip chain. On cold
+run 9066's package it is **false**: `zoo_worldskin.gd`'s import-time pass
+already builds one, and 1,402 of 1,841 textures carry mips as shipped. The 439
+that do not are the slots that pass does not visit -- emission, metallic, ORM.
+After this change 145 of 157 do, from the importer, and the 12 that do not are
+Level Factory's own textures, untouched before and after.
+
+That pass is also why the mip setting is not optional downstream: it rebuilds
+each texture as its own `ImageTexture`, which would undo the sharing. With the
+chain already present it is a no-op and the textures stay shared -- measured,
+every texture in the after package is a `CompressedTexture2D`, none rebuilt.
+
+Mips are **free** in resident memory on this renderer, which was not expected:
+a 512x512 RGBA8 texture reads 1,398,100 B with a mip chain and 1,398,100 B
+without -- exactly 4/3 of its base size either way, so the chain is allocated
+whether or not it is filled. Turning mips on costs nothing and leaving them
+off wastes the allocation.
+
 ## [1.1.1] - the pennant row cannot be a MultiMesh, and the engine is why
 
 1.1.0 left a choice open under its own merge result: the pennant row is
