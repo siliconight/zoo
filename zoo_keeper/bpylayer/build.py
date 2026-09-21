@@ -24,6 +24,10 @@ DEFAULT_OPTIONS = {
     "lods": False,
     "save_blend": True,
     "clear_scene": False,   # True for headless CLI on a fresh file
+    # Pack a module's visual parts into one mesh per material at export
+    # (`bpylayer.merge`). Off is the measurement control, not a supported
+    # shipping mode -- see `export.export_glb`.
+    "merge_parts": True,
 }
 
 
@@ -92,7 +96,7 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, specimen_id)
     files = {"glb": f"{specimen_id}.glb", "meta": f"{specimen_id}.meta.json"}
-    export.export_glb(base + ".glb", coll)
+    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
     if opts["save_blend"]:
         files["blend"] = f"{specimen_id}.blend"
 
@@ -237,7 +241,7 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, stem)
     files = {"glb": f"{stem}.glb", "meta": f"{stem}.meta.json"}
-    export.export_glb(base + ".glb", coll)
+    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
     if opts["save_blend"]:
         export.save_blend(base + ".blend")
         files["blend"] = f"{stem}.blend"
@@ -468,7 +472,15 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     stem = f"{building_id}_dressing"
     base = os.path.join(out_dir, stem)
-    export.export_glb(base + ".glb", coll)
+    # NOT MERGED, AND THIS IS THE LINE THAT SAYS SO. This collection is a
+    # whole BUILDING's covers, each already transformed to its own anchor --
+    # not one module. Packing them by material would weld geometry from
+    # opposite faces of the building into one mesh, which is a single
+    # bounding box that is never off-screen: it trades every cover's culling
+    # for the draw calls, and the covers are the one layer already handled
+    # downstream (`level_factory/assets/godot/extract_meshes.gd` merges them
+    # with the placement baked in, per visible chunk).
+    export.export_glb(base + ".glb", coll, merge_parts=False)
     files = {"glb": f"{stem}.glb"}
     if opts["save_blend"]:
         export.save_blend(base + ".blend")
@@ -612,7 +624,9 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, f"{building_id}_roofprops")
     files = {"glb": f"{building_id}_roofprops.glb"}
-    export.export_glb(base + ".glb", coll)
+    # A whole roof's props, each placed at its own anchor: a layer, not a
+    # module. See the note in `build_dressing`.
+    export.export_glb(base + ".glb", coll, merge_parts=False)
     if opts.get("save_blend"):
         files["blend"] = f"{building_id}_roofprops.blend"
         export.save_blend(base + ".blend")
@@ -783,7 +797,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, f"{scope}_fixtures")
     files = {"glb": f"{scope}_fixtures.glb"}
-    export.export_glb(base + ".glb", coll)
+    # A whole scope's fixtures, each placed at its own anchor, and each
+    # paired with a LuxEmit_* marker empty that must stay beside its own
+    # hardware. A layer, not a module. See the note in `build_dressing`.
+    export.export_glb(base + ".glb", coll, merge_parts=False)
     if opts.get("save_blend"):
         files["blend"] = f"{scope}_fixtures.blend"
         export.save_blend(base + ".blend")

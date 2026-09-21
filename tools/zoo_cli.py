@@ -63,6 +63,12 @@ def parse_args():
     ap.add_argument("--lods", action="store_true")
     ap.add_argument("--no-blend", action="store_true",
                     help="skip saving the .blend sidecar")
+    ap.add_argument("--no-merge-parts", dest="no_merge_parts",
+                    action="store_true",
+                    help="export one mesh per PART instead of one per "
+                         "material -- the pre-1.1.0 packing, kept as the "
+                         "measurement control for the merge (see "
+                         "bpylayer/merge.py). Costs ~5.8x the draw calls.")
     ap.add_argument("--species-list", action="store_true")
     # --- ingest: adopt external assets (zip of itch.io assets, etc.) --------
     ap.add_argument("--ingest",
@@ -184,7 +190,8 @@ def habitat_build(args):
         args.prompt or "", args.habitat, os.path.abspath(args.out),
         seed=args.seed,
         options={"collision": _collision_opt(args), "lods": args.lods,
-                 "save_blend": not args.no_blend, "clear_scene": True})
+                 "save_blend": not args.no_blend, "clear_scene": True,
+                 "merge_parts": not args.no_merge_parts})
     print(f"[zoo] habitat:  {fam['habitat_id']} "
           f"({len(fam['species'])} species)")
     print(f"[zoo] out:      {fam['out_dir']}")
@@ -236,7 +243,8 @@ def full_build(args):
     from zoo_keeper.core import validate
 
     opts = {"collision": _collision_opt(args), "lods": args.lods,
-            "save_blend": not args.no_blend, "clear_scene": True}
+            "save_blend": not args.no_blend, "clear_scene": True,
+            "merge_parts": not args.no_merge_parts}
 
     if args.count > 1:
         fam = build.build_family(args.prompt, os.path.abspath(args.out),
@@ -423,7 +431,8 @@ def build_kit_run(args):
         manifest, os.path.abspath(args.out), theme=args.theme,
         style=args.style,
         options={"collision": _collision_opt(args),
-                 "save_blend": not args.no_blend, "clear_scene": True})
+                 "save_blend": not args.no_blend, "clear_scene": True,
+                 "merge_parts": not args.no_merge_parts})
 
     print(f"[zoo] kit built for '{res['building_id']}' "
           f"(theme={res['theme']}, style={res['style']:02d}) -> "
@@ -460,6 +469,9 @@ def dress_run(args):
         return 1
 
     from zoo_keeper.bpylayer import build
+    # No `merge_parts`: a dressing layer is a whole building's covers, never
+    # one module, and `build_dressing` does not merge at all. Passing the
+    # flag here would be a knob with no effect.
     res = build.build_dressing(
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True})

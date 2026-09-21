@@ -6,7 +6,8 @@ from __future__ import annotations
 
 import bpy
 
-from . import geometry
+from ..core import partnames
+from . import geometry, merge
 
 
 def _select_only(objs):
@@ -18,9 +19,32 @@ def _select_only(objs):
         bpy.context.view_layer.objects.active = objs[0]
 
 
-def export_glb(filepath, collection):
-    objs = list(collection.objects)
-    _select_only(objs)
+def export_glb(filepath, collection, merge_parts=True):
+    """Write ``collection`` to a GLB.
+
+    ``merge_parts`` packs the module's visual parts into one mesh per
+    material first (`merge.pack_by_material`), which is what the file costs
+    in draw calls rather than what it contains. It is a keyword rather than
+    a constant so the two can be measured against each other from ONE build
+    -- an A/B whose only difference is this flag, with the same seed, the
+    same skins and the same commit. `tools/zoo_cli.py --no-merge-parts` is
+    that control.
+
+    The merged objects are torn down before this returns, so the scene
+    `save_blend` writes is the one the recipe built either way.
+    """
+    packed = merge.pack_by_material(collection) if merge_parts else None
+    objs = packed.objects if packed is not None else list(collection.objects)
+    try:
+        _select_only(objs)
+        _export_selection(filepath)
+    finally:
+        if packed is not None:
+            packed.discard()
+    return packed.stats if packed is not None else None
+
+
+def _export_selection(filepath):
     kwargs = dict(filepath=filepath, export_format="GLB",
                   use_selection=True, export_apply=True,
                   export_yup=True,
@@ -38,8 +62,10 @@ def save_blend(filepath):
     bpy.ops.wm.save_as_mainfile(filepath=filepath, compress=True)
 
 
-# Godot collision name-suffix conventions (any -> static collision on import)
-_COL_SUFFIXES = ("-colonly", "-convcolonly", "-col", "-convcol")
+# Godot collision name-suffix conventions (any -> static collision on import).
+# Defined once in `core.partnames`, because `bpylayer.merge` asks the same
+# question and two spellings of one contract drift.
+_COL_SUFFIXES = partnames.COL_SUFFIXES
 
 
 def gather_facts(collection, root_name, fit_names=None, dressing=()):

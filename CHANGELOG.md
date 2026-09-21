@@ -1,3 +1,231 @@
+## [1.1.0] - one mesh per material per module, and the draw calls that buys
+
+Zoo shipped every part of every prop as its own object, so a prop reached
+Godot as one `MeshInstance3D` per part and cost one draw call per part. The
+pack wall is the extreme of it: **118 meshes for 4 materials and 1,592
+triangles**, which is 13.5 triangles per submission. Across
+`card_shop_a01`'s 90 module GLBs on cold run 9062, 1,602 visual meshes
+carried 274 distinct materials between them.
+
+That is what the frame was paying for, and the evidence is that frame cost
+tracked DRAW CALLS and not geometry. Walking the camera on that package:
+1,730 calls -> 9.49 ms, 2,482 -> 8.69 ms, 6,376 -> 25.59 ms, 6,065 -> 27.48
+ms, while primitives stayed near 1.4M throughout and render-CPU ran about
+twice GPU. A second lap over the same ground was no faster, so it was not
+shader compilation either.
+
+`bpylayer/merge.py` packs a module's visual parts into one mesh per material
+at export time. `core/partnames.py` owns the decisions, in pure Python, so
+they can be tested without Blender.
+
+### THE CHUNK IS THE MODULE, AND NO LARGER
+
+Every part of one pack wall enters and leaves view together, so merging
+inside a module costs no culling granularity. Merging ACROSS modules would
+cost exactly that, and is deliberately not done -- `build_dressing`,
+`build_roof_props` and `build_fixtures` pass `merge_parts=False` and each
+carries the line saying why: those collections are a whole BUILDING's covers,
+each already transformed to its own anchor, and packing them by material
+would weld geometry from opposite faces of the building into one bounding box
+that is never off-screen.
+
+The cost of the granularity that IS given up was measured rather than waved
+at. Primitives submitted per frame, six fixed stations, before -> after:
+50,180 -> 49,782; 273,828 -> 273,330; 221,468 -> 222,300; 251,218 ->
+252,046; 33,186 -> 33,238; 86,576 -> 88,130. **The worst is +1.8%**, at the
+station standing closest to a wall, and three of the six went down.
+
+### What it did, on `card_shop_a01`'s 90 modules
+
+    visual mesh nodes    1,602  ->  274      5.85x
+    all glTF nodes       1,682  ->  354
+    collision nodes         62  ->   62      untouched, by name
+    visual triangles    30,130  -> 30,130    asserted, not assumed
+    collision triangles  1,224  ->  1,224
+
+    prop_pack_wall   ..._w240_d50_h255_n2    117 ->  4   4 materials  1,580 tris
+    prop_pennant_row ..._w400_d8_h30_n3       89 -> 13  13 materials    892 tris
+    prop_display_case..._w240_d60_h100_n2     84 ->  6   6 materials  1,108 tris
+    prop_filing_cabinet..._w90_d60_h105       18 ->  1   1 material     792 tris
+
+### The frame, at six fixed stations
+
+1280x720, GL Compatibility, vsync off, 300 frames after 120 discarded, on the
+composed package with the other two buildings standing. The stations are
+derived from the card shop's own world AABB and the box was printed on every
+run -- `pos=-72.175003,-0.250000,-14.345000 size=20.350002,8.000000,18.729599`
+to six decimals on all of them, so the camera provably stood in the same
+place rather than assumedly.
+
+    station        draw calls        mean frame        change
+    exterior_ne    2,574 ->   874    6.85 -> 2.51 ms   -63%
+    exterior_sw    7,154 -> 5,454   22.06 -> 17.53 ms  -21%
+    interior_c     5,253 -> 4,635   16.19 -> 14.28 ms  -12%
+    interior_x     6,014 -> 4,970   18.67 -> 15.52 ms  -17%
+    interior_z     1,791 ->   572    4.28 -> 1.76 ms   -59%
+    wall_close     1,177 ->   932    3.18 -> 2.63 ms   -17%
+
+Each figure is the mean of two independent runs whose spread was under 3.7%.
+The first version of the probe reported 6.067 ms at four of six stations;
+1000/6.067 is 164.8, which is the display's refresh rate and not the scene's
+cost, and it hid the entire result at every cheap station. The numbers above
+are with vsync disabled.
+
+### THE PICTURE MOVES, BY THIS MUCH, AND HERE IS THE NOISE FLOOR IT MOVES IN
+
+It does move, and the honest thing is the figure. Same package, same
+stations, same lighting rig, only the module GLBs swapped -- pixels changed
+by more than 8/255:
+
+    station       merge    1 mm of camera, before    1 mm of camera, after
+    exterior_ne   0.004%   3.767%                    3.768%
+    exterior_sw   0.008%   3.659%                    3.660%
+    interior_c    0.021%   4.757%                    4.725%
+    interior_x    0.555%   3.740%                    3.717%
+    interior_z    0.517%   8.572%                    8.606%
+    wall_close    0.015%   6.481%                    6.499%
+
+Rendering the same build twice changes **0.000%**, so the renderer is
+deterministic and the middle column is not noise in the instrument -- it is
+the picture's own sensitivity to a movement nobody can make on purpose.
+The merge's difference is between a seventh and a nine-hundredth of it, and
+at the two stations where it changes pixels in the thousands rather than the
+dozens, 87% and 77% of them are inside the set a millimetre already flips.
+The jitter figure itself is unchanged before and after, to three decimals,
+so **the merge neither creates nor removes z-fighting**.
+
+What the difference IS: the wood-panelled wall's texture slides by about one
+texel. The textures filter GL_NEAREST, the surfaces are world-projected, and
+`zoo_worldskin._uv_density` decides the projection scale by measuring ONE
+surface and keeping the first it meets -- so a module whose parts were
+re-packed hands it a different surface to measure. On kit modules the scale
+moves by at most 0.011%; at 72 m from the world origin that is still most of
+a texel, and with nearest filtering most of a texel is a whole one.
+
+The estimator was already unstable before any of this: on `card_shop_a01`,
+12 of 132 materials that appear on more than one surface in a module get
+readings that disagree with each other by more than 1%, the widest being the
+display case's art plate at 1.5974 against 1.7455. Which of them is installed
+is decided by traversal order. That is a `level_factory` defect, not a Zoo
+one, and it is reported rather than patched here -- but it was CONFIRMED
+rather than argued: swapping `_uv_density` for a density accumulated over
+every triangle carrying the material, which is invariant to how triangles are
+split across surfaces, halves the merge's pixel difference (`interior_z`
+0.517% -> 0.261%, `exterior_sw` 0.008% -> 0.000%). The other half is ordinary
+resampling in pixels that are already unstable.
+
+A refuted lead is kept because it cost a cycle: Godot's per-mesh LOD
+generation looked like the obvious culprit, since a 1,580-triangle merged
+mesh gets a decimation chain where 117 tiny ones get nothing. Turning
+`meshes/generate_lods` off in all 90 sidecars and re-importing changed the
+figures by less than 0.005 points. It is not LOD.
+
+### What is never merged, each because something downstream reads a name
+
+  * a COLLIDER -- Godot's importer has no collision field and decides from
+    the node-name suffix, and `lot/site_collision.py`, `lot/site_ground.py`,
+    `level_factory/packages/validation/glb_collision.py`, `patina/patina/
+    mesh.py` and Deli Counter's `nav_gate.gd` each re-implement that test.
+    62 collision nodes in, 62 out, name for name, 1,224 triangles either way;
+  * a `Stock_*` part, which `deli_counter/portable_building.py` filters out
+    of a module's measured extent -- its own comment records three 0.75 m
+    desks reading 1.12 m when the stock was left in;
+  * a `_LOD` alternate, which stands in for a part rather than beside it and
+    merged into the base would draw twice;
+  * parts whose UV or colour LAYERS differ, because a part with no `Wear`
+    colours folded into one that has them is written black, not white;
+  * anything carrying a transform, or a colour attribute on a domain this
+    does not know how to copy. Those are REFUSED and reported, not merged
+    and quietly flattened.
+
+Markers are empties and so were never in the mesh pool -- `ATT_tray` and the
+`LuxEmit_*` fixtures ride out in the export set as the same objects, with
+their glTF `extras` intact.
+
+Emissive parts stay separate for free, which is the argument for keying on
+the material rather than on anything else: the vending machine's lit
+`_Face` and `_Lens` are their own materials, so they are their own meshes,
+and Lux still cuts them with the building's power.
+
+### A GROUP OF ONE IS NOT A MERGE
+
+A part that is the only one carrying its material is exported AS ITSELF. One
+surface in, one surface out -- re-packing it removes no draw call, and it
+would cost the part the name `portable_building`, patina and
+`tools/glb_nodes.py` read it by.
+
+This was not foresight. The first version copied every group into a new mesh,
+and `wall_pack` at the `min` genome corner fell over: it names a part
+`WallPack_Lens` and paints it `M_WallPack_Lens`, so the merged name built
+from family plus material slug WAS the part's own name, and because this pass
+is non-destructive the part was still there. Blender resolved it by appending
+`.001`, which would have gone into the glTF node name and made the export
+non-reproducible. The guard that catches a Blender rename refused to build
+the module rather than ship the `.001`, and four `test_coincident_faces`
+species failed with it -- which is the guard doing its job and is why it is
+there. `group_parts` now also takes the names already spoken for.
+
+### Determinism, and the control
+
+Sorted merge order throughout, never hash or link order: the plan is built
+from `sorted(buckets)` and every group's sources are sorted by name. Two
+independent 90-module builds came back **90 of 90 byte-identical**, and
+shuffling the input to `group_parts` eight ways leaves the plan unmoved.
+
+`--no-merge-parts` keeps the pre-1.1.0 packing. It is the measurement
+control, not a shipping mode: every figure above is an A/B whose only
+difference is that flag, same seed, same skins, same commit.
+
+### Non-destructive, and what that buys
+
+The merged objects live in a throwaway collection torn down before
+`export_glb` returns. `gather_facts` still runs first and measures the parts
+a recipe built -- its `fit_names` and `dressing` filters match literal part
+names, so a merge that ran before it would have silently widened every
+module's measured dimensions. `save_blend` still writes the parts, and every
+recipe test that asserts on object names still sees them. `tris`, `parts`,
+`materials`, `dimensions`, `center` and `has_collision` are asserted equal
+with the flag on and off.
+
+One consequence is worth saying out loud because an instrument depends on it:
+`tools/check_coplanar.py` finds z-fighting by looking for coplanar
+overlapping faces drawn from DIFFERENT mesh nodes and skips a plane group
+that comes from one node, so parts merged into one mesh stop being visible to
+it. The geometry is unchanged -- nothing here creates or removes a coincident
+pair -- but that gate goes quiet about intra-module pairs. Zoo's own
+`tools/coplanar_probe.py` compares every triangle against every other
+regardless of which object it came from and runs on the Blender objects
+before this, so the coverage still exists upstream.
+
+### Still on the table: the pennant row is colour variation wearing materials
+
+89 meshes, 892 triangles, and **13 materials that differ in nothing but
+`baseColorFactor`** -- same texture, same everything else. It is 1 batten
+plus 44 felts at 12 triangles and 44 bands at 8.
+
+Merging alone takes it 89 -> 11..13, one mesh per colour, and that is what
+ships here. Moving the tint into the `Wear` colour attribute the parts
+already carry would collapse all 13 materials into one and take it **89 ->
+1**; `zoo_worldskin._vertex_colour_albedo` already draws `COLOR_0` as albedo
+on non-kit GLBs, so the machinery exists. The price is that wear and tint
+then share one channel and cannot be separated again, and that the "all-white
+is left off" rule in that pass stops firing for pennants. A MultiMesh would
+also reach 2 draw calls for the whole row with per-instance colour, which is
+Lot's dressing pattern one shelf along. Left for the walker to choose rather
+than decided here.
+
+### Tests
+
+`tests/test_merge_by_material.py`, 30 of them, every rule above with the
+reason in the docstring. The pure half runs anywhere; the built half asserts
+on real geometry -- collider names on the export set, the marker empty and
+its `extras`, one material per merged object, the triangle total, the
+singleton keeping its own name, and `gather_facts` unmoved.
+
+Suite under Blender 5.1.1: **2,733 passed, 40 skipped, 1 xfailed**. 1.0.0
+run in the same harness for the control: 2,704, 39, 1 -- so the delta is
+exactly 30, the new file, and not one test anywhere else moving.
+
 ## [1.0.0] - the card shop's register is a register now, and its display is lit
 
 The walker photographed `card_shop_a01`'s counter on cold run 9062 and what
