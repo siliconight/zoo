@@ -107,15 +107,21 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
 METALLIC = {"metal": 0.85, "carbon": 0.30,
             "metal_painted": 0.0, "metal_bare": 0.90}
 
-_SKINS = {"dir": None, "theme": "delco"}
+_SKINS = {"dir": None, "theme": "delco", "wet": False}
 
 
-def set_skin_library(skins_dir, theme="delco"):
+def set_skin_library(skins_dir, theme="delco", wet=False):
     """Point the material factory at a folder of Pixelcoat packs. Call
     once per session (the CLI does it when --skins is given); pass None
-    to go back to flat materials."""
+    to go back to flat materials.
+
+    ``wet`` asks every pack for its wet variant. A pack that carries none is
+    unaffected, so this is safe to set for a whole build: only the surfaces
+    whose grammar declared wetness change, and the decision about which those
+    are already lives in the grammar."""
     _SKINS["dir"] = skins_dir
     _SKINS["theme"] = theme
+    _SKINS["wet"] = bool(wet)
 
 
 def get_skin_library():
@@ -128,7 +134,8 @@ def _find_pack(material_kind):
     if not _SKINS["dir"]:
         return None
     from ..core import skins  # pure; imported lazily to keep flat path lean
-    return skins.find_pack(_SKINS["dir"], material_kind, _SKINS["theme"])
+    return skins.find_pack(_SKINS["dir"], material_kind, _SKINS["theme"],
+                           wet=_SKINS["wet"])
 
 
 def make_material(name, base_color, material_kind):
@@ -149,6 +156,15 @@ def make_material(name, base_color, material_kind):
         # textured path, but ONLY when the pack asked for it.
         tint = _tint_key(base_color) if pack.get("tintable") else None
         skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}"
+        # THE NAME CARRIES THE VARIANT, and it has to. This cache is keyed on
+        # the name, so without a suffix a wet and a dry build in one process
+        # would collide and the second would silently get the first's
+        # material. The name also travels into the GLB, where Level Factory's
+        # greybox-skin gate reads it. Only a pack that actually substituted
+        # something is marked, so a wet build does not rename every wall it
+        # left dry.
+        if pack.get("wet"):
+            skin_name += "_wet"
         if tint is not None:
             skin_name += "_" + tint
         mat = bpy.data.materials.get(skin_name)

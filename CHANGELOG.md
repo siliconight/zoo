@@ -1,3 +1,45 @@
+## [1.3.0] - the wet variant gets a chooser
+
+Pixelcoat has written `wet_albedo`, `wet_roughness` and `wetness` into every
+ground pack since 0.47.0 and nothing has read them: `MAP_KEYS` is a fixed
+allow-list and the wet names are not in it. `--wet` is the chooser.
+
+WHERE THE CHOICE IS MADE, and it is the smallest place that works. At
+RESOLUTION time: `load_pack(dir, wet=True)` returns a pack whose `albedo` and
+`roughness` POINT AT the wet files. `bpylayer/materials.py` is untouched --
+the tint path, the see-through path, the UV scaling and the normal wiring all
+carry on reading `maps["albedo"]` and `maps["roughness"]`, and the exporter
+bakes the wet textures into the GLB exactly as it bakes the dry ones.
+
+THAT IS WHAT KEEPS THE DRAW-CALL PROMISE. Level Factory 0.110.0 measured a wet
+`next_pass` at 2.27-4.29 us per ADDED draw call, +8.05 ms at the worst station
+of a real package, because a second pass re-rasterises the same triangles. A
+variant swaps which image a material samples: the resolved MAP COUNT is
+unchanged, so no extra texture slot, no extra material, no extra submission.
+A test asserts the count; the measured half -- a rebuilt package whose draw
+calls read the same as dry -- needs Level Factory to turn this on and is not
+in this release.
+
+A PACK WITH NO WET MAPS IS UNAFFECTED, asked or not, and that is what makes a
+whole-build flag safe. Walls, glass and interiors carry none, so `--wet`
+dresses the ground and leaves the rest alone without anybody listing which is
+which. Which surfaces are wet is the grammar's decision and restating it here
+would be a second place to get it wrong.
+
+THE MATERIAL NAME CARRIES THE VARIANT, and it has to. `make_material` caches
+on `M_Skin_<kind>_<theme>`, so without a suffix a wet and a dry build in one
+process would collide and the second would silently get the first's material.
+The name also travels into the GLB, where Level Factory's greybox-skin gate
+reads it. Wet materials are `M_Skin_<kind>_<theme>_wet`, and only a pack that
+actually substituted something is renamed -- a wet build does not rename every
+wall it left dry.
+
+A wet map NAMED in a manifest but absent from disk is not substituted; the dry
+map stands. Same rule the dry maps already follow, same reason.
+
+`tests/test_wet_chooser.py`, 11 tests, all 11 failing against the unfixed
+resolver. Suite 2,513 passing.
+
 ## [1.2.0] - a pack texture is one file, not sixty copies
 
 Cold run 9066's shipped package carries **961 embedded images across 215 GLBs,

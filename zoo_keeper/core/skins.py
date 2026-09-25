@@ -34,6 +34,13 @@ import os
 PACK_SCHEMA = "pixelcoat-pack/1"
 MAP_KEYS = ("albedo", "normal", "roughness", "emissive", "height")
 
+#: The wet variant Pixelcoat >= 0.47.0 writes beside the dry maps, and which
+#: `map` it stands in for. Resolved only when a caller asks for wet; a pack
+#: without them is returned unchanged, which is how a wet build dresses the
+#: ground and leaves walls and glass alone without anybody listing which is
+#: which. The decision is already in the grammar.
+WET_SUBSTITUTIONS = {"albedo": "wet_albedo", "roughness": "wet_roughness"}
+
 # THE KIND VOCABULARY. Keep in sync with bpylayer.materials.ROUGHNESS.
 #
 # That instruction sat here as a comment with nothing enforcing it, and three
@@ -134,21 +141,25 @@ def is_see_through(pack: dict | None) -> bool:
 
 
 def find_pack(skins_dir: str, material_kind: str,
-              theme: str = "delco") -> dict | None:
+              theme: str = "delco", wet: bool = False) -> dict | None:
     """Resolve a pack for (kind, theme). Returns a pack dict (see
-    ``load_pack``) or None when nothing matches."""
+    ``load_pack``) or None when nothing matches.
+
+    ``wet`` asks for the wet variant. A pack that carries none is returned
+    unchanged, so this is safe to set for a whole build: only the surfaces
+    whose grammar declared wetness change."""
     if not skins_dir:
         return None
     for name in (f"{material_kind}_{theme}", material_kind):
         d = os.path.join(skins_dir, name)
         if os.path.isdir(d):
-            pack = load_pack(d)
+            pack = load_pack(d, wet=wet)
             if pack:
                 return pack
     return None
 
 
-def load_pack(pack_dir: str) -> dict | None:
+def load_pack(pack_dir: str, wet: bool = False) -> dict | None:
     """Read one pack directory.
 
     With a ``*.pack.json`` manifest (Pixelcoat >= 0.2): map paths resolve
@@ -176,9 +187,14 @@ def load_pack(pack_dir: str) -> dict | None:
         if "albedo" not in maps:
             raise ValueError(
                 f"{manifests[0]}: pack manifest names no existing albedo")
+        wet_used = _apply_wet(maps, raw, pack_dir) if wet else ()
         return {"id": raw.get("asset_id") or os.path.basename(pack_dir),
                 "dir": os.path.abspath(pack_dir),
                 "maps": maps,
+                # WHICH dry maps were replaced, empty when none were. A caller
+                # that must not silently ship the dry surface can check this
+                # rather than infer it from the id.
+                "wet": tuple(wet_used),
                 "meters_per_tile": float(raw.get("meters_per_tile") or 1.0),
                 "tileable": raw.get("tileable"),
                 # ACHROMATIC-BY-INTENT (Pixelcoat >= 0.13). The pack says its
@@ -201,6 +217,32 @@ def load_pack(pack_dir: str) -> dict | None:
             "meters_per_tile": 1.0, "tileable": None, "tintable": False,
             # a bare Pixelcoat 0.1 folder has no manifest to carry a hint
             "transparency": None}
+
+
+def _apply_wet(maps: dict, raw: dict, pack_dir: str) -> list:
+    """Point `albedo` and `roughness` at the pack's wet files, in place.
+
+    Returns the dry keys that were replaced. A map named in the manifest whose
+    FILE is absent is not substituted -- the same rule the dry maps already
+    follow two lines above, and the reason is the same: a pack that names a
+    file it did not write should fall back to what it has rather than resolve
+    to a missing path.
+
+    The pack keeps its id and its `meters_per_tile`; only which image the
+    material samples changes. That is what makes this free in draw calls.
+    """
+    used = []
+    named = raw.get("maps") or {}
+    for dry_key, wet_key in WET_SUBSTITUTIONS.items():
+        fname = named.get(wet_key)
+        if not fname:
+            continue
+        path = os.path.join(pack_dir, fname)
+        if not os.path.isfile(path):
+            continue
+        maps[dry_key] = os.path.abspath(path)
+        used.append(dry_key)
+    return used
 
 
 def library_report(skins_dir: str, theme: str = "delco",

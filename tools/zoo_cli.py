@@ -145,6 +145,16 @@ def parse_args():
                          "flat vertex color — the art pass is progressive. "
                          "Without Blender, --skins alone prints the resolved "
                          "library and exits.")
+    ap.add_argument("--wet", action="store_true",
+                    help="dress every surface whose pack carries a wet "
+                         "variant with it (Pixelcoat >= 0.47.0 writes one for "
+                         "the ground grammars). A pack without wet maps is "
+                         "unaffected, so this is safe to set for a whole "
+                         "build -- which surfaces are wet is the grammar's "
+                         "decision, not a list here. Wet materials are named "
+                         "M_Skin_<kind>_<theme>_wet. Costs no extra draw "
+                         "calls: it changes which texture a material samples, "
+                         "not how many materials there are.")
     ap.add_argument("--style", type=int, default=1,
                     help="style number for module filenames (default: 1)")
     return ap.parse_args(argv)
@@ -559,7 +569,8 @@ def main():
         args.skins = os.path.abspath(args.skins)
         if HAS_BPY:
             from zoo_keeper.bpylayer import materials
-            materials.set_skin_library(args.skins, args.theme)
+            materials.set_skin_library(args.skins, args.theme,
+                                       wet=args.wet)
         else:
             from zoo_keeper.core import skins
             print(json.dumps(skins.library_report(args.skins, args.theme),
