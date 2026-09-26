@@ -708,11 +708,17 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
             sp_plan["dimensions"]["height"] = fixtures_mod.pole_height_for(
                 p["pos"][2], genome["dimensions"]["height"])
         if p.get("size"):
-            # DC sized the panel (signs): width x height, clamped to genome.
+            # WHICH SECOND AXIS `size` MEANS (v1.5). Every sized placement
+            # before the canopy was a sign PANEL -- width x height -- and a
+            # canopy is a DECK, width x depth. Reading a 13 m deck as a height
+            # would clamp to the genome's 0.5 and build a fixture nobody meant.
+            # The flag comes from the FIXTURES row, so the anchor never has to
+            # say which it is.
             sp_plan["dimensions"]["width"] = fixtures_mod.clamp_dim(
                 p["size"][0], genome["dimensions"]["width"])
-            sp_plan["dimensions"]["height"] = fixtures_mod.clamp_dim(
-                p["size"][1], genome["dimensions"]["height"])
+            _second = "depth" if p.get("size_is_footprint") else "height"
+            sp_plan["dimensions"][_second] = fixtures_mod.clamp_dim(
+                p["size"][1], genome["dimensions"][_second])
         # Recipes with per-anchor resolution needs (sign pack picks) key on
         # the anchor id — stable across rebuilds, unique across the site.
         sp_plan["anchor_id"] = p["anchor_id"]

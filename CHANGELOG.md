@@ -1,3 +1,55 @@
+## [1.5.0] - the canopy's grid is built, and `size` stops meaning two things
+
+COLD RUN 9081 EXPORTED A PACKAGE WITH NO CANOPY LIGHT IN IT, and said so
+plainly in `zoo_fixtures_build.gas_station_a02`'s own report:
+
+    {'id': 'canopy_roof_lights', 'type': 'canopy_lights',
+     'reason': 'no fixture species for this type'}
+
+Level Factory turned that into a validation finding with the count, the type
+names and the owner -- `ZOO_CAPABILITY_GAP: 4 light anchor(s) of type
+canopy_lights, canopy_wash ... owner=zoo`. NOTHING WAS SILENT. The finding was
+raised and nobody read it, because a run prints "0 blockers, 58 findings" and a
+new capability gap is one of the 58.
+
+TWO PROBLEMS WORE ONE MESSAGE, and they needed opposite answers:
+
+  * `canopy_lights` HAS had a species since 1.4.0 and was missing its
+    `FIXTURES` row -- the defect the `pendant` row above it already records in
+    its own comment, "every basement was silently dark".
+  * `canopy_wash` has no hardware and never will. It is a light POSITION, the
+    way `club_wash` is a pool, so "no fixture species for this type" was a
+    truth about the table and a lie about the anchor. It joins
+    `HARDWARE_ELSEWHERE` with a reason that says where its light actually
+    comes from.
+
+The canopy row carries `marker: False` for the reason the club rows do,
+arrived at from the other end: a marker makes `LuxFixtureSpawner` put a LAMP at
+the anchor, the grid holds 12 to 24 of them, and every one would reach the
+forecourt ground mesh against a `max_lights_per_object` of 8.
+
+`size` MEANT TWO THINGS AND ONLY ONE WAS WRITTEN DOWN. `plan` has copied an
+anchor's `size` onto every placement since signs needed it, and the builder has
+read it as width x HEIGHT -- correct, because every sized placement until now
+was a sign panel. A canopy's size is a FOOTPRINT. Read as a height, a 13 m deck
+clamps to the genome's 0.5 m and builds a fixture nobody meant. The row now
+says which it is (`sized: True` -> `size_is_footprint` on the placement) and the
+builder branches on that rather than on luck. Measured on the real manifest:
+`gas_station_a02`'s deck arrives as [22.0, 13.0] and the species lays a 6 x 4
+grid instead of its genome default.
+
+FOUND BY WRITING THE TEST FIRST AND BEING WRONG. The new coverage test's first
+assertion was that a non-canopy placement carries no `size` at all. It does,
+and always has; the test failed, and the collision above is what the failure
+was pointing at. The assertion now pins what the code actually does.
+
+`tests/test_fixture_type_coverage.py` is the guard that would have saved the
+run: every anchor type Deli Counter emits must be accounted for by a `FIXTURES`
+row, a `DAYLIGHT` entry or a `HARDWARE_ELSEWHERE` entry. A fourth state, where
+nobody chose, builds nothing and reads on screen as a dark room. It fails at
+commit time rather than reporting at run time, and it skips rather than guesses
+when there is no `deli_counter/build` beside the checkout.
+
 ## [1.4.0] - a fuel canopy gets its lights
 
 MEASURED FIRST. Cold run 9080's package, read 2026-09-26: the forecourt canopy

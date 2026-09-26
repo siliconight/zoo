@@ -84,6 +84,26 @@ FIXTURES = {
                   "params": {"form": "can"}},
     "stage_light": {"species": "club_fixture", "mount": "hang",
                     "marker": False, "params": {"form": "par"}, "aim": True},
+    # v1.5 THE FUEL CANOPY (DC light manifest v1.3). ONE placement covers the
+    # whole deck: the species lays the lamp grid inside a single pair of
+    # meshes, so a 24 x 10 m canopy is two draw calls rather than two per
+    # lamp. `mount: above` puts the recipe's bottom -- the lit lens face --
+    # at the anchor, which Deli Counter writes at the soffit, and the housing
+    # rises into the deck above it.
+    #
+    # `marker: False` for the same reason the club rows carry it, reached from
+    # the other direction. A marker would make LuxFixtureSpawner put a LAMP
+    # here, and the grid holds 12 to 24 of them; every one would reach the
+    # forecourt ground mesh against a `max_lights_per_object` of 8 on the
+    # renderer packages ship on. The lenses are emissive and light nothing.
+    # The light is `canopy_wash`, below.
+    #
+    # `sized: True` is new and this is the only row that needs it. The
+    # species' dimensions are the DECK, not a fixture, so the anchor's `size`
+    # has to reach the recipe -- a placement that drops it builds the genome's
+    # default deck on every canopy there is.
+    "canopy_lights": {"species": "canopy_lights", "mount": "above",
+                      "marker": False, "sized": True},
 }
 
 # anchor types that are light without hardware, by design.
@@ -98,6 +118,13 @@ HARDWARE_ELSEWHERE = {
     "neon": "the sign it is mounted on (species sign_box)",
     "back_bar": "the bar's own bulbs and porthole (species back_bar)",
     "room_ambient": "a probe, not a lamp -- nothing to build",
+    # v1.5: a canopy wash is a light POSITION under a fuel canopy and has no
+    # hardware at all -- the lamps a player sees are the emissive grid the
+    # `canopy_lights` row above builds. Cold run 9081 reported it as "no
+    # fixture species for this type", which was true of the table and a lie
+    # about the anchor, and this is the distinction that line exists to draw.
+    "canopy_wash": ("the canopy's own lamp grid (species canopy_lights); "
+                    "its light is on the manifest bake"),
 }
 
 # Emitter marker contract (v0.30): every placement's EMITTER point (the
@@ -242,6 +269,14 @@ def plan(manifest: dict, types=None) -> dict:
                 # otherwise does, so nothing above this changes.
                 "marker": bool(fx.get("marker", True)),
             }
+            # v1.5: WHICH TWO AXES `size` MEANS, which was never ambiguous
+            # until now. Every sized row before this one is a SIGN PANEL, so
+            # the builder has always read `size` as width x HEIGHT. A canopy's
+            # size is a FOOTPRINT -- width x DEPTH -- and reading it as height
+            # would try to build a 13 m tall fixture. The copy itself is
+            # already done below for every placement; only the meaning is new.
+            if fx.get("sized"):
+                placement["size_is_footprint"] = True
             if fx.get("params"):
                 placement["params"] = dict(fx["params"])
             if fx.get("aim"):
