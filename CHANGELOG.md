@@ -1,3 +1,65 @@
+## [1.4.0] - a fuel canopy gets its lights
+
+MEASURED FIRST. Cold run 9080's package, read 2026-09-26: the forecourt canopy
+is 22 x 13 m on six columns with three pump islands under it, and of the 20 Lux
+fixture holders within 45 m every one sits on the SHOP between world x 58.7 and
+81.3. The canopy spans 81 to 103. Nothing was over it -- Zoo had
+`pendant_fixture`, `fluorescent_fixture`, `club_fixture` and `sign_box`, and no
+species that goes on a canopy soffit. Lux lit what it was given; this was never
+a Lux defect.
+
+In every reference the walker supplied the canopy IS the light source for the
+forecourt, and the tarmac is lit by it rather than by street lighting.
+
+ONE PROP FOR THE WHOLE GRID, WHICH IS THE DESIGN AND NOT AN OPTIMISATION. A
+fixture species placed once per anchor costs two draw calls per lamp, a lens
+and a housing, so the authored 24 x 10 m deck would submit 42. `canopy_lights`
+takes the deck's FOOTPRINT as its dimensions and lays every lamp inside one
+pair of meshes: 21 lamps, 2 draw calls. That is this repo's own merge rule
+applied to a thing whose parts are always seen together -- a soffit is looked
+at as one surface or not at all.
+
+    span 24.0 m -> 7 units, pitch 3.43 m    the authored canopy_roof size_x
+    span 10.0 m -> 3 units, pitch 3.33 m    its size_y
+    span 22.0 m -> 6 units                  the canopy measured on 9080
+    span 13.0 m -> 4 units
+    span  4.0 m -> 2 units                  the floor: never one lonely lamp
+
+Pitch is derived from the span at one unit per 3.5 m, not chosen.
+
+NO LIGHTS IN IT, AND THAT IS THE WALKER'S CALL. `max_lights_per_object` is 8 on
+GL Compatibility and a literal 12-20 fixture grid would put every one of them
+on the forecourt ground mesh -- the surface that fills the frame when a player
+stands under it. The three options were put to the walker with their costs
+stated; the answer was "emissive soffit and a few lights". So the lenses are
+emissive geometry costing no light at all, and the real illumination will come
+from a handful of wash anchors placed separately.
+
+THE LENS IS 2 cm PROUD of the soffit plane. A lit face flush with the deck it
+sits in is a coplanar pair by construction, and cold run 9080's package already
+carries a `PRESENTATION_ZFIGHT` finding. There is a test pinning it.
+
+COOL, NOT WARM: emissive (0.80, 0.95, 0.88). Every night reference reads
+green-cyan, which is what metal halide and fluorescent look like on film. A
+warm canopy would date the forecourt wrong as surely as a digital pump display.
+
+CENSUS RUN, NOT ASSUMED. `blender -b --python tools/coplanar_census.py --
+--species canopy_lights` on Blender 5.1.1 (b70da489d7f4): "3 builds, 0 with
+coincident pairs, 0 that did not build", measuring 224 / 1176 / 3024 tris at
+min / default / max. `CENSUS_BUILDS` moves 315 -> 318 on the strength of that
+run rather than on arithmetic, which is what the constant's own comment demands.
+
+THE BUDGET CAME FROM THE CENSUS, and the first guess was wrong. `tris_lod0` was
+authored at 900 from an estimate of 504 -- 42 boxes at 12 triangles -- and the
+census measured 1176 at the default because `bm_to_object` bevels. Set to 1300:
+a regression detector at the authored size with headroom, NOT a cap, because
+this species' triangle count scales with the deck it covers. A max-size deck
+exceeds it and that is the species working.
+
+Registered in `genome/minted.json`, and its material options are `metal|plastic`
+to match `fluorescent_fixture` -- the sibling species, the same object outdoors
+-- rather than offering a split metal kind the recipe never uses.
+
 ## [1.3.0] - the wet variant gets a chooser
 
 Pixelcoat has written `wet_albedo`, `wet_roughness` and `wetness` into every

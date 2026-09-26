@@ -1,0 +1,139 @@
+{
+ "species": "canopy_lights",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. The recessed downlight grid in a fuel canopy's soffit: flush square pans with emissive lenses, laid out across the WHOLE deck by one prop rather than one prop per lamp, so a 24 x 10 m canopy costs two draw calls instead of two per unit. Dimensions are the canopy footprint, not one fixture. The lenses are emissive geometry only: max_lights_per_object is 8 on GL Compatibility and a literal fixture grid would put every light on the forecourt ground mesh, so the real illumination comes from a few wash anchors placed separately. Census 2026-09-26, Blender 5.1.1 (b70da489d7f4): min 6.0x4.0x0.15 224 tris, default 24.0x10.0x0.3 1176 tris, max 30.0x20.0x0.5 3024 tris, 0 coincident pairs at all three. The budget is set at the DEFAULT with headroom and is a regression detector, not a cap: this species' triangle count scales with the deck it covers, because the lamp count does. A max-size deck exceeds it and that is the species working."
+ },
+ "dimensions": {
+  "width": {
+   "min": 6.0,
+   "max": 30.0,
+   "default": 24.0
+  },
+  "depth": {
+   "min": 4.0,
+   "max": 20.0,
+   "default": 10.0
+  },
+  "height": {
+   "min": 0.15,
+   "max": 0.5,
+   "default": 0.3
+  }
+ },
+ "parts": [
+  "CanopyLights_Lens",
+  "CanopyLights_Housing"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.86,
+    0.87,
+    0.85
+   ],
+   "wear": 0.14,
+   "bevel": 0.004,
+   "emissive_color": [
+    0.8,
+    0.95,
+    0.88
+   ],
+   "emissive_strength": 3.0
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.82,
+    0.82,
+    0.79
+   ],
+   "wear": 0.34,
+   "bevel": 0.004,
+   "emissive_color": [
+    0.8,
+    0.95,
+    0.88
+   ],
+   "emissive_strength": 3.0
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.84,
+    0.85,
+    0.86
+   ],
+   "wear": 0.12,
+   "bevel": 0.004,
+   "emissive_color": [
+    0.82,
+    0.95,
+    0.9
+   ],
+   "emissive_strength": 3.0,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.72,
+    0.69,
+    0.67
+   ],
+   "wear": 0.5,
+   "bevel": 0.004,
+   "emissive_color": [
+    0.78,
+    0.93,
+    0.85
+   ],
+   "emissive_strength": 2.6,
+   "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.81,
+    0.86,
+    0.89
+   ],
+   "wear": 0.3,
+   "bevel": 0.004,
+   "emissive_color": [
+    0.82,
+    0.95,
+    0.9
+   ],
+   "emissive_strength": 3.2
+  }
+ },
+ "budgets": {
+  "tris_lod0": 1300
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "ceiling"
+  }
+ },
+ "keywords": [
+  "canopy lights",
+  "canopy_lights",
+  "canopy downlight",
+  "forecourt lights",
+  "soffit light",
+  "pump canopy light"
+ ]
+}
