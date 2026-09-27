@@ -19,7 +19,11 @@ plan with the real recipes. The placement math mirrors Lux's rigs on purpose:
 * per fixture kind the hardware hangs above or below the emitter:
   ``fluorescent`` mounts ABOVE (the housing fills DC's 0.1 m ceiling gap,
   diffuser face at pos); ``streetlight`` mounts BELOW (pole top at pos,
-  dropping to grade at z=0 — Lot writes pole-top anchors at z=6).
+  dropping to grade at z=0).
+* an anchor carrying ``hardware`` already has its lamp in the scene and
+  names it; it is skipped with that reason. Lot 0.79.0 derives every site
+  streetlight anchor from the pole its own kit stands, so building the
+  species again would put a second pole inside the first.
 
 ``window`` anchors are daylight through glass — no hardware to build.
 ``sun`` belongs to the preset / SkyMint. Unknown types are reported in the
@@ -235,6 +239,19 @@ def plan(manifest: dict, types=None) -> dict:
             skipped.append({"id": aid, "type": t,
                             "reason": "hardware built elsewhere: %s"
                                       % HARDWARE_ELSEWHERE[t]})
+            continue
+        # THIS ANCHOR'S LAMP IS ALREADY STANDING. `HARDWARE_ELSEWHERE` is a
+        # rule about a TYPE; this is one anchor saying that the thing the
+        # light appears to come from exists in the scene already and naming
+        # it. Lot 0.79.0 derives each `streetlight` anchor from the pole
+        # `site_furniture` stands and tags it `"hardware": "slot:cover_12"`,
+        # so building the species here would put a second pole inside the
+        # first. The same type on a manifest with no such tag still gets
+        # its hardware, which is what a building's own anchors want.
+        if a.get("hardware"):
+            skipped.append({"id": aid, "type": t,
+                            "reason": "hardware already placed: %s"
+                                      % str(a.get("hardware"))})
             continue
         fx = FIXTURES.get(t)
         if fx is None:

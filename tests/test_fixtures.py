@@ -478,3 +478,22 @@ def test_bpy_a_par_can_leans_at_its_target_and_hangs_below_the_ceiling(tmp_path)
     # and it really is off plumb: a can hanging straight down would be
     # symmetric about its anchor to the millimetre
     assert (6.0 - min(xs)) - (max(xs) - 6.0) > 0.2, (min(xs), max(xs))
+
+
+def test_an_anchor_that_already_has_hardware_gets_none_built():
+    """Lot 0.79.0 derives each `streetlight` anchor from the POLE
+    `site_furniture` stands and tags it with the slot that stands it. Without
+    a reader for that tag, a site-level fixture job would build a second pole
+    inside the first -- so the tag is honoured here and the reason recorded,
+    rather than left as a note nothing reads."""
+    a = _street()
+    a["hardware"] = "slot:cover_12"
+    plan = fixtures.plan(_manifest([a], scope=("site", "rockay")))
+    assert plan["placements"] == []
+    (sk,) = plan["skipped"]
+    assert sk["id"] == a["id"] and sk["type"] == "streetlight"
+    assert "already placed" in sk["reason"] and "slot:cover_12" in sk["reason"]
+    # and the SAME type with no tag still gets its pole: this is a fact about
+    # one anchor, not a rule about streetlights
+    plain = fixtures.plan(_manifest([_street()], scope=("site", "rockay")))
+    assert plain["placements"] and plain["skipped"] == []

@@ -1,3 +1,28 @@
+## [1.6.0] - an anchor that already has a lamp does not get another
+
+Lot 0.79.0 derives each site `streetlight` light anchor from the POLE
+`site_furniture` stands, so pole and light are coincident by construction
+instead of 24.93 m apart (the median measured on cold run 9087's walk copy;
+0 of 54 lights had a pole within a metre). That makes
+`FIXTURES["streetlight"]` a hazard rather than a service: given the same
+manifest, a site-level fixture job would stand a second pole inside the
+first.
+
+The manifest now says so per anchor -- `"hardware": "slot:cover_12"` -- and
+`plan` skips it with that reason recorded. It is a fact about ONE ANCHOR, not
+a rule about a type: `HARDWARE_ELSEWHERE` already covers the type case, and a
+`streetlight` anchor without the tag still gets its pole, which is what a
+building's own anchors want.
+
+`tests/test_streetlight_lens_drop.py` is new and is the other half of the
+coupling: Lot places its light 0.175 m below the top of an exact-fit
+streetlight module, which is where `recipes/streetlight.py` puts the emissive
+lens (pole top at `h/2 - 0.18`, head filling the last 0.18, lens protruding
+to `h/2 - 0.175`). It is a SOURCE check on those literals, not a measurement,
+and it reads `../lot/lot.py` for the matching constant when the factory
+workspace is around it -- so moving the lens fails here rather than silently
+burying a site's street lighting inside 48 shoeboxes.
+
 ## [1.5.0] - the canopy's grid is built, and `size` stops meaning two things
 
 COLD RUN 9081 EXPORTED A PACKAGE WITH NO CANOPY LIGHT IN IT, and said so
