@@ -1,0 +1,133 @@
+{
+ "species": "cooler_run",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.12.0. The convenience store's reach-in cooler wall, from the walker's store references (docs/SET_DRESSING_REFERENCES.md 2026-09-15: 'a full back wall of glass-door reach-in coolers (drinks, milk jugs, juice), lit from inside, with a sign band above') and 'we also want glowing fridge lights' (2026-09-28). A run of glass doors on black frames with handles, steel shelves behind, product panels, a fluorescent tube down every mullion, and a sign band a pair of doors per section. The glow is emission, not light: products, tubes and sign band are ONE backlit material on ONE image (M_Cooler_<art>_Face, Lux's power cut takes it). Three submissions whatever the length: painted steel (colour in the Wear vertex colour), glass, glow. A slot deeper than the ~0.9 m cabinet gets the walk-in's plain body behind it. Every drink is an invented brand from core/brands.py. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.6,
+   "max": 12.0,
+   "default": 5.2
+  },
+  "depth": {
+   "min": 0.7,
+   "max": 3.0,
+   "default": 0.9
+  },
+  "height": {
+   "min": 1.9,
+   "max": 2.6,
+   "default": 2.2
+  }
+ },
+ "parts": [
+  "Cooler_Kick",
+  "Cooler_Header",
+  "Cooler_Cabinet",
+  "Cooler_Body",
+  "Cooler_Mullion",
+  "Cooler_Door",
+  "Cooler_Glass",
+  "Cooler_Handle",
+  "Cooler_Shelf",
+  "Cooler_Glow"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted",
+   "glass"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.78,
+    0.79,
+    0.8
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 4000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "cooler run",
+  "reach-in cooler",
+  "cooler wall",
+  "drink cooler",
+  "reach in cooler"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

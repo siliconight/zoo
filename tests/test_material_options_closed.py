@@ -47,6 +47,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # body is enamelled sheet steel; their chrome and brass trim is a
            # constant in each recipe (0.91.0)
            "dartboard", "cigarette_machine",
+           # a reach-in cooler's cabinet, frames, shelves and handles are
+           # enamelled steel, their colours in the vertex (1.12.0)
+           "cooler_run",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter

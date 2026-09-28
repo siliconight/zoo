@@ -49,7 +49,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "cash_register",
                 # the convenience store's coffee island (1.9.0): brewers,
                 # carafes, cups, syrups and the round sign, five submissions
-                "coffee_island"}
+                "coffee_island",
+                # the reach-in cooler wall (1.12.0): glass doors, shelves, and
+                # the products, tubes and sign band glowing on one image
+                "cooler_run"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

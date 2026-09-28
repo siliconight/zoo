@@ -1,3 +1,45 @@
+## [1.12.0] - the reach-in cooler wall, glowing
+
+New species `cooler_run`. The walker, 2026-09-28: "do the cooler wall next",
+then "we also want glowing fridge lights"; the reference is the store's
+"full back wall of glass-door reach-in coolers (drinks, milk jugs, juice),
+lit from inside, with a sign band above".
+
+WHAT IS BUILT (`core/cooler_run_forms.py`, pure, tested without Blender): a
+run of glass doors on black frames with handles, steel shelves behind each,
+a product panel a door (soda, cans, milk, juice and tea -- every drink an
+invented brand from `core/brands.py`), a fluorescent tube down every
+mullion and both ends, and a sign band across the header, one section a
+pair of doors ("ICE COLD DRINKS", "DAIRY", "BOTTLED WATER", "JUICE & TEA",
+"COLD SODA") lettered in `small_caps_bold` -- the first recipe to letter in
+one of 1.10.0's faces. Deli Counter's `cooler_run` volume is 2.8 m deep
+against a cabinet's 0.9, so the cabinet is the front of the slot and the
+walk-in's plain body fills the rest: the slot is filled exactly.
+
+GLOWING WITHOUT A LIGHT. The products, the tubes and the sign band are ONE
+backlit material (`M_Cooler_<art>_Face`, Lux's power cut takes it) on ONE
+image, at emission 1.0 -- double the cigarette rack's measured-faint 0.5,
+to be judged on the walk. It costs no light and nothing the eight-lights
+rule counts. Light SPILLING onto the floor would need real lights and is
+not built; it is priced separately when asked for.
+
+THREE SUBMISSIONS WHATEVER THE LENGTH: painted steel (colour in the vertex),
+the glass, the glow. `test_bpy_three_submissions_and_the_glow_is_the_lit_one`.
+
+MEASURED ON THE WAY: the planner's coincident-face check found 15 pairs a
+build on the first cut -- the carcass's parts all ending at one back plane,
+the header and kick sharing the end posts' outer planes, door rails 1 mm off
+the kick and header, the tubes and panels meeting the mullions and end posts
+face to face, the shelves 2 mm off the tubes -- and each was fixed at its
+source, not by moving the probe. The first cut also stood the handles 5 cm
+proud of the slot, which fails a fit: the door plane is set back so the
+handles end exactly at its front. Census: 3 builds, 0 pairs (488 / 1,564 /
+3,288 triangles); `CENSUS_BUILDS` 321 -> 324; audited genome count 81 -> 82.
+
+A render at 20 degrees showed each door's products in its right two
+thirds; square-on they fill it. That is the 0.55 m between the glass and the
+panel, parallax, as a real cooler has -- recorded so nobody "fixes" it.
+
 ## [1.11.0] - m5x7 and monogram: nine pixel faces
 
 Pixelcoat 0.53.0 vendors two more CC0 families beside Pixel Operator --

@@ -351,7 +351,12 @@ DID_NOT_BUILD = {"boots"}
 #: `RESIDUE` nor the 3009 below moves. Its corners built at 3,796 / 4,692 /
 #: 10,836 tris (1.9.1: a carafe a brewer and a couple on the burner row), and
 #: the last is where its genome budget came from.
-CENSUS_BUILDS = 321
+#: 1.12.0: `cooler_run`, three builds more, same tool, same Blender: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (488 / 1,564 /
+#: 3,288 tris), so it lands in `clean` and neither `RESIDUE` nor the 3009
+#: moves. The planner's own check had found 15 pairs a build first and each
+#: was fixed at its source (docs in `core/cooler_run_forms.py`).
+CENSUS_BUILDS = 324
 
 
 def test_the_census_covers_every_species_there_is():
