@@ -46,6 +46,8 @@ from __future__ import annotations
 from ..bpylayer import geometry, materials, prim_mesh
 from ..core import back_bar_forms as BB
 from ..core import cigarette_forms as CF
+from ..core import counter_register as CREG
+from ..core import register_forms as RF
 from ..core import service_counter_forms as SC
 from ._bays import bay_max_of, bays
 
@@ -53,6 +55,38 @@ from ._bays import bay_max_of, bays
 REGISTER_CLEAR = 0.22
 
 FORMS = ("straight", "bar")
+
+
+def _vfd(prims, plan, collection, streams):
+    """Every register window on this counter as ONE object on ONE backlit
+    image, ``M_Counter_VFD_<art>_Face`` (Lux's power cut takes it), at the
+    `cash_register` species' own screen strength (1.16.0). Each face corner
+    is ``(region, u, v)`` into the display image, or ``("bezel",)``."""
+    if not prims:
+        return [], None
+    A = CREG.art(RF.pick_price(plan, streams))
+    W, H = A["size"]
+    mat = materials.make_backlit_material(
+        f"M_Counter_VFD_{A['name']}_Face", materials.image_from_png(A["name"], A["canvas"].png()),
+        RF.SCREEN_EMISSION, RF.SCREEN_ALBEDO)
+    bm = geometry.new_bm()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for p in prims:
+        vs = [bm.verts.new(v) for v in p["verts"]]
+        for f, corners in zip(p["faces"], p["uvs"]):
+            face = bm.faces.new([vs[i] for i in f])
+            for loop, c in zip(face.loops, corners):
+                x0, y0, x1, y1 = A["rects"][c[0]]
+                if len(c) == 1:
+                    loop[uv].uv = ((x0 + x1) / 2.0 / W, 1.0 - (y0 + y1) / 2.0 / H)
+                else:
+                    loop[uv].uv = ((x0 + (x1 - x0) * c[1]) / W, 1.0 - (y1 - (y1 - y0) * c[2]) / H)
+    bm.normal_update()
+    geometry.shade_by_angle(bm, 1.0)
+    geometry.wear_colors(bm, streams.stream("counter_vfd"), 0.0)
+    obj = geometry.bm_to_object(bm, "Counter_RegisterScreen", collection, finish=False)
+    obj.data.materials.append(mat)
+    return [obj], A
 
 
 def _darker(c, f=0.6):
@@ -227,8 +261,9 @@ def build(plan, streams, collection):
         }
         fit_objs = prim_mesh.build(inside, collection, plan,
                                    streams.stream("bar_fitout"), mats, texel=1.0)
-        top_objs = prim_mesh.build(on_top, collection, plan,
+        top_objs = prim_mesh.build([p for p in on_top if p["mat"] != "vfd"], collection, plan,
                                    streams.stream("bar_fitout"), mats, texel=1.0)
+        top_objs += _vfd([p for p in on_top if p["mat"] == "vfd"], plan, collection, streams)[0]
         print(f"[counter] form=bar rail_posts={sum(1 for p in inside) - 1} "
               f"taps={sum(1 for p in on_top if p['part'] == 'Counter_TapTower') // 2} "
               f"registers={sum(1 for p in on_top if p['part'] == 'Counter_Register') // 2}")
@@ -271,8 +306,10 @@ def build(plan, streams, collection):
                                                   CF.HEADER_EMISSION, CF.HEADER_ALBEDO)
             paint = materials.make_painted_material(f"M_Counter_CigRack_{R['name']}_Display",
                                                     image, CF.DISPLAY_ROUGHNESS)
-            art_p = next(q for q in on_top if "uvs" in q)
+            # the rack's art, not a register window: both carry ``uvs``
+            art_p = next(q for q in on_top if "uvs" in q and q["mat"] != "vfd")
             top_objs.append(_art_face(art_p, R, paint, lit, collection, streams))
+        top_objs += _vfd([p for p in on_top if p["mat"] == "vfd"], plan, collection, streams)[0]
         # WHITE LAMINATE, whatever the slot said. The reference's counter is
         # white laminate under checkerboard trim, and the form is the look;
         # a Deli Counter prop arrives as `wood` by default and would build a

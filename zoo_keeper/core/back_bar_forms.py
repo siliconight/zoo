@@ -65,6 +65,7 @@ from __future__ import annotations
 import math
 
 from . import back_bar_art as ART
+from . import counter_register as CREG
 from . import liquor_brands as LB
 from . import prims as P
 
@@ -599,16 +600,20 @@ TAP_R = 0.032
 TAP_HANDLE_H = 0.11
 #: The register: a beige box with a raised keyboard deck and a display on a
 #: stalk, 1997 and not a touch terminal. It stands at an ``ATT_register``
-#: station, inside `REGISTER_CLEAR`.
-REG_W = 0.30
-REG_D = 0.34
-REG_H = 0.12
-REG_SCREEN_H = 0.13
+#: station, inside `REGISTER_CLEAR`. Built by `counter_register.station`
+#: since 1.16.0 (the stalk this comment promised, and the green display),
+#: whose dimensions these are.
+REG_W = CREG.REG_W
+REG_D = CREG.REG_D
+REG_H = CREG.REG_H
+REG_SCREEN_H = CREG.REG_SCREEN_H
 
 
 def counter_fitout(w, d, h, attachments, top_w):
     """``(inside, on_top)``: the foot rail (inside the slot) and the tap
-    towers and register (on the top), as primitive lists.
+    towers and register (on the top), as primitive lists. The registers'
+    lit windows are in ``on_top`` with ``mat`` ``vfd`` and ``uvs``
+    (`counter_register.station`); a caller builds them on the display image.
 
     Frame: the recipe's own -- -Y the customer side, +Y the service side.
     The rail hangs under the top's overhang on the customer front; the taps
@@ -642,19 +647,8 @@ def counter_fitout(w, d, h, attachments, top_w):
         if not name.startswith("ATT_register"):
             continue
         regs.append(ax)
-        on_top.append(P.box("Counter_Register", "beige",
-                            (ax - REG_W / 2.0, ry - REG_D / 2.0, h - 0.004),
-                            (ax + REG_W / 2.0, ry + REG_D / 2.0, h + REG_H)))
-        on_top.append(P.box("Counter_Register", "beige",
-                            (ax - REG_W / 2.0 + 0.03, ry + REG_D / 2.0 - 0.09,
-                             h + REG_H - 0.004),
-                            (ax + REG_W / 2.0 - 0.03, ry + REG_D / 2.0 - 0.02,
-                             h + REG_H + REG_SCREEN_H)))
-        on_top.append(P.box("Counter_RegisterKeys", "key_dark",
-                            (ax - REG_W / 2.0 + 0.035, ry - REG_D / 2.0 + 0.03,
-                             h + REG_H - 0.006),
-                            (ax + REG_W / 2.0 - 0.035, ry + REG_D / 2.0 - 0.13,
-                             h + REG_H + 0.004)))
+        solid, lit = CREG.station(ax, ry, h)
+        on_top.extend(solid + lit)
     # the taps, along the service edge, wherever no register stands
     tap_y = d / 2.0 - 0.10
     n_taps = max(1, int(round((x1 - x0) / TAP_PITCH)))

@@ -1,3 +1,49 @@
+## [1.16.0] - the registers on the counters have their green display
+
+The walker, 2026-09-28, with photographs of a beige Fujitsu, a Sharp XE-A207
+and a TEC MA-1595: "I also want the cash registers in these buildings (where
+we have cash registers) to have that glowing green/black screen" -- "I've
+mentioned this before". 1.0.0's `cash_register` species has it, but it
+stands only as the card shop's till. The registers the stores and bars
+actually stand -- the service counter's (1.7.0) and the club bar's (0.92.0)
+-- were three beige boxes and no screen, and the bar's own comment promised
+"a display on a stalk" that was never built.
+
+ONE REGISTER, BOTH COUNTERS (`core/counter_register.py`): `station` is what
+`back_bar_forms.counter_fitout` and `service_counter_forms.fitout` both call
+now; they each spelled the same three boxes. The register's dimensions move
+there, re-exported from `back_bar_forms`.
+
+WHAT IS BUILT at a station: the beige body; the KEYPAD at the clerk's end and
+the display HUMP at the customer's -- until now it was the other way round,
+keys toward the customer and the hump's blank back to the clerk, which none
+of the photographs stands as; a lit OPERATOR display on the hump's clerk face
+("1  9.95", count then amount, the Fujitsu's); a lit CUSTOMER display on its
+customer face; and a POLE DISPLAY, a stalk and a dark head with its window to
+the customer. A window on a +Y face maps u from x1 to x0, or its digits read
+mirrored from the clerk's side; a test holds both sides.
+
+THE LOOK IS THE TILL'S: `register_forms.paint_screen`, `VFD_INK` on
+`VFD_GROUND`, `SCREEN_EMISSION` 1.0 -- the strength 1.0.0 picked for this
+screen by measured saturation -- so a card-shop till and a store register
+read as one make. All three windows of every register on a counter are ONE
+object on ONE image, `M_Counter_VFD_<art>_Face` (Lux's power cut takes it);
+the price is `register_forms.pick_price`'s, by stem and variant.
+
+COST: one submission a counter that carries registers, whatever their
+count. The service counter ships 7 (was 6); `test_bpy_seven_materials_...`
+says so, and `test_bpy_only_the_rack_header_and_the_registers_glow` names the
+second lit surface. The pole and stalk go into the counter's existing
+plastic. 96 triangles a register. Two parts are new, `Counter_RegisterPole`
+and `Counter_RegisterHead` (a part built from two keys came back from
+Blender as `Counter_RegisterPole.001`), and `Counter_RegisterScreen`.
+
+MEASURED: the station shares no plane with itself or the service counter's
+fit-out; the counter census is unchanged at its recorded residue (6 pairs
+over 3 builds, body/top/base, the default form, which builds no register).
+`tests/test_counter_register.py`. NOT MEASURED: frame cost in a level --
+that is the next cold run's pricing.
+
 ## [1.15.0] - the frozen drink station
 
 New species `slush_machine`. The walker, 2026-09-28: "do the slush machine

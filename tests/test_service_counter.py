@@ -121,7 +121,8 @@ def test_the_rack_clears_every_register_or_is_not_built():
 
 def test_the_rack_faces_the_customer_and_the_header_is_the_lit_face():
     _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
-    art = next(p for p in on_top if "uvs" in p)
+    # 1.16.0: the register windows carry ``uvs`` too, on their own image
+    art = next(p for p in on_top if "uvs" in p and p["mat"] != "vfd")
     assert art["part"] == "Counter_CigRackArt"
     front = min(v[1] for v in art["verts"])
     # the art's front is on the rack's customer side (-Y), set behind its edge
@@ -296,15 +297,17 @@ def test_bpy_the_service_counter_passes_and_fits(tmp_path, dims):
     assert not any("." in n for n in names), names
 
 
-def test_bpy_only_the_rack_header_glows_and_the_paint_is_paint(tmp_path):
+def test_bpy_only_the_rack_header_and_the_registers_glow_and_the_paint_is_paint(tmp_path):
+    """1.16.0: the registers' green displays are the second lit surface
+    (`counter_register`); before it the rack's header was the only one."""
     import os
     pytest.importorskip("bpy")
     res, objs = _build(tmp_path, DC_SIZES[0])
     doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
-    lit = [m for m in doc["materials"] if (m.get("emissiveFactor") and any(m["emissiveFactor"]))
-           or "emissiveTexture" in m]
-    assert [m["name"] for m in lit] and all(m["name"].startswith("M_Counter_CigRack_")
-                                            and m["name"].endswith("_Face") for m in lit)
+    lit = sorted(m["name"] for m in doc["materials"] if (m.get("emissiveFactor") and any(m["emissiveFactor"]))
+                 or "emissiveTexture" in m)
+    assert len(lit) == 2 and all(n.endswith("_Face") for n in lit), lit
+    assert lit[0].startswith("M_Counter_CigRack_") and lit[1].startswith("M_Counter_VFD_"), lit
     painted = [m["name"] for m in doc["materials"]
                if "baseColorTexture" in m.get("pbrMetallicRoughness", {})]
     assert len([n for n in painted if n.startswith("M_Counter_Paint_")]) == 1
@@ -323,24 +326,27 @@ def test_bpy_only_the_rack_header_glows_and_the_paint_is_paint(tmp_path):
     assert wrap_of(next(n for n in painted if n.endswith("_Display"))) == 33071
 
 
-def test_bpy_six_materials_six_submissions_and_no_colour_only_twins(tmp_path):
+def test_bpy_seven_materials_seven_submissions_and_no_colour_only_twins(tmp_path):
     """1.8.0, the point of the release: 1.7.0 shipped this counter as 15
     meshes over 14 materials. Now one material per surface kind, one
     painted atlas, the rack's display and its lit header -- and no two
-    skinned materials that differ in nothing but the tint in their name."""
+    skinned materials that differ in nothing but the tint in their name.
+    1.16.0: seven. The registers' green displays are one more backlit image,
+    ``M_Counter_VFD_<art>_Face``, whatever the register count."""
     import os
     import re as _re
     pytest.importorskip("bpy")
     res, _objs = _build(tmp_path, DC_SIZES[0])
     doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
     names = [m["name"] for m in doc["materials"]]
-    assert len(names) == 6, names
+    assert len(names) == 7, names
+    assert sum(1 for n in names if n.startswith("M_Counter_VFD_") and n.endswith("_Face")) == 1, names
     # visual submissions only: a collision proxy (`-colonly` and kin) becomes
     # a collider on import and is never drawn
     from zoo_keeper.core import partnames
     visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
     prims = sum(len(m["primitives"]) for m in visual)
-    assert prims == 6, (prims, [m["name"] for m in visual])
+    assert prims == 7, (prims, [m["name"] for m in visual])
     assert len(visual) < len(doc["meshes"]), "the collision proxy should still be exported"
     kinds = [(_re.match(r"M_Skin_([a-z_]+?)_delco_1997", n) or [None, n])[1] for n in names
              if n.startswith("M_Skin_")]

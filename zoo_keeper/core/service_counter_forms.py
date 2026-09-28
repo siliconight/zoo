@@ -76,6 +76,7 @@ from . import cigarette_brands as CB
 from . import cigarette_forms as CF
 from . import pixel_type as pt
 from . import prims as P
+from . import counter_register as CREG
 from .back_bar_forms import REG_D, REG_H, REG_SCREEN_H, REG_W
 from .vending_forms import Canvas
 
@@ -298,15 +299,11 @@ def fitout(w, d, h, attachments, top_w, face_y, base_h, top_t, key="counter_serv
                       if name.startswith("ATT_register"))
     for ax, _name in stations:
         regs.append(ax)
-        on_top.append(P.box("Counter_Register", "beige",
-                            (ax - REG_W / 2.0, ry - REG_D / 2.0, h - 0.004),
-                            (ax + REG_W / 2.0, ry + REG_D / 2.0, h + REG_H)))
-        on_top.append(P.box("Counter_Register", "beige",
-                            (ax - REG_W / 2.0 + 0.03, ry + REG_D / 2.0 - 0.09, h + REG_H - 0.004),
-                            (ax + REG_W / 2.0 - 0.03, ry + REG_D / 2.0 - 0.02, h + REG_H + REG_SCREEN_H)))
-        on_top.append(P.box("Counter_RegisterKeys", "key_dark",
-                            (ax - REG_W / 2.0 + 0.035, ry - REG_D / 2.0 + 0.03, h + REG_H - 0.006),
-                            (ax + REG_W / 2.0 - 0.035, ry + REG_D / 2.0 - 0.13, h + REG_H + 0.004)))
+        # `counter_register.station` (1.16.0): the green display lit, the
+        # pole display, the keys at the clerk's end. Its windows carry
+        # ``uvs`` and ``mat`` ``vfd``; the recipe builds them on their image.
+        solid, lit = CREG.station(ax, ry, h)
+        on_top.extend(solid + lit)
     lottos = []
     ly0 = -d / 2.0 + LOTTO_IN
     for ax in regs:
