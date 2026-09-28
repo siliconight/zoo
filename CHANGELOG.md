@@ -1,3 +1,42 @@
+## [1.10.0] - six pixel faces, and a mint that refuses a missing glyph
+
+docs/proposals/CC0_FONTS.md, steps A and B. The walker, 2026-09-28: "start
+on the font proposal as well, i read it and it's good".
+
+A, A FACE PARAMETER. `tools/mint_pixel_type.py` has a `FACES` table -- file,
+the pixel grid it is drawn on, the module it mints to -- and mints one face
+(`--face`) or all (`--all`). `pixel_type`'s `width`, `ink_width`, `render`,
+`wrap` and `fit_scale` take ``face=``, with `line`, `ascent` and `descent`
+for a face's metrics. ``None`` is Pixel Operator Bold, so the ten modules
+that letter with it are untouched: `pixel_type_glyphs.py` re-mints BYTE-
+IDENTICAL to what was committed (27,192 bytes; the mint prints 27,191 because
+it counts characters, and ¢ is two bytes).
+
+THE FACES are the rest of the Pixel Operator family Pixelcoat already
+vendors, CC0, so nothing was downloaded: `regular`, `small_caps`,
+`small_caps_bold`, `mono`, and `small` (PixelOperator8, an 8 px face with
+an 8-row line against Bold's 13 -- the small print). Every one was measured
+through the mint's own checks rather than assumed: all 96 characters in its
+character map, pure on/off at its grid, whole-pixel advances, and -- new in
+`tests/test_pixel_faces.py` -- NO KERNING, a PIL-set string equal to the
+face's glyphs laid at their advances on five samples, which is what makes a
+table of bitmaps lossless. Pixel Operator HB is not vendored and not here.
+
+B, A MISSING GLYPH IS REFUSED. PIL draws a character a font lacks as its
+`.notdef` box, and the mint never noticed: a face without ¢ would have minted
+a box and passed. The mint now reads the font's own `cmap` table
+(`cmap_codepoints`, formats 4 and 12, no fontTools -- it is not installed and
+a documented table is not worth a dependency) and exits naming every
+character the face lacks. The two instruments are checked against each
+other: a snowman the map lacks renders the same box as a private-use point.
+
+NOTHING LETTERS IN A NEW FACE YET. This is the capability; which sign or
+label takes which face is each recipe's change to make, and a frame the
+walker judges. Steps C to F of the proposal (BDF and PNG-sheet readers, an
+outline mode for script, VFD and hand-lettered faces, neon from any face)
+are not started, and the next faces worth fetching (m5x7, monogram) need a
+download the walker has not yet approved.
+
 ## [1.9.1] - a couple of carafes on the burner row
 
 The walker, on 1.9.0's one-a-brewer render: "lets have a couple on the
