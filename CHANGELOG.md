@@ -1,3 +1,51 @@
+## [1.18.0] - a storefront is see-through glass
+
+The walker, 2026-09-28, with six photographs of convenience stores at night
+-- "the 'glow' of the gas station at night, coming through the glass doors
+... glass see-through door" -- and, asked whether the storefront itself
+should be see-through: "yes, make the storefront see-through glass".
+
+MEASURED FIRST on cold run 9099's package, gas_station_a02: the entry
+"doors" were no doors -- `doorway` is an open frame, so each was a
+1.56 x 2.2 m hole between bronze jambs under a 1.7 m opaque header, with the
+closed state's collider and no leaf -- and every glass-facade wall panel
+was opaque. That was deliberate (0.36.0, `dna.OPAQUE_FOR`): a see-through
+structural slab is "a wall you scout enemies through". The walker has now
+decided shop fronts are the exception, and only shop fronts.
+
+A STOREFRONT is a wall or door slot Deli Counter tags `glazing:
+"storefront"` (Deli Counter 0.153.0: a `storefront_glass` wall on an
+enterable building). It builds (`arch.storefront_parts`, `_arch.build_slab`):
+
+  * a WALL as a kick plate (0.45 m), a header from 3.0 m (or 0.4 m under the
+    top), a 0.05 m mullion at each end -- two modules meet in a 0.10 m
+    mullion -- and one see-through pane between, buried 5 mm in the frame;
+  * a DOOR as its jambs, a head rail, a transom pane and a header, and in
+    every state but "open" two framed glass leaves with a push bar across
+    both faces. The open state is its own module without them: `plan_kit`
+    asks for that state's art on storefront doors only
+    (`STOREFRONT_STATE_ART`), so no other door in the library gains a module.
+
+THE COLLIDER IS UNCHANGED: collision still comes from `slab_parts`, so the
+glass stops a body and a door's closed state still blocks. The panes take
+the window's own `M_Window_glass` and the theme's see-through `glass` pack.
+`OPAQUE_FOR` and every other glazed wall -- banks, towers, clubs -- stay
+opaque; `test_opaque_structure` is untouched and passes.
+
+THE NAME: `_gstorefront` after the material (`kit.module_stem`,
+`STEM_GLAZINGS`), because a storefront wall and a plain glass-facade wall of
+one width were two geometries under one name. `facade` stays out of the
+name, so every facade-window module keeps its name. Deli Counter's
+`themed_tscn.module_stem` is the mirror.
+
+MEASURED: the frame tiles as `slab_parts` does -- touching boxes, opposite
+faces inside the frame -- and no pane lies on any frame face, at six sizes
+(a test). Built: panes blend on the see-through pack, the frame is
+structure, a closed door has leaves and an open one none.
+`tests/test_storefront.py`. NOT MEASURED: draw calls in a level (each
+storefront module is two submissions, frame and glass, as a window is) and
+how the interior reads from the street at night -- the next cold run.
+
 ## [1.17.0] - the hot dog roller grill
 
 New species `roller_grill`. The walker, 2026-09-28: "do the roller grill

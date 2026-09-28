@@ -25,7 +25,10 @@
  "parts": [
   "Doorway_Jamb_L",
   "Doorway_Jamb_R",
-  "Doorway_Header"
+  "Doorway_Header",
+  "Doorway_Rail",
+  "Doorway_Transom",
+  "Doorway_Leaf"
  ],
  "params": {
   "jamb": {

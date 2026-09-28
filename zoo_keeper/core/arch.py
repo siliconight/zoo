@@ -567,3 +567,113 @@ def collision_boxes(parts):
         hi = tuple(c[i] + s[i] / 2.0 for i in range(3))
         out.append((lo, hi))
     return out
+
+
+# --- the storefront (1.18.0) -------------------------------------------------------
+#
+# A SHOP FRONT IS SEEN THROUGH. The walker, 2026-09-28, with six photographs
+# of convenience stores at night -- "the 'glow' of the gas station at night,
+# coming through the glass doors ... glass see-through door" -- and, asked
+# whether the storefront itself should be see-through glass: "yes, make the
+# storefront see-through glass". Deli Counter tags the full-width wall and
+# door slots of a `storefront_glass` wall on an enterable building
+# `glazing: "storefront"`; those build here as an aluminium storefront -- a
+# kick plate, a header, a mullion at each end and a see-through pane between
+# -- instead of the solid slab `dna.OPAQUE_FOR` keeps every other glazed wall
+# as. THE COLLIDER IS UNCHANGED: `_arch.build_slab` still builds collision
+# from `slab_parts`, so the glass stops a body as the wall did; what changes
+# is that an eye goes through it, which is the decision the walker made
+# against 0.36.0's "a wall you scout enemies through" for shop fronts only.
+#
+# A storefront DOOR keeps its jambs, gains a head rail and a transom pane
+# over the opening, and -- in its closed state only -- two framed glass
+# leaves with a push bar. The open state is built without them
+# (`kit.plan_kit` asks for that state's own art on storefront doors), so an
+# opened door does not show a closed one.
+
+SF_KICK = 0.45            # the kick plate under the glass
+SF_GLASS_TOP = 3.0        # the glass stops here over the floor ...
+SF_HEAD_MIN = 0.40        # ... or this far under the module's top, if lower
+SF_MULLION = 0.05         # at each end: two modules meet in a 0.10 m mullion
+SF_RAIL = 0.08            # a door's head rail, under its transom
+SF_PANE_D = 0.15          # a pane's thickness, a fraction of the wall's (the window's)
+SF_BURY = 0.005           # every pane's edges buried this far in the frame
+LEAF_T = 0.045
+LEAF_STILE = 0.06
+LEAF_TOP = 0.08
+LEAF_KICK = 0.22
+LEAF_GAP = 0.004          # between the two leaves, and a leaf and its jamb
+LEAF_FLOOR = 0.010        # a leaf's clearance over the floor
+BAR_Z = 1.0               # the push bar's height over the floor
+BAR_H = 0.03
+BAR_OUT = 0.05            # the push bar stands this far off each face of the leaf
+
+
+def storefront_glass_top(h: float) -> float:
+    """The top of the glass, in centred z: `SF_GLASS_TOP` over the floor, or
+    `SF_HEAD_MIN` under the top when the module is too short for that."""
+    hh = h / 2.0
+    return min(-hh + SF_GLASS_TOP, hh - SF_HEAD_MIN)
+
+
+def storefront_parts(w: float, d: float, h: float, void: dict | None = None,
+                     leaves: bool = False):
+    """``(frame, glass)``: boxes ``(name, (cx, cy, cz), (sx, sy, sz))`` of a
+    storefront module in the slab's centred frame. ``frame`` builds in the
+    structure's material, ``glass`` in the see-through pane's.
+
+    No ``void`` is a wall: kick, header, a mullion at each end and one pane.
+    A door's ``void`` keeps the slab's jambs and adds a head rail, a transom
+    and a header over the opening, and with ``leaves`` the closed door."""
+    hw, hh = w / 2.0, h / 2.0
+    gt = storefront_glass_top(h)
+    pd = d * SF_PANE_D
+    frame, glass = [], []
+
+    def box(dest, name, x0, x1, y0, y1, z0, z1):
+        dest.append((name, ((x0 + x1) / 2.0, (y0 + y1) / 2.0, (z0 + z1) / 2.0),
+                     (round(x1 - x0, 6), round(y1 - y0, 6), round(z1 - z0, 6))))
+
+    if not void:
+        m = min(SF_MULLION, w / 4.0)
+        kz = -hh + min(SF_KICK, (gt + hh) / 2.0)
+        box(frame, "Mullion_L", -hw, -hw + m, -d / 2.0, d / 2.0, -hh, hh)
+        box(frame, "Mullion_R", hw - m, hw, -d / 2.0, d / 2.0, -hh, hh)
+        box(frame, "Kick", -hw + m, hw - m, -d / 2.0, d / 2.0, -hh, kz)
+        box(frame, "Header", -hw + m, hw - m, -d / 2.0, d / 2.0, gt, hh)
+        box(glass, "Glass", -hw + m - SF_BURY, hw - m + SF_BURY, -pd / 2.0, pd / 2.0,
+            kz - SF_BURY, gt + SF_BURY)
+        return frame, glass
+
+    x0, x1, z1 = void["x0"], void["x1"], void["z1"]
+    # the jambs are the slab's own
+    for name, c, s in slab_parts(w, d, h, void):
+        if name.startswith("Jamb"):
+            frame.append((name, c, s))
+    rail_top = z1 + SF_RAIL
+    if gt > rail_top + 0.10:
+        box(frame, "Rail", x0, x1, -d / 2.0, d / 2.0, z1, rail_top)
+        box(frame, "Header", x0, x1, -d / 2.0, d / 2.0, gt, hh)
+        box(glass, "Transom", x0 - SF_BURY, x1 + SF_BURY, -pd / 2.0, pd / 2.0,
+            rail_top - SF_BURY, gt + SF_BURY)
+    else:
+        box(frame, "Header", x0, x1, -d / 2.0, d / 2.0, z1, hh)
+    if leaves:
+        mid = (x0 + x1) / 2.0
+        floor = -hh + LEAF_FLOOR
+        top = z1 - LEAF_GAP
+        for side, lx0, lx1 in (("L", x0 + LEAF_GAP, mid - LEAF_GAP / 2.0),
+                               ("R", mid + LEAF_GAP / 2.0, x1 - LEAF_GAP)):
+            ly0, ly1 = -LEAF_T / 2.0, LEAF_T / 2.0
+            p = f"Leaf_{side}_"
+            box(frame, p + "Stile0", lx0, lx0 + LEAF_STILE, ly0, ly1, floor, top)
+            box(frame, p + "Stile1", lx1 - LEAF_STILE, lx1, ly0, ly1, floor, top)
+            box(frame, p + "Kick", lx0 + LEAF_STILE, lx1 - LEAF_STILE, ly0, ly1, floor, floor + LEAF_KICK)
+            box(frame, p + "Top", lx0 + LEAF_STILE, lx1 - LEAF_STILE, ly0, ly1, top - LEAF_TOP, top)
+            # the push bar across the glass, both faces, through the pane
+            bz = -hh + BAR_Z
+            box(frame, p + "Bar", lx0 + LEAF_STILE, lx1 - LEAF_STILE,
+                -LEAF_T / 2.0 - BAR_OUT, LEAF_T / 2.0 + BAR_OUT, bz - BAR_H / 2.0, bz + BAR_H / 2.0)
+            box(glass, p + "Glass", lx0 + LEAF_STILE - SF_BURY, lx1 - LEAF_STILE + SF_BURY,
+                -LEAF_T / 6.0, LEAF_T / 6.0, floor + LEAF_KICK - SF_BURY, top - LEAF_TOP + SF_BURY)
+    return frame, glass

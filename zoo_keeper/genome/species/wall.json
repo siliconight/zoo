@@ -23,7 +23,12 @@
   }
  },
  "parts": [
-  "Wall_Panel"
+  "Wall_Panel",
+  "Wall_Mullion_L",
+  "Wall_Mullion_R",
+  "Wall_Kick",
+  "Wall_Header",
+  "Wall_Glass"
  ],
  "params": {},
  "materials": {
@@ -55,7 +60,9 @@
    "wear": 0.35,
    "bevel": 0.003,
    "ambient": 0.35,
-   "relief": {"reveal": 0.0}
+   "relief": {
+    "reveal": 0.0
+   }
   },
   "center_city": {
    "material": "metal",

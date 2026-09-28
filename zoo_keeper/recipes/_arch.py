@@ -102,6 +102,17 @@ def build_slab(plan, streams, collection, species):
         # second rhythm laid over it.
         visual = (arch.relief_parts(w, d, h, params.get("relief"))
                   if species == "wall" and not void else slab)
+    # A STOREFRONT (1.18.0): a wall or door slot Deli Counter tagged
+    # `glazing: "storefront"` is drawn as a kick, a header, mullions and a
+    # see-through pane (`arch.storefront_parts`) instead of the slab. The
+    # COLLIDER still comes from `slab` below: the glass stops a body. A door
+    # draws its closed leaves in every state but "open", which `kit.plan_kit`
+    # builds as its own module for storefront doors.
+    storefront_glass = []
+    if plan.get("storefront") and species in ("wall", "doorway"):
+        state = (plan.get("module") or {}).get("state")
+        visual, storefront_glass = arch.storefront_parts(
+            w, d, h, void, leaves=(species == "doorway" and state != "open"))
     # PLATE TILES ARE UNBEVELED (walked 2026-08-24, arena ceiling). Every
     # box edge gets a chamfer from the style's bevel, and where two tiles
     # abut, the two chamfers form a V-groove a few centimetres wide that
@@ -138,6 +149,18 @@ def build_slab(plan, streams, collection, species):
     structure = materials.make_material(
         f"M_{root}_{plan['material']}", plan["color"], plan["material"])
     materials.assign(objs, structure)
+
+    # the storefront's panes: the window's own see-through kind and name, so
+    # a storefront pane and a window pane in one building are one material
+    for name, center, size in storefront_glass:
+        bm = geometry.new_bm()
+        geometry.add_box(bm, center, size)
+        pane = geometry.bm_to_object(
+            bm, f"{root}_{name}", collection, bevel=0.0, texel=1.0,
+            rng=rng, wear=wear * 0.25)
+        materials.assign([pane], materials.make_material(
+            "M_Window_glass", plan.get("glass_color", [0.55, 0.66, 0.72]), "glass"))
+        objs.append(pane)
 
     # a window gets a thin glass pane in its opening — decorative, no collision
     # (heist sightlines / breakable glass are gameplay's call, not the box).

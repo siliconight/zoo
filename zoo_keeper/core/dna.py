@@ -423,7 +423,11 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     # see-through shows the player an empty box where a room should be, which
     # is the one thing the hollow-shell trick cannot survive.
     glazing = module.get("glazing")
-    if glazing:
+    if str(glazing) == "storefront":
+        # NOT a pane kind: a storefront wall or door is BUILT differently
+        # (`_arch.build_slab`, 1.18.0) and its panes take the window's `glass`
+        plan["storefront"] = True
+    elif glazing:
         plan["glazing_kind"] = ("glass_facade" if str(glazing) == "facade"
                                 else str(glazing))
     if "glass_color" in genome:

@@ -182,7 +182,8 @@ def module_stem(typ: str, theme: str, style: int,
                 depth_cm: int = None, voids_tag: str = None,
                 openings_tag: str = None, height_cm: int = None,
                 species: str = None, form: str = None, stock: str = None,
-                variant: int = None, material: str = None) -> str:
+                variant: int = None, material: str = None,
+                glazing: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
     ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_v<hash>][_o<hash>][_<state>]``.
 
@@ -255,6 +256,14 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_n{int(variant)}"
     if material:
         base += f"_m{material}"
+    # THE STOREFRONT IN THE NAME (1.18.0): `_g<glazing>` for a glazing that
+    # changes the BUILD (`STEM_GLAZINGS`), after the material and before the
+    # hashes and the state. A storefront wall and a plain glass-facade wall
+    # of one width were two geometries under one name. `facade` stays out:
+    # it swaps a pane's kind, and every name built with it is unchanged.
+    # Deli Counter's `themed_tscn.module_stem` is the mirror.
+    if glazing in STEM_GLAZINGS:
+        base += f"_g{glazing}"
     if voids_tag:
         base += f"_v{voids_tag}"
     if openings_tag:
@@ -262,6 +271,14 @@ def module_stem(typ: str, theme: str, style: int,
     if state:
         base += f"_{state}"
     return base
+
+
+#: Glazings that change what a wall or door BUILDS, so ride in its name.
+STEM_GLAZINGS = ("storefront",)
+#: The states a STOREFRONT door draws itself (1.18.0): its open state has no
+#: leaves. Scoped to storefront doors by `_state_art_for_slot`, so no other
+#: door in the library gains a module.
+STOREFRONT_STATE_ART = {"doorway": frozenset({"open"})}
 
 
 #: When the hinted species does not fit, the next of the same family to try
@@ -648,8 +665,14 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                               if s.get(f) not in (None, "")},
                     "reason": "; ".join(dropped)})
 
+        storefront = s.get("glazing") if s.get("glazing") in STEM_GLAZINGS else None
+
+        def _slot_art(sp, _sf=storefront):
+            extra = STOREFRONT_STATE_ART.get(sp, frozenset()) if _sf else frozenset()
+            return _art(sp) | extra
+
         for species, st, stem_state, is_deferred in slot_variants(
-                s, typ, state, state_art=_art):
+                s, typ, state, state_art=_slot_art):
             if hint and species == typ:
                 species = hint
             # THE MATERIAL IN THE NAME (0.89.0), when it changes the build:
@@ -659,7 +682,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
                                depth_cm, vtag, otag, height_cm,
                                species=hint if species == hint else None,
-                               material=mtag, **dress)
+                               material=mtag, glazing=storefront, **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
