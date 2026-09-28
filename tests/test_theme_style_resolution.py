@@ -116,11 +116,11 @@ def test_delco_1997_reaches_every_species():
     # hanging_banner, ceiling_hanger, aisle_sign -- each authored with its
     # own `delco` row, so this count moves and `_NO_DELCO_1997` does not
     # 1.0.0: 80, the till added. 1.9.0: 81, + coffee_island, styled with
-    # its own `delco` row; 1.12.0: 82, + cooler_run; 1.13.0: 83, + snack_gondola; 1.14.0: 84, + milk_crate_stack; 1.15.0: 85, + slush_machine. A literal rather than a
+    # its own `delco` row; 1.12.0: 82, + cooler_run; 1.13.0: 83, + snack_gondola; 1.14.0: 84, + milk_crate_stack; 1.15.0: 85, + slush_machine; 1.17.0: 86, + roller_grill. A literal rather than a
     # `len(list_species())` on purpose -- this test is the audit of what
     # somebody actually styled, and a count that updates itself audits
     # nothing.
-    assert len(_genomes()) == 85 + len(_minted), len(_genomes())
+    assert len(_genomes()) == 86 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

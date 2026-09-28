@@ -60,7 +60,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "milk_crate_stack",
                 # the frozen drink station (1.15.0): clear barrels of glowing
                 # slush, a syrup rail, cup tubes, a lit topper
-                "slush_machine"}
+                "slush_machine",
+                # the hot dog roller grill (1.17.0): rollers, dogs in the
+                # grooves, tags, a glass hood with a bun shelf
+                "roller_grill"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

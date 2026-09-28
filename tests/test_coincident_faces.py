@@ -368,7 +368,12 @@ DID_NOT_BUILD = {"boots"}
 #: / 4,560 tris). Every part buried into the counter top stops at its own
 #: depth where footprints overlap, from the first cut; the planner's check
 #: was proven able to see a pair first (`test_slush_machine`'s control).
-CENSUS_BUILDS = 333
+#: 1.17.0: `roller_grill`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (916 / 1,564 /
+#: 2,496 tris). The planner's check found cheeks on the pan's side planes,
+#: hood panes 1-2 mm off posts and panes, and buns 2 mm into their shelf
+#: first; each fixed at its source.
+CENSUS_BUILDS = 336
 
 
 def test_the_census_covers_every_species_there_is():

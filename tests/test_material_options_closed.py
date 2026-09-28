@@ -79,7 +79,10 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # bare metal is not an option a slot can ask for and the
            # species sits here rather than in BARE
            "cash_register")
-BARE = ("gold_bar", "flat_top_grill", "water_tank", "shelving",
+BARE = ("gold_bar", "flat_top_grill",
+        # a roller grill offers chrome; its painted cabinet and dogs are a
+        # constant kind in the recipe, as a counter's brass is (1.17.0)
+        "roller_grill", "water_tank", "shelving",
         # a poster's frame is mill-finish aluminium -- the reference's
         # SILVER frame -- so the mesh supplies the hue. `metal` would have
         # been theme-owned and the building's pack would have repainted it

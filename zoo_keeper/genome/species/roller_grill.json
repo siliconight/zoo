@@ -1,0 +1,133 @@
+{
+ "species": "roller_grill",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.17.0. The convenience store's hot dog roller grill, from the proposal's 'Roller dogs' (docs/proposals/GAS_STATION_SHOP.md: 'a slanted bank of chrome rollers turning under a clear hood, sausages in three or four distinct colours and thicknesses ... small labelled flag signs ... grease darkening the rollers toward the back, and a printed Buns panel across the front of the cabinet below') and the walker's photographs of 2026-09-28: two store stations (zones of one kind split by dividers, a black tube tag naming each) and a countertop merchandiser (rollers across the width, dogs in the grooves between them, a black control panel with dials, lights and a switch, a glass case with a bun shelf). A counter-height bun cabinet with a printed NICE BUNS panel; a steel pan and printed control panel with two knobs; rollers across the width climbing gently toward the back, each greasier than the one in front; columns of one kind each (pale, tan, deep red, a thin rolled one) with dogs in the grooves, chrome dividers and a black tag naming the kind; a glass hood on four posts, open at the lower front, with a shelf of buns when tall enough. Four submissions whatever the width: chrome, painted (colours and grease in the Wear vertex colour), glass, and one painted image. Nothing glows. Invented names only. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.7,
+   "max": 1.4,
+   "default": 1.0
+  },
+  "depth": {
+   "min": 0.5,
+   "max": 0.8,
+   "default": 0.6
+  },
+  "height": {
+   "min": 1.3,
+   "max": 1.6,
+   "default": 1.4
+  }
+ },
+ "parts": [
+  "Roller_Cabinet",
+  "Roller_Panel",
+  "Roller_Grill",
+  "Roller_Knob",
+  "Roller_Roller",
+  "Roller_Dog",
+  "Roller_Tag",
+  "Roller_Divider",
+  "Roller_Hood",
+  "Roller_Bun"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_bare",
+  "options": [
+   "metal_bare",
+   "glass"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_bare",
+   "color": [
+    0.8,
+    0.8,
+    0.82
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 3000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "roller grill",
+  "hot dog roller",
+  "roller dogs",
+  "hot dog grill",
+  "roller grill hot dogs"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

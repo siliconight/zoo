@@ -1,3 +1,49 @@
+## [1.17.0] - the hot dog roller grill
+
+New species `roller_grill`. The walker, 2026-09-28: "do the roller grill
+next", with three photographs: two store stations (zones of one kind split
+by dividers, a black tube tag naming each, a printed panel across the
+front, a warm-buns drawer below, a glass guard) and a countertop
+merchandiser (rollers across the width with three columns of dogs in the
+grooves, a black control panel with two dials, two lights and a switch, a
+glass case with a shelf of buns). The proposal's own words: "a slanted bank
+of chrome rollers turning under a clear hood ... grease darkening the
+rollers toward the back, and a printed 'Buns' panel across the front of
+the cabinet below". Not `flat_top_grill`, which is kitchen equipment.
+
+HOW THE DOGS LIE, a refutation kept in `core/roller_grill_forms.py`: the
+store photographs read for a moment as rollers running front to back with
+the dogs across them; the countertop photograph settled it -- rollers
+across the width, each dog in the groove between two, parallel, which is
+what turns it. "Laid across them" is laid ON the bank.
+
+WHAT IS BUILT: a counter-height bun cabinet with a printed NICE BUNS panel;
+a steel pan with the printed control panel and two knobs; rollers across the
+width climbing gently toward the back (7 degrees, less when the hood is low)
+each greasier than the one in front (the front at 1.0 of the chrome, the
+back at 0.45); columns at least 0.26 m wide -- three at the default 1.0 m,
+the photograph's count -- one kind each (BIG JAWN, CHEEZY, HOT LINK,
+TAQUITO: deep red, pale, red, tan, each its own thickness), a dog in every
+groove but where one was sold, chrome dividers between columns and a black
+tag in each column's front groove; a glass hood on four posts, open at the
+lower front to reach in with tongs, and a glass shelf of buns when the hood
+stands 0.42 m or more over the pan.
+
+FOUR SUBMISSIONS: chrome, painted (cabinet, knobs, dogs, buns -- colours
+and the grease in the `Wear` vertex colour), glass, and one painted image.
+Nothing glows. The genome offers `metal_bare` and glass only; the painted
+kind is a constant in the recipe, as the counter's brass is.
+
+MEASURED: the planner's check found cheeks on the pan's side planes, hood
+panes 1-2 mm off the posts and each other, the control panel's buried back
+on the cheeks' fronts, and a bun 2 mm into its shelf; `pillow`'s crown is
+metres, and at 0.4 the first buns stood 150 mm out of the slot; at 1.4 x
+0.8 x 1.2 the full climb put the back cheek 36 mm through the top. Each
+fixed at its source; a control proves the check sees a pair here. Census 3
+builds, 0 pairs (916 / 1,564 / 2,496 tris; budget 3,000); `CENSUS_BUILDS`
+333 -> 336; audited genome count 85 -> 86. "hot dog grill" now resolves to
+this species rather than the flat top; "grill" alone stays the flat top's.
+
 ## [1.16.0] - the registers on the counters have their green display
 
 The walker, 2026-09-28, with photographs of a beige Fujitsu, a Sharp XE-A207
