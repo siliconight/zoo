@@ -1,3 +1,26 @@
+## [1.11.0] - m5x7 and monogram: nine pixel faces
+
+Pixelcoat 0.53.0 vendors two more CC0 families beside Pixel Operator --
+`m5x7` (Daniel Linssen) and `monogram` with its italic (datagoblin) -- and
+the mint now mints them: `m5x7`, `monogram`, `monogram_italic` join
+`pixel_type.FACES`. The walker approved the three downloads, 2026-09-28.
+
+THE MINT ADDRESSES A FACE BY FAMILY FOLDER under Pixelcoat's
+`assets/fonts/` (`pixel_operator/PixelOperator-Bold.ttf`), and credits each
+family's designer in the minted header from `FAMILIES`. For Pixel Operator
+the header is word for word what it was, so all six existing tables re-mint
+unchanged.
+
+MEASURED, not taken from the pages: m5x7's page says 16 px and monogram's
+says nothing, and both are on/off, whole-advance and kern-free at 16 px and
+at no other size from 6 to 31. Every character the factory letters is in
+both character maps. They are the compact faces: "FLAPPHAS 75¢" is 71 px
+wide on a 9-row line in m5x7 and 72 on a 10-row line in monogram, against
+93 on 13 rows in Bold.
+
+Still nothing letters in them. Choosing which label takes which face is a
+recipe's change, judged on a frame.
+
 ## [1.10.0] - six pixel faces, and a mint that refuses a missing glyph
 
 docs/proposals/CC0_FONTS.md, steps A and B. The walker, 2026-09-28: "start

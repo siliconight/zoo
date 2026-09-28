@@ -31,7 +31,8 @@ from .pixel_type_glyphs import ASCENT, DESCENT, GLYPHS
 LINE = ASCENT + DESCENT
 FALLBACK = "?"
 #: The faces there are (tools/mint_pixel_type.py `FACES`, which mints them).
-FACES = ("bold", "regular", "small_caps", "small_caps_bold", "mono", "small")
+FACES = ("bold", "regular", "small_caps", "small_caps_bold", "mono", "small",
+         "m5x7", "monogram", "monogram_italic")
 _TABLES = {"bold": _BOLD}
 
 
