@@ -313,6 +313,13 @@ def brewer(xc, h, key, variant, station, side):
     return everything, len(decafs), sum(decafs)
 
 
+def front_row_carafe(station, side):
+    """Whether station ``station``'s burner row on face ``side`` carries a
+    carafe: one a face for every two stations, the even station for -Y and
+    the odd for +Y."""
+    return station % 2 == (0 if side < 0 else 1)
+
+
 def warmers(n_stations, front_row):
     """How many warmers the island carries: three a brewer, two a brewer
     more on a burner row."""
@@ -357,8 +364,21 @@ def layout(w, d, h, key="coffee_island", variant=0):
                 fy = side * max(FRONT_ROW_Y, half_d - FRONT_ROW_EDGE)
                 dress.append(P.box("Coffee_Burner", "steel", (xc - 0.21, fy - 0.10, h - BURY - 0.002),
                                    (xc + 0.21, fy + 0.10, h + STRIP_T)))
-                for dx in (-FRONT_DX, FRONT_DX):         # empty: see `brewer`
+                # A COUPLE ON THE BURNER ROW, never on a brewer's hood. The
+                # walker, 2026-09-28, on the one-a-brewer render: "lets have
+                # a couple on the warmers (not on top of the drip king)". One
+                # carafe a face for every two stations -- on a 3 m island,
+                # one each side, two in all -- on the station that pair's
+                # parity picks for this face, so the two faces do not mirror
+                # each other; -Y regular, +Y decaf.
+                full = front_row_carafe(i, side)
+                for k, dx in enumerate((-FRONT_DX, FRONT_DX)):
                     dress.append(_warmer(xc + dx, fy, h + STRIP_T))
+                    if full and k == (_h(key, variant, i, side, "front") % 2):
+                        hd = 1 if side < 0 else -1      # the handle to the viewer's right
+                        dress += carafe(xc + dx, fy, h + STRIP_T + WARMER_T - BURY, side > 0, hd)
+                        n_carafes += 1
+                        n_decaf += side > 0
 
     # --- the cup end (+X) -----------------------------------------------------------------
     cx0 = w / 2.0 - END_ZONE + 0.06

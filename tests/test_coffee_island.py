@@ -55,19 +55,29 @@ def test_there_is_always_coffee_and_the_post_is_clear(dims):
     f = C.plan(w, d, h)["facts"]
     assert len(f["stations"]) >= 2 and len(f["stations"]) <= C.MAX_STATIONS
     # ONE CARAFE A BREWER (the walker, 2026-09-28: "we can have 20% as many
-    # carafes"): the one brewing, in the bay; every other warmer is empty
-    assert f["carafes"] == 2 * len(f["stations"])
-    assert f["decaf"] == 2 * (len(f["stations"]) // 2)
+    # carafes"), plus A COUPLE ON THE BURNER ROW ("lets have a couple on the
+    # warmers (not on top of the drip king)"): one a face per two stations
+    n = len(f["stations"])
+    assert f["carafes"] == 2 * n + (n if f["front_row"] else 0)
+    assert f["decaf"] * 2 == f["carafes"]
     for x in f["stations"]:
         assert abs(x) - C.BREWER_W / 2.0 - C.HANDLE_OVER >= C.SIGN_CLEAR - 1e-9, x
     # the front burner row exists exactly when the island is deep enough
     assert f["front_row"] == (d / 2.0 >= C.FRONT_ROW_MIN_HALF)
 
 
-def test_a_fifth_of_the_warmers_carry_a_carafe_on_deli_counters_islands():
-    for dims in C.DC_SIZES:
-        f = C.plan(*dims)["facts"]
-        assert f["carafes"] / C.warmers(len(f["stations"]), f["front_row"]) == pytest.approx(0.2)
+def test_no_carafe_stands_on_a_brewers_hood_and_the_burner_row_has_a_couple():
+    w, d, h = C.DC_SIZES[0]
+    g = C.plan(w, d, h)
+    bulbs = [p for p in g["dressing"] if p["part"] == "Coffee_Carafe" and p["mat"] == "glass"]
+    floors = sorted(round(min(v[2] for v in p["verts"]) - h, 3) for p in bulbs)
+    assert max(floors) < C.HOOD_Z[0], floors
+    # the 3 m island: four in the bays, one on each face's burner row
+    assert len(bulbs) == 6
+    on_row = [p for p in bulbs if abs(sum(v[1] for v in p["verts"]) / len(p["verts"]))
+              > C.BREWER_GAP / 2.0 + C.BREWER_D + C.PLATE_OUT]
+    ys = [sum(v[1] for v in p["verts"]) / len(p["verts"]) for p in on_row]
+    assert len(on_row) == 2 and min(ys) < 0 < max(ys)
 
 
 def test_both_faces_are_served_and_the_decaf_is_mixed():

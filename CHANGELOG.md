@@ -1,3 +1,15 @@
+## [1.9.1] - a couple of carafes on the burner row
+
+The walker, on 1.9.0's one-a-brewer render: "lets have a couple on the
+warmers (not on top of the drip king)". The burner row along each long edge
+now carries one carafe a face for every two stations -- on Deli Counter's
+3 m island one each side, 4 -> 6 carafes; on the 4 m one 8 -> 12 -- on the
+station the pair's parity picks for that face (`front_row_carafe`), -Y
+regular and +Y decaf. The brewers' hood warmers stay empty.
+`test_no_carafe_stands_on_a_brewers_hood_and_the_burner_row_has_a_couple`
+holds both halves. Census re-run: 3 builds, 0 pairs, corners at 3,796 /
+4,692 / 10,836 triangles; genome budget 10000 -> 12000.
+
 ## [1.9.0] - the convenience store's coffee island
 
 New species `coffee_island`. The walker, 2026-09-28: "do the coffee counter
