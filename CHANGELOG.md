@@ -6,7 +6,7 @@ look for the carafe at least" -- and one of a later commercial three-warmer
 model.
 
 WHY A SPECIES. Deli Counter places the piece as a free-standing volume,
-`coffee_island` 3.0 x 2.0 x 1.1 in six store specs and `coffee_food_island`
+`coffee_island` 3.0 x 2.0 x 1.1 in five store specs and `coffee_food_island`
 4.0 x 3.0 x 1.0 in `gas_station_a02` (the store club_block_014 stands) and
 `fuel_stop_heist`. Its prop-species table routed both to `counter` by the
 word `island`: the first built as a bare counter, the second -- deeper than

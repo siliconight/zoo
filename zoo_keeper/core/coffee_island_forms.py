@@ -33,7 +33,7 @@ pour SPOUT on one side and a hooked HANDLE of the same plastic on the other,
 off the collar and down. The coffee shows through the glass.
 
 WHY AN ISLAND. Deli Counter places the piece as a free-standing volume --
-`coffee_island` 3.0 x 2.0 x 1.1 in six store specs, `coffee_food_island`
+`coffee_island` 3.0 x 2.0 x 1.1 in five store specs, `coffee_food_island`
 4.0 x 3.0 x 1.0 in `gas_station_a02` and `fuel_stop_heist` -- which until
 this species existed built as a bare `counter` or, too deep for that genome,
 the plain `prop` box. People walk round it, so both long faces are served:
