@@ -57,7 +57,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # printed from one image, on shelves both faces and end caps
                 "snack_gondola",
                 # the walk-in's milk crates (1.14.0): hollow crates, nested
-                "milk_crate_stack"}
+                "milk_crate_stack",
+                # the frozen drink station (1.15.0): clear barrels of glowing
+                # slush, a syrup rail, cup tubes, a lit topper
+                "slush_machine"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

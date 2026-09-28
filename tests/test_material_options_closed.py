@@ -53,6 +53,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a snack gondola's frame, shelves and price strips are enamelled
            # steel, their colours in the vertex (1.13.0)
            "snack_gondola",
+           # a slush station's stand, machine, taps and pumps are enamelled
+           # steel and plastic, their colours in the vertex (1.15.0)
+           "slush_machine",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter

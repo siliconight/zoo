@@ -1,3 +1,46 @@
+## [1.15.0] - the frozen drink station
+
+New species `slush_machine`. The walker, 2026-09-28: "do the slush machine
+next". The references (docs/proposals/GAS_STATION_SHOP.md): a twin-hopper
+slush dispenser with clear barrels showing the product -- one red, one blue,
+visibly churning -- a branded topper, a cartoon mascot on the front panel, a
+pull tap per hopper and a tube of stacked cups; the second adds a six-bottle
+syrup rail with a labelled pump per flavour, a numbered "1 select cup size,
+2 add flavor, 3 pull to fill" panel, a drip tray and a straw caddy.
+
+WHAT IS BUILT (`core/slush_machine_forms.py`, pure, tested without Blender),
+left to right as a customer reads it: a counter-height stand with the lit
+mascot panel across its front; two clear cup tubes, large and medium, cups
+stacked up out of them, and a straw caddy; the syrup rail -- six bottles,
+each pump head in its flavour's colour, a lit strip naming each flavour
+under its bottle, the lit instruction panel above -- when the station is
+1.52 m or wider; and the machine: tower, base, two clear barrels (three at
+1.80 m or wider) of slush, lids, a tap with a pull handle in the flavour's
+colour over a drip tray, and the lit FROZEN JAWN topper. Always a red and a
+blue barrel, by variant the order and the third flavour.
+
+THE SLUSH GLOWS. It is on the backlit image with the topper and panels: a
+churn-striped tile per flavour wrapped once round each barrel, behind the
+see-through glass. The barrels are what a dark shop has to catch the eye;
+real machines light them from the lid, and emission stands in for that at
+no light's cost. Lux's power cut takes it (`M_Slush_<art>_Face`).
+
+THREE SUBMISSIONS whatever the width: painted steel (every opaque part, its
+colour in the `Wear` vertex colour), glass, glow. Parts are built named for
+their key (`Slush_Barrel_glass`, `Slush_Barrel_white`) -- the coffee island's
+rule; the first build came back with `Slush_Barrel.001`.
+
+THE BRAND IS INVENTED: FROZEN JAWN, FLAPPHAS's own, "FREEZE YOUR JAWN OFF"
+on the topper and "COLDER THAN YOUR EX" under the mascot. The headline face
+is `monogram`, not `bold`: bold's N is its H with a three-pixel diagonal and
+under the red outline the first render read "FROZEH JAWH".
+
+MEASURED: the planner's coincidence check reported 0 pairs on the first cut
+at every corner, so it was proven first -- a box 1 mm over the counter top
+reports 2, the tower buried to the base's depth reports 1 (the control is a
+test). Census 3 builds, 0 pairs (2,540 / 4,160 / 4,560 tris; budget 5,000);
+`CENSUS_BUILDS` 330 -> 333; audited genome count 84 -> 85.
+
 ## [1.14.0] - a stack of milk crates, for the walk-in coolers
 
 New species `milk_crate_stack`. Deli Counter 0.149.0 stops furnishing walk-in

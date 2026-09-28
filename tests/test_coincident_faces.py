@@ -363,7 +363,12 @@ DID_NOT_BUILD = {"boots"}
 #: 1.14.0: `milk_crate_stack`, three builds more: "3 builds, 0 with
 #: coincident pairs, 0 that did not build". Stacking had put a crate's plate
 #: 2 mm off the crate below's walls; fixed at the source first.
-CENSUS_BUILDS = 330
+#: 1.15.0: `slush_machine`, three builds more, same tool, Blender 5.1.1:
+#: "3 builds, 0 with coincident pairs, 0 that did not build" (2,540 / 4,160
+#: / 4,560 tris). Every part buried into the counter top stops at its own
+#: depth where footprints overlap, from the first cut; the planner's check
+#: was proven able to see a pair first (`test_slush_machine`'s control).
+CENSUS_BUILDS = 333
 
 
 def test_the_census_covers_every_species_there_is():

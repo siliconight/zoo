@@ -1,0 +1,132 @@
+{
+ "species": "slush_machine",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.15.0. The convenience store's frozen drink station, from the walker's two references (docs/proposals/GAS_STATION_SHOP.md: 'a twin-hopper slush dispenser with clear barrels showing the product itself -- one red, one blue, visibly churning -- a branded topper above, a cartoon mascot on the front panel, a pull tap per hopper, and a tube of stacked cups beside it'; the second adds 'the six-bottle syrup rail with a labelled pump per flavour', the numbered instruction panel, a drip tray and a straw caddy) and 'do the slush machine next' (2026-09-28). A counter-height stand with a lit mascot panel; cup tubes and a straw caddy; the syrup rail with six bottles, a pump head in each flavour's colour, a lit flavour strip and the lit instruction panel; the machine: tower, base, two clear barrels (three when the station is 1.8 m or wider) of glowing churn-striped slush, lids, a tap and pull handle per barrel over a drip tray, and a lit topper. Always a red and a blue barrel. Three submissions whatever the width: painted steel (colour in the Wear vertex colour), glass, glow (one backlit image, M_Slush_<art>_Face, which Lux's power cut takes). The brand is FROZEN JAWN, FLAPPHAS's own, invented. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.0,
+   "max": 2.6,
+   "default": 1.6
+  },
+  "depth": {
+   "min": 0.6,
+   "max": 0.9,
+   "default": 0.7
+  },
+  "height": {
+   "min": 1.8,
+   "max": 2.4,
+   "default": 2.0
+  }
+ },
+ "parts": [
+  "Slush_Stand",
+  "Slush_Cups",
+  "Slush_Tube",
+  "Slush_Rail",
+  "Slush_Syrup",
+  "Slush_Machine",
+  "Slush_Barrel",
+  "Slush_Tap",
+  "Slush_Glow"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted",
+   "glass"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.03,
+    0.08,
+    0.34
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 5000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "slush machine",
+  "frozen drink machine",
+  "slushie machine",
+  "granita machine",
+  "frozen drink"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}
