@@ -50,6 +50,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a reach-in cooler's cabinet, frames, shelves and handles are
            # enamelled steel, their colours in the vertex (1.12.0)
            "cooler_run",
+           # a snack gondola's frame, shelves and price strips are enamelled
+           # steel, their colours in the vertex (1.13.0)
+           "snack_gondola",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter

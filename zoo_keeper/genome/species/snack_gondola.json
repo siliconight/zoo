@@ -1,0 +1,127 @@
+{
+ "species": "snack_gondola",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.13.0. The convenience store's island snack gondola, from the walker's store references (docs/SET_DRESSING_REFERENCES.md 2026-09-15: 'gondola shelving, four or five shelves of chip bags faced out, end caps stacked with more chips'). A dark kick, a pegboard spine, steel uprights at every bay and end panels, a top rail; per face and bay, shelves up the height with white price strips; chip bags faced out on every shelf -- each a real bag (prims.pillow stood on its back: a puffed front, flat sides), its front printed from one image of invented Delco snack brands (core/snack_brands.py, denylisted against the Pennsylvania makers first), set in the m5x7 pixel face; end caps at both ends of a run 2.2 m or longer. Two submissions whatever the length: painted steel with colour in the Wear vertex colour, and the bags on one painted image. Both long faces are shopped; the +Y face and +X end cap are the -Y ones turned half round. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.2,
+   "max": 14.0,
+   "default": 6.0
+  },
+  "depth": {
+   "min": 0.6,
+   "max": 1.5,
+   "default": 1.0
+  },
+  "height": {
+   "min": 1.2,
+   "max": 2.2,
+   "default": 1.6
+  }
+ },
+ "parts": [
+  "Snack_Kick",
+  "Snack_Spine",
+  "Snack_Frame",
+  "Snack_Shelf",
+  "Snack_Strip",
+  "Snack_Bag"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.72,
+    0.73,
+    0.74
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 20000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "snack gondola",
+  "gondola aisle",
+  "chip aisle",
+  "snack aisle"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

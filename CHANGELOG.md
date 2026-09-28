@@ -1,3 +1,40 @@
+## [1.13.0] - the island snack gondola
+
+New species `snack_gondola`. The walker, 2026-09-28: "do the snack gondolas
+next"; the reference asks for "gondola shelving, four or five shelves of chip
+bags faced out, end caps stacked with more chips".
+
+WHAT IS BUILT (`core/snack_gondola_forms.py`, pure, tested without Blender):
+a dark kick, a pegboard spine, steel uprights at every bay (1.22 m at most)
+and end panels, a top rail; on both faces, shelves up the height with white
+price strips; chip bags faced out on every shelf, stocked in pairs of
+facings a brand; end caps at both ends of a run 2.2 m or longer, three
+shelves facing down the aisle. The +Y face and the +X end cap are the -Y
+ones turned half round, and a test checks every bag's printed front points
+away from the gondola on all four sides.
+
+A BAG IS A BAG, NOT A PICTURE OF ONE -- the walker's standing preference for
+real structure over printed cards. Each is a `prims.pillow` stood on its
+back: a puffed front and flat, planar sides, 22 triangles. Its front maps to
+its brand's tile and every other face to its brand's colour, all on ONE
+image (`bag_art`). Twelve invented Delco snack brands in a new table,
+`core/snack_brands.py` -- DELCO DUST, SCRAPPLE CRISPS, JAWN CHIPS, YO CHEEZ
+... -- denylisted against Pennsylvania's own chip and pretzel makers first
+and the nationals after, lettered in the m5x7 face.
+
+TWO SUBMISSIONS WHATEVER THE LENGTH: painted steel with each part's colour in
+the vertex, and the bags. `test_bpy_two_submissions`.
+
+MEASURED: the planner's coincident check found 3-6 pairs a build first --
+the kick, spine, top rail and an end cap's back plate all ending in one
+12 mm end panel at depths 2 mm apart, the top rail sharing the panels' top,
+and the end cap's back plate standing 8 mm OUTSIDE the panel it was meant
+to bury into. The end panels are 20 mm now and every part has its own depth
+4 mm or more from its neighbours. Census: 3 builds, 0 pairs (840 / 5,164 /
+18,876 triangles; the bags are most of it); `CENSUS_BUILDS` 324 -> 327;
+audited genome count 82 -> 83. Deli Counter 0.150.0 routes the stores'
+aisles to it.
+
 ## [1.12.0] - the reach-in cooler wall, glowing
 
 New species `cooler_run`. The walker, 2026-09-28: "do the cooler wall next",

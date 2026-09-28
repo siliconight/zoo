@@ -52,7 +52,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "coffee_island",
                 # the reach-in cooler wall (1.12.0): glass doors, shelves, and
                 # the products, tubes and sign band glowing on one image
-                "cooler_run"}
+                "cooler_run",
+                # the island snack gondola (1.13.0): chip bags as real bags,
+                # printed from one image, on shelves both faces and end caps
+                "snack_gondola"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

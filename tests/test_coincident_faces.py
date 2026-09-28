@@ -356,7 +356,11 @@ DID_NOT_BUILD = {"boots"}
 #: 3,288 tris), so it lands in `clean` and neither `RESIDUE` nor the 3009
 #: moves. The planner's own check had found 15 pairs a build first and each
 #: was fixed at its source (docs in `core/cooler_run_forms.py`).
-CENSUS_BUILDS = 324
+#: 1.13.0: `snack_gondola`, three builds more, same tool, same Blender: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (840 / 5,164 /
+#: 18,876 tris). The planner's check found 3-6 pairs a build first -- parts
+#: meeting the end panels and each other at one depth -- fixed at the source.
+CENSUS_BUILDS = 327
 
 
 def test_the_census_covers_every_species_there_is():
