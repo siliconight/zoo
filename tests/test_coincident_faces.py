@@ -373,7 +373,9 @@ DID_NOT_BUILD = {"boots"}
 #: 2,496 tris). The planner's check found cheeks on the pan's side planes,
 #: hood panes 1-2 mm off posts and panes, and buns 2 mm into their shelf
 #: first; each fixed at its source.
-CENSUS_BUILDS = 336
+#: 1.19.0: `price_pylon`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (132 tris each).
+CENSUS_BUILDS = 339
 
 
 def test_the_census_covers_every_species_there_is():

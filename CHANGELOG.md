@@ -1,3 +1,34 @@
+## [1.19.0] - the gas station's price pylon
+
+New species `price_pylon`. The walker, 2026-09-28: "do the price pylon
+next". The references: "A pylon sign at the road. Tall, freestanding, at the
+kerb where a driver reads it before the building ... the one a player sees
+from three streets away. Owner: Zoo (a species) plus Lot (at the frontage,
+facing the road)" (docs/SET_DRESSING_REFERENCES.md), and the pumps'
+"dollars-per-gallon to the nine-tenths ... the 9/10 fraction is the detail
+that reads as 1997 at a glance" (docs/proposals/GAS_STATION_SHOP.md).
+
+WHAT IS BUILT (`core/price_pylon_forms.py`): a concrete plinth and two steel
+posts; a brand cabinet -- FLAPPHAS, the store's own name, in the coffee
+sign's colourways so the store's two signs are one brand; a price cabinet,
+REGULAR / PLUS / SUPER each with its grade's colour (the pump reference's
+silver, red, gold) and a 1997 price to the nine-tenths, 1.19 9/10 by
+default; and an OPEN 24 HRS strip. Every cabinet's two faces are lit from
+ONE backlit image, `M_Pylon_<art>_Face` (Lux's power cut takes it), at 1.4
+-- over the cooler wall's 1.0, since this one is read from three streets
+away -- and the back face maps u reversed, so the sign reads from both
+directions along the road. Headline in `monogram`, the slush machine's
+reason. One scale for every grade's name (fitted each alone, REGULAR set at
+half PLUS's size).
+
+TWO SUBMISSIONS: painted steel and concrete (colours in `Wear`), the glow.
+Census 3 builds, 0 pairs (132 tris each; budget 400); `CENSUS_BUILDS` 336 ->
+339; audited genome count 86 -> 87.
+
+NOT YET PLACED: Lot stands it at the frontage (its placement is a Lot
+change, planned in docs/proposals/PRICE_PYLON_PLACEMENT.md); until then the
+species exists and nothing in a level asks for it.
+
 ## [1.18.0] - a storefront is see-through glass
 
 The walker, 2026-09-28, with six photographs of convenience stores at night

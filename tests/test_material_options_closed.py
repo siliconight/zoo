@@ -56,6 +56,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a slush station's stand, machine, taps and pumps are enamelled
            # steel and plastic, their colours in the vertex (1.15.0)
            "slush_machine",
+           # a price pylon's cabinets and posts are painted steel, its
+           # plinth a painted tint of the same (1.19.0)
+           "price_pylon",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter

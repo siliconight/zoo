@@ -1,0 +1,127 @@
+{
+ "species": "price_pylon",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.19.0. The gas station's roadside price sign, from docs/SET_DRESSING_REFERENCES.md ('A pylon sign at the road. Tall, freestanding, at the kerb where a driver reads it before the building ... the one a player sees from three streets away. Owner: Zoo (a species) plus Lot (at the frontage, facing the road)') and the proposal's 'dollars-per-gallon to the nine-tenths' (docs/proposals/GAS_STATION_SHOP.md). A concrete plinth, two steel posts, a brand cabinet (FLAPPHAS, in the coffee sign's colourways), a price cabinet (REGULAR, PLUS, SUPER, each to the 9/10) and an OPEN 24 HRS strip, every cabinet lit on both faces from one backlit image (M_Pylon_<art>_Face, Lux's power cut takes it), the back face reversed so both read. Two submissions: painted steel (colours in the Wear vertex colour) and the glow. Invented brand. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.6,
+   "max": 3.4,
+   "default": 2.4
+  },
+  "depth": {
+   "min": 0.3,
+   "max": 0.8,
+   "default": 0.5
+  },
+  "height": {
+   "min": 4.5,
+   "max": 9.0,
+   "default": 6.5
+  }
+ },
+ "parts": [
+  "Pylon_Plinth",
+  "Pylon_Post",
+  "Pylon_Cabinet",
+  "Pylon_Band",
+  "Pylon_Face"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.1,
+    0.11,
+    0.12
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 400
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "price pylon",
+  "pylon sign",
+  "gas price sign",
+  "price sign",
+  "pole sign"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

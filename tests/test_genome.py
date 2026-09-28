@@ -63,7 +63,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "slush_machine",
                 # the hot dog roller grill (1.17.0): rollers, dogs in the
                 # grooves, tags, a glass hood with a bun shelf
-                "roller_grill"}
+                "roller_grill",
+                # the roadside price pylon (1.19.0): brand, prices to the
+                # nine-tenths, both faces lit
+                "price_pylon"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
