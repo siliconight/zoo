@@ -1,3 +1,26 @@
+## [1.14.0] - a stack of milk crates, for the walk-in coolers
+
+New species `milk_crate_stack`. Deli Counter 0.149.0 stops furnishing walk-in
+coolers as kitchens (a grill in gas_station_a02's walk-in) and gives them a
+cold-storage recipe of backstock racks, cartons, pallets and milk crates; its
+first commit was refused by its own gate because `test_furnish` holds every
+furnished piece to a species -- "a generated piece that routes to nothing is
+a grey box, which is the defect furnishing exists to reduce". So the crate is
+Zoo's to grow, per the gap protocol, rather than swapped for a carton.
+
+WHAT IS BUILT (`core/milk_crate_forms.py`): hollow, open-topped crates -- a
+bottom plate and four walls -- in a grid a layer at a nominal 0.34 x 0.34 x
+0.28 m, each sitting 4 mm into the one below as real crates nest. One
+submission: one plastic material, the stack red, blue, orange or green by
+variant, in the `Wear` vertex colour. 60 triangles a crate.
+
+MEASURED: single layers were clean at once; stacking put each upper crate's
+plate 2 mm off the lower crate's inner walls and exactly on its front and
+back walls' tops. The plate stands 30 mm inside its walls and those walls stop
+8 mm under the rim; every other layer steps in 6 mm and neighbouring crates
+leave 6 mm. Census 3 builds, 0 pairs; `CENSUS_BUILDS` 327 -> 330; audited
+genome count 83 -> 84.
+
 ## [1.13.0] - the island snack gondola
 
 New species `snack_gondola`. The walker, 2026-09-28: "do the snack gondolas

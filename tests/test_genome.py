@@ -55,7 +55,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "cooler_run",
                 # the island snack gondola (1.13.0): chip bags as real bags,
                 # printed from one image, on shelves both faces and end caps
-                "snack_gondola"}
+                "snack_gondola",
+                # the walk-in's milk crates (1.14.0): hollow crates, nested
+                "milk_crate_stack"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

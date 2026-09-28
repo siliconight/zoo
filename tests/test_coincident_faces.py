@@ -360,7 +360,10 @@ DID_NOT_BUILD = {"boots"}
 #: builds, 0 with coincident pairs, 0 that did not build" (840 / 5,164 /
 #: 18,876 tris). The planner's check found 3-6 pairs a build first -- parts
 #: meeting the end panels and each other at one depth -- fixed at the source.
-CENSUS_BUILDS = 327
+#: 1.14.0: `milk_crate_stack`, three builds more: "3 builds, 0 with
+#: coincident pairs, 0 that did not build". Stacking had put a crate's plate
+#: 2 mm off the crate below's walls; fixed at the source first.
+CENSUS_BUILDS = 330
 
 
 def test_the_census_covers_every_species_there_is():
