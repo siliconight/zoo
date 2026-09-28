@@ -415,5 +415,7 @@ def test_the_bar_fitout_shares_no_plane_with_itself():
 
 
 def test_the_counter_offers_the_bar_form_and_nothing_else_moved():
+    # 1.7.0 added `service`, the convenience store's counter; its own
+    # coverage is tests/test_service_counter.py. This still pins the list.
     g = genome.load_species("counter")
-    assert g["params"]["form"] == ["auto", "straight", "bar"]
+    assert g["params"]["form"] == ["auto", "straight", "bar", "service"]

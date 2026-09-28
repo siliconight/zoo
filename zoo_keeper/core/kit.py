@@ -483,7 +483,12 @@ def honour_dressing(slot: dict, species: str, genome_dir: str = None):
     if asked_variant < 0 or asked_variant >= nvar:
         why.append("variant %r is outside 0..%d for %s"
                    % (slot.get("variant"), nvar - 1, species))
-    elif asked_variant and stocks and not asked_stock:
+    elif asked_variant and stocks and not asked_stock and not asked_form:
+        # A FORM MAY KEY ITS OWN VARIANT (1.7.0): the counter's `service`
+        # form draws its candy wrappers and cigarette packs from the
+        # variant, stock or no stock, so a variant beside a form is honoured.
+        # Without a form the old reading stands: on a species with flavours,
+        # a variant and no stock moves nothing but wear noise.
         why.append("variant %d on %s without stock would change nothing "
                    "but wear noise" % (asked_variant, species))
     if why:

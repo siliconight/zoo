@@ -1,0 +1,285 @@
+"""1.7.0 -- the convenience store's service counter: `counter` form
+``service``, the candy rack and the cigarette rack overhead.
+
+The walker, 2026-09-27: "start with the service counter, cigarette overhead
+and candy rack", from the 1990s photograph of the store's service island
+(docs/SET_DRESSING_REFERENCES.md, 2026-09-15).
+
+Pure half (`core/service_counter_forms.py`, `core/candy_brands.py`): the
+fit-out stays inside the slot where it must and above it where it may, no
+two of its faces share a plane, the budget, a rack that clears every
+register or is not built, the art's bytes and what it says, the invented
+brands and the denylist. Built half (bpy, skipped without it): PASS and
+fit, the header the only thing lit, the paint painted, determinism.
+"""
+from __future__ import annotations
+
+import itertools
+import re
+
+import pytest
+
+from zoo_keeper.core import candy_brands as CANDY
+from zoo_keeper.core import cigarette_brands as CB
+from zoo_keeper.core import genome as genome_mod
+from zoo_keeper.core import prims as P
+from zoo_keeper.core import service_counter_forms as S
+from zoo_keeper.recipes._bays import bays
+
+#: Deli Counter's `register_counter` in the gas_station preset, then the
+#: club's bar sizes, then the genome's corners.
+DC_SIZES = ((6.0, 0.9, 1.1), (4.0, 0.8, 1.05), (2.0, 0.65, 0.95))
+_G = genome_mod.load_species("counter")
+
+
+def _corners():
+    r = _G["dimensions"]
+    return [tuple(c) for c in itertools.product(*((r[a]["min"], r[a]["max"])
+                                                   for a in ("width", "depth", "height")))]
+
+
+def _fit(w, d, h, variant=1):
+    """The recipe's own numbers, as `recipes/counter.py` derives them."""
+    lip, top_t, base_h = 0.02, 0.045, 0.07
+    top_w = w + 2 * lip
+    body_d = d * 0.85
+    body_y = (d - body_d) / 2.0
+    face_y = body_y - body_d / 2.0
+    runs = bays(w, 4.0)
+    att = {("ATT_register" if len(runs) == 1 else f"ATT_register_B{i + 1}"): (bx + bw * 0.15, 0.0, h)
+           for i, (bx, bw) in enumerate(runs)}
+    inside, on_top, facts = S.fitout(w, d, h, att, top_w, face_y, base_h, top_t, "counter_service", variant)
+    return inside, on_top, facts, top_w
+
+
+CASES = list(DC_SIZES) + _corners()
+
+
+@pytest.mark.parametrize("dims", CASES)
+def test_the_fitout_stays_inside_the_slot_where_it_must_and_shares_no_plane(dims):
+    w, d, h = dims
+    inside, on_top, facts, top_w = _fit(w, d, h)
+    lo, hi = P.bounds(inside)
+    # inside the slot: under the top, within its ends, never past its front
+    assert lo[1] >= -d / 2.0 - 1e-9 and hi[1] <= d / 2.0 + 1e-9, (dims, lo, hi)
+    assert lo[0] >= -top_w / 2.0 - 1e-9 and hi[0] <= top_w / 2.0 + 1e-9
+    assert lo[2] > 0.0 and hi[2] <= h - 0.045
+    # on top: standing on the top, within the counter's ends
+    lo2, hi2 = P.bounds(on_top)
+    # buried 4 mm into the top, the lottery towers 2 mm deeper each so no
+    # two of them share the top's plane
+    assert h - 0.012 <= lo2[2] <= h - 0.004 + 1e-9, (dims, lo2)
+    assert lo2[0] >= -top_w / 2.0 - 1e-9 and hi2[0] <= top_w / 2.0 + 1e-9, (dims, lo2, hi2)
+    assert P.coincident_pairs(inside + on_top, tol=0.0022) == []
+    assert P.tri_count(inside + on_top) <= S.TRI_BUDGET
+
+
+@pytest.mark.parametrize("dims", DC_SIZES)
+def test_the_candy_rack_reaches_the_overhang_and_no_further(dims):
+    """A walk-into solid stays inside its collision, and the module's
+    collision is the counter's box: the lowest tier ends 4 mm short of the
+    slot's front."""
+    w, d, h = dims
+    inside, _on, facts, _tw = _fit(w, d, h)
+    tiers = [p for p in inside if p["part"] == "Counter_CandyTier"]
+    assert len(tiers) == S.TIERS
+    front = min(v[1] for p in tiers for v in p["verts"])
+    assert front == pytest.approx(-d / 2.0 + 0.004, abs=1e-6)
+    reaches = [t["reach"] for t in facts["tiers"]]
+    assert reaches == sorted(reaches, reverse=False) or reaches == sorted(reaches, reverse=True)
+    assert max(reaches) > min(reaches)
+
+
+def test_a_register_at_every_station_and_lottery_beside_it():
+    _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
+    assert len(facts["registers"]) == 2            # two bays of at most 4 m
+    assert len(facts["lottery"]) == 2 * S.LOTTO_MAX
+    regs = [p for p in on_top if p["part"] == "Counter_Register"]
+    assert len(regs) == 2 * 2
+    lottos = [p for p in on_top if p["part"] == "Counter_Lottery"]
+    # every dispenser stands on the top at the customer edge
+    for p in lottos:
+        assert min(v[1] for v in p["verts"]) == pytest.approx(-0.45 + S.LOTTO_IN, abs=1e-6)
+
+
+def test_the_rack_clears_every_register_or_is_not_built():
+    _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
+    rack = facts["rack"]
+    assert rack is not None and rack["w"] == S.RACK_W_MAX
+    posts = [p for p in on_top if p["part"] == "Counter_CigPost"]
+    assert len(posts) == 2
+    for p in posts:
+        px = sum(v[0] for v in p["verts"]) / len(p["verts"])
+        assert all(abs(px - ax) >= S.REG_W / 2.0 + S.POST_R for ax in facts["registers"]), (px, facts["registers"])
+    # the rack is over the clerk's head
+    assert rack["z"][0] >= 1.9
+    # a kiosk gets no rack rather than a post through its till
+    _in2, on2, f2, _ = _fit(0.8, 0.5, 0.85)
+    assert f2["rack"] is None
+    assert not [p for p in on2 if p["part"].startswith("Counter_Cig")]
+
+
+def test_the_rack_faces_the_customer_and_the_header_is_the_lit_face():
+    _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
+    art = next(p for p in on_top if "uvs" in p)
+    assert art["part"] == "Counter_CigRackArt"
+    front = min(v[1] for v in art["verts"])
+    # the art's front is on the rack's customer side (-Y), set behind its edge
+    assert front < facts["rack"]["y"][0] + 0.001
+    assert art["face_mats"].count("lit") == 1
+    lit_face = art["faces"][art["face_mats"].index("lit")]
+    assert min(art["verts"][i][2] for i in lit_face) == pytest.approx(facts["rack"]["header_z"])
+
+
+def test_the_art_is_deterministic_and_says_what_it_should():
+    _in, _on, facts, _tw = _fit(6.0, 0.9, 1.1, variant=2)
+    a = S.rack_art(facts, "counter_service", 2)
+    b = S.rack_art(facts, "counter_service", 2)
+    assert a["name"] == b["name"] and bytes(a["canvas"].buf) == bytes(b["canvas"].buf)
+    assert S.rack_art(facts, "counter_service", 3)["name"] != a["name"]
+    assert a["header"] in CB.IDS
+    assert len(a["rows"]) == S.RACK_ROWS and all(len(r) == facts["rack"]["n_packs"] for r in a["rows"])
+    assert a["rows"][0][0] == a["header"]
+    assert a["size"][0] == int(round(facts["rack"]["w"] * S.RACK_TEXEL)) - int(round(0.04 * S.RACK_TEXEL))
+    # the header's words are the brand's, none of them a real mark
+    said = " ".join(a["said"]).upper()
+    for w_ in CB.DENY_WORDS:
+        assert not re.search(rf"\b{re.escape(w_)}\b", said), w_
+    c = S.candy_art(facts["tiers"], "counter_service", 2)
+    assert sorted(c) == list(range(S.TIERS))
+    for k, t in c.items():
+        assert t["size"][0] == int(S.ART_REPEAT_M * S.CANDY_TEXEL)
+        assert all(b in CANDY.BAR_IDS for b in t["brands"])
+    # three tiers lead with three different bars
+    assert len({c[k]["brands"][0] for k in c}) == S.TIERS
+    assert S.candy_art(facts["tiers"], "counter_service", 2)[0]["name"] == c[0]["name"]
+
+
+def test_the_checker_is_two_squares_across_and_not_grey():
+    ck = S.checker_canvas()
+    n = S.CHECKER_PX
+    assert (ck.w, ck.h) == (2 * n, 2 * n)
+    assert ck.get(0, 0) == ck.get(n, n) and ck.get(n, 0) == ck.get(0, n)
+    assert ck.get(0, 0) != ck.get(n, 0)
+    band = next(p for p in _fit(6.0, 0.9, 1.1)[0] if p["part"].startswith("Counter_Trim"))
+    su, _ou, sv, _ov = band["uv_xz"]
+    assert su == sv == pytest.approx(1.0 / (2.0 * S.CHECK))
+
+
+def test_every_candy_brand_is_invented_and_legible():
+    seen = set()
+    for b in CANDY.BRANDS:
+        assert b["id"] not in seen
+        seen.add(b["id"])
+        assert b["design"] in CANDY.DESIGNS and b["kind"] in ("bar", "gum")
+        up = CANDY.words(b).upper()
+        toks = set(re.findall(r"[A-Z0-9&']+", up))
+        for w_ in CANDY.DENY_WORDS:
+            assert w_ not in toks, (b["id"], w_)
+        for part in CANDY.DENY_PARTS:
+            assert part not in up, (b["id"], part)
+        assert len(b["short"]) <= 6
+    assert len(CANDY.BAR_IDS) >= 6 and len(CANDY.GUM_IDS) >= 2
+
+
+def test_the_genome_offers_the_form_and_names_the_parts():
+    g = genome_mod.load_species("counter")
+    assert "service" in g["params"]["form"]
+    for part in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_Lottery",
+                 "Counter_CigPost", "Counter_CigRack", "Counter_CigRackArt"):
+        assert part in g["parts"], part
+    assert genome_mod.validate_genome(g) == []
+
+
+# --------------------------------------------------------------------------- #
+# The built half
+# --------------------------------------------------------------------------- #
+
+def _build(tmp_path, dims, **fields):
+    """The cigarette machine's idiom: a Deli Counter slot through
+    `kit.plan_kit` and `build.build_module`, so the form arrives the way a
+    package's does."""
+    import bpy
+    from zoo_keeper.bpylayer import build
+    from zoo_keeper.bpylayer.export import _COL_SUFFIXES
+    from zoo_keeper.core import kit
+    slot = {"slot_id": "register_counter", "role": "prop", "size_mod": "full", "style": 1,
+            "species": "counter", "material": "laminate", "form": "service",
+            "fit": {"dims": list(dims), "pivot": "center"}}
+    slot.update(fields)
+    plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
+    assert plan["dressing_fallbacks"] == [], plan["dressing_fallbacks"]
+    res = build.build_module(plan["modules"][0], str(tmp_path), theme="delco_1997",
+                             style=1, options={"save_blend": False})
+    objs = sorted((o for o in bpy.context.scene.objects if o.type == "MESH"
+                   and not o.name.endswith(_COL_SUFFIXES)), key=lambda o: o.name)
+    return res, objs
+
+
+def _glb_json(path):
+    import json
+    import struct
+    raw = open(path, "rb").read()
+    n = struct.unpack("<I", raw[12:16])[0]
+    return json.loads(raw[20:20 + n])
+
+
+@pytest.mark.parametrize("dims", DC_SIZES)
+def test_bpy_the_service_counter_passes_and_fits(tmp_path, dims):
+    pytest.importorskip("bpy")
+    res, objs = _build(tmp_path, dims)
+    assert res["report"]["status"] == "pass", res["report"]["checks"]
+    got = res["facts"]["dimensions"]
+    for k, want in zip(("width", "depth", "height"), dims):
+        assert abs(got[k] - want) <= 0.001, got
+    names = {o.name for o in objs}
+    parts = set(genome_mod.load_species("counter")["parts"])
+    for o in objs:
+        assert any(o.name == p or o.name.startswith(p + "_") for p in parts), o.name
+    # every part of the fit-out is there, by its genome name or a suffix of
+    # it: the painted parts are built one object each and named apart
+    # (Counter_Trim_top, Counter_CandyArt_T1 ...), never Blender's `.001`
+    for want in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_Register",
+                 "Counter_CigPost", "Counter_CigRack", "Counter_CigRackArt"):
+        assert any(n == want or n.startswith(want + "_") for n in names), (want, names)
+    assert not any("." in n for n in names), names
+
+
+def test_bpy_only_the_rack_header_glows_and_the_paint_is_paint(tmp_path):
+    import os
+    pytest.importorskip("bpy")
+    res, objs = _build(tmp_path, DC_SIZES[0])
+    doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
+    lit = [m for m in doc["materials"] if (m.get("emissiveFactor") and any(m["emissiveFactor"]))
+           or "emissiveTexture" in m]
+    assert [m["name"] for m in lit] and all(m["name"].startswith("M_Counter_CigRack_")
+                                            and m["name"].endswith("_Face") for m in lit)
+    painted = [m["name"] for m in doc["materials"]
+               if "baseColorTexture" in m.get("pbrMetallicRoughness", {})]
+    assert any(n == "M_Counter_Checker" for n in painted)
+    assert any(n.startswith("M_Counter_Candy_") for n in painted)
+    assert any(n.startswith("M_Counter_CigRack_") and n.endswith("_Display") for n in painted)
+    # the trim and the candy strips tile, the rack's display clamps. glTF's
+    # default wrap IS repeat (10497), so the exporter writes no sampler or no
+    # wrapS for a tiling texture and 33071 (CLAMP_TO_EDGE) for a clamped one.
+    def wrap_of(mat_name):
+        m = next(m for m in doc["materials"] if m["name"] == mat_name)
+        ti = m["pbrMetallicRoughness"]["baseColorTexture"]["index"]
+        si = doc["textures"][ti].get("sampler")
+        if si is None:
+            return 10497
+        return doc["samplers"][si].get("wrapS", 10497)
+    assert wrap_of("M_Counter_Checker") == 10497
+    assert wrap_of(next(n for n in painted if n.startswith("M_Counter_Candy_"))) == 10497
+    assert wrap_of(next(n for n in painted if n.endswith("_Display"))) == 33071
+
+
+def test_bpy_the_same_file_every_build(tmp_path):
+    import os
+    pytest.importorskip("bpy")
+    files = []
+    for k in range(2):
+        out = tmp_path / ("a%d" % k)
+        res, _o = _build(out, DC_SIZES[0], variant=2)
+        files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
+    assert files[0] == files[1]

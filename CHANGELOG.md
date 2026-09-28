@@ -1,3 +1,65 @@
+## [1.7.0] - the convenience store's service counter: trim, candy, registers, lottery, the cigarette rack overhead
+
+`counter` FORM ``service``. The walker, 2026-09-27: "start with the service
+counter, cigarette overhead and candy rack", from the 1990s photograph of
+the store's service island (docs/SET_DRESSING_REFERENCES.md, 2026-09-15):
+white laminate, checkerboard trim top and bottom, the candy rack on the
+customer face, beige registers, the cigarette rack behind.
+
+A FORM, NOT A SPECIES. Deli Counter's `gas_station` preset already stands a
+`register_counter` (6.0 x 0.9 x 1.1) that `intent` resolves to `counter` by
+keyword and whose ``form`` `kit.honour_dressing` carries; `bar` (0.92.0) is
+the precedent. Deli Counter 0.146.0 writes `"form": "service"` on it.
+
+WHAT IS BUILT (`core/service_counter_forms.py`, pure Python, tested without
+Blender):
+
+  * TRIM: two bands on the customer face, painted with a tiling checker
+    (`checker_canvas`, 64 px, two squares -- a 2 x 2 image would blur to
+    grey under bilinear sampling), 6 mm proud so they read in profile.
+  * THE CANDY RACK between the bands: three tiers, the lowest proudest, each
+    a painted strip of wrapped bars (`core/candy_brands.py`, eleven invented
+    Delco bars and gums, denylisted against the national AND the
+    Philadelphia makers -- two names lasted one test run each: JAWN CHEWS
+    is Goldenberg's word, DELCO CRUNCH is a national bar's). The strip's art
+    is one metre wide and its UVs repeat it.
+  * THE RACK STAYS INSIDE THE SLOT. First measured reaching 30 mm past the
+    slot's front on Deli Counter's counter. A walk-into solid sits inside
+    its collision and the module's collision is the counter's box, so the
+    tiers reach no further than the top's overhang: 63 mm on a 0.9 m
+    counter, a shallow rack under the lip.
+  * REGISTERS at every station the recipe reserves, the bar's own; up to
+    three LOTTERY dispensers beside each, red, on the customer edge.
+  * THE CIGARETTE RACK OVERHEAD on two chrome posts from the service edge,
+    2.4 m wide at most, three rows of packs faced to the CUSTOMER over the
+    clerk's head (the pull-knob machine's own pack painter and brands),
+    under a header lit at the machine's measured strength
+    (``M_Counter_CigRack_<art>_Face``, Lux's power cut takes it). A post
+    through a register measured as one coincident plane at 6.0 x 0.9; the
+    rack now centres where its posts clear every station, shrinks in 0.1 m
+    steps to find one, and on a counter too short for the narrowest rack
+    to clear its till (0.8 m, a kiosk) is not built at all.
+  * WHITE LAMINATE, whatever the slot said: a Deli Counter prop arrives as
+    `wood` and would have built a brown counter with a checker band on it.
+
+MEASURED: 216-396 triangles of fit-out across the genome's corners, 544 for
+the whole module at Deli Counter's size; no two faces of the fit-out share a
+plane; the budget (7,000) is unchanged.
+
+TWO CONTRACT CHANGES, both small. `materials.make_painted_material` takes
+``tile`` (REPEAT instead of clamped; the glTF exporter writes no sampler for
+repeat because it is the format's default, which the first test got wrong
+by looking for one). `kit.honour_dressing` honours a variant beside a FORM:
+the service form draws its wrappers and packs from the variant, so
+"variant without stock changes nothing but wear noise" is no longer true
+when a form is asked, and Deli Counter's crc32 variant now gives two
+counters two lineups.
+
+NOT YET: the lottery towers are red blocks with no ticket face; the header
+is a cigarette brand's ad rather than a store's; nothing is skinned by
+Pixelcoat in the preview (flat style colours); and no cold run has carried
+it -- that is the next thing.
+
 ## [1.6.0] - an anchor that already has a lamp does not get another
 
 Lot 0.79.0 derives each site `streetlight` light anchor from the POLE

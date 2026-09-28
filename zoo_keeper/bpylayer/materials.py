@@ -440,7 +440,7 @@ def make_backlit_material(name, image, strength, albedo_factor):
     return mat
 
 
-def make_painted_material(name, image, roughness):
+def make_painted_material(name, image, roughness, tile=False):
     """A face whose artwork is PAINT on it, not light: ``image`` drives Base
     Color at full strength, nothing drives emission, roughness is the
     surface's (0.91.0: a dartboard's sisal, a chalkboard's slate, a
@@ -452,7 +452,13 @@ def make_painted_material(name, image, roughness):
     node settings as that one -- nearest filter, clamped, a panel never
     tiles -- so the pixel art stays crisp. No colour attribute is read: the
     recipe paints these faces with a white COLOR_0, which Level Factory's
-    import multiplies by, so the artwork arrives as painted."""
+    import multiplies by, so the artwork arrives as painted.
+
+    ``tile`` (1.7.0): REPEAT instead of clamped, for a face whose UVs run
+    past 0..1 on purpose -- the service counter's checkerboard trim and its
+    candy strips paint one image per `CHECK` or per metre and let the UVs
+    repeat it. The glTF exporter carries the extension as the sampler's
+    wrap mode, so Godot samples it the same way."""
     mat = bpy.data.materials.get(name)
     if mat:
         return mat
@@ -466,7 +472,7 @@ def make_painted_material(name, image, roughness):
     tex = tree.nodes.new("ShaderNodeTexImage")
     tex.image = image
     tex.interpolation = "Closest"
-    tex.extension = "EXTEND"
+    tex.extension = "REPEAT" if tile else "EXTEND"
     tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
     return mat
 

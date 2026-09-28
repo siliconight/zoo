@@ -26,11 +26,27 @@ is; the taps and the register stand ON the top and are returned as
 same rule that lets a monitor stand on a desk without failing fit_height).
 Nothing changes for any other form: ``auto`` and ``straight`` build what
 this recipe always built.
+
+FORM ``service`` (1.7.0): THE CONVENIENCE STORE'S COUNTER, planned by
+`core.service_counter_forms` from the walker's 1990s photograph of the
+store's service island: checkerboard trim bands top and bottom of the
+customer face, a tiered candy rack between them inside the top's overhang,
+the 1997 register and up to three lottery dispensers at each station, and
+the cigarette rack overhead on two chrome posts, packs faced to the
+customer under a faintly lit header. The same inside/on-top rule as
+``bar``: the trim and the tiers are inside the slot, everything on the top
+and above it is dressing. Three parts are PAINTED rather than skinned --
+the trim's checker, the candy strips, the rack's display -- each a
+`Canvas` raster on a mesh with explicit UVs, the cigarette machine's
+idiom, and the rack's header is the one lit surface
+(``M_Counter_CigRack_<art>_Face``, so Lux's power cut takes it).
 """
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials, prim_mesh
 from ..core import back_bar_forms as BB
+from ..core import cigarette_forms as CF
+from ..core import service_counter_forms as SC
 from ._bays import bay_max_of, bays
 
 #: kept clear of stock round each register station, metres
@@ -41,6 +57,57 @@ FORMS = ("straight", "bar")
 
 def _darker(c, f=0.6):
     return [v * f for v in c]
+
+
+def _painted_xz(p, mat, collection, streams):
+    """A primitive painted with a raster whose UVs come from x and z:
+    ``(u, v) = (x * su + ou, z * sv + ov)`` on every face (the side faces of
+    a 6 mm band are slivers and take the same map). Built like the
+    cigarette machine's display: no bevel, no wear, a white COLOR_0 so the
+    import leaves the paint alone."""
+    su, ou, sv, ov = p["uv_xz"]
+    bm = geometry.new_bm()
+    uv = bm.loops.layers.uv.new("UVMap")
+    vs = [bm.verts.new(v) for v in p["verts"]]
+    for f in p["faces"]:
+        face = bm.faces.new([vs[i] for i in f])
+        for loop in face.loops:
+            x, _y, z = loop.vert.co
+            loop[uv].uv = (x * su + ou, z * sv + ov)
+    bm.normal_update()
+    geometry.shade_by_angle(bm, 1.0)
+    geometry.wear_colors(bm, streams.stream("service_paint"), 0.0)
+    obj = geometry.bm_to_object(bm, p["part"], collection, finish=False)
+    obj.data.materials.append(mat)
+    return obj
+
+
+def _art_face(p, art, paint, lit, collection, streams):
+    """The rack's art slab: its front two quads mapped onto the raster
+    (the header lit, the rows painted), every other face on the dark
+    pixels -- `cigarette_machine`'s display, on a counter."""
+    size = art["size"]
+    art_uv = CF.uv_rect((0, 0, size[0], size[1] - 6), size)
+    dark_uv = CF.uv_rect(art["dark"], size)
+    bm = geometry.new_bm()
+    uv = bm.loops.layers.uv.new("UVMap")
+    vs = [bm.verts.new(v) for v in p["verts"]]
+    for f, corners, fm in zip(p["faces"], p["uvs"], p["face_mats"]):
+        face = bm.faces.new([vs[i] for i in f])
+        face.material_index = 1 if fm == "lit" else 0
+        for loop, c in zip(face.loops, corners):
+            if c[0] == "art":
+                loop[uv].uv = (art_uv[0] + (art_uv[2] - art_uv[0]) * c[1],
+                               art_uv[1] + (art_uv[3] - art_uv[1]) * c[2])
+            else:
+                loop[uv].uv = ((dark_uv[0] + dark_uv[2]) / 2.0, (dark_uv[1] + dark_uv[3]) / 2.0)
+    bm.normal_update()
+    geometry.shade_by_angle(bm, 1.0)
+    geometry.wear_colors(bm, streams.stream("service_paint"), 0.0)
+    obj = geometry.bm_to_object(bm, p["part"], collection, finish=False)
+    obj.data.materials.append(paint)
+    obj.data.materials.append(lit)
+    return obj
 
 
 def build(plan, streams, collection):
@@ -156,6 +223,58 @@ def build(plan, streams, collection):
         print(f"[counter] form=bar rail_posts={sum(1 for p in inside) - 1} "
               f"taps={sum(1 for p in on_top if p['part'] == 'Counter_TapTower') // 2} "
               f"registers={sum(1 for p in on_top if p['part'] == 'Counter_Register') // 2}")
+    elif form == "service":
+        key, variant = SC.resolve(plan)
+        inside, on_top, facts = SC.fitout(w, d, h, attachments, top_w, body_y - body_d / 2,
+                                          base_h, top_t, key, variant)
+        mats = {k: (f"M_Counter_svc_{k}", list(c), kind) for k, (c, kind) in SC.MATERIALS.items()}
+        rng = streams.stream("service_fitout")
+        fit_objs = prim_mesh.build([p for p in inside if "paint" not in p], collection, plan,
+                                   rng, mats, texel=1.0)
+        top_objs = prim_mesh.build([p for p in on_top if "uvs" not in p], collection, plan,
+                                   rng, mats, texel=1.0)
+        # the painted parts, each a raster on a mesh with its own UVs
+        chk = SC.checker_canvas()
+        chk_mat = materials.make_painted_material(
+            "M_Counter_Checker", materials.image_from_png("counter_checker", chk.png()),
+            0.35, tile=True)
+        candy = SC.candy_art(facts["tiers"], key, variant)
+        for p in (q for q in inside if "paint" in q):
+            if p["paint"] == "checker":
+                mat = chk_mat
+            else:
+                A = candy[int(p["paint"].split("_")[1])]
+                mat = materials.make_painted_material(
+                    f"M_Counter_Candy_{A['name']}",
+                    materials.image_from_png(A["name"], A["canvas"].png()), 0.45, tile=True)
+            fit_objs.append(_painted_xz(p, mat, collection, streams))
+        rack = facts["rack"]
+        if rack is not None:
+            R = SC.rack_art(facts, key, variant)
+            image = materials.image_from_png(R["name"], R["canvas"].png())
+            lit = materials.make_backlit_material(f"M_Counter_CigRack_{R['name']}_Face", image,
+                                                  CF.HEADER_EMISSION, CF.HEADER_ALBEDO)
+            paint = materials.make_painted_material(f"M_Counter_CigRack_{R['name']}_Display",
+                                                    image, CF.DISPLAY_ROUGHNESS)
+            art_p = next(q for q in on_top if "uvs" in q)
+            top_objs.append(_art_face(art_p, R, paint, lit, collection, streams))
+        # WHITE LAMINATE, whatever the slot said. The reference's counter is
+        # white laminate under checkerboard trim, and the form is the look;
+        # a Deli Counter prop arrives as `wood` by default and would build a
+        # brown counter with a checker band on it.
+        white_top = materials.make_material("M_Counter_top_laminate_white",
+                                            _darker(list(SC.WHITE), 0.96), "laminate")
+        white_body = materials.make_material("M_Counter_laminate_white", list(SC.WHITE), "laminate")
+        for o in objs:
+            if "Top" in o.name:
+                materials.assign([o], white_top)
+            elif "Base" not in o.name:
+                materials.assign([o], white_body)
+        print(f"[counter] form=service registers={len(facts['registers'])} "
+              f"lottery={len(facts['lottery'])} tiers={len(facts['tiers'])} "
+              f"rack={'none' if rack is None else '%.2fm/%d packs' % (rack['w'], rack['n_packs'])} "
+              f"candy={[candy[k]['brands'][0] for k in sorted(candy)]} "
+              f"header={'-' if rack is None else R['header']}")
 
     dressing = stock + top_objs
     return {"objects": objs + fit_objs + stock + top_objs,
