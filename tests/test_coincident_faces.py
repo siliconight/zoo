@@ -344,7 +344,14 @@ DID_NOT_BUILD = {"boots"}
 #: coincident pairs, 0 that did not build", so it lands in `clean` and neither
 #: `RESIDUE` nor the 3009 below moves. Its three corners measured 224 / 1176 /
 #: 3024 tris, which is also where its genome budget came from.
-CENSUS_BUILDS = 318
+#: 1.9.0: `coffee_island`, three builds more. Run through the same tool --
+#: `blender -b --python tools/coplanar_census.py -- --species coffee_island`
+#: on Blender 5.1.1 (b70da489d7f4) -- and reported "3 builds, 0 with
+#: coincident pairs, 0 that did not build", so it lands in `clean` and neither
+#: `RESIDUE` nor the 3009 below moves. Its corners built at 3,796 / 4,132 /
+#: 9,156 tris (one carafe a brewer), and the last is where its genome budget
+#: came from.
+CENSUS_BUILDS = 321
 
 
 def test_the_census_covers_every_species_there_is():

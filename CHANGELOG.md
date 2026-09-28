@@ -1,3 +1,67 @@
+## [1.9.0] - the convenience store's coffee island
+
+New species `coffee_island`. The walker, 2026-09-28: "do the coffee counter
+next", then four photos of a 1985 pour-over brewer and its carafes -- "a good
+look for the carafe at least" -- and one of a later commercial three-warmer
+model.
+
+WHY A SPECIES. Deli Counter places the piece as a free-standing volume,
+`coffee_island` 3.0 x 2.0 x 1.1 in six store specs and `coffee_food_island`
+4.0 x 3.0 x 1.0 in `gas_station_a02` (the store club_block_014 stands) and
+`fuel_stop_heist`. Its prop-species table routed both to `counter` by the
+word `island`: the first built as a bare counter, the second -- deeper than
+the counter genome's 2.0 m -- as the plain `prop` box, which is what cold run
+9095 shipped. People walk round it, so both long faces are served. Deli
+Counter 0.147.0 routes `coffee` here.
+
+WHAT IS BUILT (`core/coffee_island_forms.py`, pure, tested without Blender):
+a recessed kick, a wood body and a steel top that IS the slot; brewer pairs
+back to back down the spine, the +Y one the -Y one turned half round so the
+woodgrain column is on the viewer's right from either side; a steel burner
+row along each long edge when the island is deep enough; cup towers and lid
+stacks at +X, syrups with pumps, creamer and stirrers at -X; a round
+double-sided FLAPPHAS COFFEE sign on a post over the middle, reading the
+right way from both sides.
+
+THE BREWER is the walker's 1985 photos: a stainless hood with two warmers on
+it, two rocker switches each beside a red lamp, a plaque; a woodgrain column
+down the right; a base plate with a warmer in the open bay under a hanging
+funnel. The photos' plaque is a real maker's mark, so the plaque says DRIP
+KING. The commercial model (black panel, red faucet, stepped three-warmer
+deck) is not built; it is the obvious second form.
+
+THE CARAFE is the photos' too: a squat glass bulb, a collar band in the lid
+colour (orange decaf, black regular), a spout, a hooked handle, the coffee
+inside. Its shape is a new `lathe` primitive here, a closed solid of
+revolution from a (z, r) profile.
+
+ONE CARAFE A BREWER. The first render filled every warmer -- 20 carafes on
+a 3 m island -- and the walker: "we can have 20% as many carafes". Each
+brewer now holds the one it is brewing, in its bay; the two on its hood and
+the burner row stand empty, as one in the photo does. That is exactly a
+fifth of the warmers on both of Deli Counter's sizes. Decaf is the odd
+stations', so both lids are always there.
+
+FIVE SUBMISSIONS WHATEVER THE SIZE, designed in rather than merged after
+(1.8.0 was the lesson): every part belongs to one of four surface kinds
+with its colour in the `Wear` vertex colour, the glass is one see-through
+material, and the sign and every badge share one painted image. Held by
+`test_bpy_five_submissions_five_materials`.
+
+FOUND ON THE WAY, and fixed: `make_see_through_material` returns any
+material already carrying its name, and `prim_mesh.build` had just made an
+opaque one of the same name -- the carafes exported solid. The glass now
+builds under a placeholder name and takes the see-through material after.
+
+MEASURED: coincident-face census 3 builds, 0 pairs (3,796 / 4,132 / 9,156
+triangles at the genome's corners; `CENSUS_BUILDS` 318 -> 321). Genome
+count 80 -> 81 in `test_theme_style_resolution`.
+
+NOT MEASURED YET: the look in a package, and whether the glass reads as
+glass there. The preview renders it milky -- that is the flat fallback
+material, and a themed build uses Pixelcoat's see-through glass pack.
+Cold run 9096 is where it is walked.
+
 ## [1.8.0] - the service counter is six submissions, not fifteen
 
 The walker, 2026-09-28: "do the atlas merge on the counter". 1.7.0 shipped

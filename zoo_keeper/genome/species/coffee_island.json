@@ -1,0 +1,136 @@
+{
+ "species": "coffee_island",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.9.0. The convenience store's self-serve coffee island, from the walker's references (docs/SET_DRESSING_REFERENCES.md 2026-09-15; docs/proposals/GAS_STATION_SHOP.md): a wood-and-steel island with 1985-style pour-over brewers back to back down its spine (a stainless hood with two warmers on top, rocker switches and red lamps, a woodgrain column, a base plate with a warmer in the bay under a hanging funnel, an invented DRIP KING plaque), squat bulb carafes with a collar, spout and hooked handle, a burner row along each long edge when the island is deep enough, orange (decaf) and black lids, cup towers and lid stacks at one end, syrup bottles with pumps, creamer and stirrers at the other, and a round double-sided FLAPPHAS COFFEE sign on a post over the middle. Planned in core/coffee_island_forms.py. Built as five submissions whatever its size: one material per surface kind (wood, bare steel, plastic) with each part's colour in the Wear vertex colour, one see-through glass, one painted sign. Every mark is invented; FLAPPHAS is the store's settled name. Both long faces are customer faces; collision is the island box. ONE CARAFE A BREWER, the one brewing in its bay (the walker, 2026-09-28: 'we can have 20% as many carafes' -- the first cut filled every warmer, 20 carafes on a 3 m island); every other warmer stands empty, and decaf is the odd stations'. BUDGET 10000 is a regression detector, not a frame cost: the coincident-face census built its corners at 3,796 / 4,132 / 9,156 triangles (2.6 x 1.4 x 0.85, 3.0 x 2.0 x 1.1, 6.0 x 3.5 x 1.2)."
+ },
+ "dimensions": {
+  "width": {
+   "min": 2.6,
+   "max": 6.0,
+   "default": 3.0
+  },
+  "depth": {
+   "min": 1.4,
+   "max": 3.5,
+   "default": 2.0
+  },
+  "height": {
+   "min": 0.85,
+   "max": 1.2,
+   "default": 1.1
+  }
+ },
+ "parts": [
+  "Coffee_Kick",
+  "Coffee_Body",
+  "Coffee_Top",
+  "Coffee_Brewer",
+  "Coffee_Warmer",
+  "Coffee_Carafe",
+  "Coffee_CupRack",
+  "Coffee_Cups",
+  "Coffee_Syrup",
+  "Coffee_Condiment",
+  "Coffee_SignPost",
+  "Coffee_Sign",
+  "Coffee_Funnel",
+  "Coffee_Badge",
+  "Coffee_Burner"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.25
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.45,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.35
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.2,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.55,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.63,
+    0.64
+   ],
+   "bevel": 0.0,
+   "wear": 0.4,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 10000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "coffee island",
+  "coffee station",
+  "coffee bar",
+  "coffee counter"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

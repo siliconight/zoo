@@ -46,7 +46,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # the till the card shop's counter never had (1.0.0): a
                 # 1997 register whose customer display is lit, standing in
                 # for the four boxes `display_case_forms._register` drew
-                "cash_register"}
+                "cash_register",
+                # the convenience store's coffee island (1.9.0): brewers,
+                # carafes, cups, syrups and the round sign, five submissions
+                "coffee_island"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
