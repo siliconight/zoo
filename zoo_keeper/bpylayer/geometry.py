@@ -547,6 +547,34 @@ def wear_colors(bm, rng, wear, ambient=0.0):
                               min(1.0, g * tint[2]), 1.0)
 
 
+
+def tint_wear(obj, rgb):
+    """Multiply ``rgb`` into ``obj``'s `Wear` colour attribute, in place.
+
+    Zoo 1.8.0, for colour-only variation inside one material: the parts of a
+    module that differ in nothing but colour share ONE material and carry
+    their colour here, so `merge.pack_by_material` packs them into one
+    submission. Level Factory's `zoo_worldskin._vertex_colour_albedo` draws
+    COLOR_0 as albedo on any material some surface of which is not white,
+    and glTF defines base colour as ``factor * texture * COLOR_0`` -- the
+    same product the material's own tint made, with the factor moved into
+    the vertex. Wear and tint then share the channel and cannot be told
+    apart again; that is the price, recorded in the pennant row's 1.1.0
+    note, which named this path and did not take it.
+
+    Returns the number of corners tinted; 0 when the object carries no
+    `Wear` layer, which a caller should treat as the tint not landing."""
+    mesh = obj.data
+    try:
+        attr = mesh.color_attributes[WEAR_LAYER]
+    except (KeyError, AttributeError):
+        return 0
+    r, g, b = (float(rgb[0]), float(rgb[1]), float(rgb[2]))
+    for d in attr.data:
+        c = d.color
+        d.color = (c[0] * r, c[1] * g, c[2] * b, c[3])
+    return len(attr.data)
+
 # --- object plumbing ---------------------------------------------------------
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,

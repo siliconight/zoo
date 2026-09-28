@@ -86,7 +86,11 @@ BURY = 0.006
 TRI_BUDGET = 1400
 
 # --- the trim -----------------------------------------------------------------
-CHECK = 0.045            # a checker square, metres; two rows per band
+#: A checker square, metres; two rows per band. 1.8.0: 0.045 -> 0.05, so a
+#: whole number of squares (20) fits the painted atlas's one-metre repeat --
+#: the trim now shares the candy's image, and a non-integer count would put a
+#: half square at every metre along the counter.
+CHECK = 0.05
 TRIM_H = 2 * CHECK
 TRIM_T = 0.006           # proud of the body's face
 TRIM_INSET = 0.02        # short of the top's ends
@@ -100,7 +104,9 @@ BAR_H = 0.048
 BAR_GAP = 0.010
 #: The art repeats every `ART_REPEAT_M` along the run.
 ART_REPEAT_M = 1.0
-CANDY_TEXEL = 350        # px per metre: a 2.9 mm pixel, a bar 49 px wide
+#: px per metre: a 2.5 mm pixel, a bar 56 px wide, a checker square 20 px.
+#: 1.8.0: 350 -> 400 so a square is a whole number of pixels.
+CANDY_TEXEL = 400
 
 # --- the lottery dispensers -----------------------------------------------------
 LOTTO_W = 0.11
@@ -128,14 +134,49 @@ BLACK = (0.015, 0.015, 0.016)
 CHROME = (0.66, 0.66, 0.66)
 WHITE = (0.86, 0.85, 0.82)
 LOTTO_RED = (0.72, 0.10, 0.10)
+#: Each primitive's ``mat`` key -> (its colour, its surface kind).
+#:
+#: 1.8.0: ONE MATERIAL PER KIND, the colour in the vertex. 1.7.0 shipped these
+#: as six materials and the counter as 15 submissions for 14 materials, five
+#: of which differed from another in nothing but colour -- the thing
+#: CLAUDE.md's draw-call rule names first. Now the recipe builds one
+#: material per KIND (`KIND_BASE` is its tint) and multiplies each part's
+#: colour, divided by that base, into its `Wear` attribute
+#: (`geometry.tint_wear`); `merge.pack_by_material` then packs every part of
+#: a kind into one mesh. The posts moved from bare to painted metal to share
+#: the rack's kind: painted silver where 1.7.0 had chrome, on two 16 mm posts.
+CHROME_PAINT = (0.62, 0.62, 0.63)
 MATERIALS = {
     "black": (BLACK, "metal_painted"),
-    "chrome": (CHROME, "metal_bare"),
+    "chrome": (CHROME_PAINT, "metal_painted"),
     "beige": ((0.60, 0.57, 0.48), "plastic"),
     "key_dark": ((0.16, 0.16, 0.17), "plastic"),
     "lotto": (LOTTO_RED, "plastic"),
     "shelf": (WHITE, "laminate"),
 }
+#: The one material each kind is built with. Laminate keeps the counter's
+#: white as its tint, so the body, top, kick and shelves are `WHITE` times a
+#: vertex factor; plastic and painted metal are neutral and take their whole
+#: colour from the vertex.
+KIND_BASE = {"laminate": WHITE, "plastic": (1.0, 1.0, 1.0), "metal_painted": (1.0, 1.0, 1.0)}
+#: The counter's own parts, as factors on `KIND_BASE["laminate"]`, chosen to
+#: land where 1.7.0's separate materials did -- the merge is not a restyle.
+#: MEASURED by a headless Godot readback of both builds: 1.7.0's top was
+#: `laminate_d3d0c9` (0.96 of the body, kept), its staff shelves the body's
+#: own white (1.0, kept), and its kick base the SLOT's `drywall` skin at a
+#: wear mean of 0.73 -- a light grey, not a design; 0.80 of the white
+#: laminate keeps it light rather than turning it black, which would have
+#: been a look change nobody asked for.
+BODY_TINT = {"Top": (0.96, 0.96, 0.96), "Base": (0.80, 0.80, 0.80), "Body": (1.0, 1.0, 1.0),
+             "Shelf": (1.0, 1.0, 1.0)}
+
+
+def vertex_tint(mat_key):
+    """``(kind, factor)``: the material a ``mat`` key is built with, and the
+    colour its parts multiply into their `Wear` to reach `MATERIALS`'s."""
+    rgb, kind = MATERIALS[mat_key]
+    base = KIND_BASE[kind]
+    return kind, tuple(c / b for c, b in zip(rgb, base))
 _VARIANT = re.compile(r"_n\d+(?=_|$)")
 
 
@@ -209,7 +250,10 @@ def fitout(w, d, h, attachments, top_w, face_y, base_h, top_t, key="counter_serv
         # The checker image is two squares across, so one UV unit is 2 * CHECK
         # metres either way, and the band's bottom edge is a row boundary.
         p["paint"] = "checker"
-        p["uv_xz"] = (1.0 / (2.0 * CHECK), 0.0, 1.0 / (2.0 * CHECK), -za / (2.0 * CHECK))
+        # BAND-LOCAL: u repeats every `ART_REPEAT_M` (the atlas is one metre
+        # wide, 20 squares), v runs 0..1 across the band; `atlas_v` maps v
+        # into the checker's rows of the painted atlas.
+        p["uv_xz"] = (1.0 / ART_REPEAT_M, -x0 / ART_REPEAT_M, 1.0 / TRIM_H, -za / TRIM_H)
         inside.append(p)
     facts["trim"] = {"top": (zt0, zt1), "bottom": (zb0, zb1)}
 
@@ -238,8 +282,8 @@ def fitout(w, d, h, attachments, top_w, face_y, base_h, top_t, key="counter_serv
         art_y0 = yf + 0.018
         p = P.box("Counter_CandyArt_T%d" % (k + 1), "candy", (x0 + 0.006, art_y0, art_z0),
                   (x1 - 0.006, face_y + BURY / 2.0, art_z1))
-        # the strip's art is one image `ART_REPEAT_M` wide, its height the
-        # strip's: u repeats along the run, v spans the strip exactly
+        # BAND-LOCAL like the trim: u repeats every `ART_REPEAT_M`, v runs
+        # 0..1 up the strip, and `atlas_v` maps it into this tier's rows
         p["paint"] = "candy_%d" % k
         p["uv_xz"] = (1.0 / ART_REPEAT_M, -(x0 + 0.006) / ART_REPEAT_M,
                       1.0 / (art_z1 - art_z0), -art_z0 / (art_z1 - art_z0))
@@ -328,18 +372,65 @@ def rack_art_prim(x0, x1, z0, z1, zh, y_front, y_back):
 
 # --- the art ---------------------------------------------------------------------------
 
-CHECKER_PX = 32          # a square's pixels: 2 x 2 squares per image
+#: A checker square's pixels in the atlas: `CHECK` at `CANDY_TEXEL`, exact.
+CHECKER_PX = int(round(CHECK * CANDY_TEXEL))
+CHECK_LIGHT = (240, 238, 232)
+CHECK_DARK = (14, 14, 14)
 
 
-def checker_canvas():
-    """A 2 x 2 black-and-white checker, `CHECKER_PX` a square; the trim's
-    UVs tile it at `CHECK` metres a square. Not a 2 x 2 image: bilinear
-    sampling would blur that into one grey band."""
+def _checker_band(c, y0):
+    """Two rows of checker squares, `CHECKER_PX` each, across the whole
+    width of ``c`` from row ``y0``. The width is a whole number of squares
+    (`paint_atlas` asserts it), so the pattern meets itself at the repeat."""
     n = CHECKER_PX
-    c = Canvas(2 * n, 2 * n, (240, 238, 232))
-    c.rect(n, 0, 2 * n, n, (14, 14, 14))
-    c.rect(0, n, n, 2 * n, (14, 14, 14))
-    return c
+    for row in range(2):
+        for col in range(c.w // n):
+            dark = (row + col) % 2 == 1
+            c.rect(col * n, y0 + row * n, (col + 1) * n, y0 + (row + 1) * n,
+                   CHECK_DARK if dark else CHECK_LIGHT)
+
+
+def paint_atlas(tiers, key, variant):
+    """ONE image for every painted part of the counter but the rack: the
+    candy tiers and the checker band stacked top to bottom, one metre of
+    art wide. Zoo 1.8.0; 1.7.0 painted four images into four materials.
+
+    The UVs repeat along the counter (u), which is why the parts can share
+    a REPEAT sampler: every band is exactly one period wide. Across a band
+    (v) nothing repeats -- each part's v is 0..1 of its own band, which
+    `atlas_v` maps into the band's rows inset half a pixel, so the nearest
+    sample on a band's edge never reads the neighbouring band.
+
+    ``{canvas, size, name, bands: {band: (y0, y1)}, candy: {tier: brands}}``;
+    rows are pixel rows, 0 at the TOP, as `Canvas` draws them."""
+    W = int(round(ART_REPEAT_M * CANDY_TEXEL))
+    assert W % CHECKER_PX == 0 and (W // CHECKER_PX) % 2 == 0, (W, CHECKER_PX)
+    tiles = candy_art(tiers, key, variant)
+    heights = [tiles[k]["size"][1] for k in sorted(tiles)]
+    H = sum(heights) + 2 * CHECKER_PX
+    c = Canvas(W, H, CHECK_LIGHT)
+    bands, y = {}, 0
+    for k in sorted(tiles):
+        c.paste(tiles[k]["canvas"], 0, y)
+        bands["candy_%d" % k] = (y, y + tiles[k]["size"][1])
+        y += tiles[k]["size"][1]
+    _checker_band(c, y)
+    bands["checker"] = (y, y + 2 * CHECKER_PX)
+    digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
+    return {"canvas": c, "size": (W, H), "bands": bands,
+            "candy": {k: tiles[k]["brands"] for k in tiles},
+            "name": f"svcpaint_{key}_v{variant % 4}_{W}x{H}_{digest:08x}"}
+
+
+def atlas_v(band, size, v_local):
+    """A band-local ``v`` (0 at the band's bottom, 1 at its top) as a UV
+    ``v`` in the atlas (0 at the image's bottom, glTF's and Blender's
+    convention), inset half a pixel at each edge of the band."""
+    y0, y1 = band
+    H = size[1]
+    lo = 1.0 - (y1 - 0.5) / H          # the band's bottom row, in UV
+    hi = 1.0 - (y0 + 0.5) / H          # its top row
+    return lo + (hi - lo) * v_local
 
 
 def _rgb(h):

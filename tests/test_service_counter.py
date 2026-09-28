@@ -155,15 +155,66 @@ def test_the_art_is_deterministic_and_says_what_it_should():
     assert S.candy_art(facts["tiers"], "counter_service", 2)[0]["name"] == c[0]["name"]
 
 
-def test_the_checker_is_two_squares_across_and_not_grey():
-    ck = S.checker_canvas()
+def test_one_atlas_holds_the_candy_and_the_checker_and_repeats_cleanly():
+    """1.8.0: the trim and the three tiers paint one image. It is one metre
+    of art wide, a whole and even number of checker squares, so both the
+    candy and the checker meet themselves at the repeat."""
+    inside, _on, facts, _tw = _fit(6.0, 0.9, 1.1)
+    A = S.paint_atlas(facts["tiers"], "counter_service", 1)
+    W, H = A["size"]
+    assert W == int(round(S.ART_REPEAT_M * S.CANDY_TEXEL))
     n = S.CHECKER_PX
-    assert (ck.w, ck.h) == (2 * n, 2 * n)
-    assert ck.get(0, 0) == ck.get(n, n) and ck.get(n, 0) == ck.get(0, n)
-    assert ck.get(0, 0) != ck.get(n, 0)
-    band = next(p for p in _fit(6.0, 0.9, 1.1)[0] if p["part"].startswith("Counter_Trim"))
-    su, _ou, sv, _ov = band["uv_xz"]
-    assert su == sv == pytest.approx(1.0 / (2.0 * S.CHECK))
+    assert n == pytest.approx(S.CHECK * S.CANDY_TEXEL) and W % (2 * n) == 0
+    assert sorted(A["bands"]) == ["candy_0", "candy_1", "candy_2", "checker"]
+    # the bands tile the image top to bottom with no gap and no overlap
+    spans = sorted(A["bands"].values())
+    assert spans[0][0] == 0 and spans[-1][1] == H
+    assert all(a[1] == b[0] for a, b in zip(spans, spans[1:]))
+    # the checker band: two rows, alternating, and the first and last
+    # squares of a row differ so the wrap continues the pattern
+    c = A["canvas"]
+    y0, y1 = A["bands"]["checker"]
+    assert y1 - y0 == 2 * n
+    assert c.get(0, y0) != c.get(n, y0) and c.get(0, y0) == c.get(n, y0 + n)
+    assert c.get(0, y0) != c.get(W - 1, y0)
+    # the candy bands are the tiers' own art, pasted
+    tiles = S.candy_art(facts["tiers"], "counter_service", 1)
+    for k in range(S.TIERS):
+        ty0, _ty1 = A["bands"]["candy_%d" % k]
+        src = tiles[k]["canvas"]
+        assert all(c.get(x, ty0 + y) == src.get(x, y) for x in (0, 57, 399) for y in (0, 10, src.h - 1))
+    assert S.paint_atlas(facts["tiers"], "counter_service", 1)["name"] == A["name"]
+    # every painted part's u repeats once a metre; v is 0..1 of its band
+    for p in (q for q in inside if "paint" in q):
+        su, ou, sv, ov = p["uv_xz"]
+        assert su == pytest.approx(1.0 / S.ART_REPEAT_M)
+        zs = [v[2] for v in p["verts"]]
+        vs = [z * sv + ov for z in zs]
+        assert min(vs) == pytest.approx(0.0, abs=1e-9) and max(vs) == pytest.approx(1.0, abs=1e-9), p["part"]
+
+
+def test_atlas_v_stays_half_a_pixel_inside_its_band():
+    size = (400, 300)
+    band = (40, 80)
+    lo, hi = S.atlas_v(band, size, 0.0), S.atlas_v(band, size, 1.0)
+    # in pixel rows, 0 at the top: the band's bottom row centre and top row centre
+    assert (1.0 - lo) * size[1] == pytest.approx(79.5)
+    assert (1.0 - hi) * size[1] == pytest.approx(40.5)
+
+
+def test_one_material_per_kind_and_the_colours_survive_the_move():
+    """1.8.0: every `mat` key maps to one material per KIND, and the colour
+    the part used to carry in its material is exactly base x factor."""
+    kinds = {}
+    for mk, (rgb, kind) in S.MATERIALS.items():
+        k2, factor = S.vertex_tint(mk)
+        assert k2 == kind
+        got = tuple(b * f for b, f in zip(S.KIND_BASE[kind], factor))
+        assert got == pytest.approx(tuple(rgb)), mk
+        assert all(0.0 <= f <= 1.0 for f in factor), (mk, factor)   # COLOR_0 cannot exceed 1
+        kinds.setdefault(kind, []).append(mk)
+    assert sorted(kinds) == ["laminate", "metal_painted", "plastic"]
+    assert all(0.0 < f <= 1.0 for t in S.BODY_TINT.values() for f in t)
 
 
 def test_every_candy_brand_is_invented_and_legible():
@@ -256,8 +307,7 @@ def test_bpy_only_the_rack_header_glows_and_the_paint_is_paint(tmp_path):
                                             and m["name"].endswith("_Face") for m in lit)
     painted = [m["name"] for m in doc["materials"]
                if "baseColorTexture" in m.get("pbrMetallicRoughness", {})]
-    assert any(n == "M_Counter_Checker" for n in painted)
-    assert any(n.startswith("M_Counter_Candy_") for n in painted)
+    assert len([n for n in painted if n.startswith("M_Counter_Paint_")]) == 1
     assert any(n.startswith("M_Counter_CigRack_") and n.endswith("_Display") for n in painted)
     # the trim and the candy strips tile, the rack's display clamps. glTF's
     # default wrap IS repeat (10497), so the exporter writes no sampler or no
@@ -269,9 +319,38 @@ def test_bpy_only_the_rack_header_glows_and_the_paint_is_paint(tmp_path):
         if si is None:
             return 10497
         return doc["samplers"][si].get("wrapS", 10497)
-    assert wrap_of("M_Counter_Checker") == 10497
-    assert wrap_of(next(n for n in painted if n.startswith("M_Counter_Candy_"))) == 10497
+    assert wrap_of(next(n for n in painted if n.startswith("M_Counter_Paint_"))) == 10497
     assert wrap_of(next(n for n in painted if n.endswith("_Display"))) == 33071
+
+
+def test_bpy_six_materials_six_submissions_and_no_colour_only_twins(tmp_path):
+    """1.8.0, the point of the release: 1.7.0 shipped this counter as 15
+    meshes over 14 materials. Now one material per surface kind, one
+    painted atlas, the rack's display and its lit header -- and no two
+    skinned materials that differ in nothing but the tint in their name."""
+    import os
+    import re as _re
+    pytest.importorskip("bpy")
+    res, _objs = _build(tmp_path, DC_SIZES[0])
+    doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
+    names = [m["name"] for m in doc["materials"]]
+    assert len(names) == 6, names
+    # visual submissions only: a collision proxy (`-colonly` and kin) becomes
+    # a collider on import and is never drawn
+    from zoo_keeper.core import partnames
+    visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
+    prims = sum(len(m["primitives"]) for m in visual)
+    assert prims == 6, (prims, [m["name"] for m in visual])
+    assert len(visual) < len(doc["meshes"]), "the collision proxy should still be exported"
+    kinds = [(_re.match(r"M_Skin_([a-z_]+?)_delco_1997", n) or [None, n])[1] for n in names
+             if n.startswith("M_Skin_")]
+    assert len(kinds) == len(set(kinds)), names
+    # the colour rode into COLOR_0: the merged plastic is not all one value
+    for mesh in visual:
+        for prim in mesh["primitives"]:
+            mat = names[prim["material"]]
+            if "plastic" in mat:
+                assert "COLOR_0" in prim["attributes"], mat
 
 
 def test_bpy_the_same_file_every_build(tmp_path):

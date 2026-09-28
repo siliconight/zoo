@@ -1,3 +1,58 @@
+## [1.8.0] - the service counter is six submissions, not fifteen
+
+The walker, 2026-09-28: "do the atlas merge on the counter". 1.7.0 shipped
+`counter` form `service` as 15 visual meshes over 14 materials, and cold run
+9094 priced it at +13 draws where it is in view. Five of those materials
+differed from another in nothing but colour -- the first thing CLAUDE.md's
+draw-call rule forbids -- and four painted images could have been one.
+
+    1.7.0   15 submissions, 14 materials   (9094's shipped counter)
+    1.8.0    6 submissions,  6 materials   laminate, plastic, painted metal,
+                                           one painted atlas, the rack's
+                                           display, the rack's lit header
+
+`tests/test_service_counter.py::test_bpy_six_materials_six_submissions_and_no_colour_only_twins`
+holds it, and fails on 1.7.0's code (15 against 6).
+
+ONE MATERIAL PER SURFACE KIND, THE COLOUR IN THE VERTEX. The recipe builds
+one material per kind (`service_counter_forms.KIND_BASE`) and multiplies each
+part's colour, divided by that base, into its `Wear` attribute
+(`geometry.tint_wear`, new); `merge.pack_by_material` then packs every part
+of a kind into one mesh. This is the path the pennant row's 1.1.0 note named
+and did not take. Its price is the one that note gave: wear and tint share
+COLOR_0 and cannot be separated again.
+
+VERIFIED THAT THE COLOUR SURVIVES THE MOVE, by a headless Godot 4.7 readback
+of both builds through `GLTFDocument` rather than assumed. Godot imports
+COLOR_0 as the linear values written (file mean 0.4474, imported 0.4453 on
+the merged plastic), flags it `vertex_color_is_srgb = false`, and the shader
+reads it as linear; the material factor arrives as its sRGB spelling (linear
+0.86 -> albedo 0.9357) and is converted back. So a register's beige lands on
+the same albedo from either side, which is glTF's own
+`factor * texture * COLOR_0`.
+
+THE SAME READBACK CAUGHT TWO RESTYLES before they shipped. The first draft
+made the kick base near black and the staff shelves a shade grey. 1.7.0's
+kick was the SLOT's drywall skin at a wear mean of 0.73 -- light grey, and an
+accident, but what shipped -- and its shelves were the body's white. Both are
+matched (`BODY_TINT`); a merge is not a restyle. TWO LOOKS DID MOVE, on
+purpose, and small: the two 16 mm rack posts are painted silver where they
+were bare chrome (to share the rack's kind), and the checker squares are
+50 mm where they were 45.
+
+ONE PAINTED ATLAS for the trim and the three candy tiers
+(`paint_atlas`, `atlas_v`): the bands stacked in one image one metre of art
+wide, u repeating along the counter, each part's v mapped into its own band
+inset half a pixel so a nearest sample on a band's edge never reads the next.
+For both to repeat cleanly in one image the checker had to fit the metre a
+whole number of times: `CHECK` 0.045 -> 0.05 (20 squares) and `CANDY_TEXEL`
+350 -> 400 so a square is 20 whole pixels. The rack keeps its own image --
+its display clamps and its header must stay a separate `_Face` material for
+Lux's power cut.
+
+NOT MEASURED YET in a package: the draw counts in view. Expected -9 at
+`attacker_spawn_11` against 9094; cold run 9095 is where it is read.
+
 ## [1.7.0] - the convenience store's service counter: trim, candy, registers, lottery, the cigarette rack overhead
 
 `counter` FORM ``service``. The walker, 2026-09-27: "start with the service

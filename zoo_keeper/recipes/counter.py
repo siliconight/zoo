@@ -59,13 +59,22 @@ def _darker(c, f=0.6):
     return [v * f for v in c]
 
 
-def _painted_xz(p, mat, collection, streams):
+def _kind_material_name(kind):
+    """The service form's one material per surface kind (1.8.0). One name
+    for the flat path as well as the skinned one, so a build without a skin
+    library merges the same way."""
+    return f"M_Counter_svc_{kind}"
+
+
+def _painted_xz(p, mat, collection, streams, v_map=None):
     """A primitive painted with a raster whose UVs come from x and z:
-    ``(u, v) = (x * su + ou, z * sv + ov)`` on every face (the side faces of
-    a 6 mm band are slivers and take the same map). Built like the
-    cigarette machine's display: no bevel, no wear, a white COLOR_0 so the
-    import leaves the paint alone."""
+    ``(u, v) = (x * su + ou, v_map(z * sv + ov))`` on every face (the side
+    faces of a 6 mm band are slivers and take the same map). ``v_map`` puts a
+    band-local v into the painted atlas's rows (1.8.0); without one v is used
+    as it is. Built like the cigarette machine's display: no bevel, no wear,
+    a white COLOR_0 so the import leaves the paint alone."""
     su, ou, sv, ov = p["uv_xz"]
+    v_map = v_map or (lambda v: v)
     bm = geometry.new_bm()
     uv = bm.loops.layers.uv.new("UVMap")
     vs = [bm.verts.new(v) for v in p["verts"]]
@@ -73,7 +82,7 @@ def _painted_xz(p, mat, collection, streams):
         face = bm.faces.new([vs[i] for i in f])
         for loop in face.loops:
             x, _y, z = loop.vert.co
-            loop[uv].uv = (x * su + ou, z * sv + ov)
+            loop[uv].uv = (x * su + ou, v_map(z * sv + ov))
     bm.normal_update()
     geometry.shade_by_angle(bm, 1.0)
     geometry.wear_colors(bm, streams.stream("service_paint"), 0.0)
@@ -227,27 +236,33 @@ def build(plan, streams, collection):
         key, variant = SC.resolve(plan)
         inside, on_top, facts = SC.fitout(w, d, h, attachments, top_w, body_y - body_d / 2,
                                           base_h, top_t, key, variant)
-        mats = {k: (f"M_Counter_svc_{k}", list(c), kind) for k, (c, kind) in SC.MATERIALS.items()}
+        # ONE MATERIAL PER KIND (1.8.0). Each `mat` key builds with its kind's
+        # one material, and its colour goes into the part's `Wear` so
+        # `merge.pack_by_material` packs every part of a kind into one mesh.
+        # Built key by key so every object's key is known when it is tinted.
         rng = streams.stream("service_fitout")
-        fit_objs = prim_mesh.build([p for p in inside if "paint" not in p], collection, plan,
-                                   rng, mats, texel=1.0)
-        top_objs = prim_mesh.build([p for p in on_top if "uvs" not in p], collection, plan,
-                                   rng, mats, texel=1.0)
-        # the painted parts, each a raster on a mesh with its own UVs
-        chk = SC.checker_canvas()
-        chk_mat = materials.make_painted_material(
-            "M_Counter_Checker", materials.image_from_png("counter_checker", chk.png()),
-            0.35, tile=True)
-        candy = SC.candy_art(facts["tiers"], key, variant)
+        fit_objs, top_objs = [], []
+        for dest, pool in ((fit_objs, [p for p in inside if "paint" not in p]),
+                           (top_objs, [p for p in on_top if "uvs" not in p])):
+            for mk in sorted({p["mat"] for p in pool}):
+                kind, factor = SC.vertex_tint(mk)
+                built = prim_mesh.build([p for p in pool if p["mat"] == mk], collection, plan, rng,
+                                        {mk: (_kind_material_name(kind), list(SC.KIND_BASE[kind]), kind)},
+                                        texel=1.0)
+                for o in built:
+                    geometry.tint_wear(o, factor)
+                dest.extend(built)
+        # ONE PAINTED ATLAS for the trim and the three candy tiers (1.8.0;
+        # 1.7.0 painted four images into four materials). REPEAT along the
+        # counter, each part's v mapped into its own band.
+        A = SC.paint_atlas(facts["tiers"], key, variant)
+        paint_mat = materials.make_painted_material(
+            f"M_Counter_Paint_{A['name']}",
+            materials.image_from_png(A["name"], A["canvas"].png()), 0.4, tile=True)
         for p in (q for q in inside if "paint" in q):
-            if p["paint"] == "checker":
-                mat = chk_mat
-            else:
-                A = candy[int(p["paint"].split("_")[1])]
-                mat = materials.make_painted_material(
-                    f"M_Counter_Candy_{A['name']}",
-                    materials.image_from_png(A["name"], A["canvas"].png()), 0.45, tile=True)
-            fit_objs.append(_painted_xz(p, mat, collection, streams))
+            band = A["bands"]["checker" if p["paint"] == "checker" else p["paint"]]
+            fit_objs.append(_painted_xz(p, paint_mat, collection, streams,
+                                        v_map=lambda v, b=band: SC.atlas_v(b, A["size"], v)))
         rack = facts["rack"]
         if rack is not None:
             R = SC.rack_art(facts, key, variant)
@@ -261,20 +276,20 @@ def build(plan, streams, collection):
         # WHITE LAMINATE, whatever the slot said. The reference's counter is
         # white laminate under checkerboard trim, and the form is the look;
         # a Deli Counter prop arrives as `wood` by default and would build a
-        # brown counter with a checker band on it.
-        white_top = materials.make_material("M_Counter_top_laminate_white",
-                                            _darker(list(SC.WHITE), 0.96), "laminate")
-        white_body = materials.make_material("M_Counter_laminate_white", list(SC.WHITE), "laminate")
+        # brown counter with a checker band on it. The body, top, kick and
+        # the staff shelves share the candy tiers' laminate material and
+        # differ by a `Wear` factor (`SC.BODY_TINT`).
+        lam = materials.make_material(_kind_material_name("laminate"),
+                                      list(SC.KIND_BASE["laminate"]), "laminate")
         for o in objs:
-            if "Top" in o.name:
-                materials.assign([o], white_top)
-            elif "Base" not in o.name:
-                materials.assign([o], white_body)
+            part = next((k for k in SC.BODY_TINT if k in o.name), "Body")
+            materials.assign([o], lam)
+            geometry.tint_wear(o, SC.BODY_TINT[part])
         print(f"[counter] form=service registers={len(facts['registers'])} "
               f"lottery={len(facts['lottery'])} tiers={len(facts['tiers'])} "
               f"rack={'none' if rack is None else '%.2fm/%d packs' % (rack['w'], rack['n_packs'])} "
-              f"candy={[candy[k]['brands'][0] for k in sorted(candy)]} "
-              f"header={'-' if rack is None else R['header']}")
+              f"candy={[A['candy'][k][0] for k in sorted(A['candy'])]} "
+              f"header={'-' if rack is None else R['header']} atlas={A['size'][0]}x{A['size'][1]}")
 
     dressing = stock + top_objs
     return {"objects": objs + fit_objs + stock + top_objs,
