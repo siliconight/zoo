@@ -1,3 +1,35 @@
+## [1.24.0] - only a storefront-lit room's plate tiles stay apart
+
+The walker, 2026-09-29: "yes, narrow it to the storefront rooms".
+
+1.23.0 stopped merging EVERY floor and ceiling. It restored the room it was
+for -- gas_station_a02's carpet seen through the glass 16.9 -> 20.5 on cold
+run 9106 -- and cost the whole library: draws 71,802 -> 77,139 summed over
+the 53 headings (+4 to +230 at 51 of them), median p95 4.76 -> 5.1-5.2 ms,
+and 7 -> 10-11 stations over the provisional budget, because every room over
+8 m in every building split and interiors have no occlusion culling.
+
+THE CHANGE: the rule moves from a family to a flag. A plate slot carrying
+`light_budget_tiles` -- Deli Counter (>= 0.157.0) sets it on the floor and
+ceiling of a room lit from outside through storefront glass, where the budget
+was measured to bind -- is planned under its own name (`_lbt`, after the
+glazing; `kit.LIGHT_BUDGET_STEM`, in the key too, so a flagged and an
+unflagged floor of one footprint are two builds), reaches the plan
+(`dna.resolve_module_plan`), and `_arch.build_slab` names its tiles with
+`partnames.LIGHT_BUDGET_MARK`, which `is_mergeable` refuses. Only floor and
+ceiling roles honour it (`kit.LIGHT_BUDGET_ROLES`). Every other floor and
+ceiling merges again exactly as before 1.23.0; `LIGHT_BUDGET_FAMILIES` is
+gone, recorded as superseded above `LIGHT_BUDGET_MARK`.
+
+`tests/test_merge_by_material.py` (1.23.0's tests replaced): a marked tile is
+not mergeable and unmarked floor, ceiling and roof tiles are; six marked
+tiles plan no group where six unmarked plan one; the flag rides the stem and
+the key on plates (a flagged and a plain floor are two modules) and a wall
+ignores it. Built: a flagged 23 x 12 m floor and ceiling export six marked
+tile meshes each -- without the recipe's mark, one (`Floor_carpet`) -- and
+the controls, an unflagged 23 x 12 m floor, a 6 x 5 m floor and a roof, are
+as before 1.23.0.
+
 ## [1.23.0] - a floor's and a ceiling's tiles ship as their own meshes
 
 The walker, 2026-09-29: "yes, split the floor and ceiling tiles".

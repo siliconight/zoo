@@ -20,9 +20,9 @@ granularity. Merging ACROSS modules would cost exactly that, and is
 deliberately not done here.
 
 WHAT IS NEVER MERGED, each because something downstream reads its name or
-its extent: a floor's and a ceiling's tiles (1.23.0,
-`partnames.LIGHT_BUDGET_FAMILIES` -- each tile is its own per-mesh light
-budget, which is the whole reason `arch.tile_parts` cut it), collision proxies (`core.partnames.COL_SUFFIXES` -- Godot's importer and six
+its extent: a storefront-lit room's floor and ceiling tiles (1.24.0,
+`partnames.LIGHT_BUDGET_MARK` -- each tile is its own per-mesh light budget,
+which is the whole reason `arch.tile_parts` cut it), collision proxies (`core.partnames.COL_SUFFIXES` -- Godot's importer and six
 re-implementations of it decide solidity from the suffix), and `_LOD`
 alternates (a LOD stands in for a part rather than beside it; merged into the
 base it would draw twice). Markers -- `LuxEmit_*`, read by

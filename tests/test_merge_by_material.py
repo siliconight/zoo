@@ -406,44 +406,66 @@ def test_the_merge_leaves_the_scene_it_was_given():
 
 
 # --------------------------------------------------------------------------- #
-# 1.23.0: a floor's and a ceiling's light-budget tiles are never merged
+# 1.24.0: a storefront-lit room's floor and ceiling tiles are never merged
+# (1.23.0 made every floor and ceiling so; narrowed, see LIGHT_BUDGET_MARK)
 # --------------------------------------------------------------------------- #
 
-def test_the_light_budget_families_are_the_floor_and_ceiling_roots():
-    from zoo_keeper.core import arch
-    assert set(partnames.LIGHT_BUDGET_FAMILIES) == {
-        arch.root_name(s) for s in ("floor", "ceiling")}
-    assert set(partnames.LIGHT_BUDGET_FAMILIES) < {
-        arch.root_name(s) for s in arch.PLATE_SPECIES}
-
-
-def test_floor_and_ceiling_tiles_are_not_mergeable_and_a_roof_still_is():
-    for name in ("Floor_Panel_t0_1", "Floor_Plate_2_t1_0", "Ceiling_Panel_t1_2", "Floor_Panel"):
+def test_a_marked_tile_is_not_mergeable_and_an_unmarked_one_is():
+    mark = partnames.LIGHT_BUDGET_MARK
+    for name in ("Floor_Panel_t0_1" + mark, "Ceiling_Plate_2_t1_0" + mark):
         assert not partnames.is_mergeable(name), name
-    assert partnames.is_mergeable("Roof_Panel_t0_1")
-    assert partnames.is_mergeable("PackWall_Box0_3_2")      # the control
+    for name in ("Floor_Panel_t0_1", "Ceiling_Panel_t1_2", "Roof_Panel_t0_1", "PackWall_Box0_3_2"):
+        assert partnames.is_mergeable(name), name
 
 
-def test_six_floor_tiles_plan_no_group():
+def test_six_marked_tiles_plan_no_group_and_six_unmarked_plan_one():
     sig = ((), ())
-    tiles = [("Floor_Panel_t%d_%d" % (j, i), "M_Skin_carpet_delco_1997", sig)
-             for j in range(2) for i in range(3)]
-    assert partnames.group_parts(tiles) == []
-    roof = [(n.replace("Floor", "Roof"), m, g) for n, m, g in tiles]
-    assert [len(src) for _n, _k, src in partnames.group_parts(roof)] == [6]
+    names = ["Floor_Panel_t%d_%d" % (j, i) for j in range(2) for i in range(3)]
+    marked = [(n + partnames.LIGHT_BUDGET_MARK, "M_Skin_carpet_delco_1997", sig) for n in names]
+    plain = [(n, "M_Skin_carpet_delco_1997", sig) for n in names]
+    assert partnames.group_parts(marked) == []
+    assert [len(src) for _n, _k, src in partnames.group_parts(plain)] == [6]
 
 
-def _module_glb(tmp_path, role, dims, material):
+def _plate_slot(role, dims, material, budget=None):
+    slot = {"slot_id": "s", "role": role, "size_mod": "full", "style": 2, "material": material,
+            "fit": {"dims": list(dims), "pivot": "center", "collision": "none", "openings": []}}
+    if budget is not None:
+        slot["light_budget_tiles"] = budget
+    return slot
+
+
+def test_the_flag_rides_the_name_and_the_key_on_plates_only():
+    from zoo_keeper.core import kit
+    def plan(slot):
+        return kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)["modules"]
+    (lit,) = plan(_plate_slot("floor", (23.0, 12.0, 0.02), "carpet", True))
+    (plain,) = plan(_plate_slot("floor", (23.0, 12.0, 0.02), "carpet"))
+    assert lit["stem"] == plain["stem"] + kit.LIGHT_BUDGET_STEM or \
+        lit["stem"].replace(kit.LIGHT_BUDGET_STEM, "") == plain["stem"], (lit["stem"], plain["stem"])
+    assert kit.LIGHT_BUDGET_STEM in lit["stem"] and kit.LIGHT_BUDGET_STEM not in plain["stem"]
+    assert lit["light_budget_tiles"] is True and plain["light_budget_tiles"] is False
+    both = kit.plan_kit({"building_id": "t", "slots": [
+        _plate_slot("floor", (23.0, 12.0, 0.02), "carpet", True),
+        dict(_plate_slot("floor", (23.0, 12.0, 0.02), "carpet"), slot_id="s2")]},
+        theme="delco_1997", style=1)["modules"]
+    assert len(both) == 2
+    # a wall slot carrying the flag is not a plate and ignores it
+    (wall,) = plan({"slot_id": "w", "role": "wall", "size_mod": "full", "style": 2,
+                    "light_budget_tiles": True,
+                    "fit": {"dims": [2.0, 0.3, 3.9], "pivot": "center", "openings": []}})
+    assert kit.LIGHT_BUDGET_STEM not in wall["stem"] and wall["light_budget_tiles"] is False
+
+
+def _module_glb(tmp_path, slot):
     import glob
     import json
     import os
     import struct
     from zoo_keeper.bpylayer import build as B
     from zoo_keeper.core import kit
-    slot = {"slot_id": "s", "role": role, "size_mod": "full", "style": 2, "material": material,
-            "fit": {"dims": list(dims), "pivot": "center", "collision": "none", "openings": []}}
     plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
-    out = str(tmp_path / role)
+    out = str(tmp_path)
     B.build_module(plan["modules"][0], out, theme="delco_1997", style=1,
                    options={"save_blend": False})
     (glb,) = glob.glob(os.path.join(out, "**", "*.glb"), recursive=True)
@@ -455,20 +477,22 @@ def _module_glb(tmp_path, role, dims, material):
                   if "mesh" in nd and not partnames.is_collision(nd["name"]))
 
 
-def test_bpy_a_room_sized_floor_ships_one_mesh_per_tile(tmp_path):
+def test_bpy_a_storefront_lit_floor_ships_one_mesh_per_tile(tmp_path):
     pytest.importorskip("bpy")
-    # gas_station_a02's sales floor: 23 x 12 m -> 3 x 2 tiles of <= 8 m
-    meshes = _module_glb(tmp_path, "floor", (23.0, 12.0, 0.05), "carpet")
-    assert len(meshes) == 6, meshes
-    assert all(m.startswith("Floor_Panel_t") for m in meshes), meshes
-    ceil = _module_glb(tmp_path, "ceiling", (23.0, 12.0, 0.05), "ceiling_tile")
-    assert len(ceil) == 6 and all(m.startswith("Ceiling_Panel_t") for m in ceil), ceil
+    mark = partnames.LIGHT_BUDGET_MARK
+    meshes = _module_glb(tmp_path / "f", _plate_slot("floor", (23.0, 12.0, 0.05), "carpet", True))
+    assert len(meshes) == 6 and all(m.startswith("Floor_Panel_t") and m.endswith(mark)
+                                    for m in meshes), meshes
+    ceil = _module_glb(tmp_path / "c", _plate_slot("ceiling", (23.0, 12.0, 0.05), "ceiling_tile", True))
+    assert len(ceil) == 6 and all(m.endswith(mark) for m in ceil), ceil
 
 
-def test_bpy_a_small_floor_and_a_roof_are_as_before(tmp_path):
+def test_bpy_an_unlit_room_sized_floor_and_a_roof_merge_as_before(tmp_path):
     pytest.importorskip("bpy")
-    # the controls: an untiled floor is its one Panel, as it always was;
-    # a room-sized ROOF still merges its tiles into one mesh
-    assert _module_glb(tmp_path / "small", "floor", (6.0, 5.0, 0.05), "carpet") == ["Floor_Panel"]
-    roof = _module_glb(tmp_path / "roof", "roof", (23.0, 12.0, 0.2), "tar")
+    # the controls: without the flag a 23 x 12 floor is one merged mesh, as
+    # on cold run 9105; a small floor is its one Panel; a roof still merges
+    (floor,) = _module_glb(tmp_path / "f", _plate_slot("floor", (23.0, 12.0, 0.05), "carpet"))
+    assert not floor.startswith("Floor_Panel_t"), floor
+    assert _module_glb(tmp_path / "s", _plate_slot("floor", (6.0, 5.0, 0.05), "carpet")) == ["Floor_Panel"]
+    roof = _module_glb(tmp_path / "r", _plate_slot("roof", (23.0, 12.0, 0.2), "tar"))
     assert len(roof) == 1 and not roof[0].startswith("Roof_Panel_t"), roof

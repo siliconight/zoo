@@ -183,7 +183,7 @@ def module_stem(typ: str, theme: str, style: int,
                 openings_tag: str = None, height_cm: int = None,
                 species: str = None, form: str = None, stock: str = None,
                 variant: int = None, material: str = None,
-                glazing: str = None) -> str:
+                glazing: str = None, budget_tiles: bool = False) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
     ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_v<hash>][_o<hash>][_<state>]``.
 
@@ -264,6 +264,13 @@ def module_stem(typ: str, theme: str, style: int,
     # Deli Counter's `themed_tscn.module_stem` is the mirror.
     if glazing in STEM_GLAZINGS:
         base += f"_g{glazing}"
+    # A PLATE WHOSE TILES ARE ITS LIGHT BUDGETS (1.24.0): `_lbt`, after the
+    # glazing and before the hashes. The same footprint merged and unmerged
+    # are two builds of one geometry, and one name would let the later
+    # overwrite the earlier. Deli Counter's `themed_tscn.module_stem` is the
+    # mirror.
+    if budget_tiles:
+        base += LIGHT_BUDGET_STEM
     if voids_tag:
         base += f"_v{voids_tag}"
     if openings_tag:
@@ -275,6 +282,11 @@ def module_stem(typ: str, theme: str, style: int,
 
 #: Glazings that change what a wall or door BUILDS, so ride in its name.
 STEM_GLAZINGS = ("storefront",)
+#: The roles a slot's `light_budget_tiles` is honoured on (1.24.0), and the
+#: name it adds. Deli Counter sets it on the floor and ceiling of a room lit
+#: from outside through storefront glass (see `partnames.LIGHT_BUDGET_MARK`).
+LIGHT_BUDGET_ROLES = ("floor", "ceiling")
+LIGHT_BUDGET_STEM = "_lbt"
 #: The states a STOREFRONT door draws itself (1.18.0): its open state has no
 #: leaves. Scoped to storefront doors by `_state_art_for_slot`, so no other
 #: door in the library gains a module.
@@ -666,6 +678,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "reason": "; ".join(dropped)})
 
         storefront = s.get("glazing") if s.get("glazing") in STEM_GLAZINGS else None
+        budget = bool(s.get("light_budget_tiles")) and typ in LIGHT_BUDGET_ROLES
 
         def _slot_art(sp, _sf=storefront):
             extra = STOREFRONT_STATE_ART.get(sp, frozenset()) if _sf else frozenset()
@@ -682,7 +695,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             stem = module_stem(typ, theme, slot_style, width_cm, stem_state,
                                depth_cm, vtag, otag, height_cm,
                                species=hint if species == hint else None,
-                               material=mtag, glazing=storefront, **dress)
+                               material=mtag, glazing=storefront,
+                               budget_tiles=budget, **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -724,7 +738,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             key = (typ, width_cm, st, species, glaze, slot_style,
                    dress["form"], dress["stock"], dress["variant"],
                    mtag, dims_key, _void_key(fit.get("voids")),
-                   _opening_key(fit.get("openings")))
+                   _opening_key(fit.get("openings")), budget)
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -749,6 +763,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                               round(dims[2], 4)] if exact else [1.0, 1.0, 1.0]),
                     "pivot": fit.get("pivot", "center"),
                     "glazing": glaze,
+                    "light_budget_tiles": budget,
                     "count": 0,
                 }
                 b.update(dress)

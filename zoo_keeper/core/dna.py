@@ -430,6 +430,10 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     elif glazing:
         plan["glazing_kind"] = ("glass_facade" if str(glazing) == "facade"
                                 else str(glazing))
+    # A storefront-lit room's plate (1.24.0): its tiles ship as their own
+    # meshes (`_arch.build_slab` marks them, `partnames.LIGHT_BUDGET_MARK`).
+    if module.get("light_budget_tiles"):
+        plan["light_budget_tiles"] = True
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan

@@ -9,7 +9,7 @@ come from the pure ``core.arch`` module so they stay unit-testable.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core import arch
+from ..core import arch, partnames
 
 
 def build_slab(plan, streams, collection, species):
@@ -128,10 +128,13 @@ def build_slab(plan, streams, collection, species):
     # walk 9052 showed the line at every 2.00 m of an interior partition. They
     # stay sharp now (`butts` above); every other chamfer is unchanged.
     plate_bevel = 0.0 if species in arch.PLATE_SPECIES else None
+    # a storefront-lit room's plate keeps its tiles apart in the merge (1.24.0)
+    mark = (partnames.LIGHT_BUDGET_MARK
+            if species in arch.PLATE_SPECIES and plan.get("light_budget_tiles") else "")
     for name, center, size in visual:
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
-        part(bm, f"{root}_{name}", bv=plate_bevel)
+        part(bm, f"{root}_{name}{mark}", bv=plate_bevel)
     if species not in arch.PLATE_SPECIES or species in arch.PLATE_COLLIDES:
         # PLATE-NESS AND COLLISION ARE TWO FACTS, and this line used to test
         # one for the other. A floor or ceiling skin emits none because Deli
