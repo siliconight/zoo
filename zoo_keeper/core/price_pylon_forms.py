@@ -45,7 +45,15 @@ from . import prims as P
 from .vending_forms import Canvas
 
 #: Lot's request (long side first), then the genome's range.
-DC_SIZES = ((2.4, 0.5, 6.5),)
+#:
+#: 3.4 x 0.7 x 9.0 SINCE 1.26.0, the width the range's top and the rest in
+#: proportion (x1.42; the height at the range's top). The walker, 2026-09-29:
+#: "yes, make the pylon bigger". THE WIDTH IS WHAT READS: eight 5-wide letters
+#: across the face fit the name at 3 texels a stroke on a 2.4 m pylon and 5 on
+#: a 3.4 m one (80 px/m, 3.75 -> 6.25 cm), and a stroke of 3.75 cm read as a
+#: word at 12 m on cold run 9108's walk copy -- so the same frame should carry
+#: FLAPPHAS about 20 m. The digits go 3 -> 4 (5 cm).
+DC_SIZES = ((3.4, 0.7, 9.0),)
 RANGES = {"width": (1.6, 3.4), "depth": (0.3, 0.8), "height": (4.5, 9.0)}
 
 BURY = 0.004

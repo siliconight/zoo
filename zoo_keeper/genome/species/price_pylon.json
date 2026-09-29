@@ -9,17 +9,17 @@
   "width": {
    "min": 1.6,
    "max": 3.4,
-   "default": 2.4
+   "default": 3.4
   },
   "depth": {
    "min": 0.3,
    "max": 0.8,
-   "default": 0.5
+   "default": 0.7
   },
   "height": {
    "min": 4.5,
    "max": 9.0,
-   "default": 6.5
+   "default": 9.0
   }
  },
  "parts": [

@@ -1,3 +1,24 @@
+## [1.26.0] - the price pylon is 3.4 m wide
+
+The walker, 2026-09-29: "yes, make the pylon bigger", after 1.25.0 measured
+the limit of a 2.4 m face: eight 5-wide letters across it cannot carry a
+stroke over ~5 cm, so FLAPPHAS read as a word to about 12-14 m and as a green
+block beyond.
+
+The genome's default, which Lot reads (`site_furniture.SPECIES`, pinned
+equal by Lot's own test), and `DC_SIZES`: 2.4 x 0.5 x 6.5 -> 3.4 x 0.7 x 9.0,
+the width the range's top and the rest in proportion (x1.42, the height at
+the range's top). THE WIDTH IS WHAT READS: the name fits at 5 texels a stroke
+where it fitted at 3 (80 px/m: 3.75 -> 6.25 cm) and the dollars at 4 where
+they were 3 -- and 3.75 cm read as a word at 12 m on cold run 9108's walk
+copy, so the same frame should carry the name about 20 m. The species built
+at this size since 1.19.0 (the range's top was a built test case); census 3
+builds, 0 pairs, 132 tris each.
+
+`tests/test_price_pylon.py`: at Lot's size the name sets at scale 5 or more
+and the dollars at 4 or more, and the genome's default is `DC_SIZES`.
+Without the change it fails.
+
 ## [1.25.0] - the pylon's name and prices are set as large as the face allows
 
 The walker, 2026-09-29: "do the pylon brand sign at night next", after cold

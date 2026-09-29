@@ -189,3 +189,18 @@ def test_the_prices_fit_beside_the_grades_and_inside_the_face():
         assert ds >= 3, dollars                                 # 1.19.0: 2
         end = dx + pt.ink_width(dollars, ds, PP.HEAD_FACE) + 3 + pt.ink_width("9/10", max(1, ds // 2), "m5x7")
         assert end <= FW, (dollars, end, FW)
+
+
+def test_lots_pylon_sets_the_name_at_five_texels_a_stroke():
+    # 1.26.0: the width is what reads -- 3 texels a stroke read at 12 m, so
+    # 5 should carry the name about 20 m (the walker: "make the pylon bigger")
+    from zoo_keeper.core import genome as G
+    w, d, h = PP.DC_SIZES[0]
+    A = PP.art(w, h, 0)
+    FW, BH = A["size"][0], A["rects"]["brand"][3]
+    assert PP._scale(PP.STORE, FW - 12, BH - 16, PP.HEAD_FACE, 6) >= 5
+    PH = A["rects"]["price"][3] - A["rects"]["price"][1]
+    assert PP._scale("1.19", FW * PP.DIGITS_W, PH // 3 - 6, PP.HEAD_FACE, 5) >= 4
+    g = G.load_species("price_pylon")
+    dims = tuple(g["dimensions"][k]["default"] for k in ("width", "depth", "height"))
+    assert dims == PP.DC_SIZES[0]                  # Lot reads the genome's default
