@@ -403,3 +403,72 @@ def test_the_merge_leaves_the_scene_it_was_given():
         packed.discard()
         assert sorted(o.name for o in coll.objects) == before
         assert export.gather_facts(coll, "PackWall")["parts"]
+
+
+# --------------------------------------------------------------------------- #
+# 1.23.0: a floor's and a ceiling's light-budget tiles are never merged
+# --------------------------------------------------------------------------- #
+
+def test_the_light_budget_families_are_the_floor_and_ceiling_roots():
+    from zoo_keeper.core import arch
+    assert set(partnames.LIGHT_BUDGET_FAMILIES) == {
+        arch.root_name(s) for s in ("floor", "ceiling")}
+    assert set(partnames.LIGHT_BUDGET_FAMILIES) < {
+        arch.root_name(s) for s in arch.PLATE_SPECIES}
+
+
+def test_floor_and_ceiling_tiles_are_not_mergeable_and_a_roof_still_is():
+    for name in ("Floor_Panel_t0_1", "Floor_Plate_2_t1_0", "Ceiling_Panel_t1_2", "Floor_Panel"):
+        assert not partnames.is_mergeable(name), name
+    assert partnames.is_mergeable("Roof_Panel_t0_1")
+    assert partnames.is_mergeable("PackWall_Box0_3_2")      # the control
+
+
+def test_six_floor_tiles_plan_no_group():
+    sig = ((), ())
+    tiles = [("Floor_Panel_t%d_%d" % (j, i), "M_Skin_carpet_delco_1997", sig)
+             for j in range(2) for i in range(3)]
+    assert partnames.group_parts(tiles) == []
+    roof = [(n.replace("Floor", "Roof"), m, g) for n, m, g in tiles]
+    assert [len(src) for _n, _k, src in partnames.group_parts(roof)] == [6]
+
+
+def _module_glb(tmp_path, role, dims, material):
+    import glob
+    import json
+    import os
+    import struct
+    from zoo_keeper.bpylayer import build as B
+    from zoo_keeper.core import kit
+    slot = {"slot_id": "s", "role": role, "size_mod": "full", "style": 2, "material": material,
+            "fit": {"dims": list(dims), "pivot": "center", "collision": "none", "openings": []}}
+    plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
+    out = str(tmp_path / role)
+    B.build_module(plan["modules"][0], out, theme="delco_1997", style=1,
+                   options={"save_blend": False})
+    (glb,) = glob.glob(os.path.join(out, "**", "*.glb"), recursive=True)
+    raw = open(glb, "rb").read()
+    n = struct.unpack_from("<I", raw, 12)[0]
+    j = json.loads(raw[20:20 + n])
+    # visual meshes only: a roof ships its collider as a `-colonly` node too
+    return sorted(nd["name"] for nd in j["nodes"]
+                  if "mesh" in nd and not partnames.is_collision(nd["name"]))
+
+
+def test_bpy_a_room_sized_floor_ships_one_mesh_per_tile(tmp_path):
+    pytest.importorskip("bpy")
+    # gas_station_a02's sales floor: 23 x 12 m -> 3 x 2 tiles of <= 8 m
+    meshes = _module_glb(tmp_path, "floor", (23.0, 12.0, 0.05), "carpet")
+    assert len(meshes) == 6, meshes
+    assert all(m.startswith("Floor_Panel_t") for m in meshes), meshes
+    ceil = _module_glb(tmp_path, "ceiling", (23.0, 12.0, 0.05), "ceiling_tile")
+    assert len(ceil) == 6 and all(m.startswith("Ceiling_Panel_t") for m in ceil), ceil
+
+
+def test_bpy_a_small_floor_and_a_roof_are_as_before(tmp_path):
+    pytest.importorskip("bpy")
+    # the controls: an untiled floor is its one Panel, as it always was;
+    # a room-sized ROOF still merges its tiles into one mesh
+    assert _module_glb(tmp_path / "small", "floor", (6.0, 5.0, 0.05), "carpet") == ["Floor_Panel"]
+    roof = _module_glb(tmp_path / "roof", "roof", (23.0, 12.0, 0.2), "tar")
+    assert len(roof) == 1 and not roof[0].startswith("Roof_Panel_t"), roof

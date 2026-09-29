@@ -39,6 +39,28 @@ STOCK_PREFIX = "Stock_"
 #: Substring marking a level-of-detail alternate rather than a part.
 LOD_MARK = "_LOD"
 
+#: THE LIGHT-BUDGET FAMILIES (1.23.0): a floor's and a ceiling's parts are
+#: never merged. `arch.tile_parts` cuts a room-sized plate into tiles no more
+#: than `PLATE_TILE` (8 m) on a side precisely so each is its OWN light budget
+#: -- GL Compatibility lights at most `max_lights_per_object` (8) positional
+#: lights per MESH (roadmap 54) -- and 1.1.0's merge packed them straight
+#: back into one mesh per material, which undid it: every room-sized floor and
+#: ceiling in the library reached Godot as one object again.
+#:
+#: MEASURED, and it was visible. On cold run 9105 gas_station_a02's sales
+#: floor (23 x 12 m, six tiles) shipped as ONE floor mesh and ONE ceiling mesh
+#: with 20 light claimants each; the storefront spills pushed them from 16
+#: and the engine's choice of eight moved, dimming the room's own floor at the
+#: glass (the carpet seen through it 19.7 -> 16.9; the same build with the
+#: cap raised to 64 read 20.1). The walker, 2026-09-29: "yes, split the floor
+#: and ceiling tiles".
+#:
+#: FLOOR AND CEILING, NOT ROOF, though a roof is a plate too: a roof is seen
+#: from outside and above, and a large one is dozens of tiles -- the draw-call
+#: side of the same trade, left merged until it is priced on its own. The
+#: families are `arch.root_name` of those two species; a test holds them equal.
+LIGHT_BUDGET_FAMILIES = ("Floor", "Ceiling")
+
 #: Material-name prefixes stripped when naming a merged part. Zoo names every
 #: skinned material `M_Skin_<pack>` and every flat one `M_<what>`.
 _NAME_STRIP = ("M_Skin_", "M_")
@@ -67,8 +89,10 @@ def is_collision(name):
 
 
 def is_mergeable(name):
-    """A visual part: not a collision proxy, not a LOD alternate."""
-    return not is_collision(name) and LOD_MARK not in name
+    """A visual part: not a collision proxy, not a LOD alternate, not a
+    floor's or a ceiling's light-budget tile (`LIGHT_BUDGET_FAMILIES`)."""
+    return (not is_collision(name) and LOD_MARK not in name
+            and family(name) not in LIGHT_BUDGET_FAMILIES)
 
 
 def material_slug(material_name):

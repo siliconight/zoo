@@ -1,3 +1,42 @@
+## [1.23.0] - a floor's and a ceiling's tiles ship as their own meshes
+
+The walker, 2026-09-29: "yes, split the floor and ceiling tiles".
+
+`arch.tile_parts` has cut every room-sized plate into tiles no larger than
+`PLATE_TILE` (8 m) since roadmap 54, so each is its own per-mesh light budget
+-- GL Compatibility lights at most `max_lights_per_object` (8) positional
+lights per MESH. 1.1.0's merge-by-material then packed those tiles straight
+back into one mesh per material, and every room-sized floor and ceiling in the
+library reached Godot as one object again. Nothing noticed until it was
+visible: on cold run 9105, gas_station_a02's 23 x 12 m sales floor shipped as
+one floor mesh and one ceiling mesh with 20 light claimants each (the
+storefront spills took them from 16), the engine's choice of eight moved, and
+the room lost some of its own lamps -- the carpet seen through the glass
+19.7 -> 16.9, and 20.1 with the cap raised to 64 on the same build.
+
+THE CHANGE: `partnames.LIGHT_BUDGET_FAMILIES` ("Floor", "Ceiling") --
+`arch.root_name` of the two species -- are not mergeable, so each tile is
+exported as itself, as floors were before 1.1.0. Not by tile index: every
+plate numbers its own tiles, so two `_t0_0`s can lie either side of a
+stairwell, and a floor cut around a void is several plates. A floor or ceiling
+no larger than one tile is its one `Panel`, byte-identical. A ROOF is a plate
+too and stays merged: it is seen from outside and above and a large one is
+dozens of tiles, the draw-call side of the same trade, to be priced on its
+own.
+
+COST, stated before it is measured: a draw call per tile beyond the first on
+every floor and ceiling over 8 m on a side -- the sales floor's two go from 2
+submissions to 12 when the room is in view. The cold run that ships it prices
+it in draws and frame time against 9105, with the per-mesh census.
+
+`tests/test_merge_by_material.py`: the families are the floor and ceiling
+roots and a subset of the plate species'; floor and ceiling tiles are not
+mergeable and a roof tile and a pack wall are; six floor tiles plan no group
+where six roof tiles plan one. Built: a 23 x 12 m floor and ceiling each
+export six tile meshes (without the change: one, `Floor_carpet`); a 6 x 5 m
+floor is its one `Floor_Panel`, and a 23 x 12 m roof's visual is still one
+merged mesh.
+
 ## [1.22.0] - a storefront's spill is light with its hardware elsewhere
 
 The walker, 2026-09-29: "do the outward spill next". Deli Counter (>=
