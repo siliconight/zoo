@@ -201,14 +201,45 @@ def plan_layout(text, aw, ah):
     return best
 
 
-def plan_sign(w, d, h, variant=0):
+#: THE WINDOW FORM (1.27.0): a sign HUNG in a store's window, facing the
+#: street -- a beer (`club_names.WINDOW_NAMES`) in red or blue. What a window
+#: neon hangs on is a clear sheet, not a painted can, so the backer is the
+#: same box the wall form's can is -- everything behind the standoffs, which
+#: is what fills the slot's depth and keeps `fit_exact` at a scale of 1 --
+#: stopped short of the top by HANG_FRAC of the height, and the recipe gives
+#: it a see-through material. Two chains rise from the sheet's top to the
+#: slot's top, where the sign hangs; they share the standoffs' material, so
+#: the window form adds a part and no material.
+#:
+#: REFUTED, kept above what replaced it: the first draft dropped the backer
+#: and stood the tubes in the slot's middle plane. `fit_exact` maps the
+#: prims' bounds onto the slot per axis, so with nothing but tubes spanning
+#: the depth it would have stretched a 2r-deep tube ~3x into the slot's
+#: 0.06 m -- flat ovals, and a fit check that passed.
+FORMS = ("wall", "window")
+HANG_FRAC = 0.12
+#: The sheet: clear acrylic, as nearly invisible as storefront glass
+#: (`arch.SF_GLASS_OPACITY`, 0.12) -- the tubes are the sign.
+SHEET_TINT = (0.85, 0.90, 0.92)
+SHEET_OPACITY = 0.12
+
+
+def plan_sign(w, d, h, variant=0, form="wall"):
     """``{"prims", "collision", "text", "lines", "pitch", "tube_r",
     "colours", "overshoot_m"}``. Keys "text" and "border" are emissive
-    materials; "backer" is the genome's."""
-    text = club_names.name_for(variant)
-    text_rgb, border_rgb = club_names.palette_for(variant)
-    margin = max(0.05, 0.12 * min(w, h))
-    lines, pitch = plan_layout(text, w - 2.4 * margin, h - 2.4 * margin)
+    materials; "backer" is the genome's -- or, ``form`` "window" (1.27.0),
+    the clear sheet a hung window sign's tubes stand on."""
+    window = form == "window"
+    if window:
+        text = club_names.window_name_for(variant)
+        text_rgb, border_rgb = club_names.window_palette_for(variant)
+    else:
+        text = club_names.name_for(variant)
+        text_rgb, border_rgb = club_names.palette_for(variant)
+    # a hung sign's sheet stops HANG_FRAC short of the top; the chains are there
+    hs = h * (1.0 - HANG_FRAC) if window else h
+    margin = max(0.05, 0.12 * min(w, hs))
+    lines, pitch = plan_layout(text, w - 2.4 * margin, hs - 2.4 * margin)
     r = max(TUBE_MIN, min(TUBE_MAX, TUBE_OF_PITCH * pitch))
     # the tube plane: the tubes' fronts are the slot's front
     yt = -d / 2 + r
@@ -217,10 +248,10 @@ def plan_sign(w, d, h, variant=0):
     # standoff before it thins the can below BACKER_T_MIN
     standoff = max(0.004, min(TUBE_STANDOFF, d - 2 * r - BACKER_T_MIN))
     back_front = yt + r + standoff
-    prims = [P.box("NeonSign_Backer", "backer", (-w / 2, back_front, 0.0), (w / 2, d / 2, h))]
+    prims = [P.box("NeonSign_Backer", "backer", (-w / 2, back_front, 0.0), (w / 2, d / 2, hs))]
     n = len(lines)
     block_h = (n * LINE - 3 - 1) * pitch
-    top_z = h / 2 + block_h / 2
+    top_z = hs / 2 + block_h / 2
     for li, line in enumerate(lines):
         cols = len(line) * ADVANCE - 1
         x0 = -(cols - 1) * pitch / 2
@@ -253,15 +284,21 @@ def plan_sign(w, d, h, variant=0):
                                    (mx, back_front + 0.005, mz), max(0.003, 0.45 * r),
                                    segments=8))
     # the border tube: a rectangle with 45-degree cut corners
-    bx, bz0, bz1 = w / 2 - margin * 0.5, margin * 0.5, h - margin * 0.5
+    bx, bz0, bz1 = w / 2 - margin * 0.5, margin * 0.5, hs - margin * 0.5
     cut = min(0.06, 0.25 * (bz1 - bz0), 0.25 * bx)
     br = max(TUBE_MIN, min(TUBE_MAX, 0.8 * r))
     ring = [(-bx + cut, yt, bz0), (bx - cut, yt, bz0), (bx, yt, bz0 + cut), (bx, yt, bz1 - cut),
             (bx - cut, yt, bz1), (-bx + cut, yt, bz1), (-bx, yt, bz1 - cut), (-bx, yt, bz0 + cut)]
     prims += CF.tube_path("NeonSign_Border", "border", ring, br, closed=True)
     for x in (-bx, bx):
-        prims.append(P.rod("NeonSign_Standoffs", "standoff", (x, yt, h / 2),
-                           (x, back_front + 0.005, h / 2), max(0.003, 0.45 * br), segments=8))
+        prims.append(P.rod("NeonSign_Standoffs", "standoff", (x, yt, hs / 2),
+                           (x, back_front + 0.005, hs / 2), max(0.003, 0.45 * br), segments=8))
+    if window:
+        # two chains, sunk 5 mm into the sheet's top, up to the slot's top
+        yc = (back_front + d / 2) / 2
+        for x in (-bx + cut, bx - cut):
+            prims.append(P.rod("NeonSign_Chain", "standoff", (x, yc, hs - 0.005),
+                               (x, yc, h), max(0.002, 0.3 * br), segments=6))
     over = CF._overshoot(prims, w, d, h)
     prims, _cb = P.fit_exact(prims, (-w / 2, -d / 2, 0.0), (w / 2, d / 2, h))
     return {"prims": prims, "collision": [], "text": text, "lines": lines, "pitch": pitch,

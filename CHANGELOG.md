@@ -1,3 +1,39 @@
+## [1.27.0] - a beer sign hung in a store's window; the counter accent's hardware
+
+The walker, 2026-09-29: "add the warm counter accent and the window sign
+next", from their 1990s lighting reference on the convenience store at night
+-- a small red or blue window sign as an accent against the fluorescent
+interior, and a warmer accent at the counter.
+
+THE WINDOW FORM: `neon_sign` takes `params.form` ("wall", "window"; the
+genome lists wall first, so every sign already placed builds as it did --
+`MAIN_DIGESTS` and 120 wall plans compared byte for byte). A window sign says
+a beer from `club_names.WINDOW_NAMES` (WOODER ICE, JAWN LITE, YOUSE BREW,
+SHOOBIE SUDS, SCRAPPLE STOUT, COLD ONE HON -- held against `DENYLIST` and a
+new `BEER_DENYLIST` of real beers, the local ones first) in red on blue or
+blue on red (`WINDOW_PALETTES`). Its tubes stand on the same standoffs in
+front of a CLEAR SHEET (`M_NeonSign_acrylic`, see-through at
+`SHEET_OPACITY` 0.12, storefront glass's value), which stops `HANG_FRAC`
+(12%) short of the slot's top; two `NeonSign_Chain` rods rise from it to the
+top, where the sign hangs. The chains share the standoffs' material: the
+form adds a part and no material. The kit stems it `_fwindow_n<k>`.
+
+REFUTED, kept in `neon_forms.py` above the rule that replaced it: the first
+draft dropped the backer and stood the tubes in the slot's middle plane.
+`fit_exact` maps the prims' bounds onto the slot per axis, so a sign with
+nothing but tubes across its depth would have been stretched ~3x into the
+slot's 6 cm -- flat ovals that pass a fit check. The sheet fills the depth
+the way the wall form's can does, and every window plan fits at a scale of 1
+(`overshoot_m` 0).
+
+THE COUNTER ACCENT'S HARDWARE: `fixtures.FIXTURES["counter_accent"]` is the
+pendant's -- `pendant_fixture`, mount above, the bulb point is the anchor.
+Deli Counter (>= 0.160.0) derives the anchor, Lux (>= 0.59.0) lights it.
+
+Tests: `tests/test_window_sign.py` (20, every one failing on 1.26.0);
+`test_club_bpy.py` builds the window form at two corners, passes the fit and
+plane checks and exports the sheet as the only BLEND material.
+
 ## [1.26.0] - the price pylon is 3.4 m wide
 
 The walker, 2026-09-29: "yes, make the pylon bigger", after 1.25.0 measured

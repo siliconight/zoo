@@ -59,6 +59,11 @@ FIXTURES = {
     # species" -- and a skipped anchor emits NO MARKER, so on the marker
     # path (the one this pipeline ships) every basement was silently dark.
     "pendant": {"species": "pendant_fixture", "mount": "above"},
+    # v1.27: a store counter's warm accent (Deli Counter 0.160.0, Lux 0.59.0)
+    # is a bare bulb on the pendant's cord over the register -- the same
+    # hardware, and like it the BULB point is the anchor; Lux lights it warm
+    # and scales it with the room's wash.
+    "counter_accent": {"species": "pendant_fixture", "mount": "above"},
     # v0.94 the club set (Lux 0.37.0's anchors, walked 2026-09-16 as
     # "it doesn't look like that light is coming out of any viewable light
     # fixtures"). Both mount 'above', so the LIT LENS sits on the emitter

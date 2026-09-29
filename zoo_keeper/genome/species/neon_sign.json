@@ -26,9 +26,15 @@
     "NeonSign_Backer",
     "NeonSign_Tubes",
     "NeonSign_Border",
-    "NeonSign_Standoffs"
+    "NeonSign_Standoffs",
+    "NeonSign_Chain"
   ],
-  "params": {},
+  "params": {
+    "form": [
+      "wall",
+      "window"
+    ]
+  },
   "module_variants": 24,
   "materials": {
     "default": "metal_painted",

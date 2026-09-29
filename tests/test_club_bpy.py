@@ -232,3 +232,21 @@ def test_bpy_no_collision_on_a_neon_sign_and_a_collider_on_the_stage(tmp_path):
     assert not [o for o in bpy.context.scene.objects if o.name.endswith("-colonly")]
     _build(tmp_path, "club_stage", (4.0, 4.0, 3.6), form="round")
     assert [o for o in bpy.context.scene.objects if o.name.endswith("-colonly")]
+
+
+@pytest.mark.parametrize("dims", [(1.0, 0.06, 0.5), (3.0, 0.25, 1.2)])
+def test_bpy_a_window_sign_builds_and_its_sheet_is_see_through(tmp_path, dims):
+    """1.27.0: the `window` form -- a beer on a clear sheet, hung by two
+    chains. It passes the same fit and plane checks as a wall sign, lights
+    the same two tube materials, and the sheet exports as a blend."""
+    pytest.importorskip("bpy")
+    res, objs = _build(tmp_path, "neon_sign", dims, form="window", variant=1)
+    assert res["report"]["status"] == "pass", res["report"]["checks"]
+    got = res["facts"]["dimensions"]
+    assert abs(got["width"] - dims[0]) <= 0.001 and abs(got["depth"] - dims[1]) <= 0.001
+    assert abs(got["height"] - dims[2]) <= 0.001, got
+    assert _probe(objs) == []
+    assert len({s.material.name for o in _lit_objects(objs) for s in o.material_slots}) == 2
+    doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
+    blends = [m["name"] for m in doc["materials"] if m.get("alphaMode") == "BLEND"]
+    assert blends and all("NeonSign_acrylic" in n for n in blends), blends

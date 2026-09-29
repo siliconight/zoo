@@ -74,8 +74,44 @@ PALETTES = (
 NEON_STRENGTH = 1.2
 
 
+#: WHAT A STORE'S WINDOW NEON SAYS (1.27.0): a beer, invented the same way --
+#: the walker's 1990s lighting reference, 2026-09-29, on the convenience store
+#: at night: a small red or blue window sign as an accent against the
+#: fluorescent interior, never overpowering the facade. A window sign in a
+#: 1997 Delco store sells beer, and every beer here is a joke, never a brand.
+WINDOW_NAMES = (
+    "WOODER ICE",
+    "JAWN LITE",
+    "YOUSE BREW",
+    "SHOOBIE SUDS",
+    "SCRAPPLE STOUT",
+    "COLD ONE HON",
+)
+#: Real beers a writer reaches for, the local ones first; held against
+#: WINDOW_NAMES beside DENYLIST.
+BEER_DENYLIST = (
+    "SCHMIDT", "ORTLIEB", "ROLLING ROCK", "PABST", "PBR", "STROH", "BUSCH",
+    "BUD", "MILLER", "COORS", "NATTY", "NATURAL LIGHT", "KEYSTONE",
+    "MICHELOB", "SCHLITZ", "OLD MILWAUKEE", "GENESEE", "IRON CITY",
+    "HEINEKEN", "CORONA", "LABATT", "MOLSON", "LITE BEER", "ICEHOUSE",
+)
+#: (text tube, border tube): the reference's red or blue, each on the other.
+WINDOW_PALETTES = (
+    ((1.00, 0.05, 0.03), (0.10, 0.30, 1.00)),     # red on blue
+    ((0.10, 0.30, 1.00), (1.00, 0.05, 0.03)),     # blue on red
+)
+
+
 def name_for(variant):
     return NAMES[int(variant) % len(NAMES)]
+
+
+def window_name_for(variant):
+    return WINDOW_NAMES[int(variant) % len(WINDOW_NAMES)]
+
+
+def window_palette_for(variant):
+    return WINDOW_PALETTES[int(variant) % len(WINDOW_PALETTES)]
 
 
 def palette_for(variant):

@@ -14,7 +14,7 @@ the slot's +Y face, the wall; the lettering faces -Y.
 """
 from __future__ import annotations
 
-from ..bpylayer import prim_mesh
+from ..bpylayer import materials, prim_mesh
 from ..core import club_names
 from ..core import neon_forms as NF
 
@@ -27,8 +27,10 @@ def build(plan, streams, collection):
     w = plan["dimensions"]["width"]
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
-    variant = int((plan.get("params") or {}).get("variant", 0) or 0)
-    got = NF.plan_sign(w, d, h, variant)
+    params = plan.get("params") or {}
+    variant = int(params.get("variant", 0) or 0)
+    form = str(params.get("form") or "wall")
+    got = NF.plan_sign(w, d, h, variant, form)
     kind = plan["material"]
     mats = {key: (f"M_NeonSign_{key}_{k}", list(c), k)
             for key, (c, k) in NF.MATERIALS.items()}
@@ -38,5 +40,10 @@ def build(plan, streams, collection):
                      club_names.NEON_STRENGTH)
     objs = prim_mesh.build(got["prims"], collection, plan, streams.stream("wear"),
                            mats, texel=1.0)
+    if form == "window":
+        # the window form's backer is the clear sheet it hangs on (1.27.0)
+        materials.assign([o for o in objs if o.name == "NeonSign_Backer"],
+                         materials.make_see_through_material(
+                             "M_NeonSign_acrylic", list(NF.SHEET_TINT), NF.SHEET_OPACITY))
     return {"objects": objs, "collision_boxes": [],
             "attachments": {"ATT_face": (0.0, -d / 2, h / 2)}}
