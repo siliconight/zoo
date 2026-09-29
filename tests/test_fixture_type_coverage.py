@@ -106,6 +106,19 @@ def test_the_canopy_pair_is_decided_and_decided_differently():
     assert "canopy_wash" not in fixtures.FIXTURES
 
 
+def test_a_storefront_spill_is_light_with_its_hardware_elsewhere():
+    # v1.22: no species builds a spill and no marker carries it -- the lit
+    # room is its hardware, and the manifest bake is its light
+    assert "storefront_spill" in fixtures.HARDWARE_ELSEWHERE
+    assert "storefront_spill" not in fixtures.FIXTURES
+    p = fixtures.plan({"light_manifest_version": "1.3.0", "building_id": "s", "anchors": [
+        {"id": "sales_floor_spill_S_0", "type": "storefront_spill", "pos": [0.0, -11.35, 3.0],
+         "rot_y": 270.0, "head": 3.0, "drop": 3.8, "reach": 6.0}]})
+    assert not p["placements"]
+    assert [s["type"] for s in p["skipped"]] == ["storefront_spill"]
+    assert "troffers" in p["skipped"][0]["reason"]
+
+
 def test_a_sized_placement_carries_the_anchors_footprint():
     """Without this the species builds its genome default on every canopy."""
     man = {"light_manifest_version": "1.3.0", "anchors": [{

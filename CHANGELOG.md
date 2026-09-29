@@ -1,3 +1,22 @@
+## [1.22.0] - a storefront's spill is light with its hardware elsewhere
+
+The walker, 2026-09-29: "do the outward spill next". Deli Counter (>=
+0.156.0) derives `storefront_spill` anchors outside a storefront whose
+room's ceiling row reaches the glass, and Lux (>= 0.57.0) bakes them from
+the manifest -- the store's own light thrown out through the glass onto the
+pavement. Nothing here builds anything for one: a spill has no hardware of
+its own, because what a player sees it come from is the lit room, whose
+troffers the `fluorescent` row already builds. `core.fixtures` records that
+as `HARDWARE_ELSEWHERE["storefront_spill"]`, the canopy wash's standing, so
+the plan skips it with that reason instead of "no fixture species", and the
+type-coverage test (`tests/test_fixture_type_coverage.py`, which fails at
+commit when Deli Counter emits a type Zoo has not decided about) is decided
+BEFORE Deli Counter emits it.
+
+`tests/test_fixture_type_coverage.py`: the spill is hardware-elsewhere and
+not a FIXTURES row; a plan of one places nothing and skips it naming the
+troffers. Without the entry it fails.
+
 ## [1.21.0] - a storefront row's reach rides its markers
 
 The other half of Lux 0.56.0 ("yes, do the glass first then the troffer

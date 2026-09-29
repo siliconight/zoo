@@ -129,6 +129,14 @@ HARDWARE_ELSEWHERE = {
     # about the anchor, and this is the distinction that line exists to draw.
     "canopy_wash": ("the canopy's own lamp grid (species canopy_lights); "
                     "its light is on the manifest bake"),
+    # v1.22: the store's light on the pavement (Deli Counter 0.156.0, Lux
+    # 0.57.0). A spill is a light POSITION outside a storefront with no
+    # hardware of its own: what a player sees it come from is the lit room
+    # behind the glass, whose troffers the `fluorescent` row builds. Its
+    # light is on the manifest bake, like the canopy wash's.
+    "storefront_spill": ("the room's own troffers behind the storefront "
+                         "(species fluorescent_fixture); its light is on the "
+                         "manifest bake"),
 }
 
 # Emitter marker contract (v0.30): every placement's EMITTER point (the
