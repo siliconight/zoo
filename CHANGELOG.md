@@ -1,3 +1,52 @@
+## [1.25.0] - the pylon's name and prices are set as large as the face allows
+
+The walker, 2026-09-29: "do the pylon brand sign at night next", after cold
+run 9102's note that the green FLAPPHAS cabinet barely read at night.
+
+MEASURED FIRST, and the premise was half right. On cold run 9107's walk copy
+(the pylon rebuilt with Zoo exactly as Lot's cover kit asks for it, swapped
+in with the shipped texture import settings, a camera 12 m out square to
+the face; the rebuilt control reproduced the shipped frame to the decimal):
+the brand FIELD reads at night, luma 125 against the price panel's 251. What
+reads at neither time of day is any LETTER -- FLAPPHAS a smear, the prices a
+blank white panel (90% of it clipped at night). 1.19.0 fitted the name and
+the dollars by one integer scale to their width: the name 0.26 m tall in a
+1.4 m face, the dollars 0.18 m in a 0.5 m row, 2-3 texels a stroke, on a
+184-texel face drawn about 110 px wide and softened by the frame.
+
+THE CHANGE (`price_pylon_forms`): the name keeps its width-fitted scale and
+is stretched in whole rows to fill half its face's height (`NAME_FILL`,
+21 -> 42 px); the dollars start after the widest grade label and may take
+40% of the face (`DIGITS_AT`, `DIGITS_W`), which sets them at scale 3 where
+they were 2, stretched to their row where it fits. Same image size, same two
+submissions.
+
+    at 12 m, luma mean / standard deviation (the detail)
+                        1.19.0          1.25.0
+    brand, night        125 / 48        157 / 59
+    brand, noon         143 / 26        162 / 33
+    prices, night       251 / 10        250 / 11
+    prices, noon        231 / 11        229 / 12
+
+The name now reads as a bold word at 12 m, day and night. The digits still
+do not resolve there: under this frame a stroke has to be about a tenth of a
+metre to survive at 12 m, and a 0.5 m row cannot hold digits that bold. THE
+LIMIT, stated so nobody tunes against it: eight 5-wide letters across a
+2.3 m face cannot have a stroke over ~5 cm, so FLAPPHAS on this pylon reads
+as a word to about 12-14 m and as a green block beyond. At 20 m every
+variant measured read as coloured blocks.
+
+MEASURED AND NOT SHIPPED: a TRANSMITTED glow -- the lit face's emission the
+square root of its artwork in linear light (a translucent face seen by day
+through its colour twice, by night once) -- brightened the field 125 -> 222
+and washed the name out against it (detail 48 -> 17), and brightened the
+sign at noon 143 -> 196, because a lit face glows in daylight too.
+
+`tests/test_price_pylon.py`: the name fills at least 35% of its face inside
+the rules (1.19.0: 19%); the dollars at least half their row (1.19.0: 14 of
+40 px); the dollars set at scale 3 or more and, with the 9/10, fit between
+the widest grade label and the face's edge. Without the change both fail.
+
 ## [1.24.0] - only a storefront-lit room's plate tiles stay apart
 
 The walker, 2026-09-29: "yes, narrow it to the storefront rooms".

@@ -148,3 +148,44 @@ def test_bpy_the_same_file_every_build(tmp_path):
         res, _o = _build(out, PP.DC_SIZES[0], variant=1)
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
+
+
+# --------------------------------------------------------------------------- #
+# 1.25.0: the type is set as large as the face allows
+# --------------------------------------------------------------------------- #
+
+def _ink_rows(A, rect, colour):
+    c = A["canvas"]
+    x0, y0, x1, y1 = rect
+    rows = [y for y in range(y0, y1) if any(c.get(x, y) == colour for x in range(x0, x1))]
+    return (min(rows), max(rows)) if rows else None
+
+
+def test_the_name_fills_half_its_face_and_the_dollars_their_row():
+    A = PP.art(2.4, 6.5, 0)
+    x0, y0, x1, y1 = A["rects"]["brand"]
+    ink = PP.COLOURWAYS[0][2]
+    top, bot = _ink_rows(A, A["rects"]["brand"], ink)
+    # 1.19.0 set FLAPPHAS 21 px tall in a 112 px face
+    assert bot - top + 1 >= 0.35 * (y1 - y0), (top, bot)
+    assert top > y0 + 4 and bot < y1 - 4                     # inside the rules
+    px0, py0, px1, py1 = A["rects"]["price"]
+    row = (py1 - py0) // len(PP.GRADES)
+    t, b = _ink_rows(A, (int(px1 * PP.DIGITS_AT), py0 + 1, int(px1 * 0.8), py0 + row), PP.INK)
+    assert b - t + 1 >= row // 2, (t, b, row)                # 1.19.0: 14 of 40
+
+
+def test_the_prices_fit_beside_the_grades_and_inside_the_face():
+    from zoo_keeper.core import pixel_type as pt
+    A = PP.art(2.4, 6.5, 0)
+    FW = A["rects"]["price"][2]
+    chip = max(6, FW // 16)
+    gs = min(PP._scale(g, FW * 0.38, 34, "m5x7", 2) for g, _c in PP.GRADES)
+    label_end = chip + 4 + max(pt.ink_width(g, gs, "m5x7") for g, _c in PP.GRADES)
+    dx = int(FW * PP.DIGITS_AT)
+    assert label_end < dx
+    for dollars in PP.PRICE_SETS[0]:
+        ds = PP._scale(dollars, FW * PP.DIGITS_W, 34, PP.HEAD_FACE, 5)
+        assert ds >= 3, dollars                                 # 1.19.0: 2
+        end = dx + pt.ink_width(dollars, ds, PP.HEAD_FACE) + 3 + pt.ink_width("9/10", max(1, ds // 2), "m5x7")
+        assert end <= FW, (dollars, end, FW)

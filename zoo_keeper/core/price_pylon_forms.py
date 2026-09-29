@@ -175,6 +175,39 @@ WHITE = (250, 250, 244)
 HEAD_FACE = "monogram"     # the slush machine's reason: bold's N reads as H
 
 
+#: THE TYPE IS SET AS LARGE AS THE FACE ALLOWS (1.25.0). The walker,
+#: 2026-09-29: "do the pylon brand sign at night next". MEASURED on cold run
+#: 9107's walk copy, the pylon rebuilt and swapped in, one camera 12 m out
+#: square to the face: the brand FIELD read at night (luma 125, the price
+#: panel 251) -- what did not read, at night or at noon, was any LETTER.
+#: 1.19.0 fitted the name and the dollars by one integer scale to their
+#: width, so FLAPPHAS stood 0.26 m tall in a 1.4 m face and the dollars 0.18
+#: m in a 0.5 m row, 2-3 texels a stroke; a 184-texel face drawn ~110 px wide
+#: is minified, and the frame softens anything under a few pixels, so both
+#: were a smudge and a blank.
+#:
+#: NAME_FILL: the name keeps its width-fitted scale -- eight letters across
+#: the face are the horizontal limit -- and is stretched in whole rows to
+#: fill this fraction of the face's height, the rule and margins kept.
+#: Measured: the brand's detail (luma standard deviation) 48 -> 59 at night,
+#: 26 -> 33 at noon, the name a bold word where it was a smear.
+NAME_FILL = 0.5
+#: DIGITS_AT / DIGITS_W: the dollars start after the widest grade label
+#: (the chip and REGULAR at m5x7 scale 1 end at 56 of 184 px) and may take
+#: this much of the face, which fits them at scale 3 with the 9/10 after --
+#: 3 texels a stroke where 1.19.0 had 2. The frame at 12 m did not resolve
+#: them either way (price detail 11 -> 11); set large because the face has
+#: the room and a closer camera does.
+DIGITS_AT = 0.36
+DIGITS_W = 0.40
+
+
+def _tall(mask, height):
+    """``mask`` stretched in whole rows to the tallest that fits ``height``."""
+    k = max(1, int(height // max(1, len(mask))))
+    return [row for row in mask for _ in range(k)]
+
+
 def _scale(text, width, height, face, cap):
     for k in range(cap, 0, -1):
         if pt.ink_width(text, k, face) <= width and pt.line(face) * k <= height:
@@ -213,7 +246,7 @@ def art(w, h, variant=0):
     c.rect(2, 2, FW - 2, 4, rule)
     c.rect(2, BH - 4, FW - 2, BH - 2, rule)
     s = _scale(STORE, FW - 12, BH - 16, HEAD_FACE, 6)
-    m = pt.trim(pt.render(STORE, s, HEAD_FACE))
+    m = _tall(pt.trim(pt.render(STORE, s, HEAD_FACE)), (BH - 16) * NAME_FILL)
     c.mask(m, (FW - len(m[0])) // 2, (BH - len(m)) // 2, rule, grow=1)
     c.mask(m, (FW - len(m[0])) // 2, (BH - len(m)) // 2, ink)
     said.append(STORE)
@@ -232,10 +265,13 @@ def art(w, h, variant=0):
         c.rect(0, ry + 1, max(6, FW // 16), ry + row, gc)                 # the grade's colour
         _stamp(c, grade, max(6, FW // 16) + 4, ry + (row - pt.line("m5x7") * gs) // 2, gs, "m5x7", INK)
         dollars, tenths = price_text(price)
-        ds = _scale(dollars, FW * 0.34, row - 6, HEAD_FACE, 5)
-        dw, dh = _stamp(c, dollars, int(FW * 0.50), ry + (row - pt.line(HEAD_FACE) * ds) // 2 + 1, ds, HEAD_FACE, INK)
+        dx = int(FW * DIGITS_AT)
+        ds = _scale(dollars, FW * DIGITS_W, row - 6, HEAD_FACE, 5)
+        md = _tall(pt.trim(pt.render(dollars, ds, HEAD_FACE)), row - 6)
+        c.mask(md, dx, ry + (row - len(md)) // 2, INK)
+        dw = len(md[0])
         ts = max(1, ds // 2)
-        _stamp(c, tenths, int(FW * 0.50) + dw + 3, ry + (row - pt.line(HEAD_FACE) * ds) // 2 + 1, ts, "m5x7", INK)
+        _stamp(c, tenths, dx + dw + 3, ry + (row - pt.line(HEAD_FACE) * ds) // 2 + 1, ts, "m5x7", INK)
         said.append(f"{grade} {dollars} {tenths}")
     rects["price"] = (0, y0, FW, y0 + PH)
     # the strip
