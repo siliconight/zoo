@@ -598,6 +598,15 @@ SF_MULLION = 0.05         # at each end: two modules meet in a 0.10 m mullion
 SF_RAIL = 0.08            # a door's head rail, under its transom
 SF_PANE_D = 0.15          # a pane's thickness, a fraction of the wall's (the window's)
 SF_BURY = 0.005           # every pane's edges buried this far in the frame
+#: A STOREFRONT IS CLEAR FLOAT GLASS (1.20.0), and its opacity is a fact of
+#: the product rather than of the theme's weather. The theme's `glass` pack
+#: (delco_1997's `glass_delco`, 0.38 and a dark teal) is a residential
+#: window's, and a storefront wore it until 1.20.0: MEASURED on cold run
+#: 9103's walk copy at night, the view through the storefront read mean 6.2,
+#: and 9.0 with the panes at this value, everything else as shipped. Clear
+#: 6 mm float glass transmits about 88% of visible light, so a pane blended
+#: over what is behind it keeps 1 - 0.88 of its own colour.
+SF_GLASS_OPACITY = 0.12
 LEAF_T = 0.045
 LEAF_STILE = 0.06
 LEAF_TOP = 0.08

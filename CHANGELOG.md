@@ -1,3 +1,39 @@
+## [1.20.0] - a storefront is clear glass
+
+The walker, 2026-09-28, after cold run 9103's night frames showed the sales
+floor brightening and the street not seeing it: "yes, do the glass first then
+the troffer reach".
+
+A storefront's panes wore the theme's `glass` -- delco_1997's `glass_delco`,
+0.38 opaque over a dark teal, which is a house window's -- so a third of a lit
+shop floor stopped at the pane. They are now clear float glass:
+`arch.SF_GLASS_OPACITY` 0.12, from the ~88% visible transmission of clear
+6 mm float glass, not tuned by eye. The panes keep the theme's glass SURFACE
+(its albedo and roughness) under their own material,
+`M_Skin_glass_<theme>_storefront`, through a new `own=` on
+`materials.make_see_through_material`: the caller's opacity replaces even an
+authored see-through pack's, under the pack's name with `_<own>` appended.
+Every other caller of that helper, and every window, is unchanged.
+
+MEASURED FIRST on cold run 9103's walk copy at night (look_shots, the
+player's graded frame; the panes' opacity set at runtime, everything else as
+shipped; the control reproduced 9103's own figures, 8.8 / 6.2 / 4.2):
+
+    through the storefront      mean 6.2 -> 9.0     p95 31 -> 48
+    inside the sales floor      mean 8.8 -> 9.4
+    the storefront from 15 m    4.2 -> 4.4  (that camera stands behind a
+                                pump island; it is not a view of the store)
+
+COST: none in submissions. A storefront module had one glass material and
+still has one; the library gains one material.
+
+`tests/test_storefront.py`: SF_GLASS_OPACITY is clear glass's; every pane of
+a built storefront wall and door (leaves and transom included) is the
+storefront material at that opacity -- which fails without the recipe change
+('M_Skin_glass_delco_1997' where '..._storefront' was wanted) -- and the
+control, a plain window built against the same library, keeps the theme's
+material at 0.38.
+
 ## [1.19.0] - the gas station's price pylon
 
 New species `price_pylon`. The walker, 2026-09-28: "do the price pylon

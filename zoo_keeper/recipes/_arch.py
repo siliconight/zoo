@@ -150,16 +150,19 @@ def build_slab(plan, streams, collection, species):
         f"M_{root}_{plan['material']}", plan["color"], plan["material"])
     materials.assign(objs, structure)
 
-    # the storefront's panes: the window's own see-through kind and name, so
-    # a storefront pane and a window pane in one building are one material
+    # the storefront's panes: the theme's glass surface at a storefront's
+    # own opacity (`arch.SF_GLASS_OPACITY`, clear float glass), one material
+    # of its own. It was the window's material until 1.20.0; a storefront
+    # module has one glass material either way, so this costs no submission.
     for name, center, size in storefront_glass:
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
         pane = geometry.bm_to_object(
             bm, f"{root}_{name}", collection, bevel=0.0, texel=1.0,
             rng=rng, wear=wear * 0.25)
-        materials.assign([pane], materials.make_material(
-            "M_Window_glass", plan.get("glass_color", [0.55, 0.66, 0.72]), "glass"))
+        materials.assign([pane], materials.make_see_through_material(
+            "M_Storefront_glass", plan.get("glass_color", [0.55, 0.66, 0.72]),
+            arch.SF_GLASS_OPACITY, "glass", own="storefront"))
         objs.append(pane)
 
     # a window gets a thin glass pane in its opening — decorative, no collision

@@ -212,7 +212,8 @@ def make_material(name, base_color, material_kind):
     return mat
 
 
-def make_see_through_material(name, tint, opacity, material_kind="glass"):
+def make_see_through_material(name, tint, opacity, material_kind="glass",
+                              own=None):
     """Glazing that is transparent whatever the skin library says about it.
 
     `make_material` makes a pane see-through only when the kind's Pixelcoat
@@ -252,19 +253,29 @@ def make_see_through_material(name, tint, opacity, material_kind="glass"):
     build the first branch below is the one taken and the car wears the
     theme's glass. The forced and flat branches remain for a library that
     has no `glass` pack or predates that release.
+
+    ``own`` (1.20.0) is for a pane whose opacity belongs to the OBJECT, not
+    the theme: a storefront is clear float glass in any weather, where the
+    theme's `glass` is a house window's. With it the caller's ``opacity``
+    replaces even an authored see-through pack's, keeping that pack's albedo,
+    under the pack's material name with ``_<own>`` appended -- a separate
+    material, so the theme's windows keep theirs. Every caller without it is
+    unchanged.
     """
     from ..core import skins
     opacity = max(0.05, min(0.95, float(opacity)))
     pack = _find_pack(material_kind)
-    if pack and skins.is_see_through(pack):
+    if pack and skins.is_see_through(pack) and not own:
         return make_material(name, tint, material_kind)
     if pack:
-        skin_name = f"M_Skin_{material_kind}_{_SKINS['theme']}_see_through"
+        skin_name = (f"M_Skin_{material_kind}_{_SKINS['theme']}_"
+                     + (own or "see_through"))
         mat = bpy.data.materials.get(skin_name)
         if mat:
             return mat
         print(f"[zoo] skin: {material_kind} <- {pack['id']} ({pack['dir']})"
-              f"  see-through at opacity {opacity:.2f} (the pack is opaque)")
+              f"  see-through at opacity {opacity:.2f} "
+              + (f"({own}'s own)" if own else "(the pack is opaque)"))
         forced = dict(pack)
         forced["transparency"] = {"alpha_mode": "blend", "opacity": opacity,
                                   "ior": 1.5}

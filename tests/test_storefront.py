@@ -128,7 +128,7 @@ def _build(tmp_path, typ, dims, state=None, openings=None):
     from zoo_keeper.bpylayer import build as B, materials
     from tests.test_see_through_glass import _pack
     for mat in list(bpy.data.materials):
-        if mat.name.startswith(("M_Skin_glass", "M_Window_glass")):
+        if mat.name.startswith(("M_Skin_glass", "M_Window_glass", "M_Storefront_glass")):
             bpy.data.materials.remove(mat)
     skins_dir = tmp_path / "skins"
     _pack(str(skins_dir), "glass_delco_1997", "glass_delco",
@@ -178,3 +178,61 @@ def test_bpy_a_storefront_door_has_leaves_closed_and_none_open(tmp_path):
     assert leaves_c and not leaves_o, (sorted(closed), sorted(opened))
     assert any("Transom" in n for n in opened), sorted(opened)
     assert glass_c and all(glass_c), closed
+
+
+def test_a_storefront_is_clearer_than_the_theme_window():
+    # clear float glass (~88% transmission) against the theme's 0.38 window
+    assert arch.SF_GLASS_OPACITY == pytest.approx(1.0 - 0.88)
+    assert arch.SF_GLASS_OPACITY < 0.38
+
+
+def _alphas():
+    import bpy
+    return {o.name: (o.data.materials[0].name,
+                     round(o.data.materials[0].node_tree.nodes["Principled BSDF"]
+                           .inputs["Alpha"].default_value, 3))
+            for o in bpy.data.objects if o.type == "MESH" and o.data.materials}
+
+
+def test_bpy_a_storefront_pane_is_clear_glass_of_its_own(tmp_path):
+    # 1.20.0: every pane, door leaves and transom included, is the storefront
+    # material at SF_GLASS_OPACITY, whatever the theme pack's own 0.38 says
+    pytest.importorskip("bpy")
+    for typ, dims, openings in (("wall", (2.0, 0.3, 3.9), None),
+                                ("doorway", (1.8, 0.3, 3.9), [DOOR])):
+        _build(tmp_path / typ, typ, dims, openings=openings)
+        panes = {n: m for n, m in _alphas().items() if "Glass" in n or "Transom" in n}
+        assert panes, typ
+        for n, (mat, alpha) in panes.items():
+            assert mat == "M_Skin_glass_delco_1997_storefront", (n, mat)
+            assert alpha == pytest.approx(arch.SF_GLASS_OPACITY, abs=1e-3), (n, alpha)
+
+
+def test_bpy_a_window_keeps_the_theme_glass(tmp_path):
+    # the control: a plain window in the same library still wears the pack's
+    # own material and opacity, so the storefront's did not leak into it
+    pytest.importorskip("bpy")
+    import bpy
+    from zoo_keeper.bpylayer import build as B, materials
+    from tests.test_see_through_glass import _pack
+    for mat in list(bpy.data.materials):
+        if mat.name.startswith(("M_Skin_glass", "M_Window_glass", "M_Storefront_glass")):
+            bpy.data.materials.remove(mat)
+    skins_dir = tmp_path / "skins"
+    _pack(str(skins_dir), "glass_delco_1997", "glass_delco",
+          {"alpha_mode": "blend", "opacity": 0.38, "ior": 1.5})
+    materials.set_skin_library(str(skins_dir), "delco_1997")
+    slot = {"slot_id": "w", "role": "window", "size_mod": "full", "style": 2, "material": "brick",
+            "fit": {"dims": [2.0, 0.3, 3.0], "pivot": "center", "collision": "convex",
+                    "openings": [{"kind": "window", "width": 1.2, "height": 1.2, "sill": 0.9}]}}
+    plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
+    try:
+        B.build_module(plan["modules"][0], str(tmp_path / "out"), theme="delco_1997", style=1,
+                       options={"save_blend": False})
+    finally:
+        materials.set_skin_library(None)
+    panes = {n: m for n, m in _alphas().items() if m[0].startswith("M_Skin_glass")}
+    assert panes, sorted(_alphas())
+    for n, (mat, alpha) in panes.items():
+        assert mat == "M_Skin_glass_delco_1997", (n, mat)
+        assert alpha == pytest.approx(0.38, abs=1e-3), (n, alpha)
