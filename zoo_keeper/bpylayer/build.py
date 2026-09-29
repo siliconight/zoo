@@ -795,6 +795,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # the spawner path is how lights actually ship, and a rig without
         # this guesses its range (see core/fixtures.py, the placement).
         mk["lux_drop"] = float(p.get("drop", 0.0))
+        # 1.21.0: only a row that has one, so every other building's markers
+        # (and GLB) stay as they were; the spawner reads an absent key as 0.
+        if float(p.get("reach", 0.0)) > 0.0:
+            mk["lux_reach"] = float(p["reach"])
         coll.objects.link(mk)
         mk.matrix_world = mathutils.Matrix.Translation(
             mathutils.Vector(p["pos"])) @ rot

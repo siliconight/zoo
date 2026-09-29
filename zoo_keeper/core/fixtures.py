@@ -280,6 +280,12 @@ def plan(manifest: dict, types=None) -> dict:
                 # lot_demo_001 as every fluorescent at the 4.5 fallback and
                 # the arena's 5.6 m hall lit-ceiling-over-black-floor.
                 "drop": float(a.get("drop", 0.0) or 0.0),
+                # 1.21.0: a row walled by storefront glass carries `reach`
+                # (Deli Counter >= 0.155.0), the horizontal metres to the
+                # floor at the glass; Lux >= 0.56.0 derives the lamp's range
+                # to that floor instead of the one under it. 0.0 everywhere
+                # else, and then no marker carries it.
+                "reach": float(a.get("reach", 0.0) or 0.0),
                 "seed_offset": _seed_offset(aid, j),
                 # v0.94: whether this placement emits a LuxEmit marker (see
                 # the club rows in FIXTURES). Every row that does not say

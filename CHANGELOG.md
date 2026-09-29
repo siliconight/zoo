@@ -1,3 +1,20 @@
+## [1.21.0] - a storefront row's reach rides its markers
+
+The other half of Lux 0.56.0 ("yes, do the glass first then the troffer
+reach", the walker, 2026-09-28). Deli Counter (>= 0.155.0) stamps `reach` on
+a ceiling row walled by storefront glass -- the horizontal metres from the
+row to the glass -- and Lux derives the lamp's range to the floor there. The
+marker path is how lights ship, so the number has to be on the marker the way
+`drop` is (v0.50): `core.fixtures.plan` carries it on every per-lamp
+placement (0.0 where the anchor has none), and `build_fixtures` stamps
+`lux_reach` on a marker ONLY when it is above zero, so every other building's
+markers and fixture GLB are as they were; Lux reads an absent key as 0.
+
+`tests/test_fixtures.py`: reach rides every lamp of a storefront row and is
+0.0 on the control row; built, the GLB's two sales-floor markers carry
+`lux_reach` 6.0 and the stockroom's carries none. Without the change both
+fail (KeyError 'reach'; no marker carries it).
+
 ## [1.20.0] - a storefront is clear glass
 
 The walker, 2026-09-28, after cold run 9103's night frames showed the sales

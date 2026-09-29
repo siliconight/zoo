@@ -237,6 +237,20 @@ def test_drop_rides_every_lamp_placement():
     assert per_lamp == [5.6, 5.6, 5.6]
 
 
+def test_reach_rides_every_lamp_of_a_storefront_row():
+    # 1.21.0: Deli Counter stamps `reach` on a row walled by storefront glass
+    p = fixtures.plan(_manifest([
+        {"id": "sales_floor_ceiling", "type": "fluorescent", "pos": [0, 0, 3.8],
+         "row": {"count": 3, "spacing": 4.6}, "drop": 3.8, "reach": 6.0},
+        {"id": "stockroom_ceiling", "type": "fluorescent", "pos": [0, 9, 3.8],
+         "row": {"count": 2, "spacing": 4.0}, "drop": 3.8}]))
+    reach = {}
+    for pl in p["placements"]:
+        reach.setdefault(pl["anchor_id"], []).append(pl["reach"])
+    assert reach == {"sales_floor_ceiling": [6.0, 6.0, 6.0],
+                     "stockroom_ceiling": [0.0, 0.0]}
+
+
 # --- the club set's hardware (v0.94) ------------------------------------------
 
 
@@ -397,6 +411,29 @@ def _gltf(path):
     ln, kind = struct.unpack_from("<I4s", raw, 12)
     assert kind == b"JSON"
     return json.loads(raw[20:20 + ln])
+
+
+def test_bpy_a_storefront_row_marks_its_reach_and_no_other_row_does(tmp_path):
+    # 1.21.0: the marker is the shipping path, so the reach must be in the
+    # GLB's extras where Lux's spawner reads it -- and absent on the control
+    pytest.importorskip("bpy")
+    import json
+    import os
+    from zoo_keeper.bpylayer import build
+    manifest = {"light_manifest_version": "1.2.0", "building_id": "reach_bpy",
+                "space": "Blender Z-up, meters", "anchors": [
+                    {"id": "sales_floor_ceiling", "type": "fluorescent", "pos": [0.0, 0.0, 3.8],
+                     "rot_y": 0.0, "row": {"count": 2, "spacing": 4.6}, "drop": 3.8, "reach": 6.0},
+                    {"id": "stockroom_ceiling", "type": "fluorescent", "pos": [0.0, 9.0, 3.8],
+                     "rot_y": 0.0, "row": {"count": 1, "spacing": 0.0}, "drop": 3.8}]}
+    build.build_fixtures(manifest, str(tmp_path), theme="delco", options={"save_blend": False})
+    with open(os.path.join(str(tmp_path), "reach_bpy_fixtures.built.json"), encoding="utf-8") as fh:
+        index = json.load(fh)
+    j = _gltf(os.path.join(str(tmp_path), index["files"]["glb"]))
+    marks = [n.get("extras", {}) for n in j["nodes"] if n["name"].startswith("LuxEmit")]
+    got = sorted((m["lux_anchor_id"], m.get("lux_reach")) for m in marks)
+    assert got == [("sales_floor_ceiling", 6.0), ("sales_floor_ceiling", 6.0),
+                   ("stockroom_ceiling", None)], got
 
 
 def test_bpy_the_club_gets_hardware_and_no_marker_with_it(tmp_path):
