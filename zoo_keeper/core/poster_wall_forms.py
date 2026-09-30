@@ -55,6 +55,19 @@ FIT_TOL = 0.02
 LAYOUT = {"club": (0.22, 0.0), "store": (0.08, 0.0), "bar": (0.05, 3.0), "alley": (-0.06, 5.0)}
 #: How far a bar or alley sheet's top may wander below the band's top.
 WANDER = {"club": 0.0, "store": 0.0, "bar": 0.06, "alley": 0.10}
+#: THE CLUB'S BLACKLIGHT (1.33.0): ``(emission, albedo)`` for
+#: `materials.make_backlit_material`, by family; a family not here is paper,
+#: lit by the room. The walker, 2026-09-30, choosing among three after cold
+#: run 9115 showed the club's dim coloured light take the sheets' whites to
+#: 92-127 luma: "blacklight treatment for the club posters" -- the club's
+#: posters are printed in inks that glow under its UV tubes. The artwork is
+#: its own emission, so dark ink stays dark and the bright inks glow; the same
+#: atlas and the same one material a run, so no texture and no draw is added.
+#: Named `_Face`, so Lux's power cut takes the blacklight with the lights.
+#: Albedo 1.0: the paper still takes the room's light. The emission is a
+#: starting point, judged on the walk (the cooler's glow began at 1.0, the
+#: cigarette rack's header read faint at 0.5).
+BLACKLIGHT = {"club": (0.6, 1.0)}
 
 
 def _h(*k):

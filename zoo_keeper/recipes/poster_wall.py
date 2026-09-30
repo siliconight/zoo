@@ -25,7 +25,8 @@ def build(plan, streams, collection):
     got = PWF.plan(w, d, h, family, variant, key=stem)
     from ._card_atlas import build_art
     objs, atlas = build_art(got["prims"], collection, dict(plan, _tiles=got["tiles"]), streams,
-                            "PosterWall", roughness=FA.POSTER_ROUGHNESS)
+                            "PosterWall", roughness=FA.POSTER_ROUGHNESS,
+                            lit=PWF.BLACKLIGHT.get(family))
     f = got["facts"]
     png, raw = FA.atlas_bytes(atlas) if atlas else (0, 0)
     print(f"[poster_wall] {w:.2f} x {d:.3f} x {h:.2f} family={family} sheets={f['sheets']} "

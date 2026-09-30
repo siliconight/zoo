@@ -24,13 +24,17 @@ from ..bpylayer import geometry, materials
 from ..core import card_art as CA
 
 
-def build_art(prims, collection, plan, streams, name, roughness=None):
+def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
     """Build every prim carrying a ``tile`` into one object.
 
     ``prims`` is the planner's whole list; the art quads are the ones with a
     ``tile``, and the caller keeps the rest for `prim_mesh.build`. Returns
     ``(objects, atlas)`` -- objects is empty when the plan has no art, and
     `atlas` is None with it.
+
+    ``lit`` (1.33.0) is ``(emission, albedo)``: the art is its own light as
+    well as paint (`materials.make_backlit_material`), named `_Face` so Lux's
+    power cut finds it -- the club posters' blacklight. None is paint only.
     """
     quads = [p for p in prims if p.get("tile")]
     if not quads:
@@ -39,9 +43,13 @@ def build_art(prims, collection, plan, streams, name, roughness=None):
     atlas = CA.build_atlas(tiles, name)
     size = atlas["size"]
     image = materials.image_from_png(atlas["name"], atlas["canvas"].png())
-    mat = materials.make_painted_material(
-        f"M_{name}_{atlas['name']}_Art", image,
-        CA.BOX_ROUGHNESS if roughness is None else roughness)
+    if lit:
+        mat = materials.make_backlit_material(
+            f"M_{name}_{atlas['name']}_Face", image, lit[0], lit[1])
+    else:
+        mat = materials.make_painted_material(
+            f"M_{name}_{atlas['name']}_Art", image,
+            CA.BOX_ROUGHNESS if roughness is None else roughness)
 
     out = []
     for group, above in ((False, False), (True, True)):

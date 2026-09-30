@@ -1,3 +1,41 @@
+## [1.33.0] - the club posters under blacklight
+
+Cold run 9115 hung the club posters and showed the club's dim coloured light
+take their whites: measured at 2 m on the poster band, the painted near-whites
+(~250) arrived at 92-127 luma and the band's median sat a few levels over the
+wall. Offered three answers -- leave them dark, a blacklight treatment, a
+warm wash on the poster walls -- the walker chose "blacklight treatment for
+the club posters", with "if it looks bad, no light is also ok".
+
+THE ART IS ITS OWN LIGHT. A club run's material is
+`materials.make_backlit_material` on the same atlas: emission from the artwork
+at 0.6, the diffuse copy at 1.0 so the paper still takes the room's light
+(`poster_wall_forms.BLACKLIGHT`, by family; only the club is in it). Dark ink
+stays dark and the bright inks glow, as fluorescent ink does under UV tubes.
+The same atlas and the same one material a run: no texture, no draw and no
+light added. Named `_Face` (was `_Art`), so Lux's emissive binder finds it
+and a power cut takes the blacklight with the lights.
+`_card_atlas.build_art` takes ``lit=(emission, albedo)``; None is paint, and
+every other caller is unchanged.
+
+JUDGED ON THE WALK before it shipped: the six club modules 9115 used,
+rebuilt under their exact stems (same atlases, one mesh, one image each),
+swapped into a copy of 9115's walk scene and shot at the same stations.
+Poster band at 2 m, paper -> blacklight:
+
+    station   p5          p95           max
+    club S    0.5 -> 1.0  58.4 -> 192.4  126.5 -> 246.5
+    club W    0.0 -> 0.0  29.2 -> 182.8   92.3 -> 237.2
+    club E    3.4 -> 4.8  36.3 -> 130.5   91.9 -> 244.3
+
+The whites come back and the blacks stay black; at 4 m the runs stand out of
+the dark walls as the neon sign does (root repo
+docs/cold_runs/cold_9115/blacklight_probe.png).
+
+Tests: the built club run carries one `_Face` material emitting its texture
+at `BLACKLIGHT`'s strength, and the other three families still emit nothing
+(fails against 1.32.0's recipe, club only); only the club is blacklit.
+
 ## [1.32.0] - the club figure: three poses, curves, and the silhouette test
 
 The walker, 2026-09-30: "fix the arm and legs, add the poses, then

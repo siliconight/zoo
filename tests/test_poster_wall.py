@@ -197,6 +197,14 @@ def test_a_run_fills_its_slot_unstretched_and_shares_no_plane(family, w):
             assert abs(sw / sh - ratio) < 1e-3 or g["facts"]["sheets"] <= 2
 
 
+def test_only_the_club_is_blacklit():
+    """The walker, 2026-09-30: "blacklight treatment for the club posters".
+    A bar's photocopy, a handbill and a store's sale poster are paper."""
+    assert set(F.BLACKLIGHT) == {"club"}
+    emission, albedo = F.BLACKLIGHT["club"]
+    assert 0.0 < emission and 0.0 < albedo <= 1.0
+
+
 def test_no_sheet_repeats_in_a_run_while_the_copy_lasts():
     g = F.plan(4.0, 0.03, F.band_height("club"), "club", 0, "t")
     rows = g["facts"]["rows"]
@@ -246,5 +254,13 @@ def test_bpy_a_run_is_one_object_one_material_and_fits(tmp_path, family):
     raw = open(os.path.join(str(tmp_path), res["files"]["glb"]), "rb").read()
     ln, _kind = struct.unpack_from("<I4s", raw, 12)
     doc = json.loads(raw[20:20 + ln])
-    assert len(doc["images"]) == 1 and not any(m.get("emissiveFactor") and max(m["emissiveFactor"]) > 0
-                                                for m in doc["materials"])
+    assert len(doc["images"]) == 1 and len(doc["materials"]) == 1
+    m = doc["materials"][0]
+    if family in F.BLACKLIGHT:
+        # the club's blacklight (1.33.0): the art is its own light, in the
+        # same one material, named so Lux's power cut finds it
+        emission = F.BLACKLIGHT[family][0]
+        assert m["name"].endswith("_Face"), m["name"]
+        assert "emissiveTexture" in m and all(abs(v - emission) < 1e-6 for v in m["emissiveFactor"])
+    else:
+        assert not (m.get("emissiveFactor") and max(m["emissiveFactor"]) > 0), m
