@@ -1,3 +1,33 @@
+## [1.28.0] - the cooler wall sells soda, beer and milk, each behind its own sign
+
+The walker, 2026-09-29: "there should be fridges of cold sodas, beer, milk,
+etc, with glowing lights too". `cooler_run` already glowed; it did not sell
+beer, and it did not sell what its signs said.
+
+THE DEFECT. A run's sign words were drawn by one hash and each door's stock by
+another, so a DAIRY band could stand over soda bottles and the five words
+included no beer. Now `LINEUP` -- COLD SODA, COLD BEER, DAIRY, BOTTLED WATER,
+ICE COLD DRINKS, JUICE & TEA -- is read left to right, two doors a section,
+and every door carries its section's stock (`SECTION_STOCK`). An 8 m run of
+ten doors is soda, beer, dairy, water and cans; the 3.28 m run in
+gas_station_a02's food-service room is soda and beer. The seed chooses among
+approved options; it no longer decides whether the sign is true.
+
+BEER (`door_beer`): 12-pack cartons two high on alternate shelves, tallboys on
+the rest, in `BEER_COLOURS` -- the six invented beers of the window neon
+(`club_names.WINDOW_NAMES`), one table sold in two places and held equal by
+an assert at import. WATER (`door_water`): clear blue bottles in three cap
+and label colours; the first cut used one and `test_cooler_run` read the
+panel as four colours, flat.
+
+COST: no light, no new material, still three submissions a run (built test).
+The glow image grows with two more door panels and a sign row: 690 x 522 at a
+0.72 m door, RGB about 1.1 MiB before mips. NOT BUILT, named: its sign rows
+use half the width; packed two across, the image would be about a quarter
+smaller.
+
+Tests: three new in `test_cooler_run.py` (8 cases, failing on 1.27.0).
+
 ## [1.27.0] - a beer sign hung in a store's window; the counter accent's hardware
 
 The walker, 2026-09-29: "add the warm counter accent and the window sign

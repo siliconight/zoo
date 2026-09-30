@@ -52,6 +52,7 @@ import re
 import zlib
 
 from . import brands as BR
+from . import club_names as CN
 from . import pixel_type as pt
 from . import prims as P
 from .vending_forms import Canvas
@@ -80,8 +81,32 @@ TUBE_T = 0.014
 
 #: Pixels a metre of the glow art: a door's panel is ~115 x ~270 px.
 TEXEL = 160
-SECTION_WORDS = ("ICE COLD DRINKS", "DAIRY", "BOTTLED WATER", "JUICE & TEA", "COLD SODA")
-DOOR_TYPES = ("soda", "cans", "milk", "juice")
+SECTION_WORDS = ("ICE COLD DRINKS", "DAIRY", "BOTTLED WATER", "JUICE & TEA", "COLD SODA",
+                 "COLD BEER")
+DOOR_TYPES = ("soda", "cans", "milk", "juice", "beer", "water")
+#: WHAT A RUN SELLS, IN ORDER (1.28.0). The walker, 2026-09-29: "there
+#: should be fridges of cold sodas, beer, milk, etc, with glowing lights too".
+#: Until this a section's word was drawn by hash and each door's stock by
+#: another, independently, so a DAIRY sign stood over soda bottles and no
+#: section sold beer. Now a run is sections of two doors, read left to right
+#: off this list -- the walker's three first -- and every door carries its
+#: section's stock. An 8 m run (ten doors) is soda, beer, dairy, water and
+#: the canned drinks; a four-door run is soda and beer. A seed may choose among
+#: approved options, never whether the sign says what is behind it.
+LINEUP = ("COLD SODA", "COLD BEER", "DAIRY", "BOTTLED WATER", "ICE COLD DRINKS", "JUICE & TEA")
+SECTION_STOCK = {"COLD SODA": "soda", "COLD BEER": "beer", "DAIRY": "milk",
+                 "BOTTLED WATER": "water", "ICE COLD DRINKS": "cans", "JUICE & TEA": "juice"}
+#: The beers are the window neon's (`club_names.WINDOW_NAMES`) -- one table
+#: of invented beers, two places they are sold. (carton top, carton band)
+BEER_COLOURS = {
+    "WOODER ICE": ("#dff3ff", "#1b5fae"),
+    "JAWN LITE": ("#f4d35e", "#ffffff"),
+    "YOUSE BREW": ("#c1121f", "#1d1d1d"),
+    "SHOOBIE SUDS": ("#2ec4b6", "#f7e1b5"),
+    "SCRAPPLE STOUT": ("#4a2c1a", "#e9d8a6"),
+    "COLD ONE HON": ("#c0c7cf", "#1f4e9c"),
+}
+assert set(BEER_COLOURS) == set(CN.WINDOW_NAMES), "every beer the window sells, and no other"
 
 #: Colours (linear) and surface kind of every non-glowing part.
 MATERIALS = {
@@ -125,6 +150,18 @@ def doors(w):
     run = w - 2.0 * END_POST
     n = max(1, int(round(run / DOOR_PITCH)))
     return n, (run - (n - 1) * MULLION) / n
+
+
+def sections(n):
+    """``[(word, span)]``: the run's sign sections, two doors each (a last
+    odd door is its own), their words read off `LINEUP` in order."""
+    out = []
+    k = 0
+    while k < n:
+        span = 2 if k + 1 < n else 1
+        out.append((LINEUP[len(out) % len(LINEUP)], span))
+        k += span
+    return out
 
 
 def glow_face(part, x0, x1, y_front, y_back, z0, z1, region, uv_front=True):
@@ -183,6 +220,8 @@ def layout(w, d, h, key="cooler_run", variant=0):
     fy0 = yf + 2.0 * HANDLE_R + HANDLE_OUT
     fy1 = fy0 + FRAME_T
     door_types = []
+    # every door's stock is its section's (1.28.0)
+    door_words = [w for w, span in sections(n) for _ in range(span)]
     for i in range(n):
         dx0, dx1 = x, x + dw
         # the mullion before this door (none before the first)
@@ -215,7 +254,7 @@ def layout(w, d, h, key="cooler_run", variant=0):
             out.append(P.rod("Cooler_Handle", "handle", (hx, fy0 + 0.004, hz), (hx, hy, hz), 0.007, segments=5))
         # behind the glass: the product panel, lit, and the shelves in front of it
         py0 = yf + INTERIOR
-        dt = DOOR_TYPES[(_h(key, variant, i) + i) % len(DOOR_TYPES)]
+        dt = SECTION_STOCK[door_words[i]]
         door_types.append(dt)
         # 12 mm in from each side: a mullion's face stands 4 mm past dx0
         out.append(glow_face("Cooler_Glow", dx0 + 0.012, dx1 - 0.012, py0, py0 + 0.02, z_door0 + 0.02,
@@ -231,19 +270,17 @@ def layout(w, d, h, key="cooler_run", variant=0):
                                  z_door0 + 0.03, z_door1 - 0.03, "tube"))
         x = dx1 + MULLION
     # --- the sign band: one section a pair of doors -------------------------------------
-    sections = []
+    said = []
     k = 0
-    while k < n:
-        span = 2 if k + 1 < n else 1
+    for word, span in sections(n):
         sx0 = -w / 2.0 + END_POST + k * (dw + MULLION)
         sx1 = sx0 + span * dw + (span - 1) * MULLION
-        word = SECTION_WORDS[(_h(key, variant, "band", k) + k // 2) % len(SECTION_WORDS)]
         region = ("sign2_" if span == 2 else "sign1_") + str(SECTION_WORDS.index(word))
         out.append(glow_face("Cooler_Glow", sx0 + 0.01, sx1 - 0.01, yf, yf + 0.006 + BURY,
                              z_door1 + 0.04, h - 0.04, region))
-        sections.append((word, span))
+        said.append((word, span))
         k += span
-    facts = {"doors": n, "door_width": dw, "door_types": door_types, "sections": sections,
+    facts = {"doors": n, "door_width": dw, "door_types": door_types, "sections": said,
              "cabinet_depth": cab, "collision": ((-w / 2.0, -d / 2.0, 0.0), (w / 2.0, d / 2.0, h))}
     return out, facts
 
@@ -307,6 +344,36 @@ def _shelf_row(c, x0, x1, y_top, y_bot, kind, key, row):
             c.rect(x + 12, y_bot - bh - 2, x + 15, y_bot - bh, cap)
             c.rect(x + 1, y_bot - bh + 18, x + bw - 1, y_bot - bh + 24, cap)
             x += bw + 3
+        elif kind == "beer":          # 12-pack cartons two high, then tallboys (1.28.0)
+            name = CN.WINDOW_NAMES[(_h(key, "beer", row, i) + i) % len(CN.WINDOW_NAMES)]
+            top, band = _rgb(BEER_COLOURS[name][0]), _rgb(BEER_COLOURS[name][1])
+            if row % 2 == 0:
+                bw, bh = 20, min(11, (y_bot - y_top - 3) // 2)
+                if x + bw > x1 - 1: break
+                for tier in (0, 1):
+                    yb = y_bot - tier * (bh + 1)
+                    c.rect(x, yb - bh, x + bw, yb, top)
+                    c.rect(x, yb - bh + 3, x + bw, yb - bh + 6, band)
+                x += bw + 2
+            else:
+                bw, bh = 7, min(19, y_bot - y_top - 3)
+                if x + bw > x1 - 1: break
+                c.rect(x, y_bot - bh, x + bw, y_bot, top)
+                c.rect(x, y_bot - bh + 5, x + bw, y_bot - 5, band)
+                c.rect(x, y_bot - bh, x + bw, y_bot - bh + 1, (210, 210, 214))
+                x += bw + 1
+        elif kind == "water":         # clear blue bottles, brand caps and labels (1.28.0)
+            bw, bh = 8, min(30, y_bot - y_top - 3)
+            if x + bw > x1 - 1: break
+            # three brands a shelf, not one bottle stamped: `test_cooler_run`
+            # read the first cut as four colours, a flat panel
+            cap, band = (((30, 90, 200), (40, 110, 210)), ((236, 236, 240), (30, 150, 90)),
+                         ((20, 160, 200), (220, 60, 50)))[(_h(key, "water", row, i) + i) % 3]
+            c.rect(x + 2, y_bot - bh, x + 6, y_bot - bh + 3, cap)
+            c.rect(x, y_bot - bh + 3, x + bw, y_bot, (170, 208, 236))
+            c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 18, (246, 248, 250))
+            c.rect(x, y_bot - bh + 14, x + bw, y_bot - bh + 16, band)
+            x += bw + 2
         else:                         # juice and tea: square cartons and tall bottles
             bw, bh = 11, min(30, y_bot - y_top - 3)
             if x + bw > x1 - 1: break
@@ -344,7 +411,8 @@ def glow_art(door_w, door_h, key="cooler_run", variant=0):
             _shelf_row(c, x0 + 1, x0 + DW - 1, y_top, y_bot, dt, key, k)
         rects["door_" + dt] = (x0, 0, x0 + DW, DH)
     # sign sections: white letters on a coloured band, one row per word
-    band_cols = ((20, 70, 160), (190, 30, 40), (20, 120, 170), (230, 120, 20), (40, 140, 60))
+    band_cols = ((20, 70, 160), (190, 30, 40), (20, 120, 170), (230, 120, 20), (40, 140, 60),
+                 (150, 100, 20))
     for j, word in enumerate(SECTION_WORDS):
         y0 = DH + j * SH
         for span, sx0, sw in ((2, 0, S2), (1, S2, DW)):

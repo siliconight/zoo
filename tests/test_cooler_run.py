@@ -156,3 +156,31 @@ def test_bpy_the_same_file_every_build(tmp_path):
         res, _o = _build(out, C.DC_SIZES[1], variant=2)
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
+
+
+# --- what the run sells (1.28.0) ------------------------------------------------------------
+
+
+@pytest.mark.parametrize("w", [1.6, 3.28, 4.12, 5.2, 8.0, 12.0])
+def test_every_door_sells_what_its_sign_says(w):
+    """A DAIRY sign stood over soda bottles: the word and each door's stock
+    were drawn by two unrelated hashes. Now a door is its section's."""
+    f = C.plan(w, 0.9, 2.2)["facts"]
+    doors = [word for word, span in f["sections"] for _ in range(span)]
+    assert len(doors) == f["doors"] == len(f["door_types"])
+    assert f["door_types"] == [C.SECTION_STOCK[word] for word in doors]
+
+
+def test_the_lineup_leads_with_soda_beer_and_milk():
+    """The walker, 2026-09-29: "fridges of cold sodas, beer, milk"."""
+    assert C.LINEUP[:3] == ("COLD SODA", "COLD BEER", "DAIRY")
+    f = C.plan(8.0, 0.9, 2.2)["facts"]
+    assert [w for w, _s in f["sections"]][:3] == list(C.LINEUP[:3])
+    assert {"soda", "beer", "milk"} <= set(f["door_types"])
+    assert set(C.SECTION_STOCK) == set(C.LINEUP) <= set(C.SECTION_WORDS)
+    assert set(C.SECTION_STOCK.values()) == set(C.DOOR_TYPES)
+
+
+def test_the_beers_are_the_window_signs_beers():
+    from zoo_keeper.core import club_names as CN
+    assert set(C.BEER_COLOURS) == set(CN.WINDOW_NAMES)
