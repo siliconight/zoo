@@ -1,0 +1,166 @@
+{
+  "species": "poster_wall",
+  "version": 1,
+  "collision": false,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-30 for Zoo 1.30.0 from the walker's three poster guides (root repo docs/reference/, indexed by POSTER_GUIDES.md) and their choice of where posters go: strip club interiors, bar interiors, exterior alley walls and poles, store windows and walls. Construction and art-direction knowledge only. Every string this species paints is in core/poster_copy.py, invented, reviewed, and held against a denylist of real businesses, bands and brands by tests/test_poster_wall.py; no reference's names, marks or compositions reach a texture."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.3,
+      "max": 8.0,
+      "default": 2.4
+    },
+    "depth": {
+      "min": 0.004,
+      "max": 0.02,
+      "default": 0.01
+    },
+    "height": {
+      "min": 0.25,
+      "max": 1.6,
+      "default": 0.64
+    }
+  },
+  "parts": [
+    "PosterWall_Art"
+  ],
+  "params": {
+    "form": [
+      "club",
+      "bar",
+      "alley",
+      "store"
+    ]
+  },
+  "module_variants": 8,
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1970s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1980s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "modern": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "office": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 400
+  },
+  "attachments": [],
+  "keywords": [
+    "poster wall",
+    "poster_wall",
+    "posters",
+    "handbills",
+    "gig bills",
+    "flyers",
+    "sale posters"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  },
+  "notes": "A RUN OF POSTERS IS ONE MODULE: every sheet is a tile in the module's atlas, built into one mesh with one painted material -- one draw however many sheets. `form` is the family, by location: club (brash faux glamour), bar (photocopied gig bills), alley (layered handbills), store (day-glo sale posters); each family fixes its hierarchy and its one print flaw, and core/poster_checks.py measures every poster against the art guide's thumbnail, grayscale and blur tests. The slot is filled by construction, never stretched: the run's end sheets stand at its ends and its band's top and foot are reached. No collision."
+}

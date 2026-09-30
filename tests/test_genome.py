@@ -43,6 +43,7 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # chain, and the hand-lettered sign over an aisle. Two
                 # triangles and a texture apiece; the cost is the atlas.
                 "poster", "hanging_banner", "ceiling_hanger", "aisle_sign",
+                "poster_wall",
                 # the till the card shop's counter never had (1.0.0): a
                 # 1997 register whose customer display is lit, standing in
                 # for the four boxes `display_case_forms._register` drew

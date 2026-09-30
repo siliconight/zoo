@@ -458,6 +458,11 @@ def paint(spec):
     # of that cycle and for no other reason: `paint` stays the one dispatcher
     # a planner calls, so a planner never chooses between two painters and
     # `recipes/_card_atlas.py` needs no second door.
+    # A WALL POSTER (1.30.0) is `poster_art`'s: four families by location,
+    # each tile one sheet of a `poster_wall` run.
+    if kind == "wallposter":
+        from . import poster_art as PA
+        return PA.paint(spec["family"], w, hgt, spec["row"], key)[0]
     if kind in FLAT_KINDS:
         from . import flat_art as FA
         return FA.paint(spec, w, hgt)

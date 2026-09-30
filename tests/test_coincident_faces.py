@@ -375,7 +375,11 @@ DID_NOT_BUILD = {"boots"}
 #: first; each fixed at its source.
 #: 1.19.0: `price_pylon`, three builds more, same tool, Blender 5.1.1: "3
 #: builds, 0 with coincident pairs, 0 that did not build" (132 tris each).
-CENSUS_BUILDS = 339
+#: 1.30.0: `poster_wall`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (4 / 6 / 24 tris).
+#: Overlapping sheets stand `LAYER` (4 mm) apart, past the 2 mm tolerance,
+#: and the planner's own test runs `coincident_pairs` over every family.
+CENSUS_BUILDS = 342
 
 
 def test_the_census_covers_every_species_there_is():

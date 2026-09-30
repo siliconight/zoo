@@ -1,3 +1,61 @@
+## [1.30.0] - poster walls: four families, the three tests, one draw a run
+
+The walker, 2026-09-29: posters to "appropriately fill out certain walls" --
+strip club interiors, bar interiors, exterior alley walls and poles, store
+windows and walls -- by three guides now in the root repo's docs/reference/
+(POSTER_GUIDES.md indexes them). Measured against those guides the card
+shop's posters failed five checks of seven. This release is the Zoo half:
+the art, the copy, the checks and the species. Nothing places it yet.
+
+THE COPY (`core/poster_copy.py`): twelve rows a family, invented Delco copy,
+PG-13, suggestive and never explicit -- a promise, a double meaning, a
+deflating line (the lewd guide's shape). A table, never generated. Held
+against a denylist of real businesses, bands and brands and against the
+factory's other lists, each applied the way its owner applies it (the card
+shop's whole-word list as whole words: PRO is a card brand, not a crime inside
+PROBABLY; WINGS is a team, and HOT WINGS NITE became HAPPY HOUR). Phone
+numbers are in the 555-01xx block reserved for fiction.
+
+THE ART (`core/poster_art.py`), a family a layout rule: `club` brash faux
+glamour on an airbrushed ground with a gold rule and one motif on a burst;
+`bar` a photocopied gig bill, the band reversed out of a black bar, a crude
+1-bit image, the date; `alley` a day-glo handbill, the headline reversed out
+of a black band, a picture chosen by what the bill is about, tear-off tabs and
+tape; `store` a day-glo sale poster, the deal across the top, a burst, the
+fine print on a white strip. ONE FLAW WITH A CAUSE each: the club's gold one
+pixel off its rule, the copier's specks and drum streak, the handbill's
+pocket fold, the store window's sun-fade.
+
+THE THREE TESTS (`core/poster_checks.py`), the art guide's section 1 as
+measurements: the headline's WCAG contrast at the size it covers on the walk
+camera at 5 m (held to 3:1, WCAG's large-text minimum); the focal image's luma
+off the ground under it (half a value group, stated as a choice); the blurred
+poster's spread (one value group). They found real defects on the first run
+and every one was fixed in the art, not the threshold: dark-on-dark club
+posters (focal 29-41, blur 42-59), text-only handbills that blurred to an
+even field, red on orange measuring 1.6:1, a black outline that made club
+titles WORSE at distance (reverted, recorded), a thin guitar that was mostly
+paper. One was the instrument's: measuring the picture against a ring round
+it read a neighbouring title band as ground, and tightening the box made the
+figure smaller -- it now measures against the ground the painter laid.
+Every row of every family passes, at four seeds.
+
+THE SPECIES (`poster_wall`, `core/poster_wall_forms.py`): a run of posters
+as ONE module -- every sheet a tile of one atlas, one mesh, one painted
+material, one draw however many sheets (a card-shop `poster` is up to four
+draws and a texture each). No sheet repeats in a run while the copy lasts.
+The family is `params.form`, stemmed `_f<family>`. The slot is filled by
+construction and never stretched: the end sheets stand at the run's ends, the
+band's top and foot are reached; overlapping sheets stand `LAYER` (4 mm)
+apart, alternating rather than accumulating (stepped by index, a 32-sheet
+collage stood 12 cm off the wall). Depth 4 mm to 2 cm: a run is paper on a
+wall and Zoo's fit check holds depth to 2 cm. No collision, no light.
+Coplanar census: 3 builds, 0 with pairs (4 / 6 / 24 tris).
+
+Tests: `tests/test_poster_wall.py` (40 in Blender); the species registries
+(`test_genome`, `test_coincident_faces` 339 -> 342, `test_theme_style_
+resolution` 87 -> 88).
+
 ## [1.29.0] - a 1990s cooler: soda, sports drinks, milk, beer
 
 The walker, 2026-09-29: "Bottled water wasn't really a thing in the 1990s in
