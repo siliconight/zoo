@@ -143,6 +143,22 @@ def test_the_club_set_uses_every_layout():
     assert seen == set(PA.CLUB_LAYOUTS), seen
 
 
+def test_the_club_set_shows_every_pose():
+    """The figure guide: "Procedural poses look repetitive ... Vary action".
+    Every performer headline names its poses, each a real one, and the set
+    shows all of them."""
+    from zoo_keeper.core import pixel_figure as PF
+    for head, _small in PC.CLUB:
+        if head in PA.CLUB_FOCAL:
+            continue
+        assert head in PA.CLUB_POSES, head
+        assert set(PA.CLUB_POSES[head]) <= set(PF.POSES), head
+    w, h = _size("club")
+    seen = {PA.paint("club", w, h, row, key)[1]["pose"]
+            for row in range(len(PC.CLUB)) for key in KEYS + ("e", "f")}
+    assert seen - {None} == set(PF.POSES), seen
+
+
 def test_the_checks_can_fail():
     """A poster that is one flat colour fails all three, so the checks are
     measuring something."""

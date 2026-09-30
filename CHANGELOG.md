@@ -1,3 +1,54 @@
+## [1.32.0] - the club figure: three poses, curves, and the silhouette test
+
+The walker, 2026-09-30: "fix the arm and legs, add the poses, then
+placement", and "for the stripper, we want some thigh/waist curves, and a
+little cleavage like in the duke nukem 3d comp"; with two more guides now in
+the root repo's docs/reference/ -- drawing figures, and drawing clothing
+layers. The club family only.
+
+THE SILHOUETTE TEST (the figure guide: fill the figure black at poster size;
+"if two shapes merge, change the pose"). It found 1.31.0's one pose merged
+twice: the hand-on-hip elbow into the waist and the legs into one column (the
+crossed free knee closed the wedge). Each pose now declares the gaps it keeps
+(`pixel_figure.GAPS`) and `gaps()` measures them on the silhouette as drawn,
+outline included -- the fraction of a band's rows the silhouette splits in.
+Measured on 1.31.0's pose at 77 and 101 px: legs 0.10 and 0.31, the near arm
+0.14 and 0.78. Every pose now: 1.0, at every height from 60 to 120 px,
+mirrored or not. The pole is drawn behind the body and is not its silhouette,
+so no gap can be the pole's.
+
+THREE POSES (`pixel_figure.POSES`), chosen by the headline
+(`poster_art.CLUB_POSES`, two a row where both fit): the hand behind the head
+(1.31.0's, the elbow out and the shin angled away); the pole lean, the far
+hand high on a brass pole, the near knee lifted out and its foot tucked to the
+standing knee; hands on hips, both elbows out at different heights. A pole
+starts under the headline and ends at the stage.
+
+CURVES AND THE SWIMSUIT: a narrower waist, a wider pelvis and fuller thighs;
+the bust as two masses over the ribcage with a near-black cleft between them
+above the top -- a little cleavage, PG-13 by the walker's comp. The swimsuit
+is built as clothing (the clothing guide): two cups and a gore, halter straps
+to the neck, a bottom whose band follows the pelvis's tilt and ties at the
+hips.
+
+NOT EVERY EDGE THE SAME LINE (the figure guide: "lit edges can disappear"):
+the outline stays near-black against a form's shadow side and softens to the
+form's own second value where every form it touches is lit.
+
+All 72 club sheets still pass the three poster checks at unchanged
+thresholds. Mix: centred 44, diagonal 18, off-centre 10; performers 60
+(pole 21, akimbo 21, behind the head 18), cocktails 12.
+
+Tests: `tests/test_pixel_figure.py` rewritten for the poses (74): each pose's
+gaps at five heights both ways round, a one-column figure that the gap
+measure fails, the pole outside the silhouette, both value extremes, the
+line round every body pixel and not one line everywhere, the swimsuit, the
+straps, and the cleavage -- counted as a vertical run on the centre line,
+because the bust's own core shadow puts 2-7 near-black pixels in that window
+with no cleft drawn, and a pixel count passed it (measured: longest run 4-6
+with the cleft, at most 2 without). `tests/test_poster_wall.py`: every
+performer headline names real poses and the set shows all three.
+
 ## [1.31.0] - the club posters redrawn: a figure, three layouts, whites and blacks
 
 The walker, 2026-09-30: "add silhouettes, keep it PG-13", with Duke Nukem 3D's

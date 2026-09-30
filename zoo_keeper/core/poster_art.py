@@ -276,6 +276,23 @@ def _club_rule(c, gold):
 #: poster a specific focal image"); the performer unless the copy is a drink.
 CLUB_FOCAL = {"BUBBLY ROOM": "cocktail", "HAPPY HOUR": "cocktail"}
 CLUB_LAYOUTS = ("centred", "diagonal", "offcentre")
+#: Which of `pixel_figure.POSES` a headline may show, by what it says (the
+#: figure guide: "Who or what is this? What are they doing?"): the pole where
+#: the copy is about the dancing, hands on hips where it is swagger, the hand
+#: behind the head where it is the party. Two a row where both fit, so one
+#: headline does not repeat one figure down a wall.
+CLUB_POSES = {
+    "VIP ROOM": ("akimbo", "behind_head"),
+    "AMATEUR NIGHT": ("pole", "behind_head"),
+    "LIVE ON STAGE": ("pole", "akimbo"),
+    "WORLD FAMOUS": ("akimbo", "pole"),
+    "NO COVER TIL 9": ("behind_head", "pole"),
+    "BIRTHDAY BASH": ("behind_head", "akimbo"),
+    "DOLLAR DANCES": ("pole",),
+    "SHOW GIRLS": ("akimbo", "pole"),
+    "GRAND OPENING": ("akimbo", "behind_head"),
+    "CLASSY LADIES": ("behind_head", "akimbo"),
+}
 #: The club's display face (the typography guide: one per family). The
 #: walker's pick, 2026-09-30, from all eight: monogram italic -- it leans,
 #: and at scale 2 its caps are m5x7's 14 px with the widest headline word
@@ -331,6 +348,8 @@ def club(w, h, row, key):
         other = {"diagonal": "offcentre", "offcentre": "diagonal"}[layout]
         layout = other if holds(other) else "centred"
     focal_kind = CLUB_FOCAL.get(head, "performer")
+    poses = CLUB_POSES.get(head, ("behind_head",))
+    pose = poses[roll.below(len(poses))]
     stage_top, stage_edge = _mix(hot, (60, 20, 20), 0.55), _mix(foot, (0, 0, 0), 0.3)
     if layout == "centred":
         # the marquee holds two scale-2 lines (2 x 14 + 2) inside its bulbs
@@ -376,7 +395,10 @@ def club(w, h, row, key):
     before = bytes(c.buf)
     _stage(c, fx, feet, max(12, fh * 2 // 5), max(4, fh // 11), stage_top, stage_edge)
     if focal_kind == "performer":
-        PF.pinup(PF.Figure(), fx, feet - fh, fh, mirror=mirror).paint(c)
+        # a pole starts under the headline, never through it
+        pole_from = 4 if layout == "offcentre" else (title[3] + 3 if title else 4)
+        PF.pinup(PF.Figure(), fx, feet - fh, fh, mirror=mirror, pose=pose,
+                 pole_from=pole_from).paint(c)
     else:                                   # the glass stands in the pool of light
         g = max(8, fh // 4)
         _martini(c, fx, feet - g - 2, g, gold, hot)
@@ -391,6 +413,7 @@ def club(w, h, row, key):
     _club_rule(c, gold)
     return c, {"family": "club", "headline": head, "small": small, "small_at": small_at,
                "title": title, "focal": focal, "layout": layout,
+               "pose": pose if focal_kind == "performer" else None,
                "ground": _mix(top, foot, ((focal[1] + focal[3]) / 2 if focal else h / 2) / max(1, h - 1))}
 
 
