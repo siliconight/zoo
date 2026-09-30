@@ -31,17 +31,20 @@ from __future__ import annotations
 FAMILIES = ("club", "bar", "alley", "store")
 
 #: The strip club's own posters: brash faux glamour with a wink. The
-#: headline is the promise; the small line lets the air out of it.
+#: headline is the promise; the small line lets the air out of it. Every
+#: headline word sets at scale 2 across a marquee (102 px): CHAMPAGNE and
+#: SHOWGIRLS were 110 and shrank to scale 1, so they became BUBBLY and SHOW
+#: GIRLS (the typography guide's first fix is the words, not the size).
 CLUB = (
     ("VIP ROOM", "VERY IMPORTANT PARKING LOT"),
     ("AMATEUR NIGHT", "EVERY NIGHT, APPARENTLY"),
     ("LIVE ON STAGE", "MOSTLY LIVE"),
-    ("CHAMPAGNE ROOM", "ASK ABOUT OUR BEER"),
+    ("BUBBLY ROOM", "ASK ABOUT OUR BEER"),
     ("WORLD FAMOUS", "IN UPPER DARBY"),
     ("NO COVER TIL 9", "AFTER 9 WE COVER NOTHING"),
     ("BIRTHDAY BASH", "BRING YOUR OWN CAKE. AND ID."),
     ("DOLLAR DANCES", "SHAME NOT INCLUDED"),
-    ("SHOWGIRLS", "SHOWING UP IS HALF OF IT"),
+    ("SHOW GIRLS", "SHOWING UP IS HALF OF IT"),
     ("GRAND OPENING", "AGAIN. SINCE 1991."),
     ("CLASSY LADIES", "CLASSY IS A STRONG WORD"),
     ("HAPPY HOUR", "HAPPINESS NOT GUARANTEED"),

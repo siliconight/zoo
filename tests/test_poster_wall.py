@@ -1,4 +1,4 @@
-"""The wall posters (1.30.0): the copy, the art, the three checks, the run.
+"""The wall posters (1.30.0, the club redrawn 1.31.0): the copy, the art, the three checks, the run.
 
 The walker, 2026-09-29/30: posters in strip clubs, bars, alleys and stores,
 by the three guides in the root repo's docs/reference/. What is held here:
@@ -35,8 +35,10 @@ from zoo_keeper.core import prims as P
 
 KEYS = ("a", "b", "c", "d")
 #: The face each string is set in (`poster_art`).
-HEAD_FACE = {"club": "m5x7", "bar": "m5x7", "alley": "bold", "store": "m5x7"}
+HEAD_FACE = {"club": PA.CLUB_FACE, "bar": "m5x7", "alley": "bold", "store": "m5x7"}
 SMALL_FACE = {"club": "small", "bar": "m5x7", "alley": "m5x7", "store": "small"}
+#: The narrower face a line falls back to when its own will not fit.
+SMALL_FALLBACK = {"club": "m5x7"}
 
 
 def _size(family):
@@ -50,7 +52,10 @@ def _size(family):
 def test_every_string_is_in_its_face():
     for fam in PC.FAMILIES:
         for head, small in PC.COPY[fam]:
-            for text, face in ((head, HEAD_FACE[fam]), (small, SMALL_FACE[fam])):
+            pairs = [(head, HEAD_FACE[fam]), (small, SMALL_FACE[fam])]
+            if fam in SMALL_FALLBACK:
+                pairs.append((small, SMALL_FALLBACK[fam]))
+            for text, face in pairs:
                 missing = {ch for ch in text if ch != " " and ch not in pt._table(face).GLYPHS}
                 assert not missing, (fam, text, face, missing)
     for text in PC.DATES:
@@ -112,6 +117,30 @@ def test_every_poster_passes_the_three_tests(family):
             assert m["title_ratio"] is not None and m["title_ratio"] >= K.TITLE_RATIO, tag
             assert m["focal_step"] is not None and m["focal_step"] >= K.FOCAL_STEP, tag
             assert m["mass_spread"] >= K.MASS_SPREAD, tag
+
+
+def test_a_club_title_sets_at_display_size():
+    """The typography guide: "Do not solve every fit problem by shrinking the
+    type." A club headline sets at scale 2 of `CLUB_FACE` or its layout is
+    not the sheet's -- the first cut stepped CHAMPAGNE ROOM at scale 1,
+    smaller than its own punchline. Scale 2's caps are 14 px; scale 1's, 7."""
+    w, h = _size("club")
+    cap = len(pt.trim(pt.render("H", 2, PA.CLUB_FACE)))
+    for row in range(len(PC.CLUB)):
+        for key in KEYS + ("e", "f"):
+            _c, info = PA.paint("club", w, h, row, key)
+            t = info["title"]
+            assert t is not None and t[3] - t[1] >= cap, (row, key, info["headline"], info["layout"], t)
+
+
+def test_the_club_set_uses_every_layout():
+    """The feedback's layout library, and "make the rest visibly different":
+    a title an asymmetric layout cannot hold tries the other before the
+    marquee, so no layout starves. The mix is reported, not floored."""
+    w, h = _size("club")
+    seen = {PA.paint("club", w, h, row, key)[1]["layout"]
+            for row in range(len(PC.CLUB)) for key in KEYS + ("e", "f")}
+    assert seen == set(PA.CLUB_LAYOUTS), seen
 
 
 def test_the_checks_can_fail():

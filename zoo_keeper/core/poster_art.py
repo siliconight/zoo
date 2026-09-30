@@ -61,15 +61,25 @@ def _mix(a, b, t):
     return tuple(int(round(a[k] + (b[k] - a[k]) * t)) for k in range(3))
 
 
-def fit_text(c, text, box, rgb, face=HEAD_FACE, cap=6, shadow=None, outline=None):
+def fit_text(c, text, box, rgb, face=HEAD_FACE, cap=6, shadow=None, outline=None, fallback=None,
+             bold=False):
     """Set ``text`` as large as it fits ``box`` -- wrapping at word breaks
     before shrinking below the largest scale that fits -- centred. Returns
     the rect of the ink, or None when not even scale 1 fits (nothing is
-    painted: a smear is worse than a gap)."""
+    painted: a smear is worse than a gap). ``fallback`` is a narrower face
+    tried when ``face`` fits nowhere."""
     x0, y0, x1, y1 = [int(v) for v in box]
     bw, bh = x1 - x0, y1 - y0
     if bw <= 0 or bh <= 0:
         return None
+    got = _fit_face(c, text, x0, y0, x1, y1, rgb, face, cap, shadow, outline, bold)
+    if got is None and fallback:
+        got = _fit_face(c, text, x0, y0, x1, y1, rgb, fallback, cap, shadow, outline, bold)
+    return got
+
+
+def _fit_face(c, text, x0, y0, x1, y1, rgb, face, cap, shadow, outline, bold=False):
+    bw, bh = x1 - x0, y1 - y0
     for s in range(cap, 0, -1):
         lines = pt.wrap(text, bw - (2 if outline else 0), s, face)
         if not lines:
@@ -77,7 +87,7 @@ def fit_text(c, text, box, rgb, face=HEAD_FACE, cap=6, shadow=None, outline=None
         masks = [pt.trim(pt.render(ln, s, face)) for ln in lines]
         gap = max(1, s)
         th = sum(len(m) for m in masks) + gap * (len(masks) - 1)
-        if th > bh - (2 if outline else 0) or max(len(m[0]) for m in masks) > bw:
+        if th > bh - (2 if outline else 0) or max(len(m[0]) + (1 if bold else 0) for m in masks) > bw:
             continue
         y = y0 + (bh - th) // 2
         rx0, rx1 = x1, x0
@@ -87,6 +97,8 @@ def fit_text(c, text, box, rgb, face=HEAD_FACE, cap=6, shadow=None, outline=None
                 c.mask(m, x, y, outline, grow=1)
             if shadow:
                 c.mask(m, x + 1, y + 1, shadow)
+            if bold:                         # sideways only: the counters stay open
+                c.mask(m, x + 1, y, rgb)
             c.mask(m, x, y, rgb)
             rx0, rx1 = min(rx0, x), max(rx1, x + len(m[0]))
             y += len(m) + gap
@@ -125,7 +137,7 @@ def _burst(c, cx, cy, r_out, r_in, spikes, rgb, phase=0.0):
                 c.px(x, y, rgb)
 
 
-# --- the glamour motifs (club) -------------------------------------------------------
+# --- the drink (club) -------------------------------------------------------------
 
 def _martini(c, cx, cy, s, rgb, olive):
     for k in range(int(s)):                                   # the bowl, a V
@@ -135,73 +147,251 @@ def _martini(c, cx, cy, s, rgb, olive):
     _ellipse(c, cx + s // 3, cy - s + s // 3, max(1, s // 5), max(1, s // 5), olive)
 
 
-def _heel(c, cx, cy, s, rgb, _hot):
-    c.rect(cx - s, cy + s // 2, cx + s // 3, cy + s // 2 + 3, rgb)       # the sole
-    for k in range(s):                                                   # the arch
-        c.rect(cx - s + k, cy - k // 2, cx - s + k + 1, cy + s // 2, rgb)
-    c.rect(cx + s // 3 - 2, cy + s // 2, cx + s // 3, cy + s + 2, rgb)  # the heel
-    c.rect(cx - s, cy - s // 2, cx - s + 3, cy + s // 2, rgb)            # the toe box
-
-
-def _lips(c, cx, cy, s, rgb, dark):
-    _ellipse(c, cx - s // 2, cy, s // 2 + 1, s // 3 + 1, rgb)
-    _ellipse(c, cx + s // 2, cy, s // 2 + 1, s // 3 + 1, rgb)
-    _ellipse(c, cx, cy + s // 4, s, s // 3 + 1, rgb)
-    c.rect(cx - s + 2, cy + s // 6, cx + s - 1, cy + s // 6 + 1, dark)
-
-
-def _pole(c, cx, cy, s, rgb, hot):
-    c.rect(cx - 1, cy - s - s // 2, cx + 1, cy + s + s // 2, rgb)
-    for dx, dy in ((-s // 2, -s // 2), (s // 2, -s // 3), (-s // 3, s // 2), (s // 2, s // 2)):
-        c.rect(cx + dx - 1, cy + dy, cx + dx + 2, cy + dy + 1, hot)
-        c.rect(cx + dx, cy + dy - 1, cx + dx + 1, cy + dy + 2, hot)
-
-
-GLAMOUR = (_martini, _heel, _lips, _pole)
-
-CLUB_PALETTES = (   # (ground top, ground foot, rule, headline)
-    ((70, 16, 96), (10, 4, 16), (226, 184, 64), (255, 96, 180)),
-    ((120, 8, 30), (14, 2, 6), (226, 184, 64), (255, 214, 90)),
-    ((16, 30, 110), (4, 6, 22), (226, 184, 64), (120, 230, 255)),
+#: (ground top, ground foot, rule, headline). MORE COLOUR (the walker,
+#: 2026-09-30, toward Duke Nukem 3D) -- and a measured lesson: saturated
+#: colour is not light value. Tops pushed to full saturation measured only
+#: ~77 luma, barely moved the blur test, and cut the stepped titles' contrast.
+#: The grounds are rich and moderate; the light mass is the spotlight's pool.
+CLUB_PALETTES = (
+    ((128, 28, 118), (14, 4, 20), (236, 192, 70), (255, 226, 110)),
+    ((166, 30, 34), (18, 2, 8), (236, 192, 70), (255, 236, 150)),
+    ((30, 66, 176), (4, 8, 26), (236, 192, 70), (140, 240, 255)),
 )
 
 
+def _spotlight(c, sx, sy, tx, ty, spread, strength=0.62, lamp=(5, 3)):
+    """A light cone from (sx, sy) onto (tx, ty): the eye path from the top of
+    the sheet to the performer (the feedback's "a spotlight can point to the
+    performer and event title")."""
+    # the lamp itself: a white glare where the beam starts
+    _ellipse(c, sx, sy, lamp[0], lamp[1], (255, 244, 214))
+    _ellipse(c, sx, sy, max(1, lamp[0] // 2), max(1, lamp[1] // 2), (255, 255, 255))
+    ang = math.atan2(ty - sy, tx - sx)
+    reach = math.hypot(tx - sx, ty - sy) * 1.12
+    for y in range(c.h):
+        for x in range(c.w):
+            dx, dy = x - sx, y - sy
+            d = math.hypot(dx, dy)
+            if d == 0 or d > reach:
+                continue
+            a = abs((math.atan2(dy, dx) - ang + math.pi) % (2 * math.pi) - math.pi)
+            if a < spread:
+                c.px(x, y, _mix(c.get(x, y), (255, 236, 190), strength * (1.0 - a / spread)))
+
+
+def _marquee(c, box, hot):
+    """A lit marquee: a cream panel ringed with bulbs, the headline in dark
+    ink on it. The poster's WHITE mass (the walker, 2026-09-30: "using whites
+    and blacks for depth is essential") -- a centred club sheet with only a
+    lit figure and pool on a dark ground blurred to 66-80 under
+    `poster_checks`, one value group short. Returns the panel's inner box."""
+    x0, y0, x1, y1 = box
+    c.rect(x0, y0, x1, y1, (40, 10, 30))
+    c.rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, (250, 236, 200))
+    for x in range(x0 + 2, x1 - 1, 4):                  # the bulbs, top and bottom
+        for y in (y0 + 1, y1 - 3):
+            c.rect(x, y, x + 2, y + 2, hot if (x // 4) % 2 else (255, 255, 255))
+    for y in range(y0 + 5, y1 - 4, 4):                  # and down the sides
+        for x in (x0 + 1, x1 - 3):
+            c.rect(x, y, x + 2, y + 2, hot if (y // 4) % 2 else (255, 255, 255))
+    return (x0 + 4, y0 + 4, x1 - 4, y1 - 4)
+
+
+def _stage(c, cx, y, rx, ry, top_rgb, edge_rgb):
+    """The stage, and the pool of light the spotlight throws on it: the
+    poster's light mass has a cause (a dark club poster with only a lit
+    figure blurred to one dark field under `poster_checks`)."""
+    _ellipse(c, cx, y, rx, ry, edge_rgb)
+    _ellipse(c, cx, y - 1, max(1, rx - 2), max(1, ry - 1), top_rgb)
+    _ellipse(c, cx, y - 1, max(1, rx * 3 // 4), max(1, ry * 3 // 4), (252, 236, 196))
+    _ellipse(c, cx, y - 1, max(1, rx // 2), max(1, ry // 2), (255, 252, 240))
+
+
+def _stepped_width(text, step, face, scale):
+    w = 0
+    for ch in text:
+        w += 4 * scale if ch == " " else len(pt.trim(pt.render(ch, scale, face))[0]) + scale + 2
+    return w
+
+
+def stepped_title(c, text, box, step, rgb, shadow, face=HEAD_FACE, scales=(2, 1)):
+    """A headline set as a descending diagonal inside ``box``: each line
+    indented further than the last, at the largest scale whose lines all fit.
+    The first cut never checked a width and ran NO COVER TIL 9 off the sheet.
+    Returns the ink's rect, or None."""
+    x0, y0, x1, y1 = box
+    words = text.split()
+    for scale in scales:
+        for n in (1, 2, 3):
+            if n > len(words):
+                break
+            per = -(-len(words) // n)
+            lines = [" ".join(words[i:i + per]) for i in range(0, len(words), per)]
+            lh = pt.line(face) * scale + 2
+            indent = (x1 - x0) // 5
+            ok = all(x0 + k * indent + _stepped_width(ln, step, face, scale) <= x1
+                     for k, ln in enumerate(lines))
+            if not ok or y0 + len(lines) * lh + step * max(len(ln) for ln in lines) > y1:
+                continue
+            rects = [_stepped(c, ln, x0 + k * indent, y0 + k * lh, step, rgb, shadow, face, scale)
+                     for k, ln in enumerate(lines)]
+            return (min(r[0] for r in rects), min(r[1] for r in rects),
+                    max(r[2] for r in rects), max(r[3] for r in rects))
+    return None
+
+
+def _stepped(c, text, x, y, step, rgb, shadow, face=HEAD_FACE, scale=2):
+    """Lettering that climbs down a pixel a letter: a diagonal the grid can
+    draw with no antialiasing. No fattening: a grown G read as a B."""
+    x0, y0, x1, y1 = x, y, x, y
+    for ch in text:
+        if ch == " ":
+            x += 4 * scale
+            y += step
+            continue
+        m = pt.trim(pt.render(ch, scale, face))
+        c.mask(m, x + 1, y + 1, shadow)
+        # bold sideways only: a second pass a pixel right thickens every
+        # stroke and leaves a counter open (grown both ways, a G shut)
+        c.mask(m, x + 1, y, rgb)
+        c.mask(m, x, y, rgb)
+        x1, y1 = max(x1, x + len(m[0]) + 1), max(y1, y + len(m))
+        x += len(m[0]) + scale + 2
+        y += step
+    return (x0, y0, x1, y1)
+
+
+def _club_rule(c, gold):
+    """The gold rule, printed a pixel off its dark one (a cheap second pass),
+    with one break where the foil cracked."""
+    w, h = c.w, c.h
+    dark = (40, 26, 8)
+    for (a, b, cc, d) in ((1, 1, w - 1, 3), (1, h - 3, w - 1, h - 1), (1, 1, 3, h - 1), (w - 3, 1, w - 1, h - 1)):
+        c.rect(a, b, cc, d, dark)
+        c.rect(a + 1, b + 1, cc + 1, d + 1, gold)
+    c.rect(w - 3, h // 3, w, h // 3 + 7, dark)
+
+
+#: What a club poster SHOWS, chosen by what it says (the feedback: "give each
+#: poster a specific focal image"); the performer unless the copy is a drink.
+CLUB_FOCAL = {"BUBBLY ROOM": "cocktail", "HAPPY HOUR": "cocktail"}
+CLUB_LAYOUTS = ("centred", "diagonal", "offcentre")
+#: The club's display face (the typography guide: one per family). The
+#: walker's pick, 2026-09-30, from all eight: monogram italic -- it leans,
+#: and at scale 2 its caps are m5x7's 14 px with the widest headline word
+#: (BIRTHDAY) 94 px in a 102 px marquee. Pixel Operator Bold, the shop signs'
+#: face, was the first pick: its display size is scale 2 at 18 px caps, and
+#: there AMATEUR, BIRTHDAY and OPENING (110, 120, 104 px) fit no layout.
+CLUB_FACE = "monogram_italic"
+
+
 def club(w, h, row, key):
+    """Theatrical bargain-bin glam: a performer under a spotlight -- the
+    walker's comp is Duke Nukem 3D's club dancer -- in one of three layouts
+    (the art-direction feedback's library: centred, diagonal, off-centre)."""
+    from . import pixel_figure as PF
     roll = Roll(f"club|{row}|{key}")
     top, foot, gold, hot = CLUB_PALETTES[roll.below(len(CLUB_PALETTES))]
     c = Canvas(w, h, foot)
-    for y in range(h):                                  # the airbrushed ground
-        c.rect(0, y, w, y + 1, _mix(top, foot, y / max(1, h - 1)))
-    # THE FLAW: the gold rule printed a pixel off the dark one (a second pass)
-    c.rect(1, 1, w - 1, 3, (40, 26, 8))
-    c.rect(1, h - 3, w - 1, h - 1, (40, 26, 8))
-    c.rect(1, 1, 3, h - 1, (40, 26, 8))
-    c.rect(w - 3, 1, w - 1, h - 1, (40, 26, 8))
-    for (a, b, cc, d) in ((2, 2, w - 2, 3), (2, h - 3, w - 2, h - 2), (2, 2, 3, h - 2), (w - 3, 2, w - 2, h - 2)):
-        c.rect(a + 1, b + 1, cc + 1, d + 1, gold)
+    # the airbrushed ground, reaching its foot at the stage and going to
+    # near-black below it: the sheet's BLACK mass. Graded over the whole
+    # height, a diagonal sheet's darkest twentieth blurred to 39-43 luma and
+    # the lamp could not open the range to 85 alone (`poster_checks`).
+    floor = _mix(foot, (0, 0, 0), 0.5)
+    for y in range(h):
+        t = y / max(1, int(h * 0.76))
+        c.rect(0, y, w, y + 1, _mix(top, foot, t) if t <= 1.0 else floor)
     head, small = PC.CLUB[row % len(PC.CLUB)]
-    # NO OUTLINE, measured: a black outline round light letters made the title
-    # WORSE at 5 m (3.0 -> 2.2:1, `poster_checks`) -- the thumbnail's box
-    # filter mixes a thin light stroke with its dark ring into one mid tone
-    # HEAVY, in its own colour: the thin face's two-pixel strokes are under one
-    # screen pixel at 5 m, and NO COVER TIL 9 read 2.6:1 there; each letter is
-    # drawn a pixel fatter in the headline's own ink
-    title = fit_text(c, head, (5, 5, w - 5, int(h * 0.30)), hot, shadow=(0, 0, 0), outline=hot)
-    fy0, fy1 = int(h * 0.32), int(h * 0.72)
-    cx, cy = w // 2, (fy0 + fy1) // 2
-    r = min(w, fy1 - fy0) // 2 - 1
-    # the burst well above the ground: at 0.22 of the way to white the focal
-    # step measured 29-41 against 42.5 and the blurred poster was one dark
-    # field (`poster_checks`, 2026-09-30)
-    _burst(c, cx, cy, r, int(r * 0.55), 12, _mix(top, (255, 255, 255), 0.62), phase=roll.below(100) / 16.0)
-    motif = GLAMOUR[roll.below(len(GLAMOUR))]
-    motif(c, cx, cy, max(6, r // 2), gold, hot)
-    small_at = fit_text(c, small, (5, int(h * 0.74), w - 5, int(h * 0.88)), (236, 232, 240), face=SMALL_FACE, cap=2)
-    fit_text(c, CN.name_for(roll.below(len(CN.NAMES))), (5, int(h * 0.88), w - 5, h - 4), gold,
-             face=SMALL_FACE, cap=1)
+    layout = CLUB_LAYOUTS[roll.below(len(CLUB_LAYOUTS))]
+    mirror = bool(roll.below(2))
+    # A LAYOUT MUST SET ITS TITLE AT DISPLAY SIZE, or it is not this sheet's
+    # layout (the typography guide, 2026-09-30: "If a word still does not fit,
+    # edit the copy or choose a wider title area. Do not solve every fit
+    # problem by shrinking the type."). The first cut shrank: CHAMPAGNE ROOM
+    # stepped at scale 1 read smaller than its own punchline, SHOWGIRLS set in
+    # no face the off-centre strip held, and a strip fitting each word on its
+    # own set LIVE ON large and STAGE small. So a layout is this sheet's only
+    # when its whole title sets at scale 2 in `CLUB_FACE`. A title one asymmetric layout
+    # cannot hold tries the other before the marquee (the wider area): falling
+    # straight to the marquee made two thirds of the set centred, and the
+    # feedback asks that the rest be "visibly different". Tried on a scratch
+    # sheet; the roll is not consumed.
+    strip = int(w * 0.42)
+
+    def holds(name):
+        if name == "diagonal":
+            return stepped_title(Canvas(w, h, foot), head, (6, 6, w - 6, int(h * 0.36)), 1,
+                                 hot, (0, 0, 0), face=CLUB_FACE, scales=(2,)) is not None
+        if name == "offcentre":
+            return all(len(pt.trim(pt.render(wd, 2, CLUB_FACE))[0]) + 1 <= (w - 5) - (strip + 3)
+                       for wd in head.split())
+        return True
+
+    if not holds(layout):
+        other = {"diagonal": "offcentre", "offcentre": "diagonal"}[layout]
+        layout = other if holds(other) else "centred"
+    focal_kind = CLUB_FOCAL.get(head, "performer")
+    stage_top, stage_edge = _mix(hot, (60, 20, 20), 0.55), _mix(foot, (0, 0, 0), 0.3)
+    if layout == "centred":
+        # the marquee holds two scale-2 lines (2 x 14 + 2) inside its bulbs
+        fx, feet, fh = w // 2, int(h * 0.78), int(h * 0.47)
+        mh = int(h * 0.27)
+        _spotlight(c, w // 2, 0, fx, feet, 0.40)          # the marquee hides the lamp
+        title = fit_text(c, head, _marquee(c, (4, 4, w - 4, mh), hot), (40, 10, 60),
+                         face=CLUB_FACE, bold=True)
+        small_box = (5, int(h * 0.84), w - 5, int(h * 0.95))
+        venue_box = (5, int(h * 0.95), w - 5, h - 3)
+    elif layout == "diagonal":
+        # feet high enough that the stage's pool clears the venue line
+        fx, feet, fh = int(w * 0.30), int(h * 0.84), int(h * 0.56)
+        if mirror:
+            fx = w - fx
+        # the lamp hangs below the headline, not behind it: a beam under the
+        # letters cost them contrast (`poster_checks`: 2.995 against 3.0)
+        # and it is the sheet's WHITE mass, so it is big: with the figure
+        # lifted clear of the venue line the pool alone blurred to 77-83
+        _spotlight(c, (8 if mirror else w - 8), int(h * 0.36) + 8, fx, feet, 0.48, lamp=(9, 6))
+        title = stepped_title(c, head, (6, 6, w - 6, int(h * 0.36)), 1, hot, (0, 0, 0),
+                              face=CLUB_FACE, scales=(2,))
+        # the punchline's side box, as wide as the figure allows: at half the
+        # sheet IMPORTANT fitted in no face and the line fell into the pool
+        side = (int(w * 0.44), int(h * 0.50), w - 6, int(h * 0.74)) if not mirror else (6, int(h * 0.50), int(w * 0.56), int(h * 0.74))
+        small_box, venue_box = side, (5, int(h * 0.94) - 2, w - 5, h - 4)
+    else:                                               # off-centre: a strip of information
+        fx, feet, fh = strip // 2, int(h * 0.78), int(h * 0.62)
+        _spotlight(c, strip // 2, 0, strip // 2, feet, 0.30)
+        c.rect(strip, 3, w - 3, int(h * 0.86), gold)
+        y = 10
+        rects = []
+        for wd in head.split():
+            r = fit_text(c, wd, (strip + 3, y, w - 5, y + 24), (40, 10, 60), face=CLUB_FACE,
+                         cap=2, bold=True)
+            rects.append(r)
+            y = (r[3] if r else y + 20) + 4
+        rs = [r for r in rects if r]
+        title = (min(r[0] for r in rs), rs[0][1], max(r[2] for r in rs), rs[-1][3]) if rs else None
+        # the punchline across the foot, below the strip: the "small" face sets
+        # IMPORTANT at 62 px and the left panel is 52, so no narrow box held it
+        small_box, venue_box = (5, int(h * 0.87), w - 5, h - 4), (strip + 2, int(h * 0.86) - 16, w - 5, int(h * 0.86) - 3)
+    before = bytes(c.buf)
+    _stage(c, fx, feet, max(12, fh * 2 // 5), max(4, fh // 11), stage_top, stage_edge)
+    if focal_kind == "performer":
+        PF.pinup(PF.Figure(), fx, feet - fh, fh, mirror=mirror).paint(c)
+    else:                                   # the glass stands in the pool of light
+        g = max(8, fh // 4)
+        _martini(c, fx, feet - g - 2, g, gold, hot)
+    focal = drawn(c, before)
+    ink = (236, 232, 240)
+    small_at = fit_text(c, small, small_box, ink, face=SMALL_FACE, cap=2, fallback="m5x7")
+    if small_at is None and layout != "offcentre":
+        # too long for its side: the full-width band above the venue
+        small_at = fit_text(c, small, (5, int(h * 0.80), w - 5, venue_box[1]), ink, face=SMALL_FACE, cap=1)
+    fit_text(c, CN.name_for(roll.below(len(CN.NAMES))), venue_box,
+             (40, 10, 60) if layout == "offcentre" else gold, face=SMALL_FACE, cap=1)
+    _club_rule(c, gold)
     return c, {"family": "club", "headline": head, "small": small, "small_at": small_at,
-               "title": title, "focal": (cx - r, cy - r, cx + r, cy + r),
-               "ground": _mix(top, foot, cy / max(1, h - 1))}
+               "title": title, "focal": focal, "layout": layout,
+               "ground": _mix(top, foot, ((focal[1] + focal[3]) / 2 if focal else h / 2) / max(1, h - 1))}
 
 
 # --- the crude 1-bit images (bar) -----------------------------------------------------

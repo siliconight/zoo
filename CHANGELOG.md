@@ -1,3 +1,64 @@
+## [1.31.0] - the club posters redrawn: a figure, three layouts, whites and blacks
+
+The walker, 2026-09-30: "add silhouettes, keep it PG-13", with Duke Nukem 3D's
+club dancer (1996) as the comp for how far suggestive goes, the art-direction
+feedback on 1.30.0's atlas ("more color and depth"), two figure references
+(Dingemans' "How to draw figures without a model"; Loomis's *Fun with a
+Pencil*), "using whites and blacks for depth is essential", and the typography
+guide. All five are indexed in the root repo's docs/reference/POSTER_GUIDES.md.
+The club family only; bar, alley and store are still 1.30.0's recipe.
+
+THE FIGURE (`core/pixel_figure.py`, new, pure Python). A hand-authored joint
+table -- contrapposto, eight heads, the weight over the standing leg, the free
+knee crossing in -- then the three masses on it as shaded capsules and
+ellipsoids lit from the upper left, banded into five values a ramp with a
+near-black core and a near-white specular, the far limbs a step darker, then
+a pixel outline round the whole. Swimwear and a pose, no more. Two earlier
+cuts are recorded in its docstring: flat blobs read as a lump, a hand-typed
+sprite as a doll.
+
+THREE LAYOUTS (`poster_art.club`), from the feedback's library: a lit cream
+marquee ringed with bulbs (centred), a stepped diagonal headline with the lamp
+hung below it (diagonal), a gold information strip beside the figure
+(off-centre). A spotlight from its lamp to the stage is the eye path; the
+stage throws a white pool; the ground goes near-black below the stage. The
+drink rows show a cocktail standing in the pool instead of the performer.
+
+A LAYOUT MUST SET ITS TITLE AT DISPLAY SIZE. The typography guide: "Do not
+solve every fit problem by shrinking the type." A layout is a sheet's only
+when its whole headline sets at scale 2 of `CLUB_FACE`; a title one asymmetric
+layout cannot hold tries the other before the marquee (straight to the
+marquee made two thirds of the set centred). Measured against 1.30.0: 12 of
+72 club titles set at 7 px caps, smaller than their own punchlines. Two
+headlines fitted no layout in any face and were rewritten, the guide's first
+fix: CHAMPAGNE ROOM is BUBBLY ROOM, SHOWGIRLS is SHOW GIRLS.
+
+ONE DISPLAY FACE: monogram italic (`CLUB_FACE`), the walker's pick from all
+eight. Pixel Operator Bold, the shop signs' face, was the first pick; at its
+display size (scale 2, 18 px caps) AMATEUR, BIRTHDAY and OPENING are 110, 120
+and 104 px against a 102 px marquee.
+
+MEASURED, NOT ASSUMED, by `poster_checks` at unchanged thresholds: all 72 club
+sheets (12 rows x 6 keys) pass title contrast, focal step and mass spread.
+Lessons kept in the code where they were learned: saturated colour is not
+light value (brighter grounds cut title contrast and barely moved the blur);
+a beam behind the letters cost them contrast (2.995 against 3.0); the dark end,
+not the light one, held the diagonal sheets under 85 (their darkest twentieth
+blurred to 39-43 luma until the floor went near-black).
+
+Mix at 72 sheets: 44 centred, 18 diagonal, 10 off-centre -- reported, not
+floored.
+
+Removed: the 1.30.0 club motifs on a burst (`GLAMOUR`: heel, lips, pole), which
+the figure replaced; the martini stays as the drink rows' focal.
+
+Tests: `tests/test_pixel_figure.py` (new, 12): both value extremes present,
+each ramp two value groups wide, the outline rings the figure, the height
+asked for, mirrored is the same figure, the swimsuit across chest and hips at
+every size, determinism. `tests/test_poster_wall.py`: a club title sets at
+display size (fails on 1.30.0's art, 12 of 72), every layout is used, the
+club's face and its small-line fallback carry every glyph.
+
 ## [1.30.0] - poster walls: four families, the three tests, one draw a run
 
 The walker, 2026-09-29: posters to "appropriately fill out certain walls" --
