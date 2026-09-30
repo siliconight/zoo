@@ -1,3 +1,46 @@
+## [1.35.0] - the ATM, redrawn: a 1990s surcharge unit, two draws
+
+The walker, 2026-09-29: "Convenient stores should also have ATMs", with
+photographs of late-'90s units; the queue kept a lit ATM topper, a
+green-on-black CRT and a keypad. The species was a grey box with a dark glass
+panel and a pale slab on top, in four materials, with six coincident face
+pairs in the census residue. New: `core/atm_forms.py`; `recipes/atm.py`
+rewritten.
+
+WHAT IS BUILT: a dark plinth; the lower cabinet, its front a painted fascia
+(cash slot, receipt slot, a yellow "NO FEE ATM THIS AINT" sticker); a keypad
+ledge sloped toward the customer (a 4 x 3 key block, red / yellow / green
+function keys, the card slot); the head set back, a bezel round a recessed
+CRT; a lit topper -- ATM, and the network. Four networks by `variant`, every
+name invented Delco slang: CASH JAWN, YO MONEY, QUIK KWIK CASH, MONEY BUCKET,
+each with its own topper colours and screen greeting.
+
+TWO ATLASES, TWO MATERIALS, TWO DRAWS. The cabinet, trim, fascia and keypad
+are one painted atlas; the CRT and the topper are one backlit atlas
+(`make_backlit_material`, emission 1.0, albedo 0.6 -- the cooler's), named
+`_Face` so Lux's power cut takes them. `card_art.paint` dispatches the
+`atm_*` tile kinds to `atm_forms.paint`.
+
+WHAT THE FIRST CUT GOT WRONG, each caught before shipping: the screen
+recess's four walls were wound inside out (a normal check); three of four
+screens lost their greeting, because "WELCOME TO CASH JAWN" does not fit the
+tube and `fit_text` drops what it cannot set -- the tiles now record any line
+they could not set, the screen shows as many lines as its height holds
+(greeting first), and the long greetings were shortened; RECEIPT did not fit
+a 0.5 m unit's fascia. A Blender preview first showed four plain boxes: the
+`-colonly` collision node, imported as a visible solid in front of the model,
+which Godot hides.
+
+Measured: 58 triangles; the slot filled centred at 27 sizes over the
+genome's range, sign on and off, no shared plane; census 3 builds, 0
+coincident pairs (was 6 -- the residue row retired, its total 3009 -> 3003).
+
+Tests: `tests/test_atm.py` (7 + 2 in Blender): the genome and the stem; the
+slot at every size; every face's direction; two atlases with the glow on
+the screen and topper only; every line of every tile sets at every size; the
+names invented and none a real ATM network's word; a built ATM is two
+objects, two materials, one `_Face`.
+
 ## [1.34.0] - flyers on a pole: a sleeve of handbills, one draw
 
 Cold run 9118 stood a flat 0.30 m alley bill on each 0.12 m pole, and it read

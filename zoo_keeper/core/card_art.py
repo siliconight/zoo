@@ -460,6 +460,11 @@ def paint(spec):
     # `recipes/_card_atlas.py` needs no second door.
     # A WALL POSTER (1.30.0) is `poster_art`'s: four families by location,
     # each tile one sheet of a `poster_wall` run.
+    # THE ATM (1.35.0): its cabinet, fascia, keypad, CRT and topper are
+    # `atm_forms`' tiles
+    if kind.startswith("atm_"):
+        from . import atm_forms as AF
+        return AF.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
         c = PA.paint(spec["family"], w, hgt, spec["row"], key)[0]

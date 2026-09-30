@@ -300,7 +300,8 @@ RESIDUE = {
     "condiment_bottle": (7, 0, 7, 0, 13.21, 10.0),
     "newspaper_box": (7, 1, 6, 0, 10.77, 958.7),
     "soda_cup": (7, 3, 4, 0, 0.21, 84.0),
-    "atm": (6, 0, 6, 0, 30.0, 2726.5),
+    # "atm": (6, 0, 6, 0, 30.0, 2726.5) until 1.35.0 redrew it; its census
+    # since: 3 builds, 0 pairs.
     "breach": (6, 0, 6, 0, 80.0, 572.2),
     "briefcase": (6, 0, 6, 0, 49.0, 0.6),
     "counter": (6, 0, 6, 0, 45.0, 202227.8),
@@ -402,13 +403,14 @@ def test_nothing_is_gated_and_in_the_residue_at_once():
 
 
 def test_the_residue_is_the_count_the_entry_claims():
-    """0.96.0 shipped 3027 pairs over 61 species; this release removes 18 of
-    them (stop_sign's 9, mailbox's 9 of 15) and leaves 3009."""
+    """0.96.0 shipped 3027 pairs over 61 species; that release removed 18 of
+    them (stop_sign's 9, mailbox's 9 of 15) and left 3009. 1.35.0 redrew the
+    ATM, whose 6 (none exposed) were in the table: 3003."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 3009, total
+    assert total == 3003, total
     exposed = sum(v[3] for v in RESIDUE.values())
     assert exposed == 973, exposed
-    assert total + 18 == 3027
+    assert total + 18 + 6 == 3027
 
 
 def test_every_residue_row_is_self_consistent():
