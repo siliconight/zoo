@@ -1,3 +1,32 @@
+## [1.29.0] - a 1990s cooler: soda, sports drinks, milk, beer
+
+The walker, 2026-09-29: "Bottled water wasn't really a thing in the 1990s in
+USA ... so we should prioritize, soda, gatorade (sports drink), milk, beer",
+with reference photographs of a lager can and bottle, 90s soda cans, a
+sports-drink bottle and a half-gallon milk carton -- references for the look;
+every name on the shelf stays invented.
+
+`LINEUP` is now COLD SODA, SPORTS DRINKS, DAIRY, COLD BEER, ICE COLD DRINKS,
+JUICE & TEA. BOTTLED WATER is gone, word and door (`door_water`), and SPORTS
+DRINKS takes its index in `SECTION_WORDS`, so the other sign regions keep
+theirs. An 8 m run of ten doors is soda, sports drinks, dairy, beer and cans;
+the four-door run in gas_station_a02's food-service room, soda and sports.
+
+SPORTS DRINKS (`door_sports`): 20 oz bottles, an orange cap, the liquid
+through clear plastic in `SPORTS_LIQUIDS` (fruit punch, orange, lemon-lime,
+cool blue, grape), a dark green label and an orange bolt. DAIRY adds
+half-gallon gable-top cartons -- white, red or blue print, a fin and a gable
+-- on alternate shelves between the gallon jugs. COLD BEER adds a shelf of
+long-neck bottles, green or amber glass, a crown, a cream label in the
+brand's band colour, beside the 12-packs and tallboys.
+
+COST: unchanged -- no light, no material, three submissions a run; the glow
+image keeps its size (690 x 522 at a 0.72 m door): water's panel and sign row
+became the sports drink's.
+
+Tests: `test_the_lineup_is_the_walkers_order` and
+`test_no_bottled_water_anywhere_in_a_1990s_cooler` (both fail on 1.28.0).
+
 ## [1.28.0] - the cooler wall sells soda, beer and milk, each behind its own sign
 
 The walker, 2026-09-29: "there should be fridges of cold sodas, beer, milk,

@@ -171,12 +171,21 @@ def test_every_door_sells_what_its_sign_says(w):
     assert f["door_types"] == [C.SECTION_STOCK[word] for word in doors]
 
 
-def test_the_lineup_leads_with_soda_beer_and_milk():
-    """The walker, 2026-09-29: "fridges of cold sodas, beer, milk"."""
-    assert C.LINEUP[:3] == ("COLD SODA", "COLD BEER", "DAIRY")
+def test_the_lineup_is_the_walkers_order():
+    """The walker, 2026-09-29: "we should prioritize, soda, gatorade (sports
+    drink), milk, beer" -- and "bottled water wasn't really a thing in the
+    1990s in USA"."""
+    assert C.LINEUP[:4] == ("COLD SODA", "SPORTS DRINKS", "DAIRY", "COLD BEER")
     f = C.plan(8.0, 0.9, 2.2)["facts"]
-    assert [w for w, _s in f["sections"]][:3] == list(C.LINEUP[:3])
-    assert {"soda", "beer", "milk"} <= set(f["door_types"])
+    assert [w for w, _s in f["sections"]][:4] == list(C.LINEUP[:4])
+    assert {"soda", "sports", "milk", "beer"} <= set(f["door_types"])
+
+
+def test_no_bottled_water_anywhere_in_a_1990s_cooler():
+    assert not [w for w in C.SECTION_WORDS if "WATER" in w]
+    assert "water" not in C.DOOR_TYPES
+    a = C.glow_art(0.72, 1.74)
+    assert not [t for t in a["said"] if "WATER" in t]
     assert set(C.SECTION_STOCK) == set(C.LINEUP) <= set(C.SECTION_WORDS)
     assert set(C.SECTION_STOCK.values()) == set(C.DOOR_TYPES)
 

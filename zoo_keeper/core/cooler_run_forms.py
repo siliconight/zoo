@@ -81,21 +81,31 @@ TUBE_T = 0.014
 
 #: Pixels a metre of the glow art: a door's panel is ~115 x ~270 px.
 TEXEL = 160
-SECTION_WORDS = ("ICE COLD DRINKS", "DAIRY", "BOTTLED WATER", "JUICE & TEA", "COLD SODA",
+SECTION_WORDS = ("ICE COLD DRINKS", "DAIRY", "SPORTS DRINKS", "JUICE & TEA", "COLD SODA",
                  "COLD BEER")
-DOOR_TYPES = ("soda", "cans", "milk", "juice", "beer", "water")
+DOOR_TYPES = ("soda", "cans", "milk", "juice", "beer", "sports")
 #: WHAT A RUN SELLS, IN ORDER (1.28.0). The walker, 2026-09-29: "there
 #: should be fridges of cold sodas, beer, milk, etc, with glowing lights too".
 #: Until this a section's word was drawn by hash and each door's stock by
 #: another, independently, so a DAIRY sign stood over soda bottles and no
 #: section sold beer. Now a run is sections of two doors, read left to right
 #: off this list -- the walker's three first -- and every door carries its
-#: section's stock. An 8 m run (ten doors) is soda, beer, dairy, water and
-#: the canned drinks; a four-door run is soda and beer. A seed may choose among
-#: approved options, never whether the sign says what is behind it.
-LINEUP = ("COLD SODA", "COLD BEER", "DAIRY", "BOTTLED WATER", "ICE COLD DRINKS", "JUICE & TEA")
-SECTION_STOCK = {"COLD SODA": "soda", "COLD BEER": "beer", "DAIRY": "milk",
-                 "BOTTLED WATER": "water", "ICE COLD DRINKS": "cans", "JUICE & TEA": "juice"}
+#: section's stock. A seed may choose among approved options, never whether
+#: the sign says what is behind it.
+#:
+#: THE ORDER IS THE WALKER'S (1.29.0), 2026-09-29: "Bottled water wasn't
+#: really a thing in the 1990s in USA ... so we should prioritize, soda,
+#: gatorade (sports drink), milk, beer". BOTTLED WATER is gone, word and door
+#: alike; SPORTS DRINKS takes its place. An 8 m run (ten doors) is soda,
+#: sports drinks, dairy, beer and the canned drinks; a four-door run is soda
+#: and sports drinks.
+LINEUP = ("COLD SODA", "SPORTS DRINKS", "DAIRY", "COLD BEER", "ICE COLD DRINKS", "JUICE & TEA")
+SECTION_STOCK = {"COLD SODA": "soda", "SPORTS DRINKS": "sports", "DAIRY": "milk",
+                 "COLD BEER": "beer", "ICE COLD DRINKS": "cans", "JUICE & TEA": "juice"}
+#: A sports drink's colours are the liquid's, through a clear bottle: fruit
+#: punch, orange, lemon-lime, a cool blue, grape (the walker's reference: a
+#: 20 oz bottle, orange cap, the liquid showing, a dark label with a bolt).
+SPORTS_LIQUIDS = ((220, 30, 40), (250, 140, 20), (200, 230, 40), (40, 120, 230), (130, 50, 170))
 #: The beers are the window neon's (`club_names.WINDOW_NAMES`) -- one table
 #: of invented beers, two places they are sold. (carton top, carton band)
 BEER_COLOURS = {
@@ -335,6 +345,17 @@ def _shelf_row(c, x0, x1, y_top, y_bot, kind, key, row):
                 c.rect(x, yb - bh + 4, x + bw, yb - 4, bottom)
                 c.rect(x, yb - bh, x + bw, yb - bh + 1, (210, 210, 214))
             x += bw + 1
+        elif kind == "milk" and row % 2 == 1:   # half-gallon gable-top cartons (1.29.0)
+            bw, bh = 10, min(26, y_bot - y_top - 3)
+            if x + bw > x1 - 1: break
+            ink, strip = (((200, 30, 40), (30, 70, 170)),
+                          ((30, 70, 170), (200, 30, 40)))[(_h(key, "carton", row, i) + i) % 2]
+            c.rect(x + 3, y_bot - bh, x + bw - 3, y_bot - bh + 2, (225, 222, 216))   # the fin
+            c.rect(x + 1, y_bot - bh + 2, x + bw - 1, y_bot - bh + 4, (232, 230, 224))  # the gable
+            c.rect(x, y_bot - bh + 4, x + bw, y_bot, (242, 240, 236))
+            c.rect(x + 1, y_bot - bh + 6, x + bw - 1, y_bot - bh + 8, strip)
+            c.rect(x, y_bot - bh + 10, x + bw, y_bot - bh + 15, ink)
+            x += bw + 2
         elif kind == "milk":          # gallon jugs: white, a coloured cap and label band
             bw, bh = 18, min(38, y_bot - y_top - 3)
             if x + bw > x1 - 1: break
@@ -344,10 +365,20 @@ def _shelf_row(c, x0, x1, y_top, y_bot, kind, key, row):
             c.rect(x + 12, y_bot - bh - 2, x + 15, y_bot - bh, cap)
             c.rect(x + 1, y_bot - bh + 18, x + bw - 1, y_bot - bh + 24, cap)
             x += bw + 3
-        elif kind == "beer":          # 12-pack cartons two high, then tallboys (1.28.0)
+        elif kind == "beer":          # 12-packs, tallboys and bottles, a shelf each
             name = CN.WINDOW_NAMES[(_h(key, "beer", row, i) + i) % len(CN.WINDOW_NAMES)]
             top, band = _rgb(BEER_COLOURS[name][0]), _rgb(BEER_COLOURS[name][1])
-            if row % 2 == 0:
+            if row % 3 == 2:          # long-neck bottles, green or amber, cream label (1.29.0)
+                bw, bh = 6, min(24, y_bot - y_top - 4)
+                if x + bw > x1 - 1: break
+                glass = ((40, 110, 50), (120, 70, 25))[(_h(key, "glass", name) + 0) % 2]
+                c.rect(x + 2, y_bot - bh - 1, x + 4, y_bot - bh, (200, 170, 90))     # the crown
+                c.rect(x + 2, y_bot - bh, x + 4, y_bot - bh + 7, glass)
+                c.rect(x, y_bot - bh + 7, x + bw, y_bot, glass)
+                c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 19, (236, 226, 196))
+                c.rect(x + 1, y_bot - bh + 14, x + bw - 1, y_bot - bh + 16, band)
+                x += bw + 2
+            elif row % 3 == 0:
                 bw, bh = 20, min(11, (y_bot - y_top - 3) // 2)
                 if x + bw > x1 - 1: break
                 for tier in (0, 1):
@@ -362,17 +393,15 @@ def _shelf_row(c, x0, x1, y_top, y_bot, kind, key, row):
                 c.rect(x, y_bot - bh + 5, x + bw, y_bot - 5, band)
                 c.rect(x, y_bot - bh, x + bw, y_bot - bh + 1, (210, 210, 214))
                 x += bw + 1
-        elif kind == "water":         # clear blue bottles, brand caps and labels (1.28.0)
-            bw, bh = 8, min(30, y_bot - y_top - 3)
+        elif kind == "sports":        # 20 oz sports drinks: orange cap, the liquid, a bolt (1.29.0)
+            bw, bh = 9, min(34, y_bot - y_top - 3)
             if x + bw > x1 - 1: break
-            # three brands a shelf, not one bottle stamped: `test_cooler_run`
-            # read the first cut as four colours, a flat panel
-            cap, band = (((30, 90, 200), (40, 110, 210)), ((236, 236, 240), (30, 150, 90)),
-                         ((20, 160, 200), (220, 60, 50)))[(_h(key, "water", row, i) + i) % 3]
-            c.rect(x + 2, y_bot - bh, x + 6, y_bot - bh + 3, cap)
-            c.rect(x, y_bot - bh + 3, x + bw, y_bot, (170, 208, 236))
-            c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 18, (246, 248, 250))
-            c.rect(x, y_bot - bh + 14, x + bw, y_bot - bh + 16, band)
+            liquid = SPORTS_LIQUIDS[(_h(key, "sports", row, i) + i) % len(SPORTS_LIQUIDS)]
+            c.rect(x + 2, y_bot - bh, x + 7, y_bot - bh + 3, (240, 120, 20))
+            c.rect(x + 1, y_bot - bh + 3, x + 8, y_bot - bh + 6, liquid)
+            c.rect(x, y_bot - bh + 6, x + bw, y_bot, liquid)
+            c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 22, (24, 96, 44))
+            c.rect(x + 3, y_bot - bh + 14, x + 6, y_bot - bh + 20, (250, 130, 20))
             x += bw + 2
         else:                         # juice and tea: square cartons and tall bottles
             bw, bh = 11, min(30, y_bot - y_top - 3)
@@ -411,7 +440,7 @@ def glow_art(door_w, door_h, key="cooler_run", variant=0):
             _shelf_row(c, x0 + 1, x0 + DW - 1, y_top, y_bot, dt, key, k)
         rects["door_" + dt] = (x0, 0, x0 + DW, DH)
     # sign sections: white letters on a coloured band, one row per word
-    band_cols = ((20, 70, 160), (190, 30, 40), (20, 120, 170), (230, 120, 20), (40, 140, 60),
+    band_cols = ((20, 70, 160), (190, 30, 40), (0, 130, 110), (230, 120, 20), (40, 140, 60),
                  (150, 100, 20))
     for j, word in enumerate(SECTION_WORDS):
         y0 = DH + j * SH
