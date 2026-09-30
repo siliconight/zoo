@@ -1,0 +1,163 @@
+{
+  "species": "pole_flyers",
+  "version": 1,
+  "collision": false,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Authored 2026-09-30 for Zoo 1.34.0 from the walker's six photographs of flyers on real poles (reference only: no name, mark or composition in them reaches a texture), their placement guide and their faded-'80s palette guide (root repo docs/reference/). Construction and art-direction knowledge only. The sheets are poster_art's alley handbills, whose copy is core/poster_copy.py, invented and denylist-checked by tests/test_poster_wall.py."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.09,
+      "max": 0.4,
+      "default": 0.156
+    },
+    "depth": {
+      "min": 0.09,
+      "max": 0.4,
+      "default": 0.156
+    },
+    "height": {
+      "min": 0.3,
+      "max": 2.4,
+      "default": 1.12
+    }
+  },
+  "parts": [
+    "PoleFlyers_Art"
+  ],
+  "params": {
+    "form": [
+      "pair",
+      "stack",
+      "wrap"
+    ]
+  },
+  "module_variants": 4,
+  "materials": {
+    "default": "paper",
+    "options": [
+      "paper"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1970s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1980s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "1990s": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "modern": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "office": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "paper",
+      "color": [
+        0.9,
+        0.88,
+        0.84
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 800
+  },
+  "attachments": [],
+  "keywords": [
+    "pole flyers",
+    "pole_flyers",
+    "telephone pole flyers",
+    "flyers on a pole",
+    "handbills on a pole"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  },
+  "notes": "FLYERS ON A POLE ARE ONE MODULE: a sleeve of alley handbills curved round the pole, every sheet a tile in the module's atlas, one mesh and one painted material -- one draw per pole. Width and depth are the sleeve's outer diameter: the pole's plus the paper; the pole itself is not built. `form` is how papered it is, from the walker's photographs: pair (two sheets up the front), stack (a column of three over older paper), wrap (courses all the way round, the oldest under the newest, shreds at the foot). The newest layer is printed day-glo; older layers fade toward newsprint, bright inks first. The slot is filled by construction. No collision. Triangle budget 800, a regression detector and not a frame cost: measured 706 at the genome's corner (wrap, 0.09 m, 2.4 m) over 672 plans spanning the whole range."
+}

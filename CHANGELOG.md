@@ -1,3 +1,56 @@
+## [1.34.0] - flyers on a pole: a sleeve of handbills, one draw
+
+Cold run 9118 stood a flat 0.30 m alley bill on each 0.12 m pole, and it read
+as a small sign. The walker sent six photographs of flyers on real poles --
+a festival bill pasted twice, a single gig bill, columns up one side, poles
+wrapped knee to head in layered torn paper with shreds at the foot -- and
+their faded-'80s palette guide, "only if it helps, temper this". New species
+`pole_flyers` (`core/pole_flyers_forms.py`, `recipes/pole_flyers.py`).
+
+THE SHAPE. Sheets of `poster_art`'s alley handbills CURVED ROUND THE POLE:
+each a strip of flat facets on a circle, a vertex every 15 degrees and at the
+arc's ends, in four layers a paper's thickness (4 mm) apart. Width and depth
+are the sleeve's outer diameter; the pole is not built. Three forms from the
+photographs: `pair` (two sheets up the front, half the time the same bill
+twice), `stack` (a column of three over an older sheet and a scrap), `wrap`
+(courses all the way round, shreds at the foot). One atlas, one mesh, one
+painted material: one draw a pole, however many sheets.
+
+HISTORY, TEMPERED. The newest layer is printed as `poster_art` paints it;
+the two older layers fade toward the palette guide's dusty newsprint
+(#BDB39A), by 0.38 and 0.62, and the fade scales with each pixel's own value
+-- bright ink goes first, a dark title holds. Only this species' older paper
+fades: the club, bar and store posters are untouched. `card_art.paint`
+applies a wall poster tile's `fade` when it has one.
+
+LAYERS BY ALLOCATION, NOT ARITHMETIC. A first draft set each sheet's layer
+by index and would have put overlapping sheets on one plane where a course
+wraps round and where courses meet. Each sheet now takes the first layer in
+its preference list where it overlaps nothing already there, in angle round
+the pole and in height.
+
+THE SLOT IS FILLED BY CONSTRUCTION, measured over the genome's whole range
+(7 diameters 0.09-0.40 m x 8 bands 0.3-2.4 m x 3 forms x 4 variants, 672
+plans): every one within Zoo's 2 cm on all three axes, centred, no two faces
+sharing a plane. Two things the sweep found and fixed: a pair on a 0.30 m
+wooden pole covered 118 degrees of it and fell 4 cm short of the slot's
+width -- any cardinal side left bare now gets a faded scrap, as a real pole
+has -- and paper on the INNERMOST layer at both ends of an axis sits 12 mm in
+each side, 24 mm short, so side paper goes on layer 1 or above; a stack's
+older sheet overshot a 0.3-0.5 m band and is clamped inside it.
+
+Triangle budget 800, a regression detector and not a frame cost: measured
+706 at the genome's corner (wrap, 0.09 m, 2.4 m).
+
+Tests: `tests/test_pole_flyers.py` (26 + 3 in Blender): the genome and the
+kit stem; every form fills, centred, with no shared plane, at 5 diameters and
+3 bands in every variant, inside the budget; the paper curves round the pole
+and faces out; only older paper fades; fading takes bright ink before dark;
+a pair keeps paper on the back; determinism; a built pole is one object and
+one material and emits nothing. Census (`tools/coplanar_census.py`): 3
+builds, 0 with coincident pairs, 0 that did not build. The species
+registries: 89 species, 345 census builds.
+
 ## [1.33.0] - the club posters under blacklight
 
 Cold run 9115 hung the club posters and showed the club's dim coloured light

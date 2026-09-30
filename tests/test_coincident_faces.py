@@ -379,7 +379,12 @@ DID_NOT_BUILD = {"boots"}
 #: builds, 0 with coincident pairs, 0 that did not build" (4 / 6 / 24 tris).
 #: Overlapping sheets stand `LAYER` (4 mm) apart, past the 2 mm tolerance,
 #: and the planner's own test runs `coincident_pairs` over every family.
-CENSUS_BUILDS = 342
+#: 1.34.0: `pole_flyers`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build". Sheets on one
+#: layer are allocated so none overlaps another there (`pole_flyers_forms`),
+#: and its test runs `coincident_pairs` over 5 diameters x 3 bands x 4
+#: variants of every form.
+CENSUS_BUILDS = 345
 
 
 def test_the_census_covers_every_species_there_is():
