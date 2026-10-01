@@ -183,9 +183,14 @@ def module_stem(typ: str, theme: str, style: int,
                 openings_tag: str = None, height_cm: int = None,
                 species: str = None, form: str = None, stock: str = None,
                 variant: int = None, material: str = None,
-                glazing: str = None, budget_tiles: bool = False) -> str:
+                glazing: str = None, budget_tiles: bool = False,
+                material_in: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
-    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_v<hash>][_o<hash>][_<state>]``.
+    ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_i<material_in>][_v<hash>][_o<hash>][_<state>]``.
+
+    ``material_in`` (1.38.0) is a wall's ROOM-FACE kind: an exterior wall in
+    an outside-only finish is built with its room face in the building's
+    interior finish, and that is another build of the same wall.
 
     ``form``, ``stock`` and ``variant`` (0.84.0) are a VOLUME's dressing
     fields -- see :data:`DRESSING_FIELDS` -- and add nothing when absent,
@@ -256,6 +261,8 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_n{int(variant)}"
     if material:
         base += f"_m{material}"
+    if material_in:
+        base += f"_i{material_in}"
     # THE STOREFRONT IN THE NAME (1.18.0): `_g<glazing>` for a glazing that
     # changes the BUILD (`STEM_GLAZINGS`), after the material and before the
     # hashes and the state. A storefront wall and a plain glass-facade wall
@@ -286,6 +293,10 @@ STEM_GLAZINGS = ("storefront",)
 #: name it adds. Deli Counter sets it on the floor and ceiling of a room lit
 #: from outside through storefront glass (see `partnames.LIGHT_BUDGET_MARK`).
 LIGHT_BUDGET_ROLES = ("floor", "ceiling")
+#: The roles whose module can carry a ROOM FACE (1.38.0): a full wall segment
+#: and the openings in one. Deli Counter's `themed_tscn.INNER_FACE_ROLES` is
+#: the mirror.
+INNER_FACE_ROLES = ("wall", "window", "doorway", "breach")
 LIGHT_BUDGET_STEM = "_lbt"
 #: The states a STOREFRONT door draws itself (1.18.0): its open state has no
 #: leaves. Scoped to storefront doors by `_state_art_for_slot`, so no other
@@ -679,6 +690,9 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
 
         storefront = s.get("glazing") if s.get("glazing") in STEM_GLAZINGS else None
         budget = bool(s.get("light_budget_tiles")) and typ in LIGHT_BUDGET_ROLES
+        # THE ROOM FACE (1.38.0): a known kind on a wall-family slot, else none
+        inner = (str(s["material_in"]) if typ in INNER_FACE_ROLES and s.get("material_in")
+                 in skins.KNOWN_KINDS else None)
 
         def _slot_art(sp, _sf=storefront):
             extra = STOREFRONT_STATE_ART.get(sp, frozenset()) if _sf else frozenset()
@@ -696,7 +710,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                                depth_cm, vtag, otag, height_cm,
                                species=hint if species == hint else None,
                                material=mtag, glazing=storefront,
-                               budget_tiles=budget, **dress)
+                               budget_tiles=budget, material_in=inner, **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -738,7 +752,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             key = (typ, width_cm, st, species, glaze, slot_style,
                    dress["form"], dress["stock"], dress["variant"],
                    mtag, dims_key, _void_key(fit.get("voids")),
-                   _opening_key(fit.get("openings")), budget)
+                   _opening_key(fit.get("openings")), budget, inner)
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -764,6 +778,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "pivot": fit.get("pivot", "center"),
                     "glazing": glaze,
                     "light_budget_tiles": budget,
+                    "material_in": inner,
                     "count": 0,
                 }
                 b.update(dress)

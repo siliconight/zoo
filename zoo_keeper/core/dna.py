@@ -434,6 +434,9 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     # meshes (`_arch.build_slab` marks them, `partnames.LIGHT_BUDGET_MARK`).
     if module.get("light_budget_tiles"):
         plan["light_budget_tiles"] = True
+    # A wall's ROOM FACE (1.38.0): the kind its -Y face is built in
+    if module.get("material_in"):
+        plan["material_in"] = str(module["material_in"])
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan

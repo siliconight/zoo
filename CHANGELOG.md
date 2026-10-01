@@ -1,3 +1,38 @@
+## [1.38.0] - a wall module with a room face
+
+Cold run 9120's FLAPPHAS walk, finding 3: the gas station's exterior stone
+on the inside of its exterior walls, behind the register, in the stockroom
+and the office. A wall module wore its slot's one material on both faces,
+and on purpose -- its relief is carved on both faces so it "needs no idea
+which face is the street". Deli Counter 0.166.0 now says which: an exterior
+wall in an outside-only finish (brick, stone, wood, siding: about 2,000
+modules in 15 buildings) carries `material_in`, its building's interior
+finish.
+
+WHICH FACE IS THE ROOM was measured, not reasoned (the first round of
+reasoning gave N/S and E/W opposite answers): a module's local +Y, pushed
+through Deli Counter's `tscn_export.godot_basis` at the slot's rotation,
+lands outdoors on all four facings; and `themed_tscn._fit_rotation` tries
+the slot's own rotation first and keeps it on a tie, so a south wall stays
+at 180 and is not turned inside out.
+
+  * `kit.plan_kit`: a wall, window, doorway or breach slot's `material_in`
+    (a known kind; anything else is dropped) is in the module key and the
+    stem, `_i<kind>` after `_m<kind>` -- the one- and two-material walls are
+    two builds. `INNER_FACE_ROLES`; Deli Counter's mirror has the same.
+  * `dna.resolve_module_plan` carries it onto the plan.
+  * `_arch.build_slab`: every structure face pointing -Y on the -Y half --
+    the room face and its recessed relief fields -- takes the interior
+    finish. Jambs, sill and head keep the wall's own. Not on storefronts.
+
+THE COST is one more material, so one more draw, on each module it applies
+to -- priced on cold run 9123's package against 9122's (see its notes).
+
+Tests: `tests/test_inner_face.py` -- the room face is its own stem; an
+unknown kind or a volume carries none; built, the -Y face is the interior
+finish and the +Y face and an opening's jambs are the wall's (both Blender
+cases fail without the `_arch` change).
+
 ## [1.37.1] - the named sign stops mirroring its own lamp
 
 Cold run 9122 photographed the new door signs named, and two of the three

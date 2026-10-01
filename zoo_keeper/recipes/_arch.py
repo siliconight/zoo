@@ -12,6 +12,11 @@ from ..bpylayer import geometry, materials
 from ..core import arch, partnames
 
 
+#: The flat colour a room face falls back to with no skin library: a warm
+#: off-white wall, the drywall a 1990s store is painted.
+INNER_COLOR = (0.82, 0.80, 0.74)
+
+
 def build_slab(plan, streams, collection, species):
     dims = plan["dimensions"]
     w, d, h = dims["width"], dims["depth"], dims["height"]
@@ -152,6 +157,25 @@ def build_slab(plan, streams, collection, species):
     structure = materials.make_material(
         f"M_{root}_{plan['material']}", plan["color"], plan["material"])
     materials.assign(objs, structure)
+    # THE ROOM FACE (1.38.0). Deli Counter places a wall module with its
+    # local +Y outdoors on every facing (measured through its placement
+    # basis), so the ROOM is at -Y: every structure face pointing -Y on the
+    # -Y half -- the wall's inner face and its recessed fields' -- takes the
+    # interior finish. Jambs, sill and head keep the wall's own: they face
+    # across the opening, not into the room. Before the storefront panes and
+    # the window glass below, which are not structure.
+    inner = plan.get("material_in")
+    if inner and species in ("wall", "window", "doorway", "breach") and not plan.get("storefront"):
+        room = materials.make_material(f"M_{root}_{inner}", INNER_COLOR, inner)
+        done = set()
+        for o in objs:
+            if id(o.data) in done:        # a mesh shared by two parts takes it once
+                continue
+            done.add(id(o.data))
+            o.data.materials.append(room)
+            for poly in o.data.polygons:
+                if poly.normal.y < -0.9 and poly.center.y < 0.0:
+                    poly.material_index = len(o.data.materials) - 1
 
     # the storefront's panes: the theme's glass surface at a storefront's
     # own opacity (`arch.SF_GLASS_OPACITY`, clear float glass), one material
