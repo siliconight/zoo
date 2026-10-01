@@ -1,3 +1,22 @@
+## [1.38.1] - the remainders get the room face too
+
+Cold run 9123 photographed the room face on every full segment and opening of
+the gas station's stone walls, and stone still showing inside at its
+remainders: a strip at the stockroom's frame, beside the sales floor's window,
+at the walk-in cooler's corner. A remainder is the unit `wallEnd` Deli Counter
+scales per slot, and 1.38.0 left it out on the guess that a scaled unit box
+might not keep its room side. It does: Deli Counter's placement basis is
+Ry(-t) x Scale_LOCAL, so a positive per-slot scale is applied in the module's
+own frame before the turn and the unit box's -Y face (y = -0.5) is the room
+side as a segment's is.
+
+`kit.INNER_FACE_ROLES` and `_arch.build_slab`'s room-face roles gain
+`wallEnd`; its stem gains `_i<kind>` (`wallEnd_delco_1997_01_mstone_idrywall`).
+Deli Counter 0.166.1 stamps its remainders.
+
+Tests: `tests/test_inner_face.py` -- a remainder is its own build; built, its
+-Y face is the interior finish and its +Y face and ends are the wall's.
+
 ## [1.38.0] - a wall module with a room face
 
 Cold run 9120's FLAPPHAS walk, finding 3: the gas station's exterior stone

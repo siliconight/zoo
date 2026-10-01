@@ -165,7 +165,8 @@ def build_slab(plan, streams, collection, species):
     # across the opening, not into the room. Before the storefront panes and
     # the window glass below, which are not structure.
     inner = plan.get("material_in")
-    if inner and species in ("wall", "window", "doorway", "breach") and not plan.get("storefront"):
+    if inner and species in ("wall", "window", "doorway", "breach", "wallEnd") \
+            and not plan.get("storefront"):
         room = materials.make_material(f"M_{root}_{inner}", INNER_COLOR, inner)
         done = set()
         for o in objs:

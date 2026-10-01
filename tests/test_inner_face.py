@@ -40,14 +40,25 @@ def test_an_unknown_kind_or_a_volume_carries_no_room_face():
     assert all(not m.get("material_in") for m in plan["modules"])
 
 
+def test_a_remainder_is_its_own_build_too():
+    """1.38.1: the unit `wallEnd` takes the room face (cold run 9123 showed
+    stone at the gas station's remainders)."""
+    end = _slot(slot_id="r", size_mod="end", fit={"dims": [0.6, 0.3, 3.9], "pivot": "center"})
+    plan = kit.plan_kit({"building_id": "t", "slots": [end, dict(end, slot_id="r2", material_in=None)]},
+                        theme="delco_1997", style=1)
+    stems = sorted(m["stem"] for m in plan["modules"])
+    assert stems == ["wallEnd_delco_1997_01_mstone", "wallEnd_delco_1997_01_mstone_idrywall"]
+
+
 @pytest.mark.parametrize("role,openings", [("wall", []),
                                            ("window", [{"kind": "window", "width": 1.2,
-                                                        "height": 1.2, "sill": 0.9}])])
+                                                        "height": 1.2, "sill": 0.9}]),
+                                           ("end", [])])
 def test_bpy_the_minus_y_face_is_the_room_and_the_plus_y_face_is_the_wall(tmp_path, role, openings):
     bpy = pytest.importorskip("bpy")
     from zoo_keeper.bpylayer import build
     from zoo_keeper.bpylayer.export import _COL_SUFFIXES
-    slot = _slot(role=role)
+    slot = _slot(role="wall", size_mod="end") if role == "end" else _slot(role=role)
     slot["fit"]["openings"] = openings
     if role == "window":
         slot["fit"]["dims"] = [2.0, 0.3, 3.0]      # inside the window genome's height range

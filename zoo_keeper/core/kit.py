@@ -294,9 +294,11 @@ STEM_GLAZINGS = ("storefront",)
 #: from outside through storefront glass (see `partnames.LIGHT_BUDGET_MARK`).
 LIGHT_BUDGET_ROLES = ("floor", "ceiling")
 #: The roles whose module can carry a ROOM FACE (1.38.0): a full wall segment
-#: and the openings in one. Deli Counter's `themed_tscn.INNER_FACE_ROLES` is
-#: the mirror.
-INNER_FACE_ROLES = ("wall", "window", "doorway", "breach")
+#: and the openings in one -- and since 1.38.1 a remainder, the unit
+#: `wallEnd` Deli Counter scales per slot (its scale is applied in the
+#: module's own frame, so its -Y face is the room side too). Deli Counter's
+#: `themed_tscn.INNER_FACE_ROLES` is the mirror.
+INNER_FACE_ROLES = ("wall", "window", "doorway", "breach", "wallEnd")
 LIGHT_BUDGET_STEM = "_lbt"
 #: The states a STOREFRONT door draws itself (1.18.0): its open state has no
 #: leaves. Scoped to storefront doors by `_state_art_for_slot`, so no other
