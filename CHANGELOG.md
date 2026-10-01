@@ -1,3 +1,34 @@
+## [1.37.1] - the named sign stops mirroring its own lamp
+
+Cold run 9122 photographed the new door signs named, and two of the three
+with a white blob mid-word (FLAPPHAS, TERMINAL A). Lux stands a sign's light
+0.29 m in front of its face, and 1.37.0's face took the pylon's diffuse copy
+(0.6) on the backlit material's 0.35 roughness -- right for a pylon with no
+lamp before it, wrong for a sign with one.
+
+MEASURED on 9122's walk copy, the gas station's fixtures rebuilt and swapped
+in, one given station square to the sign, a fixed rectangle round it (8,000-
+9,300 field pixels): the share of the sign's pixels clipped to white --
+
+    9122 as shipped          26.5%   field (80, 153, 117)
+    the same, re-shot        26.4%   (the control: the instrument's floor)
+    roughness 1.0 only       26.2%   (the blob broader, as bright)
+    roughness 1.0, copy 0.15 20.0%   field (78, 141, 110), the blob gone
+
+So the specular theory was WRONG -- matte alone moved 0.3 points -- and the
+diffuse copy was the blob. The rest of the 20.0% is the letters, which clip
+at this emission whatever the lamp does. The first pass of that instrument
+was blind: it deleted the GLB's import cache, did not re-import, and shot
+four frames with no sign in them that agreed to the decimal.
+
+`sign_box` builds the named face at `SIGN_ROUGHNESS` 1.0 and `SIGN_ALBEDO`
+0.15; its glow is unchanged. `make_backlit_material` takes an optional
+`roughness` (default 0.35, so every other backlit face -- ATM, pump, pylon,
+posters -- is unchanged) and `build_art` passes one through when given.
+
+Tests: the Blender sign test reads the face's `baseColorFactor` <= 0.15 and
+`roughnessFactor` 1.0 from the GLB; it fails at the old 0.6.
+
 ## [1.37.0] - the sign over a door says who is inside
 
 Cold run 9120's FLAPPHAS walk found the box over the gas station's door lit

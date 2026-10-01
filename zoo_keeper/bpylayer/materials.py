@@ -406,7 +406,7 @@ def image_from_png(name, png_bytes):
     return img
 
 
-def make_backlit_material(name, image, strength, albedo_factor):
+def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35):
     """A lit face whose artwork is its own light: ``image`` drives Emission
     Color at ``strength`` and, dimmed by ``albedo_factor``, Base Color.
 
@@ -426,7 +426,10 @@ def make_backlit_material(name, image, strength, albedo_factor):
     mat.use_nodes = True
     tree = mat.node_tree
     bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Roughness"].default_value = 0.35
+    # 0.35 unless asked: a face with a LAMP IN FRONT OF IT (a door sign, Lux
+    # stands its source 0.29 m off the face) takes a specular hot spot at
+    # 0.35 -- cold run 9122's FLAPPHAS and TERMINAL A, a white blob mid-word
+    bsdf.inputs["Roughness"].default_value = float(roughness)
     bsdf.inputs["Metallic"].default_value = 0.0
     tex = tree.nodes.new("ShaderNodeTexImage")
     tex.image = image

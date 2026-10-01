@@ -45,7 +45,8 @@ def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
     image = materials.image_from_png(atlas["name"], atlas["canvas"].png())
     if lit:
         mat = materials.make_backlit_material(
-            f"M_{name}_{atlas['name']}_Face", image, lit[0], lit[1])
+            f"M_{name}_{atlas['name']}_Face", image, lit[0], lit[1],
+            *(() if roughness is None else (roughness,)))
     else:
         mat = materials.make_painted_material(
             f"M_{name}_{atlas['name']}_Art", image,

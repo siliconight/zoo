@@ -10,6 +10,13 @@ from __future__ import annotations
 from ..bpylayer import geometry, materials
 
 _WALL_GAP = 0.2      # DC's _SIGN_OUT: distance from face plane back to wall
+#: THE NAMED FACE TAKES LITTLE LIGHT (1.37.1). Its own lamp stands 0.29 m in
+#: front of it (Lux), and at the pylon's 0.6 diffuse copy and the backlit
+#: material's 0.35 roughness cold run 9122 photographed a white hot spot
+#: mid-word on FLAPPHAS and TERMINAL A. The glow is unchanged; what the face
+#: no longer does is mirror the lamp in front of it.
+SIGN_ALBEDO = 0.15
+SIGN_ROUGHNESS = 1.0
 
 
 def build(plan, streams, collection):
@@ -108,7 +115,8 @@ def build(plan, streams, collection):
                  "edge": {"kind": "storefront_sign", "w_m": 0.1, "h_m": 0.1, "edge": True,
                           "text": "", "colours": said["colours"]}}
         got, _atlas = build_art([front, rim], collection, dict(plan, _tiles=tiles), streams,
-                                "SignBox_Face", lit=(PY.GLOW_EMISSION, PY.GLOW_ALBEDO))
+                                "SignBox_Face", roughness=SIGN_ROUGHNESS,
+                                lit=(PY.GLOW_EMISSION, SIGN_ALBEDO))
         objs += got
         print(f"[sign_box] {w:.2f} x {h:.2f} {said['kind']}: {said['text']}")
 

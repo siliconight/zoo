@@ -134,3 +134,11 @@ def test_bpy_a_sign_is_named_art_in_one_face_material(tmp_path):
     doc = json.loads(raw[20:20 + ln])
     lit = [m["name"] for m in doc["materials"] if m.get("emissiveFactor") and max(m["emissiveFactor"]) > 0]
     assert len(lit) == 1 and lit[0].endswith("_Face"), lit
+    # 1.37.1: the face takes little light and mirrors none -- its own lamp
+    # stands 0.29 m in front of it, and at the pylon's 0.6 diffuse copy cold
+    # run 9122 photographed a white blob mid-word (26.5% of the sign clipped
+    # against 20.0% with the copy at 0.15; matte alone moved it 0.3 points)
+    face = next(m for m in doc["materials"] if m["name"] == lit[0])
+    pbr = face.get("pbrMetallicRoughness", {})
+    assert max(pbr.get("baseColorFactor", [1.0, 1.0, 1.0])[:3]) <= 0.15 + 1e-6, pbr
+    assert pbr.get("roughnessFactor", 1.0) == pytest.approx(1.0), pbr
