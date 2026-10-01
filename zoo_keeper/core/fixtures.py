@@ -337,6 +337,10 @@ def plan(manifest: dict, types=None) -> dict:
             if a.get("color"):
                 # the gel: the lens reads in the colour of the pool it makes
                 placement["gel"] = str(a.get("color"))
+            if a.get("business"):
+                # WHO IS INSIDE (1.37.0): the building's identity, which the
+                # sign's face reads its name from (`storefront_names`)
+                placement["business"] = str(a.get("business"))
             size = a.get("size")
             if (isinstance(size, (list, tuple)) and len(size) >= 2):
                 # DC sizes the panel (signs); the builder clamps it into the

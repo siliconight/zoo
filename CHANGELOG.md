@@ -1,3 +1,50 @@
+## [1.37.0] - the sign over a door says who is inside
+
+Cold run 9120's FLAPPHAS walk found the box over the gas station's door lit
+and BLANK, and 9121 attributed it: not Lux (its spawner turns its own preview
+quad off at fixture markers) but `sign_box`, which painted its face only from
+a Pixelcoat sign pack -- and no theme ships one. So every sign Deli Counter
+derives over a storefront door was a plain glowing panel: 102 across the
+library, all three on club_block_014. The walker: "do the blank sign over the
+door next". New: `core/storefront_names.py`.
+
+WHO SAYS WHAT. Deli Counter 0.165.0 stamps every sign anchor with the
+building's identity (`business`: `level_design.club_building_id`, its name and
+recipe). `fixtures.plan` carries it on the placement and `build_fixtures`
+into the recipe's plan. `storefront_names.sign_for` reads the KIND from the
+identity's words and the NAME from that kind's list by the identity's crc32
+-- Deli Counter's key and modulus for a club's `neon_sign`, so a club's door
+says what its neon says. A gas station says FLAPPHAS in the pylon's variant-0
+colours; banks, delis, pizza, pawn, pharmacy, clinic, market, card shop,
+brewery, casino, funeral home and country club each have invented Delco
+names; police, court, museum, rail, airport, arena and stadium say what they
+are in plain words; anything else (apartments, mansions, offices, depots: 22
+of the 102) shows a street number. Never blank: a sign with no `business` is
+named from its anchor id, which no kind matches.
+
+THE FACE. With no sign pack, the face is painted art -- one quad, its four
+edges in the field colour -- in one backlit atlas (emission 1.4, albedo 0.6:
+the pylon's), its material still `_Face` so a power cut takes it. A name sets
+as large as it fits on one line or two, the lines stacked on the face's own
+line height: the first render stacked them as `fit_text` does, on the trimmed
+glyphs plus 1-2 px, and on a 0.6 m sign the two lines read as one.
+
+THE CENSUS: `sign_box` 6 -> 0 coincident pairs. The face no longer has a back
+lying on the cabinet's front, and the standoff arms run 2 cm into the cabinet
+instead of ending on its back. The residue row retired; total 3003 -> 2997.
+
+WHAT THE DENYLISTS CAUGHT: YOUSE CREDIT UNION (UNION is the city's soccer
+club) is YOUSE CREDIT CO-OP. STADIUM is on the card-brand word list (a card
+line); the civic kinds' plain words are asked every list but that one.
+
+Tests: `tests/test_storefront_names.py` (13 + 1 in Blender): the kind of 32
+library identities, a station is not a gas station, a club's door is its
+neon's name (and `neon_sign`'s 24 variants are the table), FLAPPHAS in the
+pylon's colours, a street number never a blank, every name sets on every
+sign width the library derives (1.9-5.0 m), every name invented, the business
+rides the anchor to the placement; in Blender, the face is named art in one
+`_Face` material and the flat `SignBox_Face` is gone.
+
 ## [1.36.0] - the pump, drawn: a 1997 two-sided mechanical dispenser, two draws
 
 The walker, 2026-09-30, after cold run 9120's FLAPPHAS walk found the

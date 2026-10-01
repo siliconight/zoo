@@ -722,6 +722,9 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # Recipes with per-anchor resolution needs (sign pack picks) key on
         # the anchor id — stable across rebuilds, unique across the site.
         sp_plan["anchor_id"] = p["anchor_id"]
+        # 1.37.0: and the building's identity, which a sign's face names
+        if p.get("business"):
+            sp_plan["business"] = p["business"]
         # v0.94: a FIXTURES row may pin recipe params (the club can's form),
         # and an anchor may carry a gel colour for the lit lens. Merged over
         # whatever `dna.resolve_plan` chose, not instead of it.

@@ -307,7 +307,9 @@ RESIDUE = {
     "counter": (6, 0, 6, 0, 45.0, 202227.8),
     "doorway": (6, 0, 6, 0, 120.0, 1271.2),
     "jersey_barrier": (6, 0, 6, 0, 145.91, 39853.4),
-    "sign_box": (6, 0, 6, 0, 20.0, 84233.2),
+    # "sign_box": (6, 0, 6, 0, 20.0, 84233.2) until 1.37.0 named its face:
+    # the face's back lay on the cabinet's front, and the arms' ends on its
+    # back. Its census since: 3 builds, 0 pairs.
     "traffic_signal": (6, 0, 6, 0, 17.86, 740.1),
     "wall_pack": (6, 0, 6, 0, 20.0, 918.0),
     "bollard": (5, 0, 5, 0, 50.0, 395.5),
@@ -411,12 +413,13 @@ def test_nothing_is_gated_and_in_the_residue_at_once():
 def test_the_residue_is_the_count_the_entry_claims():
     """0.96.0 shipped 3027 pairs over 61 species; that release removed 18 of
     them (stop_sign's 9, mailbox's 9 of 15) and left 3009. 1.35.0 redrew the
-    ATM, whose 6 (none exposed) were in the table: 3003."""
+    ATM, whose 6 (none exposed) were in the table: 3003. 1.37.0 painted the
+    sign over a door, and `sign_box`'s 6 went with its blank face: 2997."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 3003, total
+    assert total == 2997, total
     exposed = sum(v[3] for v in RESIDUE.values())
     assert exposed == 973, exposed
-    assert total + 18 + 6 == 3027
+    assert total + 18 + 6 + 6 == 3027      # 0.96.0's, the ATM's, sign_box's
 
 
 def test_every_residue_row_is_self_consistent():

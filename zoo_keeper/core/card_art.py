@@ -470,6 +470,10 @@ def paint(spec):
     if kind.startswith("pump_"):
         from . import pump_forms as PF
         return PF.paint(spec)
+    # THE SIGN OVER A DOOR (1.37.0): `storefront_names`' face
+    if kind == "storefront_sign":
+        from . import storefront_names as SN
+        return SN.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
         c = PA.paint(spec["family"], w, hgt, spec["row"], key)[0]
