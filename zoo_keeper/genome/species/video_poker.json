@@ -1,0 +1,73 @@
+{
+  "species": "video_poker",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.55,
+      "max": 0.8,
+      "default": 0.65
+    },
+    "depth": {
+      "min": 0.5,
+      "max": 0.8,
+      "default": 0.65
+    },
+    "height": {
+      "min": 1.55,
+      "max": 1.95,
+      "default": 1.75
+    }
+  },
+  "parts": [
+    "VideoPoker_Art",
+    "VideoPokerGlow_Art"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.1,
+        0.09,
+        0.1
+      ],
+      "wear": 0.25,
+      "bevel": 0.004
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.1,
+        0.09,
+        0.1
+      ],
+      "wear": 0.32,
+      "bevel": 0.004,
+      "ambient": 0.3
+    }
+  },
+  "budgets": {
+    "tris_lod0": 120
+  },
+  "attachments": [],
+  "keywords": [
+    "video poker",
+    "poker machine",
+    "skill game",
+    "gambling machine",
+    "slot machine",
+    "amusement machine"
+  ],
+  "module_variants": 4,
+  "notes": "1.39.0: a 1997 tavern video-poker upright, 'for amusement only' -- plinth, cabinet with a painted belly glass (pay table, coin door, bill slot), a sloped button deck, a recessed CRT showing a dealt hand, and a lit marquee -- in TWO atlases and two materials (painted; backlit `_Face`), so two draws. `variant` picks one of four invented Delco brands (core/video_poker_forms.BRANDS)."
+}

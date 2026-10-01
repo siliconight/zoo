@@ -474,6 +474,11 @@ def paint(spec):
     if kind == "storefront_sign":
         from . import storefront_names as SN
         return SN.paint(spec)
+    # THE VIDEO-POKER CABINET (1.39.0): its belly glass, deck, CRT and
+    # marquee are `video_poker_forms`' tiles
+    if kind.startswith("vp_"):
+        from . import video_poker_forms as VF
+        return VF.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
         c = PA.paint(spec["family"], w, hgt, spec["row"], key)[0]

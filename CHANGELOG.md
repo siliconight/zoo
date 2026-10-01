@@ -1,3 +1,45 @@
+## [1.39.0] - the 1997 tavern video-poker cabinet
+
+The walker, 2026-09-30: "actually put in 'PA Skill Games' ... into the level.
+We would see them in convenient stores, bars, and strip clubs. High stool to
+play" -- and, agreeing to the period push-back, the 1997 version: a boxy
+upright with a CRT and the "for amusement only" sticker, not the 2010s curved
+LCD. New species `video_poker`: `core/video_poker_forms.py`,
+`recipes/video_poker.py`, its genome.
+
+WHAT IS BUILT, the ATM's shape: a dark plinth; the black cabinet, its front a
+painted belly glass (the jacks-or-better pay table, a coin door, a bill
+slot); a button deck sloped to the player (five lit HOLD caps, BET, DEAL);
+the head set back, a bezel round a recessed CRT showing JACKS OR BETTER, a
+dealt hand and the credits; a lit marquee -- the brand, FOR AMUSEMENT ONLY.
+Four invented Delco brands by variant: JAWN JACKPOT, PIKE DRAW, LUCKY HOAGIE,
+DOWN THE SHORE DRAW. Never "Pennsylvania Skill".
+
+TWO ATLASES, TWO MATERIALS, TWO DRAWS: cabinet, trim, belly and deck painted;
+the CRT and the marquee backlit (`_Face`, emission 1.0, albedo 0.6 -- the
+ATM's), so a power cut takes them. `card_art.paint` dispatches `vp_*`. 58
+triangles; census 3 builds, 0 coincident pairs.
+
+WHAT THE FIRST DRAFT GOT WRONG, each caught before shipping: HOLD on the
+buttons and "10S" on a card did not set on the narrowest unit (the buttons
+are plain lit caps, the ranks set in their suit's colour); JAWN POKER and PIKE
+POKER tripped the card-brand denylist's POKE (a real card mark, held as a
+substring), so no brand says POKER; and the genome had no `delco` style row,
+which the theme test caught -- delco_1997 could not have resolved it.
+
+Known: a hand's "10" sets at scale 1 where the single ranks set at 3 -- two
+digits do not fit an 18 px card larger. Legible; noted.
+
+Registries: `test_coincident_faces` CENSUS_BUILDS 345 -> 348;
+`test_genome`; `test_material_options_closed` (painted);
+`test_theme_style_resolution` 89 -> 90.
+
+Tests: `tests/test_video_poker.py` (6 + 2 in Blender): the genome and the
+stem; the slot at 27 sizes x 4 variants with no shared plane; every face's
+direction; the glow on the CRT and marquee only; every line sets; every name
+invented, none a real maker or the Pennsylvania mark; built, two objects, two
+materials, one `_Face`.
+
 ## [1.38.1] - the remainders get the room face too
 
 Cold run 9123 photographed the room face on every full segment and opening of

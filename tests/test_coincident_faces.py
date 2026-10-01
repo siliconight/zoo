@@ -393,7 +393,10 @@ DID_NOT_BUILD = {"boots"}
 #: over 48 sizes x 4 variants; the first cut shared a plane at the genome's
 #: old 0.5 x 0.6 corner (the hose against the body's end) and its trigger
 #: guard thinned to 1.75 mm there.
-CENSUS_BUILDS = 345
+#: 1.39.0: `video_poker`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build", 58 tris at each
+#: corner. Its test runs `coincident_pairs` over 27 sizes x 4 variants.
+CENSUS_BUILDS = 348
 
 
 def test_the_census_covers_every_species_there_is():

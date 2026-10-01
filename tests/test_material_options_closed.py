@@ -63,6 +63,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # its colours in the painted atlas (1.36.0, redrawn from the
            # minted placeholder box)
            "pump",
+           # a video-poker cabinet is enamelled sheet steel, its belly glass,
+           # deck and marquee in the painted atlas (1.39.0)
+           "video_poker",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter
