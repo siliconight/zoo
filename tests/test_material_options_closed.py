@@ -59,6 +59,10 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a price pylon's cabinets and posts are painted steel, its
            # plinth a painted tint of the same (1.19.0)
            "price_pylon",
+           # a gas pump's body, panels and base frame are enamelled steel,
+           # its colours in the painted atlas (1.36.0, redrawn from the
+           # minted placeholder box)
+           "pump",
            # the card shop (0.95.0): a gondola's uprights and shelves are
            # painted steel, a folding table's leg frame is, a folding chair
            # is a painted frame under a moulded pan, and a showcase counter

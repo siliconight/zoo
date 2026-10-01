@@ -3,41 +3,39 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped."
+    "notes": "Original procedural construction. No source meshes, no scraped data. Minted 2026-09-12 as a placeholder box; drawn 1.36.0."
   },
   "dimensions": {
     "width": {
-      "min": 0.5,
-      "max": 2.0,
+      "min": 0.8,
+      "max": 1.6,
       "default": 1.0
     },
     "depth": {
-      "min": 0.6,
-      "max": 2.4,
+      "min": 0.8,
+      "max": 1.6,
       "default": 1.2
     },
     "height": {
-      "min": 0.7,
-      "max": 2.8,
+      "min": 1.2,
+      "max": 2.2,
       "default": 1.4
     }
   },
   "parts": [
-    "Pump_Body"
+    "Pump_Art",
+    "PumpGlow_Art"
   ],
   "params": {},
   "materials": {
-    "default": "metal",
+    "default": "metal_painted",
     "options": [
-      "concrete",
-      "metal",
-      "wood",
-      "plaster"
+      "metal_painted"
     ]
   },
   "styles": {
     "default": {
-      "material": "metal",
+      "material": "metal_painted",
       "color": [
         0.56,
         0.55,
@@ -47,7 +45,7 @@
       "bevel": 0.006
     },
     "delco": {
-      "material": "metal",
+      "material": "metal_painted",
       "color": [
         0.5,
         0.49,
@@ -58,7 +56,7 @@
       "ambient": 0.35
     },
     "center_city": {
-      "material": "metal",
+      "material": "metal_painted",
       "color": [
         0.56,
         0.5655,
@@ -69,7 +67,7 @@
       "ambient": 0.15
     },
     "industrial_flats": {
-      "material": "metal",
+      "material": "metal_painted",
       "color": [
         0.4708,
         0.4463,
@@ -80,7 +78,7 @@
       "ambient": 0.45
     },
     "rockay": {
-      "material": "metal",
+      "material": "metal_painted",
       "color": [
         0.5264,
         0.5445,
@@ -92,12 +90,14 @@
     }
   },
   "budgets": {
-    "tris_lod0": 200
+    "tris_lod0": 1200
   },
   "attachments": [],
   "collision": true,
   "match_priority": 0,
   "keywords": [
     "pump"
-  ]
+  ],
+  "module_variants": 4,
+  "notes": "1.36.0: drawn as a 1997 two-sided mechanical pump -- a base frame, three grade panels a face (silver, red, gold; core/price_pylon_forms.GRADES) each with a recessed window on lit price wheels to the nine-tenths, a holstered nozzle and a coiled hose, and a lit FLAPPHAS header -- in TWO atlases and two materials (painted; backlit `_Face`), so two draws. The faces are the slot's two long sides. `variant` picks the pylon's price set and colourway by the same index."
 }

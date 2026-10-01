@@ -465,6 +465,11 @@ def paint(spec):
     if kind.startswith("atm_"):
         from . import atm_forms as AF
         return AF.paint(spec)
+    # THE PUMP (1.36.0): its panels, price wheels and header are
+    # `pump_forms`' tiles
+    if kind.startswith("pump_"):
+        from . import pump_forms as PF
+        return PF.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
         c = PA.paint(spec["family"], w, hgt, spec["row"], key)[0]

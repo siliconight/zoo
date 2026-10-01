@@ -385,6 +385,12 @@ DID_NOT_BUILD = {"boots"}
 #: layer are allocated so none overlaps another there (`pole_flyers_forms`),
 #: and its test runs `coincident_pairs` over 5 diameters x 3 bands x 4
 #: variants of every form.
+#: 1.36.0: `pump`, redrawn from the minted placeholder box (no new builds),
+#: same tool, Blender 5.1.1: "3 builds, 0 with coincident pairs, 0 that did
+#: not build", 1152 tris at each corner. Its test runs `coincident_pairs`
+#: over 48 sizes x 4 variants; the first cut shared a plane at the genome's
+#: old 0.5 x 0.6 corner (the hose against the body's end) and its trigger
+#: guard thinned to 1.75 mm there.
 CENSUS_BUILDS = 345
 
 

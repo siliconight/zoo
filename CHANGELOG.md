@@ -1,3 +1,68 @@
+## [1.36.0] - the pump, drawn: a 1997 two-sided mechanical dispenser, two draws
+
+The walker, 2026-09-30, after cold run 9120's FLAPPHAS walk found the
+forecourt's pumps were the placeholder box `tools/new_species.py` minted on
+2026-09-12: "pumps first". The reference is the walker's close-up in
+docs/proposals/GAS_STATION_SHOP.md: three grades in colour-coded bodies
+(silver, red, gold), mechanical price wheels to the nine-tenths above a
+smaller sale wheel, a holstered nozzle and a coiled black hose, a stencilled
+UNLEADED GASOLINE plate, grade buttons. New: `core/pump_forms.py`;
+`recipes/pump.py` rewritten.
+
+WHAT IS BUILT: a galvanised base frame, the slot's full footprint; a body
+with three grade panels a face, each with a window recessed 15 mm on lit
+price wheels ($/gal on black drums, the 9/10 stacked as printed, the sale
+under it), the grade's name, the plate, a PUSH button and a louvred door; a
+holster boot, the nozzle in it (spout, body, trigger guard) and a square-
+section hose hung in a U from the nozzle's butt up the panel's edge to a
+fitting under the window; a header with FLAPPHAS, lit. TWO-SIDED: the faces
+are the slot's two LONG sides, whichever axis -- DC's gas stations author
+1.0 x 1.2 (lanes either side in X), Lot's rotated sites hand Zoo 1.2 x 1.0 --
+and the far face is the near one turned 180 degrees, so both read REGULAR,
+PLUS, SUPER left to right, nothing mirrored.
+
+THE PRICES AND BRAND ARE THE PYLON'S: grades, colours, store name, price sets
+and colourways come from `price_pylon_forms` by the same variant, so the
+pump agrees with the sign at the kerb (both variant 0 on club_block_014).
+
+TWO ATLASES, TWO MATERIALS, TWO DRAWS: panels, base, nozzles, hoses painted;
+price wheels and header backlit (`_Face`, emission 1.0, albedo 0.6 -- the
+ATM's), so a power cut takes them. `card_art.paint` dispatches `pump_*`.
+
+THE GENOME: width 0.5-2.0, depth 0.6-2.4, height 0.7-2.8 was the generic
+prop range the placeholder was minted from, not a pump's; at its small corner
+a grade panel is 17 cm wide and its words cannot set. Narrowed to 0.8-1.6 x
+0.8-1.6 x 1.2-2.2. Every slot the library and Lot request (42 in six gas
+station specs) is 1.0 x 1.2 x 1.4 or its rotation. Material `metal_painted`
+(the pylon's and the ATM's); raw `metal` is no longer offered.
+
+WHAT THE FIRST CUT GOT WRONG, each caught before shipping: the hose met the
+body's end at a narrow slot and the trigger guard thinned to 1.75 mm (the
+shared-plane sweep); the 9/10 and the plate did not set on most of the range
+(every tile now records what it could not set); REGULAR was set at half
+PLUS's size (one scale for every grade, the pylon's fix); the base read as a
+black slab; and the hose -- first a cubic sampled evenly in its parameter --
+folded through itself where the loop's bottom drew a 3.5 cm segment turning
+69 degrees, and resampled evenly along its length the same curve had a
+121-degree cusp. It is now a U: a drop, a semicircle and a climb, resampled
+by arc length, its section framed on X with the tangent removed (`t x X`,
+also first-cut, flipped sign at the loop's bottom).
+
+Measured: 1152 triangles (budget 1200, was 200 for the box); the slot filled
+centred at 48 sizes x 4 variants, no shared plane; census 3 builds, 0
+coincident pairs, 1152 tris at each corner.
+
+Tests: `tests/test_pump.py` (14 + 2 in Blender): discovery and the stems at
+both authored orientations; the slot at every size; the faces are the long
+sides and read left to right; every face points out of its part, the hose's
+sides and caps included; the hose never folds (every joint's segments longer
+than the inner side's cut-back) and clears the holster, the window and the
+base; two atlases with the glow on the wheels and header only; every line
+sets; the prices and brand are the pylon's; every name invented, none a real
+fuel brand; in Blender, two objects, two materials, one `_Face`.
+`test_material_options_closed` lists the pump as painted;
+`test_coincident_faces` records its census.
+
 ## [1.35.0] - the ATM, redrawn: a 1990s surcharge unit, two draws
 
 The walker, 2026-09-29: "Convenient stores should also have ATMs", with

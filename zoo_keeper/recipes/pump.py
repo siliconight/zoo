@@ -1,38 +1,36 @@
-"""pump recipe: PLACEHOLDER SILHOUETTE, minted 2026-09-12 by tools/new_species.py.
+"""Pump recipe: a 1997 two-sided mechanical gas pump, two atlases, two draws.
 
-A solid center-pivot box built to the plan's exact dims, one named part,
-collision and a top attachment -- so the species validates, ships and is
-counted as itself in every kit report. It is NOT yet a pump: this file
-is where the drawing goes. Shape it the way `desk.py` or `counter.py` shape
-theirs -- boxes from `geometry.add_box` per part, `part(bm, name)` to turn
-each into an object, a collision box per solid, and keep the overall
-extents equal to (w, d, h): Deli Counter places this module on a slot of
-exactly that size and `validate` fails a module that is not.
+Zoo 1.36.0, replacing the placeholder box minted 2026-09-12. Planned in pure
+Python by `core.pump_forms.plan`: every face is a quad or a tube naming a
+tile. `recipes/_card_atlas.build_art` builds the PAINT tiles -- the grade
+panels, the base, the nozzles and hoses -- into one object with one painted
+material, and the GLOW tiles -- the price wheels and the header -- into one
+more with one backlit material named `_Face`, so a power cut takes them.
+Origin at the floor's centre; the faces are the slot's two long sides.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..core import pump_forms as PF
 
 
 def build(plan, streams, collection):
     w = plan["dimensions"]["width"]
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
-    bevel, wear = plan["bevel"], plan["wear"]
-    rng = streams.stream("wear")
-    objs, cboxes = [], []
-
-    def part(bm, name):
-        objs.append(geometry.bm_to_object(
-            bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wear))
-
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))   # centre pivot, like every module
-    part(bm, "Pump_Body")
-    cboxes.append(((-w / 2, -d / 2, -h / 2), (w / 2, d / 2, h / 2)))
-
-    surface = materials.make_material(
-        f"M_Pump_{plan['material']}", plan["color"], plan["material"])
-    materials.assign(objs, surface)
-    return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_top": (0.0, 0.0, h / 2)}}
+    params = plan.get("params") or {}
+    module = plan.get("module") or {}
+    variant = int(module.get("variant") or params.get("variant") or 0)
+    got = PF.plan(w, d, h, variant)
+    from ._card_atlas import build_art
+    objs = []
+    for atlas_name, lit in (("paint", None), ("glow", (PF.GLOW_EMISSION, PF.GLOW_ALBEDO))):
+        tiles = {k: spec for k, (a, spec) in got["tiles"].items() if a == atlas_name}
+        prims = [p for p in got["prims"] if p["mat"] == atlas_name]
+        name = "Pump" if atlas_name == "paint" else "PumpGlow"
+        o, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, name, lit=lit)
+        objs += o
+    f = got["facts"]
+    print(f"[pump] {w:.2f} x {d:.2f} x {h:.2f} faces={f['faces']} prices={','.join(f['prices'])} "
+          f"{f['tris']} tris, 2 materials")
+    return {"objects": objs, "collision_boxes": got["collision"], "attachments": {},
+            "pump": {"prices": list(f["prices"]), "faces": f["faces"]}}
