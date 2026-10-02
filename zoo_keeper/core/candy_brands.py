@@ -75,6 +75,17 @@ BRANDS = (
      "design": "split"},
 )
 
+#: EACH BRAND'S OWN LETTERING (1.50.0), a name in `smooth_type.FACES`: the
+#: face its short name is set in on the wrapper. Eleven confectioners do not
+#: share a type foundry (`cigarette_brands.FACE`, and the walker's font
+#: catalog: "Assign a typeface to an owner").
+FACE = {
+    "scrapple_bar": "oldstyle_bold", "jawn_bar": "highway_bold", "delco_crisp": "aileron_bold",
+    "boardwalk_taffy": "oldstyle_italic", "yo_nuts": "highway_bold", "pretzel_buttz": "vegur_bold",
+    "nanas_caramels": "oldstyle", "mummers_mints": "aileron",
+    "macdade_mint_gum": "aileron_bold", "blue_route_bubble": "highway_bold", "pike_cinnamon": "vegur_bold",
+}
+
 BY_ID = {b["id"]: b for b in BRANDS}
 IDS = tuple(b["id"] for b in BRANDS)
 BAR_IDS = tuple(b["id"] for b in BRANDS if b["kind"] == "bar")

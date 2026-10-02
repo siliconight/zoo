@@ -74,10 +74,10 @@ import zlib
 from . import candy_brands as CANDY
 from . import cigarette_brands as CB
 from . import cigarette_forms as CF
-from . import pixel_type as pt
 from . import prims as P
 from . import counter_lottery as CL
 from . import paint as PT
+from . import smooth_type as ST
 from . import counter_register as CREG
 from .back_bar_forms import REG_D, REG_H, REG_SCREEN_H, REG_W
 from .vending_forms import Canvas
@@ -107,9 +107,19 @@ BAR_H = 0.048
 BAR_GAP = 0.010
 #: The art repeats every `ART_REPEAT_M` along the run.
 ART_REPEAT_M = 1.0
-#: px per metre: a 2.5 mm pixel, a bar 56 px wide, a checker square 20 px.
-#: 1.8.0: 350 -> 400 so a square is a whole number of pixels.
-CANDY_TEXEL = 400
+#: px per metre: a 1.25 mm pixel, a bar 112 px wide, a checker square 40 px.
+#: 1.8.0: 350 -> 400 so a square is a whole number of pixels. 1.50.0: 800,
+#: the real look -- a wrapper's name in a smooth face needs the pixels, and
+#: the image is sampled with filtering. Twice the density is four times the
+#: image (800 px wide where it was 400); Level Factory 0.128.0 ships a
+#: filtered texture VRAM-compressed.
+CANDY_TEXEL = 800
+#: Rows between the atlas's bands, and half as many above the first and
+#: under the last, each filled with the neighbouring band's own edge row. A
+#: filtered, mip-mapped sample at a band's edge reads past it; without these
+#: it reads the next band (and, at the image's top and foot, wraps to the
+#: far one, because the sampler repeats).
+BAND_GUTTER = 16
 
 # --- the lottery dispensers -----------------------------------------------------
 LOTTO_W = CL.W
@@ -407,15 +417,26 @@ def paint_atlas(tiers, key, variant):
     assert W % CHECKER_PX == 0 and (W // CHECKER_PX) % 2 == 0, (W, CHECKER_PX)
     tiles = candy_art(tiers, key, variant)
     heights = [tiles[k]["size"][1] for k in sorted(tiles)]
-    H = sum(heights) + 2 * CHECKER_PX
+    G = BAND_GUTTER
+    H = sum(heights) + 2 * CHECKER_PX + G * (len(heights) + 1)
     c = Canvas(W, H, CHECK_LIGHT)
-    bands, y = {}, 0
+    bands, y = {}, G // 2
     for k in sorted(tiles):
         c.paste(tiles[k]["canvas"], 0, y)
         bands["candy_%d" % k] = (y, y + tiles[k]["size"][1])
-        y += tiles[k]["size"][1]
+        y += tiles[k]["size"][1] + G
     _checker_band(c, y)
     bands["checker"] = (y, y + 2 * CHECKER_PX)
+    # the gutters (1.50.0): above a band its first row, under it its last
+    stride = W * 3
+    for y0, y1 in bands.values():
+        top = bytes(c.buf[y0 * stride:(y0 + 1) * stride])
+        foot = bytes(c.buf[(y1 - 1) * stride:y1 * stride])
+        for g in range(1, G // 2 + 1):
+            if y0 - g >= 0:
+                c.buf[(y0 - g) * stride:(y0 - g + 1) * stride] = top
+            if y1 - 1 + g < H:
+                c.buf[(y1 - 1 + g) * stride:(y1 + g) * stride] = foot
     digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
     return {"canvas": c, "size": (W, H), "bands": bands,
             "candy": {k: tiles[k]["brands"] for k in tiles},
@@ -437,38 +458,64 @@ def _rgb(h):
     return CANDY.hex_rgb(h)
 
 
-def _bar(c, brand, x0, y0, bw, bh):
-    """One wrapped bar, faced out: the body, its design in the second
-    colour, the short name, and a foil glint along the top edge."""
+def _lift(rgb, by):
+    return tuple(max(0.0, min(255.0, v + by)) for v in rgb)
+
+
+def _bar(im, brand, x0, y0, bw, bh):
+    """One wrapped bar, faced out (1.50.0, painted): the wrapper graded as
+    foil is, its design in the second colour, the short name in the BRAND's
+    own face on a plaque of the body colour, the fin crimped flat at each
+    end, and the foil's light along its top edge and in one streak."""
     b = CANDY.BY_ID[brand]
     body, second, ink = _rgb(b["body"]), _rgb(b["second"]), _rgb(b["ink"])
-    c.rect(x0, y0, x0 + bw, y0 + bh, body)
+    box = (x0, y0, x0 + bw, y0 + bh)
+    im.vgrad(box, _lift(body, 14), _lift(body, -16))
     design = b["design"]
     if design == "band":
-        c.rect(x0, y0 + bh * 35 // 100, x0 + bw, y0 + bh * 65 // 100, second)
+        im.rect((x0, y0 + bh * 0.35, x0 + bw, y0 + bh * 0.65), second)
     elif design == "stripe":
-        c.rect(x0 + bw * 8 // 100, y0, x0 + bw * 20 // 100, y0 + bh, second)
-        c.rect(x0 + bw * 80 // 100, y0, x0 + bw * 92 // 100, y0 + bh, second)
+        im.rect((x0 + bw * 0.08, y0, x0 + bw * 0.20, y0 + bh), second)
+        im.rect((x0 + bw * 0.80, y0, x0 + bw * 0.92, y0 + bh), second)
     elif design == "split":
-        c.rect(x0, y0, x0 + bw // 2, y0 + bh, second)
+        im.rect((x0, y0, x0 + bw / 2.0, y0 + bh), second)
     elif design == "diag":
-        for yy in range(bh):
-            xx = x0 + (yy * bw) // max(1, bh)
-            c.rect(xx, y0 + yy, xx + max(2, bw // 10), y0 + yy + 1, second)
+        for yy in range(int(bh)):
+            xx = x0 + (yy * bw) / max(1, bh)
+            im.rect((xx, y0 + yy, xx + max(3, bw // 10), y0 + yy + 1), second)
     else:
         raise ValueError(f"bar {brand}: unknown design {design!r}")
-    m = pt.trim(pt.render(b["short"], 1))
-    tx = x0 + (bw - len(m[0])) // 2
-    ty = y0 + (bh - len(m)) // 2
     # the name sits on a plaque of the body colour so it reads over any design
-    c.rect(tx - 2, ty - 1, tx + len(m[0]) + 2, ty + len(m) + 1, body)
-    c.mask(m, tx, ty, ink)
-    c.rect(x0, y0, x0 + bw, y0 + 1, tuple(min(255, v + 60) for v in body))
+    plaque = (x0 + bw * 0.17, y0 + bh * 0.16, x0 + bw * 0.83, y0 + bh * 0.84)
+    im.rrect(plaque, bh * 0.12, body)
+    im.text(b["short"], (plaque[0] + 3, plaque[1] + 2, plaque[2] - 3, plaque[3] - 2), ink,
+            CANDY.FACE.get(brand, "highway_bold"))
+    # the fin at each end: pressed flat, lighter, ribbed by the crimper
+    fin = max(4.0, bw * 0.06)
+    for fx in (x0, x0 + bw - fin):
+        im.rect((fx, y0, fx + fin, y0 + bh), (255, 255, 255), 0.16)
+        for x in range(int(fx), int(fx + fin), 2):
+            im.rect((x, y0, x + 1, y0 + bh), (0, 0, 0), 0.16)
+    # the foil: the room along its top edge and in one streak
+    im.rect((x0, y0, x0 + bw, y0 + 1.5), (255, 255, 255), 0.4)
+    im.gloss(box, 0.08, 0.3, 0.3, 0.12)
+
+
+def tier_brands(order, k, variant, per):
+    """Tier ``k``'s bars, ``per`` of them: BOXES OF ONE BRAND, two facings
+    each, walking the lineup three brands a tier so three tiers show nine
+    slots of it and lead with three different bars.
+
+    Until 1.50.0 every slot drew its own brand. A counter rack is stocked by
+    the display box, and a box holds one bar."""
+    return [order[(3 * k + variant + i // 2) % len(order)] for i in range(per)]
 
 
 def candy_art(tiers, key, variant):
-    """One canvas per tier, `ART_REPEAT_M` wide, of bars faced out with a
-    dark shelf shadow under them. ``{tier: {canvas, name, brands}}``."""
+    """One canvas per tier, `ART_REPEAT_M` wide, of bars faced out, each
+    with its shadow on the backing, the tier above's shade across the head
+    of the strip, and the shop's own talker. ``{tier: {canvas, name,
+    brands, said, unset}}``."""
     out = {}
     order = sorted(CANDY.BAR_IDS, key=lambda i: (_h(key, i), i))
     per = int(ART_REPEAT_M // (BAR_W + BAR_GAP))
@@ -477,20 +524,54 @@ def candy_art(tiers, key, variant):
     for k, t in enumerate(tiers):
         z0, z1, _y = t["art"]
         H = max(8, int(round((z1 - z0) * CANDY_TEXEL)))
-        c = Canvas(W, H, (28, 26, 24))
+        im = PT.Img(W, H, (28, 26, 24))
         bh = min(int(BAR_H * CANDY_TEXEL), H - 6)
         pitch = W / per
-        brands = [order[_h(key, variant, k, i) % len(order)] for i in range(per)]
-        # the tier leads with a different brand each row so the rack is a
-        # mix rather than three rows of one bar
-        brands[0] = order[(k + variant) % len(order)]
+        brands = tier_brands(order, k, variant, per)
+        by = H - bh - 3
+        # the tier above keeps the head of this strip in shade
+        im.vgrad((0, 0, W, max(1, by - 2)), (12, 11, 10), (28, 26, 24))
+        said = []
+        # THE DISPLAY BOX'S HEADER. A box of bars ships with its lid scored
+        # to fold up behind them as a card: the brand's name over its own
+        # bars, which is what reads from the door when a wrapper does not.
+        # One a box -- two facings -- in the brand's own face and colours,
+        # a little in the tier's shade.
+        head_h = min(int(0.070 * CANDY_TEXEL), by - 8)
+        if head_h >= 24:
+            for i in range(0, per - 1, 2):
+                b = CANDY.BY_ID[brands[i]]
+                body = _rgb(b["body"])
+                hx0 = int(pitch * i + (pitch - bw) / 2.0)
+                hx1 = int(pitch * (i + 1) + (pitch - bw) / 2.0) + bw
+                card = (hx0, by - 2 - head_h, hx1, by - 2)
+                im.rrect((card[0] + 3, card[1] + 3, card[2] + 3, card[3] + 3), 3, (0, 0, 0), 0.5)
+                im.rrect(card, 3, body)
+                im.vgrad((card[0] + 2, card[1] + 2, card[2] - 2, card[3] - 2), _lift(body, -6), _lift(body, -34))
+                im.rect((card[0] + 4, card[3] - 6, card[2] - 4, card[3] - 3), _rgb(b["second"]))
+                name = " ".join(b["logo"])
+                if im.text(name, (card[0] + 8, card[1] + 5, card[2] - 8, card[3] - 9), _rgb(b["ink"]),
+                           CANDY.FACE.get(brands[i], "highway_bold")) is not None:
+                    said.append(name)
         for i in range(per):
             bx = int(pitch * i + (pitch - bw) / 2.0)
-            by = H - bh - 3
-            c.rect(bx + 2, by + 2, bx + bw + 2, by + bh + 2, (10, 10, 10))
-            _bar(c, brands[i], bx, by, bw, bh)
+            im.rrect((bx + 3, by + 3, bx + bw + 4, by + bh + 3), 2, (0, 0, 0), 0.6)
+            _bar(im, brands[i], bx, by, bw, bh)
+        # THE SHOP'S TALKER, over the first box of the top tier: a yellow tag
+        # in the shop's own face. One a metre, on one tier -- a price is said
+        # once, where the eye lands first.
+        tag_h = int(0.030 * CANDY_TEXEL)
+        if k == 0 and by - 10 - max(0, head_h) >= tag_h:
+            tx0, ty0 = int(pitch * 0.5 - 0.055 * CANDY_TEXEL), max(2, by - 8 - max(0, head_h) - tag_h)
+            tag = (tx0, ty0, tx0 + int(0.11 * CANDY_TEXEL), ty0 + tag_h)
+            im.rrect((tag[0] + 2, tag[1] + 2, tag[2] + 2, tag[3] + 2), 3, (0, 0, 0), 0.5)
+            im.rrect(tag, 3, (248, 220, 60))
+            if im.text(CANDY.SHELF_TALKER, (tag[0] + 4, tag[1] + 3, tag[2] - 4, tag[3] - 3), (150, 20, 16),
+                       ST.owned("shop")) is not None:
+                said.append(CANDY.SHELF_TALKER)
+        c = im.to_canvas()
         digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-        out[k] = {"canvas": c, "size": (W, H), "brands": brands,
+        out[k] = {"canvas": c, "size": (W, H), "brands": brands, "said": said, "unset": list(im.unset),
                   "name": f"candy_{key}_t{k}_v{variant % 4}_{W}x{H}_{digest:08x}"}
     return out
 

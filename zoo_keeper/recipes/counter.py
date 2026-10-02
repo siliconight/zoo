@@ -323,9 +323,11 @@ def build(plan, streams, collection):
         # 1.7.0 painted four images into four materials). REPEAT along the
         # counter, each part's v mapped into its own band.
         A = SC.paint_atlas(facts["tiers"], key, variant)
+        # 1.50.0: sampled with filtering -- the bars are smooth type and
+        # painted foil, and the atlas has gutters between its bands for it
         paint_mat = materials.make_painted_material(
             f"M_Counter_Paint_{A['name']}",
-            materials.image_from_png(A["name"], A["canvas"].png()), 0.4, tile=True)
+            materials.image_from_png(A["name"], A["canvas"].png()), 0.4, tile=True, smooth=True)
         for p in (q for q in inside if "paint" in q):
             band = A["bands"]["checker" if p["paint"] == "checker" else p["paint"]]
             fit_objs.append(_painted_xz(p, paint_mat, collection, streams,

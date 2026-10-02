@@ -171,10 +171,19 @@ def test_one_atlas_holds_the_candy_and_the_checker_and_repeats_cleanly():
     n = S.CHECKER_PX
     assert n == pytest.approx(S.CHECK * S.CANDY_TEXEL) and W % (2 * n) == 0
     assert sorted(A["bands"]) == ["candy_0", "candy_1", "candy_2", "checker"]
-    # the bands tile the image top to bottom with no gap and no overlap
+    # the bands run top to bottom with a GUTTER between each pair and half
+    # of one above the first and under the last (1.50.0: the image is
+    # sampled with filtering, and its sampler repeats, so a band's edge must
+    # not read its neighbour or wrap to the far band)
+    G = S.BAND_GUTTER
     spans = sorted(A["bands"].values())
-    assert spans[0][0] == 0 and spans[-1][1] == H
-    assert all(a[1] == b[0] for a, b in zip(spans, spans[1:]))
+    assert spans[0][0] == G // 2 and spans[-1][1] == H - G // 2
+    assert all(b[0] - a[1] == G for a, b in zip(spans, spans[1:]))
+    cc = A["canvas"]
+    for y0b, y1b in spans:
+        for x in (0, 123, W - 1):
+            assert all(cc.get(x, y0b - g) == cc.get(x, y0b) for g in range(1, G // 2 + 1)), (y0b, x)
+            assert all(cc.get(x, y1b - 1 + g) == cc.get(x, y1b - 1) for g in range(1, G // 2 + 1)), (y1b, x)
     # the checker band: two rows, alternating, and the first and last
     # squares of a row differ so the wrap continues the pattern
     c = A["canvas"]
@@ -187,7 +196,8 @@ def test_one_atlas_holds_the_candy_and_the_checker_and_repeats_cleanly():
     for k in range(S.TIERS):
         ty0, _ty1 = A["bands"]["candy_%d" % k]
         src = tiles[k]["canvas"]
-        assert all(c.get(x, ty0 + y) == src.get(x, y) for x in (0, 57, 399) for y in (0, 10, src.h - 1))
+        assert all(c.get(x, ty0 + y) == src.get(x, y) for x in (0, 57, 399, W - 1) for y in (0, 10, src.h - 1))
+        assert tiles[k]["unset"] == [], (k, tiles[k]["unset"])
     assert S.paint_atlas(facts["tiers"], "counter_service", 1)["name"] == A["name"]
     # every painted part's u repeats once a metre; v is 0..1 of its band
     for p in (q for q in inside if "paint" in q):
@@ -420,3 +430,63 @@ def test_the_rack_is_stocked_in_blocks_of_one_brand():
     x0, y0, x1, y1 = a["dark"]
     assert (x0, x1) == (0, a["size"][0]) and y1 <= a["size"][1]
     assert max(a["canvas"].get(a["size"][0] // 2, (y0 + y1) // 2)) < 20
+
+
+# --- 1.50.0: the candy rack, painted and stocked by the box ----------------------------
+
+
+def test_a_tier_is_stocked_by_the_box_and_the_tiers_differ():
+    """A counter rack is stocked by the display box and a box holds one bar:
+    every brand in a tier is two facings side by side. Until 1.50.0 every
+    slot drew its own."""
+    _in, _on, facts, _tw = _fit(6.0, 0.9, 1.1)
+    c = S.candy_art(facts["tiers"], "counter_service", 2)
+    for k, t in c.items():
+        b = t["brands"]
+        assert len(b) % 2 == 0 and all(b[i] == b[i + 1] for i in range(0, len(b), 2)), b
+        assert len(set(b)) == len(b) // 2, b
+    assert len({tuple(t["brands"]) for t in c.values()}) == S.TIERS
+    assert len({t["brands"][0] for t in c.values()}) == S.TIERS
+
+
+def test_every_wrapper_s_name_sets_in_its_brand_s_own_face():
+    from zoo_keeper.core import smooth_type as ST
+    assert set(CANDY.FACE) == set(CANDY.IDS)
+    assert set(CANDY.FACE.values()) <= set(ST.FACES) - {"minisystem"}
+    assert len(set(CANDY.FACE[i] for i in CANDY.BAR_IDS)) >= 5
+    bw, bh = int(S.BAR_W * S.CANDY_TEXEL), int(S.BAR_H * S.CANDY_TEXEL)
+    for i in CANDY.BAR_IDS:
+        cap = ST.fit_cap(CANDY.BY_ID[i]["short"], bw * 0.66 - 6, int(bh * 0.68 - 4), CANDY.FACE[i], 6)
+        assert cap is not None and cap >= 12, (i, cap)       # 15 mm on the rack at this density
+
+
+def test_the_shop_says_its_price_once_on_the_top_tier():
+    _in, _on, facts, _tw = _fit(6.0, 0.9, 1.1)
+    c = S.candy_art(facts["tiers"], "counter_service", 0)
+    said = [t["said"] for _k, t in sorted(c.items())]
+    assert [s_.count(CANDY.SHELF_TALKER) for s_ in said] == [1, 0, 0]
+
+
+def test_every_box_stands_its_header_card_with_the_brand_s_name():
+    """A display box's lid folds up behind its bars as a card. One a box,
+    the brand's own words, and every one of them sets."""
+    _in, _on, facts, _tw = _fit(6.0, 0.9, 1.1)
+    for variant in range(4):
+        c = S.candy_art(facts["tiers"], "counter_service", variant)
+        for k, t in c.items():
+            assert t["unset"] == [], (variant, k, t["unset"])
+            names = [s_ for s_ in t["said"] if s_ != CANDY.SHELF_TALKER]
+            want = [" ".join(CANDY.BY_ID[b]["logo"]) for b in t["brands"][::2]]
+            assert names == want, (variant, k, names, want)
+
+
+def test_bpy_the_counter_s_paint_is_sampled_with_filtering(tmp_path):
+    import os
+    pytest.importorskip("bpy")
+    res, _objs = _build(tmp_path, DC_SIZES[0])
+    doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
+    m = next(m for m in doc["materials"] if m["name"].startswith("M_Counter_Paint_"))
+    tex = doc["textures"][m["pbrMetallicRoughness"]["baseColorTexture"]["index"]]
+    s = doc["samplers"][tex["sampler"]]
+    assert s["magFilter"] == 9729, s
+    assert s.get("wrapS", 10497) == 10497, s                  # and still repeats along the counter

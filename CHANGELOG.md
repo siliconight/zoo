@@ -1,3 +1,49 @@
+## [1.50.0] - the counter's candy rack: stocked by the box, each box under its header card
+
+The walker, 2026-10-02: "yes, start with the candy tiers" -- the next of the
+store's props still in the pixel look beside the repainted till, dispensers
+and rack (cold run 9136's frames).
+
+THE BRIEF. Three stepped shelves on a store counter's front, under its
+overhang: wrapped bars faced out, sold from the cardboard display boxes they
+ship in. Who touches it: the customer takes a bar; the clerk drops a new box
+in when one empties. What it is for, to the room: it is at a child's eye
+height and a queue's hand height, and it is colour. What follows: a box
+holds ONE bar, so a brand is a run and not a slot; a box's lid folds up
+behind its bars as a card, which is the brand's name at a size a wrapper
+cannot carry; a wrapper is foil, crimped flat at both ends. What is left
+out: wear, because stock turns over.
+
+### Changed
+- **A tier is stocked by the box** (`service_counter_forms.tier_brands`):
+  three brands a tier, two facings each. Every slot used to draw its own.
+- **Each box stands its header card**: the brand's full name in the brand's
+  own face (`candy_brands.FACE`, eleven confectioners no longer sharing a
+  type foundry) on its own colours, in the tier's shade.
+- **A wrapper is painted as foil**: graded, a ribbed fin at each end, the
+  room's light along its top edge and in one streak.
+- **The shop's talker**, 2 FOR $1, once a metre on the top tier, in the
+  shop's face. `candy_brands.SHELF_TALKER` had been written in 1.7.0 and
+  never painted.
+- **Twice the density** (`CANDY_TEXEL` 800), sampled with filtering. The
+  counter's painted image is 800 x 636 where it was 400 x 286.
+- **Gutters between the image's bands** (`BAND_GUTTER`), each filled with
+  the neighbouring band's edge row, and half a gutter above the first band
+  and under the last because the sampler repeats.
+
+### Cost
+No draw changes, measured: a 6 m counter built at 1.49.0 and at this
+version in a scratch Godot project, GL Compatibility, three cameras on its
+front -- 5, 8 and 9 draws before and 5, 8 and 9 after (each count includes
+the scene's floor). The same one material, now Linear. The counter's painted
+image is 4.4 times the pixels it was; Level Factory 0.128.0 ships a filtered
+texture VRAM-compressed, and what it costs in a level is not measured yet.
+
+### Known
+The art repeats every metre along the counter, as it always has: on a 6 m
+counter the same three boxes come round six times a tier. Twice the density
+makes the repeat easier to see. Not changed here.
+
 ## [1.49.0] - the owner pass: every typeface belongs to somebody; a screen's letters are pixels again
 
 The walker's font catalog (`docs/reference/CC0_FONTS_FOR_HUMAN_AUTHORED_GAMES.md`
