@@ -1,3 +1,50 @@
+## [1.40.0] - the snack gondola sells more than chips
+
+The walker's 90s snack references, 2026-09-29: "fruit snacks, lunch kits,
+snack cakes on shelves, candy". And the walker's own first named brand
+(docs/proposals/GAS_STATION_SHOP.md): "yummyjawns -- tastycake rip off", a
+shelf of "flat rectangular cartons standing on edge, four to six of each
+flavour side by side ... from two metres it reads as stripes of colour".
+
+WHAT CHANGED (`core/snack_gondola_forms.py`). The -Y face stays the chip
+aisle. The +Y face is SECTIONS, a bay each, cycling from a start the
+gondola's own name picks: YUMMYJAWNS snack cakes (0.20 x 0.16 m cartons,
+ONE flavour a shelf, the next shelf another -- the stripes), fruit snacks
+and lunch kits (upright boxes, three facings a product) and bagged candy
+(the counter rack's own `candy_brands`, in a bag). A carton is a
+12-triangle box with its front on its tile. The end caps stay chips.
+
+TEN NEW PRODUCTS (`core/snack_brands.BOXED`), invented: YUMMYJAWNS BUTTER
+JAWNS, CHOCOLATE LOGS, CHERRY PIES, PEANUT BUTTER PUCKS and LEMON SQUARES;
+GUMMY GEESE, FRUIT TAPE, JUICE BOMBS; HOAGIE KIT, PIZZA KIT. The snack-cake
+makers (Philadelphia's own first), the lunch kit's and the fruit snacks'
+join the denylists.
+
+STILL TWO SUBMISSIONS. Every product is on the one image the bags were on,
+grown from 240 x 128 to 240 x 310: 66 rects, 33 products.
+
+MEASURED, before and after, at Deli Counter's three sizes x 4 variants: the
+chip face and both end caps are the SAME prims, vertex for vertex, and the
+chip tiles the same pixels. Triangles at 6.0 x 1.0 x 1.6: 5,164 -> 4,980 to
+5,404 by variant (a carton is 12 where a bag is 22, and the small items
+stand more to a shelf); at 10 x 0.9 x 1.8: 11,236 -> 10,656. Census: "3
+builds, 0 with coincident pairs, 0 that did not build" (762 / 5,076 /
+18,528 tris).
+
+WHAT THE FIRST DRAFT GOT WRONG: BOMBS is 31 px in m5x7 and the small tile
+was 32. `_set` raises on a word wider than its tile, so it failed before a
+frame was shot; the tile is 36 x 48.
+
+KNOWN. A lunch kit belongs in a cooler and stands on a shelf here: the
+cooler's doors are a different species and the walker asked to see them. A
+short shelf of 0.18 m boxes leaves air under the shelf above.
+
+Tests: `tests/test_snack_gondola.py` 27 -> 31 (+5 in Blender, unchanged): a
+stock item names its own front faces; no two tiles overlap; one face chips,
+the other sections, the end caps chips; a shelf of cakes is one flavour and
+its neighbour another; every boxed product invented and six letters or
+fewer.
+
 ## [1.39.0] - the 1997 tavern video-poker cabinet
 
 The walker, 2026-09-30: "actually put in 'PA Skill Games' ... into the level.
