@@ -51,11 +51,14 @@ from __future__ import annotations
 import re
 import zlib
 
+import numpy as np
+
 from . import brands as BR
+from . import card_art as CA
 from . import club_names as CN
-from . import pixel_type as pt
+from . import paint as PT
 from . import prims as P
-from .vending_forms import Canvas
+from . import smooth_type as ST
 
 #: Deli Counter's volume (long side first), then the genome's range.
 DC_SIZES = ((8.0, 2.8, 2.2), (5.2, 0.9, 2.2))
@@ -79,8 +82,13 @@ SHELF_T = 0.018
 TUBE_W = 0.024
 TUBE_T = 0.014
 
-#: Pixels a metre of the glow art: a door's panel is ~115 x ~270 px.
-TEXEL = 160
+#: Pixels a metre of the glow art. 1.12.0: 160, a door's panel ~115 x ~270
+#: px, every product a few pixel rectangles. 1.51.0: 400, the real look -- a
+#: door's panel ~280 x ~700 px, the products drawn in metres (`SODA`, `CAN`
+#: ...) with shading, and the image sampled with filtering. Not 768 as the
+#: machines are: a door is behind glass and the whole wall is one image, so
+#: a 6-door run at 768 would be the largest texture in the store.
+TEXEL = 400
 SECTION_WORDS = ("ICE COLD DRINKS", "DAIRY", "SPORTS DRINKS", "JUICE & TEA", "COLD SODA",
                  "COLD BEER")
 DOOR_TYPES = ("soda", "cans", "milk", "juice", "beer", "sports")
@@ -320,143 +328,273 @@ def _rgb(h):
     return BR.hex_rgb(h) if hasattr(BR, "hex_rgb") else tuple(int(h.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def _shelf_row(c, x0, x1, y_top, y_bot, kind, key, row):
-    """One shelf's products, faced out, standing on ``y_bot``."""
-    drinks = [b for b in BR.BRANDS]
-    x = x0 + 2
+def _lift(rgb, by):
+    return tuple(max(0.0, min(255.0, c + by)) for c in rgb)
+
+
+def _px(m):
+    return int(round(m * TEXEL))
+
+
+#: WHOSE VOICE (1.51.0). A 12-pack's name is the brewer's: each invented beer
+#: in its own face, as the cigarette and candy makers have. The sign band is
+#: the store's, in the shop's face.
+BEER_FACES = {
+    "WOODER ICE": "aileron_bold", "JAWN LITE": "highway_bold", "YOUSE BREW": "oldstyle_bold",
+    "SHOOBIE SUDS": "oldstyle_italic", "SCRAPPLE STOUT": "oldstyle_bold", "COLD ONE HON": "vegur_bold",
+}
+
+#: Products, in METRES (1.51.0; until then every one was a pixel count at
+#: 160 px/m): (width, height). A 20 oz bottle, a 12 oz can, a gallon jug, a
+#: half-gallon carton, a 12-pack, a tallboy, a long-neck, a sports bottle, a
+#: juice carton.
+SODA = (0.070, 0.230)
+CAN = (0.066, 0.122)
+JUG = (0.150, 0.260)
+CARTON = (0.095, 0.245)
+TWELVE = (0.270, 0.130)
+TALLBOY = (0.070, 0.160)
+LONGNECK = (0.060, 0.235)
+SPORTS = (0.070, 0.210)
+JUICE = (0.090, 0.200)
+#: A facing is this many of one product side by side: a shelf is stocked
+#: by the case, and a case is one drink.
+FACING = 3
+
+
+def _stand(im, box, rgb, radius=2.0, shadow=0.45):
+    """A product's body: its shadow on the panel, the body, graded as a
+    round thing is -- lit from the sides, where the tubes are -- and its
+    far edge in shade."""
+    x0, y0, x1, y1 = box
+    im.rrect((x0 + 2, y0 + 3, x1 + 3, y1 + 2), radius, (0, 0, 0), shadow)
+    im.rrect(box, radius, rgb)
+    im.vgrad((x0 + 1, y0 + 1, x1 - 1, y1 - 1), _lift(rgb, 10), _lift(rgb, -18))
+    im.rect((x0, y0, x0 + 1.5, y1), (255, 255, 255), 0.22)
+    im.rect((x1 - 2, y0, x1, y1), (0, 0, 0), 0.22)
+
+
+def _soda(im, x, yb, b):
+    w, h = _px(SODA[0]), _px(SODA[1])
+    top, bottom = _rgb(b["bg"][0]), _rgb(b["bg"][1])
+    # cap, neck, shoulder, body
+    im.rrect((x + w * 0.36, yb - h, x + w * 0.64, yb - h * 0.9), 1.5, (236, 236, 232))
+    im.rrect((x + w * 0.3, yb - h * 0.9, x + w * 0.7, yb - h * 0.72), 2, bottom)
+    _stand(im, (x, yb - h * 0.72, x + w, yb), bottom, w * 0.18, 0.4)
+    im.vgrad((x + 1, yb - h * 0.71, x + w - 1, yb - 1), _lift(bottom, 12), _lift(bottom, -16))
+    # the label, in the brand's colours
+    im.rect((x, yb - h * 0.48, x + w, yb - h * 0.16), top)
+    im.rect((x, yb - h * 0.34, x + w, yb - h * 0.30), bottom, 0.5)
+    im.rect((x, yb - h * 0.72, x + 1.5, yb), (255, 255, 255), 0.22)
+    im.rect((x + w - 2, yb - h * 0.72, x + w, yb), (0, 0, 0), 0.25)
+    return w
+
+
+def _can(im, x, yb, b, tier):
+    w, h = _px(CAN[0]), _px(CAN[1])
+    top, bottom = _rgb(b["bg"][0]), _rgb(b["bg"][1])
+    y = yb - tier * (h + 2)
+    _stand(im, (x, y - h, x + w, y), top, 2, 0.4)
+    im.vgrad((x + 1, y - h + 1, x + w - 1, y - 1), _lift(top, 12), _lift(top, -16))
+    im.rect((x, y - h * 0.68, x + w, y - h * 0.30), bottom)
+    im.rect((x, y - h, x + w, y - h + 2), (214, 214, 218))             # the rim
+    im.rect((x, y - h, x + 1.5, y), (255, 255, 255), 0.22)
+    return w
+
+
+def _jug(im, x, yb, cap):
+    w, h = _px(JUG[0]), _px(JUG[1])
+    white = (240, 240, 234)
+    _stand(im, (x, yb - h * 0.78, x + w, yb), white, w * 0.1, 0.4)
+    im.vgrad((x + 1, yb - h * 0.77, x + w - 1, yb - 1), (246, 246, 240), (214, 214, 206))
+    im.rrect((x + w * 0.58, yb - h, x + w * 0.86, yb - h * 0.76), 2, white)   # the neck
+    im.rrect((x + w * 0.6, yb - h - 3, x + w * 0.84, yb - h + 1), 2, cap)       # the cap
+    im.rrect((x + w * 0.12, yb - h * 0.72, x + w * 0.42, yb - h * 0.5), 3, (150, 150, 146))  # the handle's hole
+    im.rect((x + 1, yb - h * 0.42, x + w - 1, yb - h * 0.24), cap)              # the label band
+    im.rect((x, yb - h * 0.78, x + 1.5, yb), (255, 255, 255), 0.25)
+    return w
+
+
+def _carton(im, x, yb, strip, ink):
+    w, h = _px(CARTON[0]), _px(CARTON[1])
+    _stand(im, (x, yb - h * 0.8, x + w, yb), (246, 244, 238), 1, 0.4)
+    im.vgrad((x + 1, yb - h * 0.79, x + w - 1, yb - 1), (246, 244, 238), (222, 220, 212))
+    im.rect((x + w * 0.12, yb - h * 0.9, x + w * 0.88, yb - h * 0.8), (232, 230, 224))   # the gable
+    im.rect((x + w * 0.3, yb - h, x + w * 0.7, yb - h * 0.9), (226, 222, 216))           # the fin
+    im.rect((x + 1, yb - h * 0.76, x + w - 1, yb - h * 0.7), strip)
+    im.rect((x, yb - h * 0.6, x + w, yb - h * 0.42), ink)
+    return w
+
+
+def _twelve(im, x, yb, name, tier):
+    w, h = _px(TWELVE[0]), _px(TWELVE[1])
+    top, band = _rgb(BEER_COLOURS[name][0]), _rgb(BEER_COLOURS[name][1])
+    y = yb - tier * (h + 2)
+    _stand(im, (x, y - h, x + w, y), top, 1.5, 0.5)
+    im.vgrad((x + 1, y - h + 1, x + w - 1, y - 1), _lift(top, 10), _lift(top, -14))
+    im.rect((x, y - h * 0.78, x + w, y - h * 0.62), band)
+    ink = (250, 250, 244) if sum(top) < 420 else (24, 24, 28)
+    im.text(name, (x + 6, y - h * 0.58, x + w - 6, y - h * 0.12), ink, BEER_FACES.get(name, "highway_bold"))
+    return w
+
+
+def _tallboy(im, x, yb, name):
+    w, h = _px(TALLBOY[0]), _px(TALLBOY[1])
+    top, band = _rgb(BEER_COLOURS[name][0]), _rgb(BEER_COLOURS[name][1])
+    _stand(im, (x, yb - h, x + w, yb), top, 2, 0.4)
+    im.vgrad((x + 1, yb - h + 1, x + w - 1, yb - 1), _lift(top, 12), _lift(top, -16))
+    im.rect((x, yb - h * 0.7, x + w, yb - h * 0.3), band)
+    im.rect((x, yb - h, x + w, yb - h + 2), (214, 214, 218))
+    return w
+
+
+def _longneck(im, x, yb, name):
+    w, h = _px(LONGNECK[0]), _px(LONGNECK[1])
+    glass = ((40, 110, 50), (120, 70, 25))[_h("glass", name) % 2]
+    im.rrect((x + w * 0.3, yb - h - 2, x + w * 0.7, yb - h + 1), 1.5, (200, 170, 90))      # the crown
+    im.rrect((x + w * 0.32, yb - h, x + w * 0.68, yb - h * 0.68), 2, glass)                 # the neck
+    _stand(im, (x, yb - h * 0.68, x + w, yb), glass, w * 0.3, 0.4)
+    im.vgrad((x + 1, yb - h * 0.67, x + w - 1, yb - 1), _lift(glass, 14), _lift(glass, -14))
+    im.rect((x, yb - h * 0.5, x + w, yb - h * 0.2), (236, 226, 196))                         # the label
+    im.rect((x + 1, yb - h * 0.42, x + w - 1, yb - h * 0.34), _rgb(BEER_COLOURS[name][1]))
+    im.rect((x, yb - h * 0.68, x + 1.5, yb), (255, 255, 255), 0.25)
+    return w
+
+
+def _sports(im, x, yb, liquid):
+    w, h = _px(SPORTS[0]), _px(SPORTS[1])
+    im.rrect((x + w * 0.3, yb - h, x + w * 0.7, yb - h * 0.88), 2, (240, 120, 20))          # the cap
+    im.rrect((x + w * 0.2, yb - h * 0.88, x + w * 0.8, yb - h * 0.74), 2, liquid)
+    _stand(im, (x, yb - h * 0.74, x + w, yb), liquid, w * 0.2, 0.4)
+    im.vgrad((x + 1, yb - h * 0.73, x + w - 1, yb - 1), _lift(liquid, 20), _lift(liquid, -20))
+    im.rect((x, yb - h * 0.5, x + w, yb - h * 0.2), (24, 96, 44))                           # the label
+    im.rect((x + w * 0.38, yb - h * 0.44, x + w * 0.62, yb - h * 0.26), (250, 130, 20))       # the bolt
+    im.rect((x, yb - h * 0.74, x + 1.5, yb), (255, 255, 255), 0.3)
+    return w
+
+
+def _juice(im, x, yb, b):
+    w, h = _px(JUICE[0]), _px(JUICE[1])
+    top, bottom = _rgb(b["bg"][0]), _rgb(b["bg"][1])
+    _stand(im, (x, yb - h, x + w, yb), top, 1, 0.4)
+    im.vgrad((x + 1, yb - h + 1, x + w - 1, yb - 1), _lift(top, 10), _lift(top, -14))
+    im.rect((x, yb - h, x + w, yb - h * 0.82), bottom)
+    im.rrect((x + w * 0.18, yb - h * 0.6, x + w * 0.82, yb - h * 0.36), 2, (250, 246, 230))
+    return w
+
+
+def _shelf_row(im, x0, x1, y_top, y_bot, kind, key, row):
+    """One shelf's products, faced out, standing on ``y_bot``: a case of one
+    drink at a time (`FACING` side by side), as a shelf is stocked."""
+    drinks = list(BR.BRANDS)
+    x = x0 + 3
     i = 0
+    gap = max(2, _px(0.008))
     while True:
-        b = drinks[(_h(key, row, i) + i) % len(drinks)]
-        top, bottom = _rgb(b["bg"][0]), _rgb(b["bg"][1])
-        if kind == "soda":            # a 20 oz bottle: cap, neck, shoulder, label
-            bw, bh = 9, min(34, y_bot - y_top - 3)
-            if x + bw > x1 - 1: break
-            c.rect(x + 3, y_bot - bh, x + 6, y_bot - bh + 3, (230, 230, 230))
-            c.rect(x + 2, y_bot - bh + 3, x + 7, y_bot - bh + 8, bottom)
-            c.rect(x, y_bot - bh + 8, x + bw, y_bot, bottom)
-            c.rect(x, y_bot - bh + 16, x + bw, y_bot - 8, top)
-            x += bw + 2
-        elif kind == "cans":          # 12 oz cans, two high
-            bw, bh = 8, 14
-            if x + bw > x1 - 1: break
+        slot = i // FACING
+        b = drinks[(_h(key, row, slot) + slot) % len(drinks)]
+        if kind == "soda":
+            w = _px(SODA[0])
+            if x + w > x1 - 2: break
+            _soda(im, x, y_bot, b)
+        elif kind == "cans":
+            w = _px(CAN[0])
+            if x + w > x1 - 2: break
             for tier in (0, 1):
-                yb = y_bot - tier * (bh + 1)
-                c.rect(x, yb - bh, x + bw, yb, top)
-                c.rect(x, yb - bh + 4, x + bw, yb - 4, bottom)
-                c.rect(x, yb - bh, x + bw, yb - bh + 1, (210, 210, 214))
-            x += bw + 1
-        elif kind == "milk" and row % 2 == 1:   # half-gallon gable-top cartons (1.29.0)
-            bw, bh = 10, min(26, y_bot - y_top - 3)
-            if x + bw > x1 - 1: break
+                _can(im, x, y_bot, b, tier)
+        elif kind == "milk" and row % 2 == 1:
+            w = _px(CARTON[0])
+            if x + w > x1 - 2: break
             ink, strip = (((200, 30, 40), (30, 70, 170)),
-                          ((30, 70, 170), (200, 30, 40)))[(_h(key, "carton", row, i) + i) % 2]
-            c.rect(x + 3, y_bot - bh, x + bw - 3, y_bot - bh + 2, (225, 222, 216))   # the fin
-            c.rect(x + 1, y_bot - bh + 2, x + bw - 1, y_bot - bh + 4, (232, 230, 224))  # the gable
-            c.rect(x, y_bot - bh + 4, x + bw, y_bot, (242, 240, 236))
-            c.rect(x + 1, y_bot - bh + 6, x + bw - 1, y_bot - bh + 8, strip)
-            c.rect(x, y_bot - bh + 10, x + bw, y_bot - bh + 15, ink)
-            x += bw + 2
-        elif kind == "milk":          # gallon jugs: white, a coloured cap and label band
-            bw, bh = 18, min(38, y_bot - y_top - 3)
-            if x + bw > x1 - 1: break
-            cap = ((200, 30, 30), (40, 90, 200), (230, 120, 170), (40, 150, 70))[(row + i) % 4]
-            c.rect(x, y_bot - bh + 6, x + bw, y_bot, (238, 238, 232))
-            c.rect(x + 11, y_bot - bh, x + 16, y_bot - bh + 6, (238, 238, 232))
-            c.rect(x + 12, y_bot - bh - 2, x + 15, y_bot - bh, cap)
-            c.rect(x + 1, y_bot - bh + 18, x + bw - 1, y_bot - bh + 24, cap)
-            x += bw + 3
-        elif kind == "beer":          # 12-packs, tallboys and bottles, a shelf each
-            name = CN.WINDOW_NAMES[(_h(key, "beer", row, i) + i) % len(CN.WINDOW_NAMES)]
-            top, band = _rgb(BEER_COLOURS[name][0]), _rgb(BEER_COLOURS[name][1])
-            if row % 3 == 2:          # long-neck bottles, green or amber, cream label (1.29.0)
-                bw, bh = 6, min(24, y_bot - y_top - 4)
-                if x + bw > x1 - 1: break
-                glass = ((40, 110, 50), (120, 70, 25))[(_h(key, "glass", name) + 0) % 2]
-                c.rect(x + 2, y_bot - bh - 1, x + 4, y_bot - bh, (200, 170, 90))     # the crown
-                c.rect(x + 2, y_bot - bh, x + 4, y_bot - bh + 7, glass)
-                c.rect(x, y_bot - bh + 7, x + bw, y_bot, glass)
-                c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 19, (236, 226, 196))
-                c.rect(x + 1, y_bot - bh + 14, x + bw - 1, y_bot - bh + 16, band)
-                x += bw + 2
+                          ((30, 70, 170), (200, 30, 40)))[(_h(key, "carton", row, slot)) % 2]
+            _carton(im, x, y_bot, strip, ink)
+        elif kind == "milk":
+            w = _px(JUG[0])
+            if x + w > x1 - 2: break
+            cap = ((200, 30, 30), (40, 90, 200), (230, 120, 170), (40, 150, 70))[(row + slot) % 4]
+            _jug(im, x, y_bot, cap)
+        elif kind == "beer":
+            name = CN.WINDOW_NAMES[(_h(key, "beer", row, slot) + slot) % len(CN.WINDOW_NAMES)]
+            if row % 3 == 2:
+                w = _px(LONGNECK[0])
+                if x + w > x1 - 2: break
+                _longneck(im, x, y_bot, name)
             elif row % 3 == 0:
-                bw, bh = 20, min(11, (y_bot - y_top - 3) // 2)
-                if x + bw > x1 - 1: break
+                w = _px(TWELVE[0])
+                if x + w > x1 - 2: break
                 for tier in (0, 1):
-                    yb = y_bot - tier * (bh + 1)
-                    c.rect(x, yb - bh, x + bw, yb, top)
-                    c.rect(x, yb - bh + 3, x + bw, yb - bh + 6, band)
-                x += bw + 2
+                    _twelve(im, x, y_bot, name, tier)
             else:
-                bw, bh = 7, min(19, y_bot - y_top - 3)
-                if x + bw > x1 - 1: break
-                c.rect(x, y_bot - bh, x + bw, y_bot, top)
-                c.rect(x, y_bot - bh + 5, x + bw, y_bot - 5, band)
-                c.rect(x, y_bot - bh, x + bw, y_bot - bh + 1, (210, 210, 214))
-                x += bw + 1
-        elif kind == "sports":        # 20 oz sports drinks: orange cap, the liquid, a bolt (1.29.0)
-            bw, bh = 9, min(34, y_bot - y_top - 3)
-            if x + bw > x1 - 1: break
-            liquid = SPORTS_LIQUIDS[(_h(key, "sports", row, i) + i) % len(SPORTS_LIQUIDS)]
-            c.rect(x + 2, y_bot - bh, x + 7, y_bot - bh + 3, (240, 120, 20))
-            c.rect(x + 1, y_bot - bh + 3, x + 8, y_bot - bh + 6, liquid)
-            c.rect(x, y_bot - bh + 6, x + bw, y_bot, liquid)
-            c.rect(x, y_bot - bh + 12, x + bw, y_bot - bh + 22, (24, 96, 44))
-            c.rect(x + 3, y_bot - bh + 14, x + 6, y_bot - bh + 20, (250, 130, 20))
-            x += bw + 2
-        else:                         # juice and tea: square cartons and tall bottles
-            bw, bh = 11, min(30, y_bot - y_top - 3)
-            if x + bw > x1 - 1: break
-            c.rect(x, y_bot - bh, x + bw, y_bot, top)
-            c.rect(x, y_bot - bh, x + bw, y_bot - bh + 5, bottom)
-            c.rect(x + 2, y_bot - bh // 2, x + bw - 2, y_bot - bh // 2 + 4, (250, 246, 230))
-            x += bw + 2
+                w = _px(TALLBOY[0])
+                if x + w > x1 - 2: break
+                _tallboy(im, x, y_bot, name)
+        elif kind == "sports":
+            w = _px(SPORTS[0])
+            if x + w > x1 - 2: break
+            liquid = SPORTS_LIQUIDS[(_h(key, "sports", row, slot) + slot) % len(SPORTS_LIQUIDS)]
+            _sports(im, x, y_bot, liquid)
+        else:
+            w = _px(JUICE[0])
+            if x + w > x1 - 2: break
+            _juice(im, x, y_bot, b)
+        x += w + gap
         i += 1
-    # the shelf's price strip, lit from above
-    c.rect(x0, y_bot, x1, y_bot + 2, (250, 250, 244))
+    # the shelf: a wire shelf's front edge, and its price strip, lit from above
+    im.rect((x0, y_bot, x1, y_bot + _px(0.006)), (250, 250, 244))
+    im.rect((x0, y_bot + _px(0.006), x1, y_bot + _px(0.009)), (120, 124, 128))
+
+
+def _door_panel(dt, DW, DH, key):
+    """One door's interior: the lit back panel, brightest at its sides where
+    the tubes are, five shelves of product, each shelf's underside in shade."""
+    im = PT.Img(DW, DH, (206, 222, 236))
+    im.vgrad((0, 0, DW, DH), (214, 228, 240), (196, 212, 228))
+    u = (np.arange(DW, dtype=np.float32) + 0.5) / DW
+    im.shade((0, 0, DW, DH), np.tile((0.80 + 0.20 * np.abs(2.0 * u - 1.0))[None, :], (DH, 1)))
+    step = DH / float(SHELVES)
+    for k in range(SHELVES):
+        y_top = int(k * step) + 2
+        y_bot = int((k + 1) * step) - 4
+        # the shelf above keeps the head of this bay in its shade
+        im.rect((0, y_top, DW, y_top + step * 0.08), (0, 0, 0), 0.3)
+        _shelf_row(im, 1, DW - 1, y_top, y_bot, dt, key, k)
+    return im.to_canvas()
 
 
 def glow_art(door_w, door_h, key="cooler_run", variant=0):
     """ONE image for everything that glows: a panel per door type (`door_*`),
     each sign-band section at one and two doors wide (`sign1_*`, `sign2_*`),
-    a white tube block, and a dark block. ``{canvas, size, rects, name,
-    said}``; rects are pixel boxes, row 0 at the top."""
+    a white tube block, and a dark block -- packed with a gutter each tile
+    bleeds into, because the image is sampled with filtering (1.51.0).
+    ``{canvas, size, rects, name, said, unset}``; rects are pixel boxes,
+    row 0 at the top."""
     DW = max(40, int(round(door_w * TEXEL)))
     DH = max(80, int(round(door_h * TEXEL)))
     S2 = int(round((2 * door_w + MULLION) * TEXEL))
     SH = int(round((HEADER_H - 0.08) * TEXEL))
-    W = max(len(DOOR_TYPES) * DW, S2 + DW)
-    H = DH + len(SECTION_WORDS) * SH + 8
-    c = Canvas(W, H, (18, 22, 26))
-    rects = {}
-    said = []
-    # door panels: a cold white-blue back, five shelves of product
-    for j, dt in enumerate(DOOR_TYPES):
-        x0 = j * DW
-        c.rect(x0, 0, x0 + DW, DH, (206, 222, 236))
-        step = DH / float(SHELVES)
-        for k in range(SHELVES):
-            y_top = int(k * step) + 2
-            y_bot = int((k + 1) * step) - 4
-            _shelf_row(c, x0 + 1, x0 + DW - 1, y_top, y_bot, dt, key, k)
-        rects["door_" + dt] = (x0, 0, x0 + DW, DH)
-    # sign sections: white letters on a coloured band, one row per word
+    tiles, said, unset = [], [], []
+    for dt in DOOR_TYPES:
+        c = _door_panel(dt, DW, DH, key)
+        unset += c.unset
+        tiles.append(("door_" + dt, c))
+    # sign sections: white letters on a coloured band, in the shop's face
     band_cols = ((20, 70, 160), (190, 30, 40), (0, 130, 110), (230, 120, 20), (40, 140, 60),
                  (150, 100, 20))
+    face = ST.owned("shop")
     for j, word in enumerate(SECTION_WORDS):
-        y0 = DH + j * SH
-        for span, sx0, sw in ((2, 0, S2), (1, S2, DW)):
-            c.rect(sx0, y0, sx0 + sw, y0 + SH, band_cols[j])
-            text = word if span == 2 or pt.ink_width(word, 1, "small_caps_bold") <= sw - 6 else word.split()[0]
-            scale = 2 if pt.ink_width(text, 2, "small_caps_bold") <= sw - 8 and pt.line("small_caps_bold") * 2 <= SH - 4 else 1
-            m = pt.trim(pt.render(text, scale, "small_caps_bold"))
-            c.mask(m, sx0 + (sw - len(m[0])) // 2, y0 + (SH - len(m)) // 2, (252, 252, 246))
-            rects[f"sign{span}_{j}"] = (sx0, y0, sx0 + sw, y0 + SH)
+        for span, sw in ((2, S2), (1, DW)):
+            im = PT.Img(sw, SH, band_cols[j])
+            im.vgrad((0, 0, sw, SH), _lift(band_cols[j], 24), _lift(band_cols[j], -12))
+            text = word if span == 2 or ST.fit_cap(word, sw - 10, int(SH * 0.5), face, 8) else word.split()[0]
+            im.text(text, (5, SH * 0.15, sw - 5, SH * 0.85), (252, 252, 246), face, shadow=_lift(band_cols[j], -60))
+            im.vignette((0, 0, sw, SH), 0.22)
+            c = im.to_canvas()
+            unset += c.unset
+            tiles.append((f"sign{span}_{j}", c))
             said.append(text)
-    ty = DH + len(SECTION_WORDS) * SH + 1
-    rects["tube"] = (0, ty, 6, ty + 6)
-    c.rect(*rects["tube"], (255, 255, 250))
-    rects["dark"] = (10, ty, 16, ty + 6)
-    c.rect(*rects["dark"], (14, 14, 16))
-    digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-    return {"canvas": c, "size": (W, H), "rects": rects, "said": said,
-            "name": f"coolerglow_v{variant % 4}_{W}x{H}_{digest:08x}"}
+    tiles.append(("tube", PT.Img(24, 24, (255, 255, 250)).to_canvas()))
+    tiles.append(("dark", PT.Img(24, 24, (14, 14, 16)).to_canvas()))
+    A = CA.atlas(tiles, f"coolerglow_v{variant % 4}", gutter=CA.SMOOTH_GUTTER, bleed=True)
+    A["said"] = said
+    A["unset"] = unset
+    return A

@@ -193,3 +193,61 @@ def test_no_bottled_water_anywhere_in_a_1990s_cooler():
 def test_the_beers_are_the_window_signs_beers():
     from zoo_keeper.core import club_names as CN
     assert set(C.BEER_COLOURS) == set(CN.WINDOW_NAMES)
+
+
+# --- 1.51.0: the products painted, in metres, behind filtered glass ---------------------
+
+
+def test_every_product_is_sized_in_metres_and_every_line_sets():
+    """A 20 oz bottle is 7 cm wide whatever the density; until 1.51.0 it was
+    nine pixels. Every size is a plausible one, and every lettered 12-pack
+    sets its brewer's name."""
+    for name, (w, h) in (("SODA", C.SODA), ("CAN", C.CAN), ("JUG", C.JUG), ("CARTON", C.CARTON),
+                         ("TWELVE", C.TWELVE), ("TALLBOY", C.TALLBOY), ("LONGNECK", C.LONGNECK),
+                         ("SPORTS", C.SPORTS), ("JUICE", C.JUICE)):
+        assert 0.05 <= w <= 0.30 and 0.10 <= h <= 0.30, (name, w, h)
+    for variant in range(4):
+        a = C.glow_art(0.72, 1.74, "k", variant)
+        assert a["unset"] == [], (variant, a["unset"])
+    assert set(C.BEER_FACES) == set(C.BEER_COLOURS)
+
+
+def test_a_shelf_is_stocked_by_the_case():
+    """`FACING` of one drink side by side before the next: the hash that
+    picks a drink is asked once a case, not once a can. Read off a painted
+    row of cans: each can's label colour at its middle, in order."""
+    assert C.FACING >= 2
+    from zoo_keeper.core import paint as PT
+    im = PT.Img(600, 120, (0, 0, 0))
+    C._shelf_row(im, 0, 600, 0, 110, "cans", "k", 0)
+    w, gap = C._px(C.CAN[0]), max(2, C._px(0.008))
+    labels, x = [], 3
+    while x + w <= 598:
+        labels.append(tuple(int(v) for v in im.a[110 - int(C._px(C.CAN[1]) * 0.5), x + w // 2]))
+        x += w + gap
+    assert len(labels) >= 2 * C.FACING
+    for i, colour in enumerate(labels):
+        assert colour == labels[i - i % C.FACING], (i, labels)
+    assert len(set(labels)) >= 2
+
+
+def test_the_glow_atlas_has_gutters_each_tile_bleeds_into():
+    from zoo_keeper.core import card_art as CA
+    a = C.glow_art(0.72, 1.74)
+    G = CA.SMOOTH_GUTTER
+    c = a["canvas"]
+    for key, (x0, y0, x1, y1) in a["rects"].items():
+        for y in (y0, (y0 + y1) // 2, y1 - 1):
+            assert c.get(x0 - G // 2, y) == c.get(x0, y), (key, y)
+            assert c.get(x1 - 1 + G // 2, y) == c.get(x1 - 1, y), (key, y)
+    assert c.get(*[v + 1 for v in a["rects"]["dark"][:2]]) == (14, 14, 16)
+
+
+def test_bpy_the_glow_is_sampled_with_filtering(tmp_path):
+    pytest.importorskip("bpy")
+    import os
+    res, _objs = _build(tmp_path, C.DC_SIZES[0])
+    doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
+    m = next(m for m in doc["materials"] if m["name"].startswith("M_Cooler_") and m["name"].endswith("_Face"))
+    tex = doc["textures"][m["pbrMetallicRoughness"]["baseColorTexture"]["index"]]
+    assert doc["samplers"][tex["sampler"]]["magFilter"] == 9729

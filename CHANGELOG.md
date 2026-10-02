@@ -1,3 +1,53 @@
+## [1.51.0] - the cooler wall: its products drawn in metres, lit from the sides, stocked by the case
+
+The next of the store's props after the candy rack (the walker, 2026-10-02:
+the cooler doors and their stock). The cooler's glow image was the least
+dense art in the store -- 160 px/m, a door's panel 115 x 270 px, every
+product a few pixel rectangles.
+
+THE BRIEF. A reach-in cooler door: a white panel lit from inside by the
+tubes down each mullion, five wire shelves, product faced out and stocked by
+the case -- a shelf is filled a case at a time and a case is one drink. Who
+sees it: a customer through glass, from the aisle; the price strip on each
+shelf's edge is for them. What is left out: wear and dirt, because the glass
+is between.
+
+### Changed
+- **Every product is sized in metres** (`SODA`, `CAN`, `JUG`, `CARTON`,
+  `TWELVE`, `TALLBOY`, `LONGNECK`, `SPORTS`, `JUICE`) and painted with
+  shading: a round thing lit from the sides, its shadow on the panel, a
+  cap, a neck, a label. A 12-pack carries its brewer's name in that
+  brewer's own face (`BEER_FACES`).
+- **Stocked by the case** (`FACING`): three of one drink side by side
+  before the next. Every bottle used to draw its own brand.
+- **The panel is brightest at its sides**, where the tubes are, and each
+  shelf's underside shades the head of the bay below it.
+- **The sign band** is the shop's face (`smooth_type.owned("shop")`) where
+  it was the pixel small caps.
+- **`TEXEL` 160 -> 400**, sampled with filtering; the tiles are packed by
+  `card_art.atlas` with gutters they bleed into, and the tube and dark
+  blocks are 24 px squares where they were 6.
+
+### Cost
+The glow image for a 0.72 m door is 628 x 3400 px (2.1 M px) where it was
+690 x 496 (0.34 M px): 6.2 times. One image a cooler run whatever its
+length, as before; one material, now Linear; no draw changes (the three
+submissions of 1.12.0). Level Factory 0.128.0 ships a filtered texture
+VRAM-compressed. Not 768 px/m as the counter's machines are: a door is
+behind glass and the whole wall is one image.
+
+Measured in a scratch Godot project, GL Compatibility, a 5.2 m run built at
+1.50.0 and at this version, three cameras: 4 draws before and 4 after in
+each (the scene's floor included). The renderer's texture memory with the
+run loaded rose 13.2 MB, uncompressed; what the compressed texture costs in
+a level is not measured yet.
+
+### Not changed, and said
+The glow's strength (`GLOW_EMISSION` 1.0, set in 1.12.0 "to be judged on
+the walk") flattens the painted shading: an emissive face is lit from
+within, and the shadow a bottle throws reads faint through it. The walker
+has not judged the strength; it is left where it was.
+
 ## [1.50.0] - the counter's candy rack: stocked by the box, each box under its header card
 
 The walker, 2026-10-02: "yes, start with the candy tiers" -- the next of the

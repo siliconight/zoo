@@ -89,8 +89,10 @@ def build(plan, streams, collection):
     panel_h = h - CR.HEADER_H - CR.KICK_H - 0.04
     A = CR.glow_art(f["door_width"] - 0.024, panel_h, key, variant)
     image = materials.image_from_png(A["name"], A["canvas"].png())
+    # 1.51.0: the products are painted and shaded and the image is sampled
+    # with filtering; its tiles bleed into their gutters for it
     glow = materials.make_backlit_material(f"M_Cooler_{A['name']}_Face", image,
-                                           CR.GLOW_EMISSION, CR.GLOW_ALBEDO)
+                                           CR.GLOW_EMISSION, CR.GLOW_ALBEDO, smooth=True)
     objs.append(_glow([p for p in got["prims"] if p["mat"] == "glow"], A, glow, collection, streams))
     print(f"[cooler_run] doors={f['doors']} door_w={f['door_width']:.3f} "
           f"types={f['door_types']} sections={[s[0] for s in f['sections']]} "
