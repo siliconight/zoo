@@ -1,3 +1,33 @@
+## [1.41.0] - most posters are on plain paper, and one or two a cluster are loud
+
+The walker, 2026-09-30, on cold run 9119's pole flyers and the posters so
+far: "if anything its just too much color". Their palette guide says the
+same: "a few bright flyers ... stand out more if neighboring posters use
+cream or newsprint". Every bar bill, handbill and sale poster drew its paper
+from a table three-quarters or more coloured, so a wrapped pole was a column
+of equally loud sheets.
+
+  * `poster_art`: a painter takes ``stock`` -- "loud" (the coloured papers
+    it always had), "plain" (white, cream, newsprint; a sale poster's deal
+    in red on white or navy on cream) or None (either, as before). The CLUB
+    takes none: the walker liked its colour and its blacklight.
+  * `poster_wall_forms.loud_sheets`: one sheet of a run is loud; two from
+    six sheets; three from sixteen; spread along the run from a start its
+    own name picks. Every tile names its stock.
+  * `pole_flyers_forms`: ONE bill a pole is loud, the one its newest front
+    sheet carries.
+  * `card_art` hands a tile's stock to the painter.
+
+No geometry, no material and no draw moves: the same sheets on the same one
+image a run.
+
+Tests: `test_poster_wall.py` +18 -- every stock of every family sets both
+lines and passes the thumbnail, grayscale and blur tests; plain paper's
+channels are within 35 of each other and loud paper's are not; a run of any
+width is one to three loud sheets by its count; a club run names no stock
+and paints what it painted. `test_pole_flyers.py` +3 -- one bill a pole is
+loud and the newest layer shows it.
+
 ## [1.40.0] - the snack gondola sells more than chips
 
 The walker's 90s snack references, 2026-09-29: "fruit snacks, lunch kits,

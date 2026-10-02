@@ -74,6 +74,15 @@ def _h(*k):
     return zlib.crc32(",".join(str(v) for v in k).encode("utf-8")) & 0xFFFFFFFF
 
 
+def loud_sheets(n, key, variant):
+    """Which of a run's ``n`` sheets are on loud paper (1.41.0): one; two
+    from six sheets; three from sixteen -- spread evenly along the run from
+    a start the run's own name picks. The rest are plain."""
+    count = 1 if n < 6 else (2 if n < 16 else 3)
+    start = _h(key, variant, "loud") % max(1, n)
+    return {(start + k * n // count) % n for k in range(count)} if n else set()
+
+
 def band_height(family, rows=1):
     """The band a run of ``family`` fills: its sheet height, plus the wander,
     plus a second course for an alley collage."""
@@ -130,12 +139,16 @@ def plan(w, d, h, family="club", variant=0, key="poster_wall"):
                 top = h - u * wander
             places.append((c, i, x, top))
     rows = _order(family, key, variant, len(places))
+    loud = loud_sheets(len(places), key, variant)
     prims, tiles = [], {}
     tilts = []
     for j, ((c, i, x, top), row) in enumerate(zip(places, rows)):
         tile = f"p{j}"
         tiles[tile] = {"kind": "wallposter", "family": family, "row": row,
                        "w_m": round(sw, 4), "h_m": round(sh, 4), "key": f"{key}|{variant}|{j}"}
+        # the club's sheets are one stock: its colour and blacklight stay
+        if family != "club":
+            tiles[tile]["stock"] = "loud" if j in loud else "plain"
         # LAYERS ALTERNATE, THEY DO NOT ACCUMULATE: a sheet need only stand
         # off the ones it overlaps -- its neighbours in its course, and the
         # other course. Stepped by index, a 32-sheet collage stood 12 cm off
@@ -162,4 +175,5 @@ def plan(w, d, h, family="club", variant=0, key="poster_wall"):
     return {"prims": prims, "tiles": tiles, "collision": [],
             "facts": {"family": family, "sheets": len(prims), "courses": courses,
                       "sheet_m": (round(sw, 4), round(sh, 4)), "rows": rows, "tilts": tilts,
+                      "loud": sorted(loud) if family != "club" else [],
                       "tris": P.tri_count(prims)}}

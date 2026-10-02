@@ -94,6 +94,21 @@ def test_the_newest_layer_is_printed_and_only_older_paper_fades(form):
     assert all(F.FADE[layer] == 0.0 for layer in (F.LAYERS - 1, F.LAYERS - 2))
 
 
+@pytest.mark.parametrize("form", F.FORMS)
+def test_one_bill_a_pole_is_loud(form):
+    """1.41.0, the walker: "if anything its just too much color". Every
+    sheet names its stock; the loud ones all carry ONE bill; and the newest
+    layer shows it."""
+    for variant in range(4):
+        g = F.plan(0.3, 0.3, 1.6, form, variant, "pole")
+        tiles = list(g["tiles"].values())
+        assert all(t["stock"] in ("loud", "plain") for t in tiles)
+        loud_rows = {t["row"] for t in tiles if t["stock"] == "loud"}
+        assert len(loud_rows) == 1, (form, variant, loud_rows)
+        assert any(t["stock"] == "loud" and not t["fade"] for t in tiles), (form, variant)
+        assert sum(t["stock"] == "plain" for t in tiles) >= 2, (form, variant)
+
+
 def test_fading_takes_bright_ink_before_dark():
     c = Canvas(2, 1, (0, 0, 0))
     c.px(0, 0, (250, 240, 60))      # day-glo yellow

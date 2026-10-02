@@ -178,7 +178,10 @@ def plan(w, d, h, form="stack", variant=0, key="pole_flyers"):
         tile = f"s{j}"
         tiles[tile] = {"kind": "wallposter", "family": "alley", "row": row,
                        "w_m": round(sw, 4), "h_m": round(sh, 4),
-                       "key": f"{key}|{variant}|{row}", "fade": FADE[layer]}
+                       "key": f"{key}|{variant}|{row}", "fade": FADE[layer],
+                       # ONE BILL A POLE IS LOUD (1.41.0): the one its newest
+                       # front sheet carries (`rows[0]`); every other is plain
+                       "stock": "loud" if row == rows[0] else "plain"}
         prims.append(_arc(tile, layer, r_out, centre, arc_m, z0, z1, uv))
         pieces.append({"layer": layer, "centre": round(centre, 2), "z": (round(z0, 3), round(z1, 3)),
                        "row": row, "scrap": uv != (0.0, 1.0, 0.0, 1.0)})

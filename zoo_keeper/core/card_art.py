@@ -481,7 +481,7 @@ def paint(spec):
         return VF.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
-        c = PA.paint(spec["family"], w, hgt, spec["row"], key)[0]
+        c = PA.paint(spec["family"], w, hgt, spec["row"], key, spec.get("stock"))[0]
         # an OLDER sheet (1.34.0, `pole_flyers`): faded toward newsprint by
         # its layer's age; a spec with no `fade` is the sheet as printed
         if spec.get("fade"):

@@ -449,10 +449,29 @@ def _speakers(c, cx, cy, s, ink, paper):
 CRUDE = (_skull, _guitar, _speakers)
 COPY_PAPER = ((236, 232, 220), (250, 214, 226), (252, 246, 176), (206, 228, 246))
 
+#: THE STOCK (1.41.0). The walker, 2026-09-30: "if anything its just too
+#: much color"; the palette guide: "a few bright flyers ... stand out more if
+#: neighboring posters use cream or newsprint". A painter asked for "plain"
+#: prints on white, cream or newsprint; asked for "loud", on the coloured
+#: papers it always had; asked for neither (None), on any, as before. Which
+#: sheets of a cluster are loud is the cluster's to say
+#: (`poster_wall_forms.loud_sheets`, `pole_flyers_forms.plan`).
+STOCKS = ("loud", "plain")
+PLAIN_PAPER = ((244, 244, 236), (232, 224, 200), (214, 205, 180))
 
-def bar(w, h, row, key):
+
+def _pool(stock, both, loud, plain):
+    if stock is None:
+        return both
+    if stock not in STOCKS:
+        raise ValueError(f"no poster stock {stock!r}; the stocks are {', '.join(STOCKS)}")
+    return loud if stock == "loud" else plain
+
+
+def bar(w, h, row, key, stock=None):
     roll = Roll(f"bar|{row}|{key}")
-    paper = COPY_PAPER[roll.below(len(COPY_PAPER))]
+    pool = _pool(stock, COPY_PAPER, COPY_PAPER[1:], PLAIN_PAPER)
+    paper = pool[roll.below(len(pool))]
     c = Canvas(w, h, paper)
     head, small = PC.BAR[row % len(PC.BAR)]
     band_h = int(h * 0.24)
@@ -540,9 +559,10 @@ ALLEY_ICON_OF = {
 }
 
 
-def alley(w, h, row, key):
+def alley(w, h, row, key, stock=None):
     roll = Roll(f"alley|{row}|{key}")
-    paper = DAYGLO[roll.below(len(DAYGLO))]
+    pool = _pool(stock, DAYGLO, DAYGLO[:4], PLAIN_PAPER)
+    paper = pool[roll.below(len(pool))]
     c = Canvas(w, h, paper)
     head, small = PC.ALLEY[row % len(PC.ALLEY)]
     # THE FLAW FIRST: it was folded into somebody's pocket after it was
@@ -590,12 +610,15 @@ def alley(w, h, row, key):
 #: (`poster_checks`, 2026-09-30): the orange sheet's deal is in navy.
 STORE_PAPER = (((255, 236, 60), (214, 22, 30)), ((255, 132, 40), (20, 24, 110)),
                ((130, 250, 100), (214, 22, 30)), ((250, 250, 244), (214, 22, 30)))
+#: A plain sale poster: the deal in red on white, or in navy on cream.
+STORE_PLAIN = (((250, 250, 244), (214, 22, 30)), ((238, 232, 210), (20, 24, 110)))
 SHOUT = ("SALE", "NOW", "HOT", "WOW")
 
 
-def store(w, h, row, key):
+def store(w, h, row, key, stock=None):
     roll = Roll(f"store|{row}|{key}")
-    paper, head_ink = STORE_PAPER[roll.below(len(STORE_PAPER))]
+    pool = _pool(stock, STORE_PAPER, STORE_PAPER[:3], STORE_PLAIN)
+    paper, head_ink = pool[roll.below(len(pool))]
     red = (214, 22, 30)
     c = Canvas(w, h, paper)
     head, small = PC.STORE[row % len(PC.STORE)]
@@ -634,7 +657,13 @@ PAINTERS = {"club": club, "bar": bar, "alley": alley, "store": store}
 SIZES_M = {"club": (0.46, 0.64), "bar": (0.30, 0.44), "alley": (0.30, 0.42), "store": (0.46, 0.60)}
 
 
-def paint(family, w_px, h_px, row, key=""):
+def paint(family, w_px, h_px, row, key="", stock=None):
+    """``stock`` (1.41.0) is "loud", "plain" or None; the club has one stock
+    and takes none."""
     if family not in PAINTERS:
         raise ValueError(f"no poster family {family!r}; the families are {', '.join(PC.FAMILIES)}")
-    return PAINTERS[family](int(w_px), int(h_px), int(row), str(key))
+    if family == "club" or stock is None:
+        if stock is not None and stock not in STOCKS:
+            raise ValueError(f"no poster stock {stock!r}; the stocks are {', '.join(STOCKS)}")
+        return PAINTERS[family](int(w_px), int(h_px), int(row), str(key))
+    return PAINTERS[family](int(w_px), int(h_px), int(row), str(key), stock)

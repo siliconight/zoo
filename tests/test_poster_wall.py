@@ -119,6 +119,71 @@ def test_every_poster_passes_the_three_tests(family):
             assert m["mass_spread"] >= K.MASS_SPREAD, tag
 
 
+STOCKED = tuple(f for f in PC.FAMILIES if f != "club")
+
+
+@pytest.mark.parametrize("family", STOCKED)
+@pytest.mark.parametrize("stock", PA.STOCKS)
+def test_every_stock_sets_both_lines_and_passes_the_three_tests(family, stock):
+    """1.41.0: a sheet on plain paper is held to what a loud one is."""
+    w, h = _size(family)
+    for row in range(len(PC.COPY[family])):
+        for key in KEYS:
+            c, info = PA.paint(family, w, h, row, key, stock)
+            tag = (family, stock, row, key, info["headline"])
+            assert info["title"] is not None and info["small_at"] is not None, tag
+            m = K.measure(c, info, CA.TEXEL)
+            assert m["title_ratio"] is not None and m["title_ratio"] >= K.TITLE_RATIO, (tag, m)
+            assert m["focal_step"] is not None and m["focal_step"] >= K.FOCAL_STEP, (tag, m)
+            assert m["mass_spread"] >= K.MASS_SPREAD, (tag, m)
+
+
+def _chroma(rgb):
+    return max(rgb) - min(rgb)
+
+
+@pytest.mark.parametrize("family", STOCKED)
+def test_plain_paper_is_plain_and_loud_paper_is_not(family):
+    """The walker: "if anything its just too much color". Plain is white,
+    cream or newsprint -- its channels within 35 of each other; loud is a
+    coloured stock. Asked for neither, a painter draws from both, as it did."""
+    w, h = _size(family)
+    seen = {None: set(), "loud": set(), "plain": set()}
+    for stock in seen:
+        for row in range(len(PC.COPY[family])):
+            for key in KEYS:
+                seen[stock].add(tuple(PA.paint(family, w, h, row, key, stock)[1]["ground"]))
+    assert all(_chroma(p) <= 35 for p in seen["plain"]), seen["plain"]
+    assert all(_chroma(p) > 35 for p in seen["loud"]), seen["loud"]
+    assert seen["loud"] <= seen[None]
+    with pytest.raises(ValueError):
+        PA.paint(family, w, h, 0, "k", "neon")
+
+
+@pytest.mark.parametrize("family", STOCKED)
+@pytest.mark.parametrize("w", (1.0, 1.6, 2.4, 4.0, 8.0))
+def test_a_run_is_mostly_plain_with_one_to_three_loud_sheets(family, w):
+    for variant in range(4):
+        g = F.plan(w, 0.01, F.band_height(family, 2), family, variant, "run")
+        stocks = [g["tiles"][f"p{j}"]["stock"] for j in range(g["facts"]["sheets"])]
+        n, loud = len(stocks), stocks.count("loud")
+        assert loud == (1 if n < 6 else 2 if n < 16 else 3), (family, w, variant, n, loud)
+        assert g["facts"]["loud"] == [j for j, s in enumerate(stocks) if s == "loud"]
+        if n >= 3:
+            assert loud * 2 < n, (family, w, n, loud)
+
+
+def test_a_club_run_names_no_stock():
+    g = F.plan(2.4, 0.01, F.band_height("club"), "club", 1, "run")
+    assert all("stock" not in t for t in g["tiles"].values())
+    assert g["facts"]["loud"] == []
+    # and the club paints what it painted, whatever it is asked
+    w, h = _size("club")
+    a = PA.paint("club", w, h, 2, "k")[0]
+    b = PA.paint("club", w, h, 2, "k", "plain")[0]
+    assert bytes(a.buf) == bytes(b.buf)
+
+
 def test_a_club_title_sets_at_display_size():
     """The typography guide: "Do not solve every fit problem by shrinking the
     type." A club headline sets at scale 2 of `CLUB_FACE` or its layout is
