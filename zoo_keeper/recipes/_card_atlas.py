@@ -55,7 +55,7 @@ def build_shutters(prims, collection, streams, name, rgb=(0, 0, 0)):
     return [obj]
 
 
-def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
+def build_art(prims, collection, plan, streams, name, roughness=None, lit=None, smooth=False):
     """Build every prim carrying a ``tile`` into one object.
 
     ``prims`` is the planner's whole list; the art quads are the ones with a
@@ -71,17 +71,20 @@ def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
     if not quads:
         return [], None
     tiles = plan.get("_tiles") or {}
-    atlas = CA.build_atlas(tiles, name)
+    # ``smooth`` (1.46.0, the real look): an atlas whose tiles bleed into a
+    # wide gutter, a material sampled with filtering, and faces smoothed
+    # across a shallow angle -- a tube's bulge -- where all were flat
+    atlas = CA.build_atlas(tiles, name, smooth=smooth)
     size = atlas["size"]
     image = materials.image_from_png(atlas["name"], atlas["canvas"].png())
     if lit:
         mat = materials.make_backlit_material(
             f"M_{name}_{atlas['name']}_Face", image, lit[0], lit[1],
-            *(() if roughness is None else (roughness,)))
+            *(() if roughness is None else (roughness,)), smooth=smooth)
     else:
         mat = materials.make_painted_material(
             f"M_{name}_{atlas['name']}_Art", image,
-            CA.BOX_ROUGHNESS if roughness is None else roughness)
+            CA.BOX_ROUGHNESS if roughness is None else roughness, smooth=smooth)
 
     out = []
     for group, above in ((False, False), (True, True)):
@@ -102,7 +105,7 @@ def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
                 for loop, c in zip(f.loops, corners):
                     loop[uv].uv = (u0 + (u1 - u0) * c[0], v0 + (v1 - v0) * c[1])
         bm.normal_update()
-        geometry.shade_by_angle(bm, 1.0)
+        geometry.shade_by_angle(bm, 30.0 if smooth else 1.0)
         # the art is not grimed and the painted material reads COLOR_0, so a
         # white one is what makes it arrive as painted (the `crt_tv` rule)
         geometry.wear_colors(bm, streams.stream("card_art"), 0.0)

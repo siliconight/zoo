@@ -88,14 +88,54 @@ def test_the_display_art_sets_every_window_and_is_the_same_bytes():
         for r in ("customer", "operator", "pole", "bezel"):
             x0, y0, x1, y1 = A["rects"][r]
             assert 0 <= x0 < x1 <= W and 0 <= y0 < y1 <= H
-        # the customer's digits at the largest scale 1.0.0's display holds
-        assert A["said"]["customer"][1] >= 2 and price.endswith(A["said"]["customer"][0][-4:])
+        # the customer's digits at 1.0.0's rule, in metres since 1.46.0
+        text, cap = A["said"]["customer"]
+        assert cap / float(CREG.TEXEL) >= RF.DIGIT_MIN_M and price.endswith(text[-4:])
         assert bytes(CREG.art(price)["canvas"].buf) == bytes(A["canvas"].buf)
 
 
 def test_the_genome_names_the_new_parts():
     parts = set(genome_mod.load_species("counter")["parts"])
-    assert {"Counter_RegisterPole", "Counter_RegisterHead", "Counter_RegisterScreen"} <= parts
+    assert {"Counter_RegisterArt", "Counter_RegisterScreen"} <= parts
+
+
+def test_every_painted_face_names_a_tile_the_one_image_holds():
+    """1.46.0: the register is faces on ONE painted image, the same for every
+    station on every counter, and every line on it sets."""
+    solid, lit = CREG.station(0.4, 0.17, 1.08)
+    A = CREG.paint_art()
+    assert A["unset"] == []
+    assert CREG.paint_art() is A
+    assert {p["mat"] for p in solid} == {CREG.PAINT} and {p["mat"] for p in lit} == {CREG.VFD}
+    for p in solid:
+        assert p["tile"] in A["rects"], p["part"]
+        assert len(p["uvs"]) == len(p["faces"]), p["part"]
+    W, H = A["size"]
+    for name, (x0, y0, x1, y1) in A["rects"].items():
+        assert 0 <= x0 < x1 <= W and 0 <= y0 < y1 <= H, name
+
+
+def test_the_register_s_faces_point_out():
+    from tests import _machine_faces as MF
+    solid, lit = CREG.station(0.0, 0.0, 1.0)
+    seen = MF.check([p for p in solid if p["part"] != "Counter_RegisterKeys"])
+    assert {"Chamfer", "top", "under", "front", "back"} <= seen
+    keys, = [p for p in solid if p["part"] == "Counter_RegisterKeys"]
+    assert MF.normal(keys)[2] > 0.999
+
+
+def test_the_deck_and_the_keys_are_turned_for_the_clerk():
+    """The clerk stands at +Y: a tile's bottom-left is at the (+X, +Y) corner,
+    so u falls as x rises and v falls as y rises. The customer's way up is a
+    keypad that reads upside down and mirrored from behind the counter."""
+    solid, _lit = CREG.station(0.0, 0.0, 1.0)
+    for part, k in (("Counter_Register_top", 0), ("Counter_RegisterKeys", 0)):
+        p, = [q for q in solid if q["part"] == part]
+        pts = [(p["verts"][i], uv) for i, uv in zip(p["faces"][k], p["uvs"][k])]
+        (va, ua), (vb, ub) = max(pts, key=lambda t: t[0][0]), min(pts, key=lambda t: t[0][0])
+        assert ua[0] < ub[0], part
+        (va, ua), (vb, ub) = max(pts, key=lambda t: t[0][1]), min(pts, key=lambda t: t[0][1])
+        assert ua[1] < ub[1], part
 
 
 # --------------------------------------------------------------------------- #
@@ -126,3 +166,7 @@ def test_bpy_one_lit_display_material_a_counter(tmp_path, form, dims):
     vfd = [m for m in doc["materials"] if m["name"].startswith("M_Counter_VFD_")]
     assert len(vfd) == 1 and vfd[0]["name"].endswith("_Face"), [m["name"] for m in doc["materials"]]
     assert any(vfd[0].get("emissiveFactor") or [0])
+    # 1.46.0: and ONE painted register material, in place of the flat ones
+    names = [m["name"] for m in doc["materials"]]
+    assert len([n for n in names if n.startswith("M_Counter_Register_")]) == 1, names
+    assert not [n for n in names if n in ("M_Counter_register", "M_Counter_registerkeys")], names

@@ -32,16 +32,6 @@ REAL_NETWORKS = {"MAC", "PLUS", "CIRRUS", "STAR", "HONOR", "NYCE", "PULSE", "MAE
                  "INTERLINK", "EXPLORE", "TYME", "MOST"}
 
 
-def _normal(p, f):
-    vs = [p["verts"][i] for i in f]
-    a, b, c = vs[0], vs[1], vs[2]
-    u = [b[i] - a[i] for i in range(3)]
-    w = [c[i] - a[i] for i in range(3)]
-    n = (u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0])
-    L = sum(x * x for x in n) ** 0.5
-    return tuple(x / L for x in n)
-
-
 def test_the_genome_and_the_kit_stem():
     g = genome_mod.load_species("atm")
     assert genome_mod.validate_genome(g) == []
@@ -72,22 +62,15 @@ def test_every_face_points_where_its_part_faces():
     """Outward for the shell, INTO the hole for the screen's recess (the
     first cut wound all four of those out), up and toward the customer for
     the keypad ledge."""
-    want = {"_front": (0, -1, 0), "_back": (0, 1, 0), "_left": (-1, 0, 0), "_right": (1, 0, 0),
-            "_top": (0, 0, 1), "Well_B": (0, 0, 1), "Well_T": (0, 0, -1), "Well_L": (1, 0, 0),
-            "Well_R": (-1, 0, 0), "Fascia": (0, -1, 0), "Bezel": (0, -1, 0), "Screen": (0, -1, 0),
-            "ATM_Sign": (0, -1, 0), "CabinetTop": (0, 0, 1), "LedgeSideL": (-1, 0, 0),
-            "LedgeSideR": (1, 0, 0)}
+    # 1.46.0: the cabinet is `machine_parts`' -- broken corners, a kick, a
+    # surround that SLOPES in to a bulging tube, key blocks on the ledge --
+    # and `_machine_faces` reads each part's direction off its name
+    from tests import _machine_faces as MF
     g = A.plan(0.6, 0.55, 1.45, 0)
-    seen = set()
-    for p in g["prims"]:
-        n = _normal(p, p["faces"][0])
-        if p["part"] == "ATM_Keypad":
-            assert n[1] < -0.3 and n[2] > 0.3, n
-            continue
-        key = next(k for k in want if k in p["part"])
-        seen.add(key)
-        assert all(abs(n[i] - want[key][i]) < 1e-6 for i in range(3)), (p["part"], n)
-    assert {"Well_B", "Well_T", "Well_L", "Well_R", "Screen", "ATM_Sign"} <= seen
+    seen = MF.check(g["prims"], sloped=("ATM_Keypad", "ATM_Keys", "ATM_FKeys"),
+                    screens=("ATM_Screen",))
+    assert {"Well_B", "Well_T", "Well_L", "Well_R", "Screen", "Sign", "Chamfer", "sloped",
+            "Under", "Shutter"} <= seen
 
 
 def test_two_atlases_two_materials_the_glow_is_the_screen_and_the_topper():

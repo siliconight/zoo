@@ -31,10 +31,6 @@
     "Counter_TapTower",
     "Counter_TapSpout",
     "Counter_TapHandle",
-    "Counter_Register",
-    "Counter_RegisterKeys",
-    "Counter_RegisterPole",
-    "Counter_RegisterHead",
     "Counter_RegisterScreen",
     "Counter_Trim",
     "Counter_CandyTier",
@@ -42,7 +38,8 @@
     "Counter_Lottery",
     "Counter_CigPost",
     "Counter_CigRack",
-    "Counter_CigRackArt"
+    "Counter_CigRackArt",
+    "Counter_RegisterArt"
   ],
   "params": {
     "overhang": {

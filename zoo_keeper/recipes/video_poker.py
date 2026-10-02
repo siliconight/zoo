@@ -26,7 +26,8 @@ def build(plan, streams, collection):
         tiles = {k: spec for k, (a, spec) in got["tiles"].items() if a == atlas_name}
         prims = [p for p in got["prims"] if p["mat"] == atlas_name]
         name = "VideoPoker" if atlas_name == "paint" else "VideoPokerGlow"
-        o, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, name, lit=lit)
+        o, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, name, lit=lit,
+                              smooth=True)
         objs += o
     # the deal's shutters (1.45.0): one more object, drawn by the consumer
     objs += build_shutters(got["prims"], collection, streams, "VideoPoker", VF.SHUTTER_RGB)

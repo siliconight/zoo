@@ -1,3 +1,82 @@
+## [1.46.0] - the real look, trialled: the video poker, the ATM and both registers
+
+The walker, 2026-10-02, on the screens-that-run frames: "this looks like it
+is made with a 90s GPU, what can we do to make these things look
+better/more real without destroying performance?" -- then "replace the retro
+look, do the first three as a trial", and after the video-poker cabinet:
+"yes, do the ATM and register the same way". The first three, none of which
+needs a light, a post-process or a script:
+
+1. **Art at three times the density, in a smooth face, sampled with
+   filtering.** `core/smooth_type.py` sets anti-aliased type from CC0
+   outline faces minted once into coverage tables (`tools/mint_smooth_type.py`
+   from the fonts Pixelcoat 0.54.0 vendors: Blue Highway regular, bold and
+   condensed, and Minisystem, a dot-segment display face).
+2. **Shading painted in.** `core/paint.py`: a float image and the moves that
+   make a flat tile read as a made thing -- graded panels, darkening where
+   faces meet, a lit rim on a raised part, a streak of the room across
+   glass, a display's bloom.
+3. **The shape of a made thing.** `core/machine_parts.py`: chamfered
+   corners, a toe kick set in, a sign proud of its head, a tube that bulges
+   behind a surround sloping in to it, keys and buttons standing off a deck.
+
+### Changed
+- **`video_poker` and `atm`** are rebuilt from those parts. Same slots, same
+  brands, same shutters, same three draws each.
+- **`cash_register`** (the card shop's till): every face is painted into the
+  register's one image. The four flat materials (case, trim, lock, paper)
+  are gone, so the module is TWO draws where it was six. The pole's glass
+  sits behind its head's face; the keys are bevelled and carry digits; the
+  lock is painted on the drawer with the pull bar's shadow.
+- **The register on the store and bar counters** (`counter_register.py`,
+  the one a gas station stands): a chamfered putty body, a painted deck, a
+  block of lettered keys at the clerk's end, a dark pole head. One painted
+  image shared by every counter in a level.
+- **The displays** are Minisystem with their strokes fattened
+  (`register_forms.stroke`) and a bloom round them. The first cut set the
+  face's own hairline and was THINNER AND DIMMER than the pixel digits it
+  replaced -- seen on a frame, not predicted.
+- `card_art.atlas(..., gutter=, bleed=)`, `materials.make_*_material(...,
+  smooth=)`, `_card_atlas.build_art(..., smooth=)`, `shutters.over(...,
+  proud=)`: each a default that leaves every other species as it was.
+- `video_poker`'s triangle budget 120 -> 240. It is a regression detector,
+  and the cabinet is 212.
+
+### Measured
+One of each, built before and after, imported into a scratch Godot project
+in GL Compatibility under one lamp (`docs/findings/real_look_trial/` in the
+root repo). Draws are the prop's own; texture memory is the renderer's own
+figure with the prop loaded, uncompressed with mips.
+
+| prop | draws | triangles | texture memory |
+|---|---|---|---|
+| video poker | 3 -> 3 | 68 -> 212 | 0.56 -> 4.18 MiB |
+| ATM | 3 -> 3 | 62 -> 156 | +2.80 MiB |
+| cash register | 6 -> 2 | 134 -> 182 | +2.42 MiB |
+| service counter, two tills | 7 -> 8 | 108 -> 96 a till | +0.98 MiB |
+
+**The store counter is one draw MORE.** Its tills' bodies rode in the
+counter's shared plastic as flat boxes; painted, they are one more image.
+What would take that back is one material whose emission is a mask over the
+same image, so a till's body and its displays share a draw; it needs the
+lit-face contract downstream to stop assuming a `_Face` material glows all
+over. The bar counter is one FEWER by material count (two flat materials
+became one image); that one was counted, not measured in Godot.
+
+### Not measured
+- Frame time. Draws are the budget this repo has measured to matter and
+  three of four did not rise, but nobody has walked a level with these in it.
+- Texture memory after Godot's import compression. The figures above are
+  uncompressed; they are the cost if nothing is done about it.
+- The trial is four props. Every other species still has the pixel look,
+  and the two looks have not been seen side by side in one room.
+
+### Known
+- `counter`'s register displays have never had the 1.45.0-era flicker:
+  Level Factory 0.127.0 matches `M_Register_*_Face`, and a counter's is
+  `M_Counter_VFD_*_Face`. Left alone: the flicker is under 2 % on a frame
+  and would cost each counter one more draw.
+
 ## [1.45.0] - screens that run: shutters over the ATM's and the video poker's CRTs
 
 The walker, 2026-10-02, after walking cold run 9131: "there is a relatively

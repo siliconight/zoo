@@ -94,8 +94,9 @@ def test_a_register_at_every_station_and_lottery_beside_it():
     _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
     assert len(facts["registers"]) == 2            # two bays of at most 4 m
     assert len(facts["lottery"]) == 2 * S.LOTTO_MAX
-    regs = [p for p in on_top if p["part"] == "Counter_Register"]
-    assert len(regs) == 2 * 2
+    # 1.46.0: a register is painted faces; one key block a station
+    regs = [p for p in on_top if p["part"] == "Counter_RegisterKeys"]
+    assert len(regs) == 2
     lottos = [p for p in on_top if p["part"] == "Counter_Lottery"]
     # every dispenser stands on the top at the customer edge
     for p in lottos:
@@ -121,8 +122,9 @@ def test_the_rack_clears_every_register_or_is_not_built():
 
 def test_the_rack_faces_the_customer_and_the_header_is_the_lit_face():
     _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
-    # 1.16.0: the register windows carry ``uvs`` too, on their own image
-    art = next(p for p in on_top if "uvs" in p and p["mat"] != "vfd")
+    # 1.16.0: the register windows carry ``uvs`` too, on their own image;
+    # 1.46.0: and so does every painted face of the register
+    art = next(p for p in on_top if "uvs" in p and p["mat"] not in ("vfd", "regpaint"))
     assert art["part"] == "Counter_CigRackArt"
     front = min(v[1] for v in art["verts"])
     # the art's front is on the rack's customer side (-Y), set behind its edge
@@ -291,8 +293,8 @@ def test_bpy_the_service_counter_passes_and_fits(tmp_path, dims):
     # every part of the fit-out is there, by its genome name or a suffix of
     # it: the painted parts are built one object each and named apart
     # (Counter_Trim_top, Counter_CandyArt_T1 ...), never Blender's `.001`
-    for want in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_Register",
-                 "Counter_CigPost", "Counter_CigRack", "Counter_CigRackArt"):
+    for want in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_RegisterArt",
+                 "Counter_RegisterScreen", "Counter_CigPost", "Counter_CigRack", "Counter_CigRackArt"):
         assert any(n == want or n.startswith(want + "_") for n in names), (want, names)
     assert not any("." in n for n in names), names
 
@@ -326,27 +328,37 @@ def test_bpy_only_the_rack_header_and_the_registers_glow_and_the_paint_is_paint(
     assert wrap_of(next(n for n in painted if n.endswith("_Display"))) == 33071
 
 
-def test_bpy_seven_materials_seven_submissions_and_no_colour_only_twins(tmp_path):
+def test_bpy_eight_materials_eight_submissions_and_no_colour_only_twins(tmp_path):
     """1.8.0, the point of the release: 1.7.0 shipped this counter as 15
     meshes over 14 materials. Now one material per surface kind, one
     painted atlas, the rack's display and its lit header -- and no two
     skinned materials that differ in nothing but the tint in their name.
     1.16.0: seven. The registers' green displays are one more backlit image,
-    ``M_Counter_VFD_<art>_Face``, whatever the register count."""
+    ``M_Counter_VFD_<art>_Face``, whatever the register count.
+
+    1.46.0: EIGHT, and the eighth is a look that was priced rather than a
+    regression. The registers' bodies rode in the counter's shared plastic as
+    flat-coloured boxes; painted (`counter_register.paint_art`) they are one
+    more image, ``M_Counter_Register_<art>_Art`` -- one draw a counter,
+    whatever the register count. What would take it back: one material whose
+    emission is a mask over the same image, so the body and the displays
+    share a draw; it needs the lit-face contract downstream to stop assuming
+    a `_Face` material glows all over."""
     import os
     import re as _re
     pytest.importorskip("bpy")
     res, _objs = _build(tmp_path, DC_SIZES[0])
     doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
     names = [m["name"] for m in doc["materials"]]
-    assert len(names) == 7, names
+    assert len(names) == 8, names
     assert sum(1 for n in names if n.startswith("M_Counter_VFD_") and n.endswith("_Face")) == 1, names
+    assert sum(1 for n in names if n.startswith("M_Counter_Register_") and n.endswith("_Art")) == 1, names
     # visual submissions only: a collision proxy (`-colonly` and kin) becomes
     # a collider on import and is never drawn
     from zoo_keeper.core import partnames
     visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
     prims = sum(len(m["primitives"]) for m in visual)
-    assert prims == 7, (prims, [m["name"] for m in visual])
+    assert prims == 8, (prims, [m["name"] for m in visual])
     assert len(visual) < len(doc["meshes"]), "the collision proxy should still be exported"
     kinds = [(_re.match(r"M_Skin_([a-z_]+?)_delco_1997", n) or [None, n])[1] for n in names
              if n.startswith("M_Skin_")]

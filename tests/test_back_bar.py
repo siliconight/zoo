@@ -401,8 +401,9 @@ def test_the_foot_rail_is_inside_the_slot_and_the_taps_are_above_it():
     # the taps and the register stand ON the top, service side
     tlo, thi = P.bounds(on_top)
     assert tlo[2] >= h - 0.01 and thi[2] > h
+    # 1.46.0: the register is painted faces, each its own part under the stem
     for part in ("Counter_TapTower", "Counter_TapHandle", "Counter_Register"):
-        got = [p for p in on_top if p["part"] == part]
+        got = [p for p in on_top if p["part"].startswith(part)]
         assert got, part
         assert P.bounds(got)[0][1] >= -1e-9, (part, "not on the service side")
 

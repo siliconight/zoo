@@ -150,8 +150,6 @@ CHROME_PAINT = (0.62, 0.62, 0.63)
 MATERIALS = {
     "black": (BLACK, "metal_painted"),
     "chrome": (CHROME_PAINT, "metal_painted"),
-    "beige": ((0.60, 0.57, 0.48), "plastic"),
-    "key_dark": ((0.16, 0.16, 0.17), "plastic"),
     "lotto": (LOTTO_RED, "plastic"),
     "shelf": (WHITE, "laminate"),
 }

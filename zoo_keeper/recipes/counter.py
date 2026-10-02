@@ -56,6 +56,10 @@ REGISTER_CLEAR = 0.22
 
 FORMS = ("straight", "bar")
 
+#: The two keys a register's faces carry (`counter_register.station`): its
+#: painted image and its lit one. Neither is a flat material.
+_REGISTER_MATS = (CREG.PAINT, CREG.VFD)
+
 
 def _vfd(prims, plan, collection, streams):
     """Every register window on this counter as ONE object on ONE backlit
@@ -68,7 +72,7 @@ def _vfd(prims, plan, collection, streams):
     W, H = A["size"]
     mat = materials.make_backlit_material(
         f"M_Counter_VFD_{A['name']}_Face", materials.image_from_png(A["name"], A["canvas"].png()),
-        RF.SCREEN_EMISSION, RF.SCREEN_ALBEDO)
+        RF.SCREEN_EMISSION, RF.SCREEN_ALBEDO, smooth=True)
     bm = geometry.new_bm()
     uv = bm.loops.layers.uv.new("UVMap")
     for p in prims:
@@ -82,11 +86,40 @@ def _vfd(prims, plan, collection, streams):
                 else:
                     loop[uv].uv = ((x0 + (x1 - x0) * c[1]) / W, 1.0 - (y1 - (y1 - y0) * c[2]) / H)
     bm.normal_update()
-    geometry.shade_by_angle(bm, 1.0)
+    geometry.shade_by_angle(bm, 30.0)
     geometry.wear_colors(bm, streams.stream("counter_vfd"), 0.0)
     obj = geometry.bm_to_object(bm, "Counter_RegisterScreen", collection, finish=False)
     obj.data.materials.append(mat)
     return [obj], A
+
+
+def _register_art(prims, collection, streams):
+    """Every painted face of every register on this counter as ONE object on
+    ONE painted image, ``M_Counter_Register_<art>_Art`` (1.46.0): the body,
+    the deck, the keys, the pole. The image is the same for every counter
+    (`counter_register.paint_art`), so a level's registers share one texture."""
+    if not prims:
+        return []
+    A = CREG.paint_art()
+    size = A["size"]
+    mat = materials.make_painted_material(
+        f"M_Counter_Register_{A['name']}_Art",
+        materials.image_from_png(A["name"], A["canvas"].png()), 0.45, smooth=True)
+    bm = geometry.new_bm()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for p in prims:
+        u0, v0, u1, v1 = RF.uv(A["rects"][p["tile"]], size)
+        vs = [bm.verts.new(v) for v in p["verts"]]
+        for f, corners in zip(p["faces"], p["uvs"]):
+            face = bm.faces.new([vs[i] for i in f])
+            for loop, c in zip(face.loops, corners):
+                loop[uv].uv = (u0 + (u1 - u0) * c[0], v0 + (v1 - v0) * c[1])
+    bm.normal_update()
+    geometry.shade_by_angle(bm, 30.0)
+    geometry.wear_colors(bm, streams.stream("counter_register"), 0.0)
+    obj = geometry.bm_to_object(bm, "Counter_RegisterArt", collection, finish=False)
+    obj.data.materials.append(mat)
+    return [obj]
 
 
 def _darker(c, f=0.6):
@@ -256,17 +289,16 @@ def build(plan, streams, collection):
             "brass": ("M_Counter_brass", [0.58, 0.44, 0.16], "metal_bare"),
             "steel": ("M_Counter_steel", [0.60, 0.61, 0.63], "metal_bare"),
             "tap_handle": ("M_Counter_taphandle", [0.06, 0.07, 0.08], "plastic"),
-            "beige": ("M_Counter_register", [0.60, 0.57, 0.48], "plastic"),
-            "key_dark": ("M_Counter_registerkeys", [0.16, 0.16, 0.17], "plastic"),
         }
         fit_objs = prim_mesh.build(inside, collection, plan,
                                    streams.stream("bar_fitout"), mats, texel=1.0)
-        top_objs = prim_mesh.build([p for p in on_top if p["mat"] != "vfd"], collection, plan,
-                                   streams.stream("bar_fitout"), mats, texel=1.0)
-        top_objs += _vfd([p for p in on_top if p["mat"] == "vfd"], plan, collection, streams)[0]
+        top_objs = prim_mesh.build([p for p in on_top if p["mat"] not in _REGISTER_MATS],
+                                   collection, plan, streams.stream("bar_fitout"), mats, texel=1.0)
+        top_objs += _register_art([p for p in on_top if p["mat"] == CREG.PAINT], collection, streams)
+        top_objs += _vfd([p for p in on_top if p["mat"] == CREG.VFD], plan, collection, streams)[0]
         print(f"[counter] form=bar rail_posts={sum(1 for p in inside) - 1} "
               f"taps={sum(1 for p in on_top if p['part'] == 'Counter_TapTower') // 2} "
-              f"registers={sum(1 for p in on_top if p['part'] == 'Counter_Register') // 2}")
+              f"registers={sum(1 for p in on_top if p['part'] == 'Counter_RegisterKeys')}")
     elif form == "service":
         key, variant = SC.resolve(plan)
         inside, on_top, facts = SC.fitout(w, d, h, attachments, top_w, body_y - body_d / 2,
@@ -306,10 +338,11 @@ def build(plan, streams, collection):
                                                   CF.HEADER_EMISSION, CF.HEADER_ALBEDO)
             paint = materials.make_painted_material(f"M_Counter_CigRack_{R['name']}_Display",
                                                     image, CF.DISPLAY_ROUGHNESS)
-            # the rack's art, not a register window: both carry ``uvs``
-            art_p = next(q for q in on_top if "uvs" in q and q["mat"] != "vfd")
+            # the rack's art, not a register's face: all three carry ``uvs``
+            art_p = next(q for q in on_top if "uvs" in q and q["mat"] not in _REGISTER_MATS)
             top_objs.append(_art_face(art_p, R, paint, lit, collection, streams))
-        top_objs += _vfd([p for p in on_top if p["mat"] == "vfd"], plan, collection, streams)[0]
+        top_objs += _register_art([p for p in on_top if p["mat"] == CREG.PAINT], collection, streams)
+        top_objs += _vfd([p for p in on_top if p["mat"] == CREG.VFD], plan, collection, streams)[0]
         # WHITE LAMINATE, whatever the slot said. The reference's counter is
         # white laminate under checkerboard trim, and the form is the look;
         # a Deli Counter prop arrives as `wood` by default and would build a

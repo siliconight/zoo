@@ -1,6 +1,6 @@
 """cash_register, Zoo 1.0.0: a 1997 till whose customer display is lit.
 
-The decisions are pure (`core/register_forms.py`, `core/pixel_type.py`) and
+The decisions are pure (`core/register_forms.py`, `core/smooth_type.py`) and
 tested here without Blender: the shape at every genome corner, the triangle
 budget, exact fit, no shared plane, the type on both displays, and that every
 painted string is a number or the word TOTAL. The built module -- the parts,
@@ -28,7 +28,7 @@ import pytest
 from zoo_keeper import SEED_EPOCH
 from zoo_keeper.core import card_brands as CB
 from zoo_keeper.core import display_case_forms as DF
-from zoo_keeper.core import dna, genome, intent, kit, pixel_type as pt
+from zoo_keeper.core import dna, genome, intent, kit
 from zoo_keeper.core import prims as P
 from zoo_keeper.core import register_forms as RF
 from zoo_keeper.core import seeding
@@ -43,17 +43,19 @@ DIMS = ((0.32, 0.40, 0.52), (0.34, 0.42, 0.52), (0.38, 0.46, 0.56))
 CORNERS = list(itertools.product(*DIMS))
 DEFAULT = (0.40, 0.42, 0.46)
 #: What it actually builds, measured. Every corner, every price: one number,
-#: because every part is a box or a fixed-segment cylinder and no primitive
-#: asks for a bevel.
-TRIS = 134
-#: The digits' scale in `pixel_type`. 2 everywhere is the walker's whole
-#: question about this species -- at scale 1 the green type is 17.6 mm on the
-#: display instead of 35.2 and stops reading across a shop.
-MIN_SCALE = 2
-#: The atlas, decoded to RGB8 on a client's GPU. The worst corner measured at
-#: 65.5 KiB; the cap is round and above it, and it is the figure that is
-#: actually spent on every machine in a session.
-ATLAS_KIB_MAX = 96
+#: because every part is a fixed set of faces and no primitive asks for a
+#: bevel. 134 until 1.46.0, whose broken corners and sloped surround are 48
+#: more.
+TRIS = 182
+#: The atlas, decoded to RGB8 on a client's GPU, and it is the figure that is
+#: actually spent on every machine in a session. 1.0.0's pixel art measured
+#: 65.5 KiB at its worst corner under a 96 KiB cap. THE REAL LOOK (1.46.0)
+#: IS FIFTEEN TIMES THAT: three times the density on each axis, every panel
+#: of the body painted, a 16 px gutter round every tile. Worst corner
+#: 973 KiB (419 x 793), the default 658 KiB. That is the price of the look,
+#: written down so it can be reopened: Godot's import compression has not
+#: been measured against it yet.
+ATLAS_KIB_MAX = 1024
 
 
 def _slot(w, d, h, style=4, variant=0):
@@ -193,10 +195,21 @@ def test_the_collision_box_is_the_slot_and_nothing_stands_outside_it():
 
 
 def test_the_parts_are_the_genome_s_parts():
+    """1.46.0: every face names a tile, so the module is the two objects the
+    recipe builds them into -- the lit screen and everything else."""
     got = RF.plan(*DEFAULT, key="parts")
-    built = {p["part"] for p in got["prims"] if not p.get("tile")}
-    built |= {"Register_Screen", "Register_Art"}      # the two art objects
-    assert built == set(json.load(open(_GENOME, encoding="utf-8"))["parts"])
+    assert all(p.get("tile") in got["art"]["rects"] for p in got["prims"])
+    assert [p["part"] for p in got["prims"] if p.get("lit")] == ["Register_Screen"]
+    assert json.load(open(_GENOME, encoding="utf-8"))["parts"] == ["Register_Screen", "Register_Art"]
+
+
+def test_a_linear_colour_is_painted_as_the_srgb_it_displays_as():
+    """The slot's colour is linear; the atlas is 8-bit sRGB. Painted without
+    the curve, the genome's 0.055 black is 14 where the flat material showed
+    66 -- a register a third as bright as the one it replaces."""
+    assert RF.srgb8((0.0, 1.0, 0.055)) == (0, 255, 66)
+    assert RF.CASE_RGB == RF.srgb8(json.load(open(_GENOME, encoding="utf-8"))
+                                   ["styles"]["default"]["color"])
 
 
 def test_a_slot_too_small_for_the_shape_refuses_rather_than_building_one():
@@ -209,15 +222,19 @@ def test_a_slot_too_small_for_the_shape_refuses_rather_than_building_one():
 
 
 @pytest.mark.parametrize("dims", CORNERS, ids=lambda d: "x".join(str(v) for v in d))
-def test_the_green_type_sets_at_scale_two_at_every_corner(dims):
+def test_the_green_type_is_thirty_millimetres_tall_at_every_corner(dims):
     """THE RULE THE WALKER ASKED FOR. `POLE_BEZEL_F` was 0.46 and the
     shortest slot in the genome gave a 28 px window against the 26 px a
     scale-2 line needs plus its margins -- one pixel short, and the display
-    halved its digits for it. This is what stops that being spent again."""
+    halved its digits for it. This is what stops that being spent again.
+
+    1.46.0: the digits are a smooth face and no longer step by whole scales,
+    so the rule is the height itself, `DIGIT_MIN_M`, in metres on the glass."""
     for price in RF.PRICES:
         f = RF.plan(*dims, price=price, key="type")["facts"]
-        assert f["digit_scale"] >= MIN_SCALE, (dims, price, f)
-        assert f["digit_h_m"] >= 0.030, (dims, price, f)
+        assert f["digit_h_m"] >= RF.DIGIT_MIN_M == 0.030, (dims, price, f)
+        assert f["digit_cap_px"] == round(f["digit_h_m"] * RF.TEXEL), (dims, price, f)
+        assert f["unset"] == [], (dims, price, f)
 
 
 def test_the_two_displays_read_the_same_number():
@@ -255,37 +272,69 @@ def test_the_face_up_art_is_wound_so_the_clerk_can_read_it():
     THE FIRST DRAFT WOUND IT FROM (-X, -Y) and the panel rendered TOTAL 24.99
     upside down and mirrored -- both axes backwards, which is a 180 degree
     rotation and is invisible to every other check in this file. It was
-    caught by looking at a frame, which is the point of rendering one."""
-    quad = RF._top_art(0.0, 0.0, 0.2, 0.1, 1.0)
-    assert quad[0] == (0.1, 0.05, 1.0)
-    (a, b, c) = P.triangles({"verts": quad, "faces": [(0, 1, 2, 3)]})[0]
-    n = P._cross(P._sub(b, a), P._sub(c, a))
-    assert n[2] > 0 and abs(n[0]) < 1e-12 and abs(n[1]) < 1e-12, n
+    caught by looking at a frame, which is the point of rendering one.
+
+    1.46.0: the keys, the operator's panel and the printer's lid are the TOP
+    FACES of their own blocks, turned by `_clerk`: u falls as x rises and v
+    falls as y rises, on a face that looks up."""
     got = RF.plan(*DEFAULT, key="wind")
-    for part in ("Register_Keys", "Register_OpLcd"):
+    for part in ("Register_Keypad_top", "Register_OpBezel_top", "Register_Printer_top"):
         q, = [p for p in got["prims"] if p["part"] == part]
-        v = q["verts"]
-        assert v[0][0] == max(p[0] for p in v), part
-        assert v[0][1] == max(p[1] for p in v), part
+        (a, b, c) = P.triangles(q)[0]
+        assert P._cross(P._sub(b, a), P._sub(c, a))[2] > 0, part
+        pts = [(q["verts"][i], uv) for i, uv in zip(q["faces"][0], q["uvs"][0])]
+        assert max(pts, key=lambda t: t[0][0])[1][0] < min(pts, key=lambda t: t[0][0])[1][0], part
+        assert max(pts, key=lambda t: t[0][1])[1][1] < min(pts, key=lambda t: t[0][1])[1][1], part
+    # and the bottom-left of the tile is the (+X, +Y) corner exactly
+    q, = [p for p in got["prims"] if p["part"] == "Register_Keypad_top"]
+    lo, hi = P.bounds([q])
+    corner = [uv for i, uv in zip(q["faces"][0], q["uvs"][0])
+              if q["verts"][i][0] == hi[0] or q["verts"][i][1] == hi[1]]
+    assert min(u for u, _v in corner) == 0.0 and min(v for _u, v in corner) == 0.0
 
 
-def test_the_digits_are_the_factory_s_own_typeface():
-    """`pixel_type`, which is Pixelcoat's Pixel Operator Bold -- the face
-    `card_art`'s letterer sets every card-shop sign in and the one
-    `vending_forms.paint_display` already sets a lit price readout in. Not a
-    fourth glyph table."""
+def test_every_face_points_out():
+    """1.46.0: every face is its own quad, and a quad wound backwards renders
+    as nothing. The paper and the operator's panel are tipped, so they are
+    held by their top's lean instead."""
+    from tests import _machine_faces as MF
+    got = RF.plan(*DEFAULT, key="out")
+    tipped = ("Register_Paper", "Register_OpBezel")
+    seen = MF.check([p for p in got["prims"] if not p["part"].startswith(tipped)],
+                    screens=("Register_Screen",))
+    assert {"Chamfer", "front", "top", "under", "bottom", "Well_B", "Well_T", "Well_L",
+            "Well_R", "Screen", "Bezel_B"} <= seen
+    for stem in tipped:
+        top, = [p for p in got["prims"] if p["part"] == stem + "_top"]
+        n = MF.normal(top)
+        assert n[2] > 0.9 and n[1] > 0.0, (stem, n)          # up, and toward the clerk
+
+
+def test_the_digits_are_the_display_face_centred_on_the_glass():
+    """1.46.0: Minisystem, the dot-segment face Pixelcoat vendors, set by
+    `smooth_type` at the height `digits_fit` chose -- where 1.0.0 set
+    `pixel_type` at a whole scale. Measured on the painted tile: every pixel
+    the face covers fully is bright and green, and the glass well clear of
+    the type is dark."""
+    from zoo_keeper.core import smooth_type as ST
     got = RF.plan(*DEFAULT, price="14.95", key="face2")
     A = got["art"]
-    mask = pt.trim(pt.render(A["text"], A["scale"]))
+    assert RF.FACE == "minisystem"
+    cov = RF._fat(ST.coverage(A["text"], A["cap"], RF.FACE), RF.stroke(A["cap"]))
     canvas, rects = A["canvas"], A["rects"]
     x0, y0, x1, y1 = rects["screen"]
-    ox = x0 + ((x1 - x0) - len(mask[0])) // 2
-    oy = y0 + ((y1 - y0) - len(mask)) // 2
-    ink = {(x, y) for y, row in enumerate(mask) for x, v in enumerate(row) if v}
-    for y in range(len(mask)):
-        for x in range(len(mask[0])):
-            got_px = canvas.get(ox + x, oy + y)
-            assert got_px == (RF.VFD_INK if (x, y) in ink else RF.VFD_GROUND), (x, y)
+    ch, cw = cov.shape
+    ox = x0 + ((x1 - x0) - cw) // 2
+    oy = y0 + ((y1 - y0) - ch) // 2
+    full = [(x, y) for y in range(ch) for x in range(cw) if cov[y][x] >= 250]
+    assert len(full) > 50
+    for x, y in full:
+        r, g, b = canvas.get(ox + x, oy + y)
+        assert g > 150 and g > r + 60 and g > b + 60, (x, y, (r, g, b))
+    # the row over the type and the row under it, clear of the bloom
+    for y in (y0 + 2, y1 - 3):
+        r, g, b = canvas.get((x0 + x1) // 2, y)
+        assert max(r, g, b) < 40, (y, (r, g, b))
 
 
 def test_the_screen_is_green_on_black_and_the_contrast_is_not_marginal():
@@ -300,20 +349,31 @@ def test_the_screen_is_green_on_black_and_the_contrast_is_not_marginal():
 
 
 def test_the_keypad_is_painted_and_carries_its_coloured_keys():
-    c = RF.paint_keys(44, 64)
-    seen = {c.get(x, y) for y in range(c.h) for x in range(c.w)}
-    assert RF.KEY_ACCENT_A in seen and RF.KEY_ACCENT_B in seen
-    assert RF.KEY_GROUND in seen
+    """A key is graded and bevelled since 1.46.0, so its colour is a range
+    and not one value: a yellow key and a blue one are measured as hues."""
+    c = RF.paint_keys(140, 200)
+    px = [c.get(x, y) for y in range(c.h) for x in range(c.w)]
+    yellow = [p for p in px if p[0] > 180 and p[1] > 140 and p[2] < 90]
+    blue = [p for p in px if p[2] > 140 and p[2] > p[0] + 60 and p[2] > p[1] + 40]
+    assert len(yellow) > 200 and len(blue) > 200
+    # one key of each, not a wash: neither is a twentieth of the plate
+    assert max(len(yellow), len(blue)) < len(px) / 20
+    assert RF.KEY_GROUND in px or min(sum(p) for p in px) < 3 * 30
 
 
-def test_the_keypad_carries_no_lettering_at_all():
-    """`card_art`'s rule: a key face is 7 px across here and a legend at that
-    size is noise costing the pixels a legend somebody can read would cost.
-    Measured as: the keypad holds no glyph of the face at scale 1."""
-    src = open(os.path.join(_ZOO, "zoo_keeper", "core", "register_forms.py"),
-               encoding="utf-8").read()
-    body = src[src.index("def paint_keys"):src.index("def art(")]
-    assert "pt.render" not in body and "pt.trim" not in body
+def test_the_keys_carry_digits_and_nothing_else():
+    """`card_art`'s rule, asked again at the new density. Until 1.46.0 a key
+    face was 7 px across and a legend at that size is noise; at `PAINT_TEXEL`
+    it is about 30 px and a digit on it is 14 mm tall. So the number block is
+    lettered -- with digits and a point, never a word."""
+    assert set(RF.KEY_LEGENDS.values()) == set("0123456789") | {"00", "."}
+    assert all(0 <= r < RF.KEY_ROWS and 0 <= c < RF.KEY_COLS for r, c in RF.KEY_LEGENDS)
+    for dims in CORNERS:
+        L = RF.layout(*dims)
+        kw, kh = (RF._ppx(v) for v in L["keypad_art"]["size_m"])
+        assert RF.paint_keys(kw, kh).unset == [], dims
+        # a key is wide enough that its legend is a letter and not a smudge
+        assert kw * 0.9 / RF.KEY_COLS >= 20, (dims, kw)
 
 
 # --- the texture, which is the whole cost -------------------------------------------
@@ -339,6 +399,10 @@ def test_the_image_is_named_for_its_own_pixels():
     b = RF.plan(*DEFAULT, price="14.95", key="y")["art"]
     c = RF.plan(*DEFAULT, price="2.50", key="x")["art"]
     d = RF.plan(0.52, 0.42, 0.46, price="14.95", key="x")["art"]
+    # 1.46.0: the body is painted into the image, so its colour is too
+    e = RF.plan(*DEFAULT, price="14.95", key="x", rgb=RF.srgb8((0.6, 0.56, 0.46)))["art"]
+    assert e["name"] != a["name"]
+    assert RF.plan(*DEFAULT, price="14.95", key="x", rgb=RF.CASE_RGB)["art"]["name"] == a["name"]
     # two registers of a size reading a price ARE one image, whatever module
     # each came from -- the keypad's per-key shade is keyed on the grid and
     # not on the stem, so a second counter costs no second atlas
@@ -381,14 +445,15 @@ def test_every_painted_string_is_a_number_or_the_word_total():
     and not a trademark search -- `card_brands`' own words -- so this holds
     both halves: the strings are what they say they are, AND they clear the
     list."""
-    strings = set(RF.PRICES) | {RF.LCD_HEAD}
+    strings = set(RF.PRICES) | {RF.LCD_HEAD} | set(RF.KEY_LEGENDS.values())
     for dims in CORNERS:
         for price in RF.PRICES:
             f = RF.plan(*dims, price=price, key="deny")["facts"]
             strings.add(f["digits"])
             strings.update(f["lcd_lines"])
     for s in strings:
-        assert re.fullmatch(r"\d+\.\d{2}|TOTAL", s), s
+        # 1.46.0: and a key's legend, which is one or two digits or a point
+        assert re.fullmatch(r"\d+\.\d{2}|TOTAL|\d{1,2}|\.", s), s
         up = s.upper()
         assert not (set(re.findall(r"[A-Z0-9']+", up)) & set(CB.DENY_WORDS)), s
         assert not [p for p in CB.DENY_PARTS if p in up], s
@@ -555,6 +620,10 @@ def test_bpy_the_screen_glows_nothing_else_does_and_no_lamp_exists(tmp_path):
     # ONE image for the whole module: the screen's and the art's material
     # share it, so the atlas is one texture on a client and not three
     assert objs["Register_Art"].data.materials[0].name.endswith("_Panel")
+    # 1.46.0: TWO draws, where the flat case, trim, lock and paper made six
+    meshes = [o for o in bpy.context.scene.objects
+              if o.type == "MESH" and not o.name.endswith("-colonly")]
+    assert sorted(o.name for o in meshes) == ["Register_Art", "Register_Screen"]
     imgs = {o.data.materials[0].name: emission(o.data.materials[0])[1]
             for o in bpy.context.scene.objects
             if o.type == "MESH" and len(o.data.materials)}

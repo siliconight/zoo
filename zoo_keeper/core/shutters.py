@@ -46,13 +46,14 @@ def material_name(rgb):
 PROUD = 0.003
 
 
-def over(part, screen, rect, schedule):
+def over(part, screen, rect, schedule, proud=PROUD):
     """A shutter over part of a screen.
 
     ``screen`` is the screen quad's corners -- bottom-left, bottom-right,
     top-right, top-left as the viewer sees it. ``rect`` is ``(u0, v0, u1,
     v1)``, fractions of the screen, v UP. ``schedule`` is ``(open_from,
-    open_to, period_s, phase_s)``."""
+    open_to, period_s, phase_s)``. ``proud`` (1.46.0) is how far off that
+    plane it stands: more than `PROUD` for a tube whose face bulges."""
     u0, v0, u1, v1 = rect
     a, b, period, phase = schedule
     if not (0.0 <= u0 < u1 <= 1.0 and 0.0 <= v0 < v1 <= 1.0):
@@ -64,7 +65,7 @@ def over(part, screen, rect, schedule):
     ey = [tl[k] - bl[k] for k in range(3)]
     n = (ex[1] * ey[2] - ex[2] * ey[1], ex[2] * ey[0] - ex[0] * ey[2], ex[0] * ey[1] - ex[1] * ey[0])
     size = sum(c * c for c in n) ** 0.5
-    n = [c / size * PROUD for c in n]
+    n = [c / size * float(proud) for c in n]
 
     def at(u, v):
         return tuple(bl[k] + ex[k] * u + ey[k] * v + n[k] for k in range(3))

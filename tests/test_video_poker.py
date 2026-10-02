@@ -34,16 +34,6 @@ REAL = {"IGT", "BALLY", "WILLIAMS", "ARISTOCRAT", "KONAMI", "WMS", "PACE", "O-MA
         "PARAGON", "TOUCHTUNES", "MEGATOUCH", "MERIT", "VGT"}
 
 
-def _normal(p, f):
-    vs = [p["verts"][i] for i in f]
-    a, b, c = vs[0], vs[1], vs[2]
-    u = [b[i] - a[i] for i in range(3)]
-    w = [c[i] - a[i] for i in range(3)]
-    n = (u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0])
-    L = sum(x * x for x in n) ** 0.5
-    return tuple(x / L for x in n)
-
-
 def test_the_genome_and_the_kit_stem():
     g = genome_mod.load_species("video_poker")
     assert genome_mod.validate_genome(g) == []
@@ -70,29 +60,22 @@ def test_the_slot_is_filled_centred_with_no_shared_plane():
 
 
 def test_every_face_points_where_its_part_faces():
-    want = {"_front": (0, -1, 0), "_back": (0, 1, 0), "_left": (-1, 0, 0), "_right": (1, 0, 0),
-            "_top": (0, 0, 1), "Well_B": (0, 0, 1), "Well_T": (0, 0, -1), "Well_L": (1, 0, 0),
-            "Well_R": (-1, 0, 0), "Belly": (0, -1, 0), "Bezel": (0, -1, 0), "Screen": (0, -1, 0),
-            "VP_Sign": (0, -1, 0), "CabinetTop": (0, 0, 1), "DeckSideL": (-1, 0, 0),
-            "DeckSideR": (1, 0, 0)}
+    # 1.46.0: `machine_parts`' cabinet; `_machine_faces` reads each part's
+    # direction off its name
+    from tests import _machine_faces as MF
     g = F.plan(0.65, 0.65, 1.75, 0)
-    seen = set()
-    for p in g["prims"]:
-        n = _normal(p, p["faces"][0])
-        if p["part"] == "VP_Deck":
-            assert n[1] < -0.3 and n[2] > 0.3, n
-            continue
-        key = next(k for k in want if k in p["part"])
-        seen.add(key)
-        assert all(abs(n[i] - want[key][i]) < 1e-6 for i in range(3)), (p["part"], n)
-    assert {"Well_B", "Well_T", "Well_L", "Well_R", "Screen", "VP_Sign"} <= seen
+    seen = MF.check(g["prims"], sloped=("VP_Deck", "VP_Button"), screens=("VP_Screen",))
+    assert {"Well_B", "Well_T", "Well_L", "Well_R", "Screen", "Sign", "Chamfer", "sloped",
+            "Under", "Shutter"} <= seen
 
 
 def test_two_atlases_the_glow_is_the_screen_and_the_marquee():
     g = F.plan(0.65, 0.65, 1.75, 1)
     # 1.45.0: and the deal's shutters, which are neither atlas
     assert {p["mat"] for p in g["prims"]} == {"paint", "glow", "shutter"}
-    assert {k for k, (a, _s) in g["tiles"].items() if a == "glow"} == {"screen", "marquee"}
+    # 1.46.0: and the buttons, which are lit caps standing off the deck
+    assert {k for k, (a, _s) in g["tiles"].items() if a == "glow"} == {
+        "screen", "marquee", "btn_bet", "btn_deal", "btn_hold"}
 
 
 def test_every_line_of_every_tile_sets_at_every_size():

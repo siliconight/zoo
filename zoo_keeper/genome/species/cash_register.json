@@ -23,16 +23,6 @@
     }
   },
   "parts": [
-    "Register_Drawer",
-    "Register_Pull",
-    "Register_Lock",
-    "Register_Body",
-    "Register_Keypad",
-    "Register_Printer",
-    "Register_Paper",
-    "Register_OpBezel",
-    "Register_Stem",
-    "Register_Bezel",
     "Register_Screen",
     "Register_Art"
   ],
@@ -187,5 +177,5 @@
       "type": "surface"
     }
   },
-  "notes": "A 1997 electronic cash register: a squat moulded body on a deeper cash drawer, a raised customer display on a short post carrying green type on a black screen, a reflective green operator panel angled at the clerk, a receipt printer with a curl of paper in it and a painted keypad in a raised well. BEVEL IS 0 IN EVERY STYLE and that is the point of the budget: no primitive asks for one, so the module ships the 134 triangles core/register_forms.triangles counts, at every one of the 27 genome corners. tris_lod0 is register_forms.TRI_BUDGET and the two are held equal by a test. THE CUSTOMER DISPLAY IS EMISSIVE AND IS NOT A LIGHT: params.lit 0 is a register with its plug pulled (the same switch vending_machine has had since 0.87.0), and nothing in the recipe spawns a Light3D -- GL Compatibility allows 8 lights on one mesh and the card-shop package already ships 84. Front (-Y) is the CUSTOMER side, so the operator stands at +Y and the keypad sits on the -X half of the top, which is that operator's right hand."
+  "notes": "A 1997 electronic cash register: a squat moulded body on a deeper cash drawer, a raised customer display on a short post carrying green type on a black screen, a reflective green operator panel angled at the clerk, a receipt printer with a curl of paper in it and a painted keypad in a raised well. BEVEL IS 0 IN EVERY STYLE and that is the point of the budget: the corners are broken in the plan (1.46.0, machine_parts.cbody) and no primitive asks for a bevel, so the module ships the 182 triangles core/register_forms.triangles counts, at every one of the 27 genome corners. Every face is painted into the register's one image, so the module is two objects and two draws: Register_Art and the lit Register_Screen. tris_lod0 is register_forms.TRI_BUDGET and the two are held equal by a test. THE CUSTOMER DISPLAY IS EMISSIVE AND IS NOT A LIGHT: params.lit 0 is a register with its plug pulled (the same switch vending_machine has had since 0.87.0), and nothing in the recipe spawns a Light3D -- GL Compatibility allows 8 lights on one mesh and the card-shop package already ships 84. Front (-Y) is the CUSTOMER side, so the operator stands at +Y and the keypad sits on the -X half of the top, which is that operator's right hand."
 }

@@ -406,7 +406,7 @@ def image_from_png(name, png_bytes):
     return img
 
 
-def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35):
+def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35, smooth=False):
     """A lit face whose artwork is its own light: ``image`` drives Emission
     Color at ``strength`` and, dimmed by ``albedo_factor``, Base Color.
 
@@ -433,7 +433,9 @@ def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35):
     bsdf.inputs["Metallic"].default_value = 0.0
     tex = tree.nodes.new("ShaderNodeTexImage")
     tex.image = image
-    tex.interpolation = "Closest"
+    # ``smooth`` (1.46.0): art painted with anti-aliased edges and shading is
+    # sampled with filtering; pixel art stays Closest
+    tex.interpolation = "Linear" if smooth else "Closest"
     tex.extension = "EXTEND"
     f = float(albedo_factor)
     base = _tint_multiply(tree, tex.outputs["Color"], (f, f, f), name)
@@ -482,7 +484,7 @@ def make_shutter_material(name, rgb=(0, 0, 0)):
     return mat
 
 
-def make_painted_material(name, image, roughness, tile=False):
+def make_painted_material(name, image, roughness, tile=False, smooth=False):
     """A face whose artwork is PAINT on it, not light: ``image`` drives Base
     Color at full strength, nothing drives emission, roughness is the
     surface's (0.91.0: a dartboard's sisal, a chalkboard's slate, a
@@ -513,7 +515,7 @@ def make_painted_material(name, image, roughness, tile=False):
     bsdf.inputs["Emission Strength"].default_value = 0.0
     tex = tree.nodes.new("ShaderNodeTexImage")
     tex.image = image
-    tex.interpolation = "Closest"
+    tex.interpolation = "Linear" if smooth else "Closest"      # 1.46.0, as the backlit one
     tex.extension = "REPEAT" if tile else "EXTEND"
     tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
     return mat

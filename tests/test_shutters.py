@@ -50,7 +50,10 @@ def test_a_shutter_stands_proud_of_its_screen_inside_it_facing_out(plan, part):
     assert shut
     for p in shut:
         assert p["mat"] == SH.MAT and "tile" not in p
-        assert all(abs(a - b) < 1e-9 for a, b in zip(_normal(p), _normal(screen)))
+        # 1.46.0: the tube BULGES, so the shutter is flat in front of its
+        # crown and the two no longer share a normal; both look at -Y
+        assert all(abs(a - b) < 1e-9 for a, b in zip(_normal(p), (0.0, -1.0, 0.0)))
+        assert _normal(screen)[1] < -0.9
         slo, shi = P.bounds([p])
         assert abs((lo[1] - slo[1]) - SH.PROUD) < 1e-9 and abs(slo[1] - shi[1]) < 1e-12   # toward -Y
         assert lo[0] - 1e-9 <= slo[0] < shi[0] <= hi[0] + 1e-9
@@ -81,7 +84,7 @@ def test_the_poker_deals_one_card_after_another_holds_and_clears():
     screen = _screen(g["prims"], "VP_Screen")
     lo, hi = P.bounds([screen])
     tile = g["tiles"]["screen"][1]
-    wpx, hpx = F._px(tile["w_m"]), F._px(tile["h_m"])
+    wpx, hpx = F._gpx(tile["w_m"]), F._gpx(tile["h_m"])
     for p, (bx0, by0, bx1, by1) in zip(shut, F.card_boxes(wpx, hpx)):
         slo, shi = P.bounds([p])
         u0 = (slo[0] - lo[0]) / (hi[0] - lo[0])
@@ -110,7 +113,7 @@ def test_a_tube_too_small_for_two_lines_has_no_shutter():
     for w, d, h in ((0.5, 0.4, 1.2), (0.6, 0.55, 1.45), (0.75, 0.7, 1.65)):
         g = A.plan(w, d, h, 0)
         tile = g["tiles"]["screen"][1]
-        lines, _band = A.crt_bands(A._px(tile["h_m"]), tile["greet"])
+        lines, _pad, _band = A.crt_bands(A._gpx(tile["h_m"]), tile["greet"])
         n = len(_shutters(g["prims"]))
         assert n == (2 if len(lines) >= 2 else 0), (w, d, h, len(lines), n)
         seen.add(n)

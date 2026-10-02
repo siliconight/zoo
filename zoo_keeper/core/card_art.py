@@ -64,6 +64,10 @@ NAME_BAND = len(pt.trim(pt.render("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)))
 #: Gutter between atlas tiles, and the atlas's target width in pixels. The
 #: width is a target and not a cap: one tile wider than it gets its own row.
 GUTTER = 2
+#: The gutter of an atlas sampled with filtering (1.46.0): eight pixels of
+#: each tile's own edge either side, which holds a tile's colour at its
+#: border down to the third mip.
+SMOOTH_GUTTER = 16
 ATLAS_W = 256
 #: How rough a painted card face is. `dartboard_art` paints sisal at 0.85;
 #: a card is coated stock and a cardboard box is not, so they split.
@@ -400,6 +404,32 @@ def slab_face(game, w_px, h_px, key):
 # --- the atlas ---------------------------------------------------------------
 
 
+def _bleed(c, tile, x, y, n):
+    """``tile``'s edge rows and columns repeated ``n`` px outward into the
+    atlas ``c`` round where it will be pasted at (x, y): half the gutter,
+    so two neighbours' bleeds meet and do not overwrite each other."""
+    w, h = tile.w, tile.h
+    stride = w * 3
+    top = bytes(tile.buf[0:stride])
+    foot = bytes(tile.buf[(h - 1) * stride:h * stride])
+    for k in range(1, n + 1):
+        for ty, row in ((y - k, top), (y + h - 1 + k, foot)):
+            if 0 <= ty < c.h:
+                i = (ty * c.w + x) * 3
+                c.buf[i:i + stride] = row
+    for ty in range(max(0, y - n), min(c.h, y + h + n)):
+        sy = min(h - 1, max(0, ty - y))
+        left = bytes(tile.buf[sy * stride:sy * stride + 3])
+        right = bytes(tile.buf[sy * stride + stride - 3:sy * stride + stride])
+        for k in range(1, n + 1):
+            if x - k >= 0:
+                i = (ty * c.w + x - k) * 3
+                c.buf[i:i + 3] = left
+            if x + w - 1 + k < c.w:
+                i = (ty * c.w + x + w - 1 + k) * 3
+                c.buf[i:i + 3] = right
+
+
 def uv_rect(rect, size):
     """glTF UVs for a pixel rect in an atlas whose row 0 is the top."""
     x0, y0, x1, y1 = rect
@@ -407,7 +437,7 @@ def uv_rect(rect, size):
     return (x0 / W, 1.0 - y1 / H, x1 / W, 1.0 - y0 / H)
 
 
-def atlas(tiles, name_prefix="cardshop"):
+def atlas(tiles, name_prefix="cardshop", gutter=None, bleed=False):
     """Shelf-pack ``[(key, Canvas), ...]`` into one raster.
 
     Returns ``{"canvas", "size", "rects", "name"}``; ``rects`` maps each key
@@ -418,25 +448,33 @@ def atlas(tiles, name_prefix="cardshop"):
     """
     if not tiles:
         return None
-    width = max(ATLAS_W, max(t.w for _k, t in tiles) + 2 * GUTTER)
-    rows, cur, x, row_h = [], [], GUTTER, 0
+    # ``gutter`` and ``bleed`` (1.46.0) are for an atlas sampled WITH
+    # FILTERING: a linear sample at a tile's edge reads half a texel past
+    # it, and each mip twice as far, so the gutter is wider and is filled
+    # with the tile's own edge rather than the atlas's ground. The default
+    # is the pixel-art atlas every species had: 2 px of ground, no bleed.
+    G = GUTTER if gutter is None else int(gutter)
+    width = max(ATLAS_W, max(t.w for _k, t in tiles) + 2 * G)
+    rows, cur, x, row_h = [], [], G, 0
     for key, tile in tiles:
-        if x + tile.w + GUTTER > width and cur:
+        if x + tile.w + G > width and cur:
             rows.append((cur, row_h))
-            cur, x, row_h = [], GUTTER, 0
+            cur, x, row_h = [], G, 0
         cur.append((key, tile, x))
-        x += tile.w + GUTTER
+        x += tile.w + G
         row_h = max(row_h, tile.h)
     if cur:
         rows.append((cur, row_h))
-    height = GUTTER + sum(h + GUTTER for _r, h in rows)
+    height = G + sum(h + G for _r, h in rows)
     c = Canvas(width, height, (16, 16, 18))
-    rects, y = {}, GUTTER
+    rects, y = {}, G
     for row, h in rows:
         for key, tile, x in row:
+            if bleed:
+                _bleed(c, tile, x, y, G // 2)
             c.paste(tile, x, y)
             rects[key] = (x, y, x + tile.w, y + tile.h)
-        y += h + GUTTER
+        y += h + G
     digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
     return {"canvas": c, "size": (width, height), "rects": rects,
             "name": f"{name_prefix}_{width}x{height}_{digest:08x}"}
@@ -516,7 +554,7 @@ def paint(spec):
     raise ValueError(f"card_art.paint: unknown tile kind {kind!r}")
 
 
-def build_atlas(tiles, name_prefix="cardshop"):
+def build_atlas(tiles, name_prefix="cardshop", smooth=False):
     """Paint a planner's ``tiles`` mapping into one atlas.
 
     The tiles are packed in SORTED key order rather than dict order, so the
@@ -524,6 +562,9 @@ def build_atlas(tiles, name_prefix="cardshop"):
     not on the order the planner happened to discover it in. Two specimens
     that stock the same products share one image.
     """
+    if smooth:
+        return atlas([(k, paint(tiles[k])) for k in sorted(tiles)], name_prefix,
+                     gutter=SMOOTH_GUTTER, bleed=True)
     return atlas([(k, paint(tiles[k])) for k in sorted(tiles)], name_prefix)
 
 
