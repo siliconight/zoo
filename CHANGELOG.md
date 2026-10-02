@@ -1,3 +1,44 @@
+## [1.43.0] - the video store's tape racks, and its name over the door
+
+The walker's queue, 2026-09-29: "a new building type: a VHS movie rental
+store". Their calls, 2026-10-02: the store is MACDADE MOVIES; the curtained
+back room, "suggestive only"; no references -- build from the era.
+
+New species `video_rack` (`core/video_rack_forms.py`, `recipes/video_rack.py`,
+its genome), three forms:
+
+  wall    shopped from one side, its back board to the building's wall:
+          shelves of VHS BOXES faced out, a GENRE BOARD across the head of
+          each bay -- NEW RELEASES, ACTION, COMEDY, HORROR, DRAMA, SCI-FI, a
+          bay each, from a start the slot's `variant` picks;
+  island  both faces of a spine, low enough to see over, no boards;
+  adult   the wall form for the back room: every board says ADULTS ONLY 18+
+          and every box is the back room's.
+
+A box is a 12-triangle sleeve, 0.105 x 0.19 x 0.03 m, three or four facings a
+title. THIRTY-SIX INVENTED TITLES -- HOAGIE COP (and 2), FIST OF JAWN, IT ATE
+NANA, LASER NANA, UNCLE VINNY, THE EL -- none a real film, studio or chain.
+THE BACK ROOM IS SUGGESTIVE AND NEVER EXPLICIT: a plain box, a title (HOT TUB
+4, TAN LINES), a pair of lips, an 18+ badge. No figure is drawn.
+
+TWO SUBMISSIONS WHATEVER THE LENGTH, the snack gondola's two: the steel, and
+every box and board on one 240 x 508 image. A 3 m wall is 126 boxes and
+2,028 triangles; the genome's largest is 6,192.
+
+`storefront_names`: a building whose identity says `video` is MACDADE MOVIES.
+
+WHAT THE FIRST CUTS GOT WRONG: MUMMER is 41 px in m5x7 on a 40 px box (the
+title is MOON STRUT); a shelf's lip stood 2 mm under its shelf and the kick
+ended on the back board's face (the planner's check, both moved); the kick,
+board and lip shared the frame's part name under their own tints and built
+as `VideoRack_Frame.001` (each is its own part).
+
+Registries: `test_coincident_faces` CENSUS_BUILDS 348 -> 351 ("3 builds, 0
+with coincident pairs": 384 / 2,028 / 6,192 tris); `test_genome`;
+`test_material_options_closed`; `test_theme_style_resolution` 90 -> 91.
+
+Tests: `tests/test_video_rack.py` (48 + 4 in Blender).
+
 ## [1.42.0] - a bag is pinched flat at its seals and puffed between them
 
 The walker, 2026-10-02, sent two tutorials on making a chip bag in Blender: a

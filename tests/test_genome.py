@@ -45,6 +45,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "poster", "hanging_banner", "ceiling_hanger", "aisle_sign",
                 "poster_wall",
                 "pole_flyers", "video_poker",
+                # the video store's tape racks (1.43.0): boxes faced out
+                # under a genre board, wall, island and back room
+                "video_rack",
                 # the till the card shop's counter never had (1.0.0): a
                 # 1997 register whose customer display is lit, standing in
                 # for the four boxes `display_case_forms._register` drew

@@ -1,0 +1,131 @@
+{
+ "species": "video_rack",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.43.0. The video store's tape racks, for the walker's VHS rental store (MACDADE MOVIES, 2026-10-02): a 1997 strip-mall rental store is walls of boxes faced out under a genre board, low islands down the floor, and a back room behind a curtain. Three forms: wall (shopped from -Y, a genre board a bay: NEW RELEASES, ACTION, COMEDY, HORROR, DRAMA, SCI-FI), island (both faces of a spine, no boards), adult (the wall form for the back room: suggestive, never explicit -- a plain box, a title, a pair of lips, an 18+ badge; no figure). A box is a 12-triangle VHS sleeve, 0.105 x 0.19 x 0.03 m, its front on its title's tile; 36 invented titles (core/video_rack_forms.TITLES). Two submissions whatever the length: painted steel with colour in the Wear vertex colour, and every box and board on one painted image. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.0,
+   "max": 8.0,
+   "default": 3.0
+  },
+  "depth": {
+   "min": 0.35,
+   "max": 1.2,
+   "default": 0.45
+  },
+  "height": {
+   "min": 1.2,
+   "max": 2.2,
+   "default": 2.0
+  }
+ },
+ "parts": [
+  "VideoRack_Kick",
+  "VideoRack_Frame",
+  "VideoRack_Board",
+  "VideoRack_Shelf",
+  "VideoRack_Lip",
+  "VideoRack_Art"
+ ],
+ "params": {
+  "form": [
+   "wall",
+   "island",
+   "adult"
+  ]
+ },
+ "module_variants": 6,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.2,
+    0.2,
+    0.22
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 15000
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "video rack",
+  "tape rack",
+  "vhs rack",
+  "video shelf",
+  "rental shelf",
+  "tape wall"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

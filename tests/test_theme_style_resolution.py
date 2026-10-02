@@ -120,7 +120,8 @@ def test_delco_1997_reaches_every_species():
     # `len(list_species())` on purpose -- this test is the audit of what
     # somebody actually styled, and a count that updates itself audits
     # nothing.
-    assert len(_genomes()) == 90 + len(_minted), len(_genomes())
+    # 1.43.0: 91, + video_rack, styled from the snack gondola's rows.
+    assert len(_genomes()) == 91 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

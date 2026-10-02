@@ -47,6 +47,9 @@ KINDS = (
     ("market", ("market", "supermarket", "grocery"), ("PIKE FOOD MARKET", "THE BIG CART",
                                                        "SCRAPPLE SUPERMARKET")),
     ("card", ("card",), ("TOPDECK TONY'S", "MINT-ISH CARDS")),
+    # THE VIDEO STORE (1.43.0), named by the walker, 2026-10-02. `video`
+    # alone: "rental" and "movies" are words other buildings could carry.
+    ("video", ("video",), ("MACDADE MOVIES",)),
     ("brewery", ("brewery",), ("DOWN THE SHORE BREWING", "HONEST HON BREW CO")),
     ("casino", ("casino",), ("LUCKY JAWN CASINO", "THE BROKE BANK CASINO")),
     ("funeral", ("funeral",), ("STIFF & SONS FUNERAL HOME", "RESTFUL PINES FUNERAL HOME")),

@@ -398,7 +398,11 @@ DID_NOT_BUILD = {"boots"}
 #: 1.39.0: `video_poker`, three builds more, same tool, Blender 5.1.1: "3
 #: builds, 0 with coincident pairs, 0 that did not build", 58 tris at each
 #: corner. Its test runs `coincident_pairs` over 27 sizes x 4 variants.
-CENSUS_BUILDS = 348
+#: 1.43.0: `video_rack`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build". The planner's
+#: check found two pairs a build first -- a shelf's lip 2 mm under its
+#: shelf, the kick ending on the back board's face -- fixed at the source.
+CENSUS_BUILDS = 351
 
 
 def test_the_census_covers_every_species_there_is():
