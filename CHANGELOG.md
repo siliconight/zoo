@@ -1,3 +1,20 @@
+## [1.54.0] - one price faces the customer
+
+The walker, 2026-10-02, on a frame from cold run 9137 with the hump's
+display crossed out: "i think we only need 1 set of numbers/face of the
+price per register facing the customer". The till on the store and bar
+counters (`counter_register`) showed the customer two prices -- the hump's
+front and the pole over it.
+
+### Changed
+- **The hump's customer window is gone.** A till is two lit windows: the
+  pole's, facing the customer, and the hump's back, facing the clerk. The
+  hump's front is plastic. The display image carries two regions where it
+  carried three.
+
+### Cost
+One quad fewer a till; the same two objects and materials on a counter.
+
 ## [1.53.0] - the roller grill: its panels drawn and lettered by owner
 
 The last of the store's counter props in the pixel look (the walker,

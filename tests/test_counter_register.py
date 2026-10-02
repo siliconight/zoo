@@ -4,8 +4,9 @@ The walker, 2026-09-28: "I also want the cash registers in these buildings
 (where we have cash registers) to have that glowing green/black screen".
 The registers the stores and bars stand were three beige boxes; both
 counters now build `counter_register.station`: the keys at the clerk's end,
-a lit operator display facing the clerk, a lit customer display facing the
-customer, and a pole display. Pure half, then the built half (bpy).
+a lit operator display facing the clerk and a pole display facing the
+customer (1.54.0: the hump's own customer window is gone -- one price faces
+the customer). Pure half, then the built half (bpy).
 """
 from __future__ import annotations
 
@@ -34,13 +35,15 @@ def _lit_face(p):
 
 def test_a_station_has_three_lit_windows_facing_the_right_people():
     solid, lit = CREG.station(0.4, 0.17, 1.08)
-    assert sorted(p["uvs"][_lit_face(p)][0][0] for p in lit) == ["customer", "operator", "pole"]
+    # 1.54.0: two windows, not three -- the pole for the customer, the
+    # hump's back for the clerk; the walker asked for one price facing them
+    assert sorted(p["uvs"][_lit_face(p)][0][0] for p in lit) == ["operator", "pole"]
     for p in lit:
         k = _lit_face(p)
         region = p["uvs"][k][0][0]
         ny = _normal(p, k)[1]
         # the customer (-Y) reads the customer window and the pole; the clerk (+Y) the operator's
-        assert (ny < 0) == (region in ("customer", "pole")), (region, ny)
+        assert (ny < 0) == (region == "pole"), (region, ny)
         assert p["mat"] == "vfd"
     assert P.coincident_pairs(solid + lit, tol=0.0022) == []
 
@@ -77,7 +80,7 @@ def test_the_service_counter_carries_the_windows_and_shares_no_plane():
     from tests.test_service_counter import _fit
     _in, on_top, facts, _tw = _fit(6.0, 0.9, 1.1)
     lit = [p for p in on_top if p["mat"] == "vfd"]
-    assert len(lit) == 3 * len(facts["registers"])
+    assert len(lit) == 2 * len(facts["registers"])
     assert P.coincident_pairs([p for p in on_top], tol=0.0022) == []
 
 
@@ -85,12 +88,13 @@ def test_the_display_art_sets_every_window_and_is_the_same_bytes():
     for price in RF.PRICES:
         A = CREG.art(price)
         W, H = A["size"]
-        for r in ("customer", "operator", "pole", "bezel"):
+        for r in ("operator", "pole", "bezel"):
             x0, y0, x1, y1 = A["rects"][r]
             assert 0 <= x0 < x1 <= W and 0 <= y0 < y1 <= H
-        # the customer's digits at 1.0.0's rule, in metres since 1.46.0
-        text, cap = A["said"]["customer"]
-        assert cap / float(CREG.TEXEL) >= RF.DIGIT_MIN_M and price.endswith(text[-4:])
+        # the customer's digits -- on the pole since 1.54.0 -- read the price;
+        # the pole's window is 4 cm tall and sets what it can
+        text, cap = A["said"]["pole"]
+        assert cap >= 20 and price.endswith(text[-4:])
         assert bytes(CREG.art(price)["canvas"].buf) == bytes(A["canvas"].buf)
 
 

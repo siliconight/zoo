@@ -24,8 +24,9 @@ WHAT IS BUILT at a station, in the counter recipe's frame (-Y the customer,
     the hump's blank back to the clerk -- which is not how any of the
     walker's photographs stands: the operator faces the keys and reads the
     hump across them, and the customer reads its back;
-  * the OPERATOR display on the hump's staff face and the CUSTOMER display
-    on its customer face, both green type on black;
+  * the OPERATOR display on the hump's staff face, green type on black
+    (the hump's customer face carried a second display until 1.54.0; the
+    walker asked for one price facing the customer, and that is the pole's);
   * the POLE DISPLAY: a stalk from the hump's top and a dark box on it, its
     window facing the customer, as the Sharp's and the TEC's stand.
 
@@ -93,7 +94,11 @@ POLE_WIN_IN = (0.012, 0.010)          # x, z
 BODY_C, HUMP_C, HEAD_C = 0.012, 0.008, 0.005
 TEXEL = RF.TEXEL
 PAINT_TEXEL = RF.PAINT_TEXEL
-REGIONS = ("customer", "operator", "pole")
+#: 1.54.0: the hump's customer window is gone. The walker, 2026-10-02, on
+#: run 9137's frame: "i think we only need 1 set of numbers/face of the
+#: price per register facing the customer" -- the pole reads to the
+#: customer, the hump's back to the clerk, and the hump's front is plastic.
+REGIONS = ("operator", "pole")
 #: The two material keys a station's prims carry: the painted image and the
 #: lit one.
 PAINT, VFD = "regpaint", "vfd"
@@ -164,8 +169,7 @@ def station(ax, ry, h):
     painted.append(_clerk(keys, 0))
     wx0, wx1 = hx0 + WIN_IN_X, hx1 - WIN_IN_X
     wz0, wz1 = zt + WIN_Z[0], hz1 - WIN_Z[1]
-    lit = [window("Counter_RegisterScreen", wx0, wx1, hy0 - PROUD, wz0, wz1, "customer"),
-           window("Counter_RegisterScreen", wx0, wx1, hy1 + PROUD, wz0, wz1, "operator", True)]
+    lit = [window("Counter_RegisterScreen", wx0, wx1, hy1 + PROUD, wz0, wz1, "operator", True)]
     # the pole: the stalk up from the hump's centre into the head's floor
     sy = (hy0 + hy1) / 2.0
     pz0 = hz1 + POLE_UP
@@ -195,7 +199,7 @@ def window_px():
     pw = POLE_W - 2.0 * POLE_WIN_IN[0]
     ph = POLE_H - 2.0 * POLE_WIN_IN[1]
     px = lambda m: max(8, int(round(m * TEXEL)))  # noqa: E731
-    return {"customer": (px(ww), px(wh)), "operator": (px(ww), px(wh)), "pole": (px(pw), px(ph))}
+    return {"operator": (px(ww), px(wh)), "pole": (px(pw), px(ph))}
 
 
 def art(price):
