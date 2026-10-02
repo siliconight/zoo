@@ -286,8 +286,9 @@ def test_every_line_of_every_display_sets_at_every_size():
 def test_a_pack_s_name_sets_on_a_pack_in_the_smooth_face():
     from zoo_keeper.core import smooth_type as ST
     for b in CB.BRANDS:
-        cap = ST.fit_cap(b["short"], F.pack_px() - 4, 14, F.LOGO_FACE, 6)
-        assert cap is not None and cap >= 8, (b["short"], cap)
+        # 1.49.0: in the brand's OWN face (`cigarette_brands.FACE`)
+        cap = ST.fit_cap(b["short"], F.pack_px() - 4, 14, F.brand_face(b["id"]), 6)
+        assert cap is not None and cap >= 7, (b["short"], F.brand_face(b["id"]), cap)
 
 
 def test_the_band_the_dark_faces_sample_is_dark_and_deep_enough_to_filter():

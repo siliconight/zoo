@@ -38,6 +38,25 @@ from . import machine_parts as MP
 from . import paint as PT
 from . import prims as P
 from . import shutters as SH
+from . import smooth_type as ST
+
+#: WHOSE VOICE (1.49.0, `smooth_type.OWNERS`). The legends moulded and
+#: printed on the cabinet -- TAKE CASH, RECEIPT, CARD, the keys, the topper
+#: -- are the MAKER's and the network's. The surcharge sticker is the SHOP's:
+#: somebody stuck it on. The tube is a SCREEN and its letters are pixels
+#: (`Img.pixel_text`); 1.46.0 set it in a printed face, and a CRT does not
+#: print.
+#: The tube's characters: the factory's REGULAR pixel face, a terminal's thin
+#: stroke, and a line this many pixels deep -- enough for that face at twice
+#: its size. MEASURED ON A FRAME: the first cut kept 1.46.0's 22 px lines,
+#: where a pixel face (which only grows in whole steps) set at 1x, and the
+#: tube's text came out half the height it had been in the printed face. A
+#: tube shows fewer lines, larger.
+CRT_FACE = "regular"
+CRT_LINE_PX = 30
+MAKER = ST.owned("maker")
+MAKER_SMALL = ST.owned("maker_small")
+SHOP = ST.owned("shop")
 
 #: The networks, by variant: topper line, screen greeting.
 #: The greeting has to fit the CRT at one line of m5x7: the first cut's
@@ -219,7 +238,7 @@ def crt_bands(h, greet):
     first; and each line's band. ONE derivation for the painter and for the
     shutters (1.45.0)."""
     pad = max(4, h // 12)
-    n = max(1, min(1 + len(SCREEN_LINES), (h - 2 * pad) // 22))
+    n = max(1, min(1 + len(SCREEN_LINES), (h - 2 * pad) // CRT_LINE_PX))
     lines = ((greet,) + SCREEN_LINES)[:n]
     return lines, pad, (h - 2 * pad) // len(lines)
 
@@ -292,7 +311,7 @@ def paint(spec):
                 im.vgrad((x + 2, y + 2, x + kw - 2, y + kh - 2), (232, 233, 236), (184, 186, 190))
                 im.bevel(box, 2, 26.0, 46.0)
                 im.text(legends[r * 3 + col], (x, y + kh * 0.16, x + kw, y + kh * 0.84), (30, 30, 34),
-                        "highway_bold")
+                        MAKER)
         im.edge_dark((0, 0, w, h), min(w, h) * 0.08, 0.3)
         return im.to_canvas()
     if kind == "atm_fkeys":
@@ -331,7 +350,7 @@ def paint(spec):
         im.rrect((rd[0] + (rd[2] - rd[0]) * 0.10, rd[1] + (rd[3] - rd[1]) * 0.42,
                   rd[2] - (rd[2] - rd[0]) * 0.10, rd[1] + (rd[3] - rd[1]) * 0.60), 2, (2, 2, 3))
         im.disc(rd[0] + (rd[2] - rd[0]) * 0.86, rd[1] + (rd[3] - rd[1]) * 0.20, h * 0.022, (70, 250, 110))
-        im.text("CARD", (rd[0], rd[3] + h * 0.03, rd[2], rd[3] + h * 0.20), (214, 214, 206), "highway_cond")
+        im.text("CARD", (rd[0], rd[3] + h * 0.03, rd[2], rd[3] + h * 0.20), (214, 214, 206), MAKER_SMALL)
         im.edge_dark((0, 0, w, h), h * 0.22, 0.28)
         return im.to_canvas()
     if kind == "atm_fascia":
@@ -340,14 +359,14 @@ def paint(spec):
         im.vgrad((0, 0, w, h), _lift(BODY, 18), _lift(BODY, -30))
         _brushed(im, (0, 0, w, h), 6)
         # THE CASH DISPENSER: a dark mouth behind a steel flap, its legend over it
-        im.text(FASCIA_WORDS[0], (w * 0.18, h * 0.06, w * 0.82, h * 0.15), TRIM, "highway_bold")
+        im.text(FASCIA_WORDS[0], (w * 0.18, h * 0.06, w * 0.82, h * 0.15), TRIM, MAKER)
         cash = (w * 0.14, h * 0.17, w * 0.86, h * 0.29)
         im.rrect(cash, h * 0.012, (52, 54, 58))
         im.bevel(cash, 3, 30.0, 50.0, raised=False)
         im.rrect((cash[0] + 8, cash[1] + (cash[3] - cash[1]) * 0.30, cash[2] - 8,
                   cash[1] + (cash[3] - cash[1]) * 0.70), 3, (8, 8, 10))
         # THE RECEIPT SLOT, smaller, to the right
-        im.text(FASCIA_WORDS[1], (w * 0.54, h * 0.34, w * 0.90, h * 0.40), TRIM, "highway_cond")
+        im.text(FASCIA_WORDS[1], (w * 0.54, h * 0.34, w * 0.90, h * 0.40), TRIM, MAKER_SMALL)
         rc = (w * 0.56, h * 0.41, w * 0.88, h * 0.46)
         im.rrect(rc, 3, (40, 42, 46))
         im.bevel(rc, 2, 30.0, 46.0, raised=False)
@@ -362,9 +381,9 @@ def paint(spec):
         half = (len(words) + 1) // 2
         sh_ = st[3] - st[1]
         im.text(" ".join(words[:half]), (st[0] + 8, st[1] + sh_ * 0.10, st[2] - 8, st[1] + sh_ * 0.50),
-                (30, 20, 10), "highway_bold")
+                (30, 20, 10), SHOP)
         im.text(" ".join(words[half:]), (st[0] + 8, st[1] + sh_ * 0.52, st[2] - 8, st[1] + sh_ * 0.92),
-                (30, 20, 10), "highway_bold")
+                (30, 20, 10), SHOP)
         # the service door's seam and its lock, low on the cabinet
         im.rect((w * 0.06, h * 0.82, w * 0.94, h * 0.82 + 2), (90, 92, 96))
         im.rect((w * 0.06, h * 0.82 + 2, w * 0.94, h * 0.82 + 3), (224, 226, 230), 0.6)
@@ -380,9 +399,9 @@ def paint(spec):
         b = max(3, h // 16)
         im.rect((0, 0, w, b), ink)
         im.rect((0, h - b, w, h), ink)
-        im.text("ATM", (w * 0.04, b * 2, w * 0.36, h - b * 2), ink, "highway_bold",
+        im.text("ATM", (w * 0.04, b * 2, w * 0.36, h - b * 2), ink, MAKER,
                 shadow=_lift(field, -70))
-        im.text(spec["net"], (w * 0.40, h * 0.22, w * 0.96, h * 0.78), ink, "highway_bold",
+        im.text(spec["net"], (w * 0.40, h * 0.22, w * 0.96, h * 0.78), ink, MAKER,
                 shadow=_lift(field, -70))
         im.vignette((0, 0, w, h), 0.34)
         im.glow((0, 0, w, h), max(2, h // 30), 0.22)
@@ -393,8 +412,8 @@ def paint(spec):
         im.vgrad((0, 0, w, h), (8, 26, 12), (4, 14, 6))
         lines, pad, band = crt_bands(h, spec["greet"])
         for i, line in enumerate(lines):
-            im.text(line, (w * 0.05, pad + i * band + band * 0.14, w * 0.95, pad + (i + 1) * band - band * 0.14),
-                    CRT_INK, "highway_bold")
+            im.pixel_text(line, (w * 0.05, pad + i * band + band * 0.04, w * 0.95,
+                                 pad + (i + 1) * band - band * 0.04), CRT_INK, face=CRT_FACE)
         # the tube: its phosphor spills, its lines show, its corners fall off
         im.glow((0, 0, w, h), max(2, h // 50), 0.36)
         im.scanlines((0, 0, w, h), 3, 0.18)

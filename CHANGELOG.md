@@ -1,3 +1,55 @@
+## [1.49.0] - the owner pass: every typeface belongs to somebody; a screen's letters are pixels again
+
+The walker's font catalog (`docs/reference/CC0_FONTS_FOR_HUMAN_AUTHORED_GAMES.md`
+in the root repo), 2026-10-02: "Assign a typeface to an owner." Everything
+the real look had painted since 1.46.0 was Blue Highway -- a bank's ATM, a
+cigarette maker's ad, the law's small print and a shop's price card in one
+voice. The walker approved three more CC0 families the same day; Pixelcoat
+0.55.0 vendors them.
+
+### Added
+- **Seven minted faces**: `aileron`, `aileron_bold` (Aileron SemiBold and
+  Bold), `vegur`, `vegur_bold`, `oldstyle`, `oldstyle_bold`,
+  `oldstyle_italic` (MFB Oldstyle, a revival of Century Oldstyle, 1909).
+- **`smooth_type.OWNERS` and `owned(owner)`**: a painter names WHO is
+  speaking and gets that owner's face. `shop` (a price card, a sticker,
+  vinyl) is Blue Highway; `maker` (an institution, a machine's maker) is
+  Aileron; `notice` (the law's strip, a warning label) is Vegur; `print`
+  (advertising and packaging copy) is MFB Oldstyle; `display` is Minisystem.
+- **`paint.Img.pixel_text`**: the factory's pixel face at the largest whole
+  scale that fits, for a screen.
+
+### Changed
+- **Each cigarette brand has its own lettering** (`cigarette_brands.FACE`),
+  on its pack and on its ad: a slim in an italic serif, a 100 in a roman, a
+  menthol and a light in a grotesque. Twelve makers no longer share a type
+  foundry. The slogan under a name is a printed italic; the law's strip and
+  the Surgeon General's warning are Vegur; the price card stays the shop's.
+- **The ATM**: TAKE CASH, RECEIPT, CARD, the keys and the topper are the
+  maker's (Aileron); the surcharge sticker is the shop's (Blue Highway).
+- **The ATM's and the video poker's TUBES are set in pixels.** 1.46.0 set
+  them in the printed face. A CRT draws its characters on a grid: the pixel
+  look was wrong on what is printed or moulded and right on a screen, and
+  1.46.0 replaced it in both places. The marquee, the pay table and the
+  buttons are printed and stay smooth.
+- **The ATM's tube shows fewer lines, larger**: three where it showed four,
+  in the regular pixel face at twice its size (`CRT_FACE`, `CRT_LINE_PX`).
+  A pixel face only grows in whole steps; at 1.46.0's line depth it set at
+  1x and the tube's text was half the height it had been. Seen on a frame.
+- An ad's lettering is set in the height ABOVE the warning sticker where
+  the sticker reaches under it. The first cut of this release ran the bolder
+  warning over a slogan's second line; seen on a preview, not predicted.
+
+### Not changed, and said
+- The poker cabinet's marquee and pay table, the lottery tickets and the
+  registers' key legends still name Blue Highway by hand. Each has one owner
+  and that owner's face is defensible; they are not yet routed through
+  `OWNERS`.
+
+### Cost
+None in a frame: the same images at the same sizes, different glyphs. The
+seven face tables add 1.6 MB of Python source to the repo.
+
 ## [1.48.0] - the cigarette rack and the cigarette machine, repainted; the rack stocked in blocks
 
 The walker, 2026-10-02: "yes, do the cigarette rack next". The rack over a

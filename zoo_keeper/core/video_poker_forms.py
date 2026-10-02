@@ -318,18 +318,18 @@ def paint(spec):
         w, h = _gpx(spec["w_m"]), _gpx(spec["h_m"])
         im = PT.Img(w, h, CRT_BG)
         im.vgrad((0, 0, w, h), (10, 28, 120), (6, 16, 76))
-        im.text(GAME, (int(w * 0.06), int(h * 0.05), int(w * 0.94), int(h * 0.22)), (255, 224, 70),
-                "highway_bold")
+        # 1.49.0: a tube's letters are pixels (`Img.pixel_text`); the
+        # marquee, the pay table and the buttons are printed and stay smooth
+        im.pixel_text(GAME, (int(w * 0.06), int(h * 0.05), int(w * 0.94), int(h * 0.22)), (255, 224, 70))
         for (x, cy0, x1, cy1), (rank, suit) in zip(card_boxes(w, h), HANDS[v]):
             cw, ch = x1 - x, cy1 - cy0
             im.rrect((x, cy0, x1, cy1), cw * 0.10, (250, 250, 244))
             im.vgrad((x + 2, cy0 + 2, x1 - 2, cy1 - 2), (255, 255, 250), (226, 226, 220))
             # the rank over its suit's pip, both in the suit's colour
-            im.text(rank, (x + 2, cy0 + ch * 0.08, x1 - 2, cy0 + ch * 0.54), SUIT_RGB[suit],
-                    "highway_bold")
+            im.pixel_text(rank, (x + 2, cy0 + ch * 0.08, x1 - 2, cy0 + ch * 0.54), SUIT_RGB[suit])
             _pip(im, suit, x + cw / 2.0, cy0 + ch * 0.76, max(3, int(min(cw, ch) * 0.16)), SUIT_RGB[suit])
-        im.text(CREDITS[v], (int(w * 0.06), int(h * 0.79), int(w * 0.94), int(h * 0.95)), (255, 255, 255),
-                "highway_bold")
+        im.pixel_text(CREDITS[v], (int(w * 0.06), int(h * 0.79), int(w * 0.94), int(h * 0.95)),
+                      (255, 255, 255))
         # the tube: its phosphor spills, its lines show, its corners fall off
         im.glow((0, 0, w, h), max(2, h // 60), 0.30)
         im.scanlines((0, 0, w, h), 3, 0.16)

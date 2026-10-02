@@ -23,7 +23,34 @@ import importlib
 
 import numpy as np
 
-FACES = ("highway", "highway_bold", "highway_cond", "minisystem")
+FACES = ("highway", "highway_bold", "highway_cond", "minisystem",
+         "aileron", "aileron_bold", "vegur", "vegur_bold",
+         "oldstyle", "oldstyle_bold", "oldstyle_italic")
+
+#: WHOSE VOICE EACH FACE IS (1.49.0). The walker's font catalog, 2026-10-02:
+#: "Assign a typeface to an owner." The real look began with everything in
+#: Blue Highway -- a bank's machine, a cigarette maker's ad and the law's
+#: small print in one voice. A painter names an OWNER and gets that owner's
+#: face, so a new prop cannot quietly pick a font because it is to hand.
+OWNERS = {
+    # a shop's own hand: a price card, a sticker somebody stuck on, vinyl
+    "shop": "highway_bold", "shop_small": "highway_cond", "shop_copy": "highway",
+    # an institution or a machine's maker: fascia legends, a network's sign
+    "maker": "aileron_bold", "maker_small": "aileron",
+    # the notice nobody designed: the law's strip, a warning label
+    "notice": "vegur", "notice_bold": "vegur_bold",
+    # printed advertising and packaging copy
+    "print": "oldstyle", "print_bold": "oldstyle_bold", "print_italic": "oldstyle_italic",
+    # a register's vacuum-fluorescent display
+    "display": "minisystem",
+}
+
+
+def owned(owner):
+    """The face ``owner`` speaks in; an unknown owner is refused by name."""
+    if owner not in OWNERS:
+        raise ValueError(f"no owner {owner!r}; the owners are {', '.join(sorted(OWNERS))}")
+    return OWNERS[owner]
 _TABLES = {}
 _MASTERS = {}
 

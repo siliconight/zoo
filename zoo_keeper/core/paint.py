@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from . import pixel_type as PX
 from . import smooth_type as ST
 from .vending_forms import Canvas
 
@@ -220,6 +221,34 @@ class Img:
             return
         part = cov[y0 - y:y1 - y, x0 - x:x1 - x].astype(np.float32) / 255.0 * float(alpha)
         self._mix((x0, y0, x1, y1), rgb, part)
+
+    def pixel_text(self, text, box, rgb, scale=None, align="centre", shadow=None, face=None):
+        """``text`` in the factory's PIXEL face, at the largest whole scale
+        that fits the box (``scale`` at most): A SCREEN'S LETTER. A CRT draws
+        its characters on a grid, so a tube's type is pixels -- the smooth
+        faces are for what is printed, moulded or painted. ``face`` is one of
+        `pixel_type.FACES` (the bold one when not given). Returns the ink's
+        box, or None (and notes the line in ``unset``) when scale 1 does not
+        fit."""
+        x0, y0, x1, y1 = [int(round(v)) for v in box]
+        best = 0
+        for k in range(1, int(scale or 12) + 1):
+            if PX.ink_width(text, k, face) <= x1 - x0 and len(PX.trim(PX.render(text, k, face))) <= y1 - y0:
+                best = k
+            else:
+                break
+        if best == 0:
+            self.unset.append(text)
+            return None
+        rows = PX.trim(PX.render(text, best, face))
+        cov = (np.array([list(r) for r in rows], dtype=np.uint8) * 255)
+        h, w = cov.shape
+        tx = {"centre": x0 + (x1 - x0 - w) // 2, "left": x0, "right": x1 - w}[align]
+        ty = y0 + (y1 - y0 - h) // 2
+        if shadow is not None:
+            self.mask(cov, tx + best, ty + best, shadow, 0.7)
+        self.mask(cov, tx, ty, rgb)
+        return (tx, ty, tx + w, ty + h)
 
     def text(self, text, box, rgb, face="highway", cap=None, min_cap=5, align="centre",
              shadow=None, tracking=0.0):

@@ -78,6 +78,27 @@ BRANDS = (
      "design": "diamond", "bg": ("#1e5a4e", "#081a16")},
 )
 
+#: EACH BRAND'S OWN LETTERING (1.49.0): the face its name is set in, on the
+#: pack and on its ad. Twelve makers do not share a type foundry; until now
+#: every one of them was Blue Highway Bold. A name in `smooth_type.FACES`,
+#: chosen for the pack it is on -- a slim in an italic serif, a 100 in a bold
+#: roman, a menthol and a light in a clean grotesque, a no-filter in the
+#: plain bold sans.
+FACE = {
+    "delco_reds": "highway_bold",
+    "macdade_menthol": "aileron",
+    "blue_route_lights": "aileron",
+    "marcus_hook_100s": "oldstyle",
+    "nanas_slims": "oldstyle_italic",
+    "jawn_kings": "oldstyle_bold",
+    "wooder_filters": "vegur_bold",
+    "boulevard_butts": "highway_cond",
+    "down_the_shore_120s": "oldstyle",
+    "havertown_haze": "aileron",
+    "darby_darks": "highway_bold",
+    "pike_milds": "vegur_bold",
+}
+
 BY_ID = {b["id"]: b for b in BRANDS}
 IDS = tuple(b["id"] for b in BRANDS)
 

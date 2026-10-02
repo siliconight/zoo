@@ -40,6 +40,14 @@ FACES = {
     "highway_bold": ("blue_highway/Blue Highway Bd.otf", "highway_bold"),
     "highway_cond": ("blue_highway/Blue Highway Cd.otf", "highway_cond"),
     "minisystem": ("minisystem/Minisystem.otf", "minisystem"),
+    # 1.49.0, the owner pass: a face for each kind of owner (Pixelcoat 0.55.0)
+    "aileron": ("aileron/Aileron-SemiBold.otf", "aileron"),
+    "aileron_bold": ("aileron/Aileron-Bold.otf", "aileron_bold"),
+    "vegur": ("vegur/Vegur-Regular.otf", "vegur"),
+    "vegur_bold": ("vegur/Vegur-Bold.otf", "vegur_bold"),
+    "oldstyle": ("mfb_oldstyle/MFBOldstyle-Regular.otf", "oldstyle"),
+    "oldstyle_bold": ("mfb_oldstyle/MFBOldstyle-Bold.otf", "oldstyle_bold"),
+    "oldstyle_italic": ("mfb_oldstyle/MFBOldstyle-Italic.otf", "oldstyle_italic"),
 }
 
 HEADER = '''"""{name}: a smooth face, minted by tools/mint_smooth_type.py. DO NOT EDIT.

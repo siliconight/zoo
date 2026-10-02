@@ -367,10 +367,23 @@ def resolve(plan_, streams=None):
 # even. What is left out: wear. A pack is new by definition and the display
 # is behind glass.
 
-#: Faces: the brand's lettering, the slogan, and the small print.
-LOGO_FACE = "highway_bold"
-COPY_FACE = "highway"
-SMALL_FACE = "highway_cond"
+#: WHOSE VOICE (1.49.0, `smooth_type.OWNERS`). A brand's name is in the
+#: brand's own face (`cigarette_brands.FACE`); its slogan is advertising
+#: copy, a magazine's italic; the law's strip and the warning are notices
+#: nobody designed; the price card is the shop's own. Until 1.49.0 all of
+#: them were Blue Highway. `LOGO_FACE` is what a name falls back to and what
+#: the machine's own panel word is set in: the maker's.
+LOGO_FACE = ST.owned("maker")
+COPY_FACE = ST.owned("print_italic")
+SMALL_FACE = ST.owned("notice")
+WARN_FACE = ST.owned("notice_bold")
+PRICE_FACE = ST.owned("shop")
+PRICE_NOTE_FACE = ST.owned("shop_small")
+
+
+def brand_face(brand):
+    """The face ``brand``'s name is set in."""
+    return CB.FACE.get(brand, LOGO_FACE)
 #: Rows under the art for the faces that show none of it: a dark band wide
 #: enough that a filtered, mip-mapped sample of its middle is still dark.
 DARK_ROWS = 16
@@ -431,7 +444,7 @@ def _pack(im, brand, x0, y0, pw, ph):
     else:
         band = (y0 + ph * 0.62, y0 + ph * 0.84)
         text_ink = ink
-    im.text(b["short"], (x0 + 2, band[0], x0 + pw - 2, band[1]), text_ink, LOGO_FACE)
+    im.text(b["short"], (x0 + 2, band[0], x0 + pw - 2, band[1]), text_ink, brand_face(brand))
     # the flip-top's seam, a quarter of the way down
     im.rect((x0, y0 + ph * 0.26, x0 + pw, y0 + ph * 0.26 + 1), (0, 0, 0), 0.22)
     # the cellophane: the room along its top edge and in one streak, and the
@@ -461,8 +474,8 @@ def _ad(im, brand, x0, y0, x1, y1, with_cards=True):
     _pack(im, brand, px0, py0, pw, ph)
     # the price card's width decides how far the lettering may run
     price_cap, note_cap = max(10, min(22, H // 5)), max(6, min(9, H // 12))
-    card_w = max(ST.width(CB.PRICE[0], price_cap, LOGO_FACE),
-                 ST.width(CB.PRICE[1], note_cap, SMALL_FACE)) + 12
+    card_w = max(ST.width(CB.PRICE[0], price_cap, PRICE_FACE),
+                 ST.width(CB.PRICE[1], note_cap, PRICE_NOTE_FACE)) + 12
     tx0 = px0 + pw + max(6, W // 30)
     tx1 = x1 - (card_w + 12 if with_cards else 6)
     avail = tx1 - tx0
@@ -470,15 +483,26 @@ def _ad(im, brand, x0, y0, x1, y1, with_cards=True):
     # A long shallow sheet sets the name on ONE line: stacked, it is two
     # small lines in a strip with room for one large one.
     logo = [" ".join(b["logo"])] if W > 5 * H else list(b["logo"])
-    most = max(8, int(min(H * 0.52 / (len(logo) * 1.2), W * 0.2)))
-    caps = [ST.fit_cap(line, avail, most, LOGO_FACE, 6) for line in logo]
+    # the warning sticker's place is the law's, bottom right. Where it
+    # reaches under the lettering, the lettering is set in the height above
+    # it -- 1.49.0's bolder warning ran over a slogan's second line
+    Hb = H
+    if with_cards:
+        _wc = max(5, min(8, H // 16))
+        _ww = max(ST.width(line, _wc, WARN_FACE) for line in CB.WARNING) + 8
+        _wh = len(CB.WARNING) * _wc * 1.5 + 6
+        if _ww <= W - (px0 - x0) - pw - 8 and _wh <= H // 2 and x1 - _ww - 4 < tx1:
+            Hb = H - _wh - 8
+    most = max(8, int(min(Hb * 0.52 / (len(logo) * 1.2), W * 0.2)))
+    face = brand_face(brand)
+    caps = [ST.fit_cap(line, avail, most, face, 6) for line in logo]
     cap = min(c for c in caps if c is not None) if any(c is not None for c in caps) else 6
     slogan_cap = max(7, min(13, H // 13))
     lines = _wrap(b["slogan"], avail, slogan_cap, COPY_FACE)[:2]
     block = len(logo) * cap * 1.2 + len(lines) * slogan_cap * 1.45 + cap * 0.3
-    y = y0 + max(3.0, (H - block) / 2.0)
+    y = y0 + max(3.0, (Hb - block) / 2.0)
     for line in logo:
-        im.text(line, (tx0, y, tx1, y + cap * 1.2), (250, 246, 232), LOGO_FACE, cap=cap,
+        im.text(line, (tx0, y, tx1, y + cap * 1.2), (250, 246, 232), face, cap=cap,
                 shadow=(10, 6, 4))
         y += cap * 1.2
     said += list(b["logo"])
@@ -496,13 +520,13 @@ def _ad(im, brand, x0, y0, x1, y1, with_cards=True):
         im.rect((cx0, cy0, cx0 + cw, cy0 + ch), (244, 242, 232))
         im.rect((cx0 + cw / 2.0 - 7, cy0 - 3, cx0 + cw / 2.0 + 7, cy0 + 3), (206, 200, 170), 0.85)
         im.text(CB.PRICE[0], (cx0 + 3, cy0 + 4, cx0 + cw - 3, cy0 + 4 + price_cap * 1.3), (20, 20, 20),
-                LOGO_FACE, cap=price_cap)
+                PRICE_FACE, cap=price_cap)
         im.text(CB.PRICE[1], (cx0 + 3, cy0 + 4 + price_cap * 1.4, cx0 + cw - 3, cy0 + ch - 2),
-                (170, 20, 20), SMALL_FACE, cap=note_cap)
+                (170, 20, 20), PRICE_NOTE_FACE, cap=note_cap)
         said += list(CB.PRICE)
         # the warning sticker, bottom right, where the law puts it
         warn_cap = max(5, min(8, H // 16))
-        ww = max(ST.width(line, warn_cap, SMALL_FACE) for line in CB.WARNING) + 8
+        ww = max(ST.width(line, warn_cap, WARN_FACE) for line in CB.WARNING) + 8
         wh = len(CB.WARNING) * warn_cap * 1.5 + 6
         if ww <= W - (px0 - x0) - pw - 8 and wh <= H // 2:
             wx0, wy0 = x1 - ww - 4, y1 - wh - 4
@@ -511,7 +535,7 @@ def _ad(im, brand, x0, y0, x1, y1, with_cards=True):
             yy = wy0 + 3
             for line in CB.WARNING:
                 im.text(line, (wx0 + 4, yy, wx0 + ww - 4, yy + warn_cap * 1.5), (24, 24, 24),
-                        SMALL_FACE, cap=warn_cap, align="left")
+                        WARN_FACE, cap=warn_cap, align="left")
                 yy += warn_cap * 1.5
             said += list(CB.WARNING)
     return said
