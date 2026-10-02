@@ -12,6 +12,7 @@ PASS and fit, two submissions over two materials, determinism.
 from __future__ import annotations
 
 import itertools
+import math
 import os
 import re
 
@@ -57,76 +58,6 @@ def _normal(p, k):
     u = [b[j] - a[j] for j in range(3)]
     v = [c[j] - a[j] for j in range(3)]
     return (u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0])
-
-
-def test_a_wall_faces_one_way_and_an_island_both():
-    for form, want in (("wall", {"-y"}), ("adult", {"-y"}), ("island", {"-y", "+y"})):
-        dims = V.DC_SIZES[3] if form == "island" else V.DC_SIZES[0]
-        seen = set()
-        for p in (q for q in V.plan(*dims, form, 0)["prims"] if q["mat"] == "art"):
-            n = _normal(p, p["front"][0])
-            assert abs(n[0]) < 1e-9 and abs(n[2]) < 1e-9, n
-            seen.add("+y" if n[1] > 0 else "-y")
-            # a box's front looks away from the rack's middle (an island) or
-            # its back board (a wall)
-            cy = sum(v[1] for v in p["verts"]) / len(p["verts"])
-            if form == "island":
-                assert n[1] * cy > 0, (cy, n)
-        assert seen == want, (form, seen)
-
-
-def test_a_wall_has_a_genre_board_a_bay_and_an_island_none():
-    w, d, h = V.DC_SIZES[2]
-    for variant in range(6):
-        g = V.plan(w, d, h, "wall", variant)
-        heads = [p["uvs"][2][0][0] for p in g["prims"] if p["mat"] == "art"
-                 and p["uvs"][2][0][0].startswith("head_")]
-        assert len(heads) == g["facts"]["bays"] == 4
-        assert heads == ["head_" + x for x in g["facts"]["genres"]]
-        # the genres run in order from the variant's start
-        assert g["facts"]["genres"] == [V.GENRES[(variant + i) % len(V.GENRES)] for i in range(4)]
-        # and a bay's boxes are its board's genre
-        assert "adult" not in g["facts"]["genres"]
-    isl = V.plan(*V.DC_SIZES[3], "island", 0)
-    assert not [p for p in isl["prims"] if p["mat"] == "art" and p["uvs"][2][0][0].startswith("head_")]
-
-
-def test_a_bay_rents_its_genre_and_the_back_room_only_its_own():
-    genre_of = {t[0]: t[1] for t in V.TITLES}
-    w, d, h = V.DC_SIZES[0]
-    g = V.plan(w, d, h, "wall", 2)
-    bw = g["facts"]["bay_width"]
-    for p in (q for q in g["prims"] if q["mat"] == "art"):
-        tile = p["uvs"][2][0][0]
-        if not tile.startswith("tile_"):
-            continue
-        cx = sum(v[0] for v in p["verts"]) / len(p["verts"])
-        bay = int((cx + w / 2.0) // bw)
-        assert genre_of[tile[5:]] == g["facts"]["genres"][bay], (tile, bay)
-    back = V.plan(w, d, h, "adult", 2)
-    tiles = {p["uvs"][2][0][0] for p in back["prims"] if p["mat"] == "art"}
-    assert tiles and all(t == "head_adult" or genre_of[t[5:]] == "adult" for t in tiles), tiles
-    # and no other form rents the back room's
-    for form in ("wall", "island"):
-        for variant in range(6):
-            dims = V.DC_SIZES[3] if form == "island" else V.DC_SIZES[2]
-            for p in V.plan(*dims, form, variant)["prims"]:
-                if p["mat"] == "art" and p["uvs"][2][0][0].startswith("tile_"):
-                    assert genre_of[p["uvs"][2][0][0][5:]] != "adult"
-
-
-def test_a_title_has_three_or_four_facings():
-    w, d, h = V.DC_SIZES[0]
-    g = V.plan(w, d, h, "wall", 0)
-    rows = {}
-    for p in (q for q in g["prims"] if q["mat"] == "art" and q["uvs"][2][0][0].startswith("tile_")):
-        cx = sum(v[0] for v in p["verts"]) / len(p["verts"])
-        z = round(min(v[2] for v in p["verts"]), 3)
-        rows.setdefault((int((cx + w / 2.0) // g["facts"]["bay_width"]), z), []).append((cx, p["uvs"][2][0][0]))
-    assert rows
-    for row in rows.values():
-        runs = [len(list(grp)) for _t, grp in itertools.groupby(t for _x, t in sorted(row))]
-        assert all(n in (3, 4) for n in runs[:-1]), runs      # the last run is what the shelf had left
 
 
 def test_every_face_maps_into_the_art_and_no_two_tiles_overlap():
@@ -196,6 +127,153 @@ def test_the_genome_names_the_parts_and_validates():
         V.plan(3.0, 0.45, 2.0, "shelf")
 
 
+def _tile(p):
+    return p["uvs"][p["front"][0]][0][0]
+
+
+def _art(form, variant=0, dims=None):
+    dims = dims or (V.DC_SIZES[3] if form == "island" else V.DC_SIZES[0])
+    g = V.plan(*dims, form, variant)
+    return g, [q for q in g["prims"] if q["mat"] == "art"], dims
+
+
+def test_every_front_faces_out_of_its_rack():
+    """A wall, the back room's and the display rack are shopped from -Y; an
+    island from both faces, and its two aisle-end signs look along the
+    aisle. A display box leans back, so its front looks a little UP."""
+    lean = math.sin(math.radians(V.LEAN_DEG))
+    for form, want in (("wall", {"-y"}), ("adult", {"-y"}), ("display", {"-y"}),
+                       ("island", {"-y", "+y", "-x", "+x"})):
+        g, art, (w, d, h) = _art(form)
+        seen = set()
+        for p in art:
+            n = _normal(p, p["front"][0])
+            size = sum(c * c for c in n) ** 0.5
+            n = [c / size for c in n]
+            if _tile(p).startswith("tile_"):
+                assert form == "display" and abs(n[2] - lean) < 1e-6, (form, n)
+            else:
+                assert abs(n[2]) < 1e-9, (form, _tile(p), n)
+            if abs(n[0]) > abs(n[1]):
+                assert _tile(p).startswith("cap_"), _tile(p)
+                # the sign's face IS the slot's end
+                x = max(v[0] for v in p["verts"]) if n[0] > 0 else min(v[0] for v in p["verts"])
+                assert abs(abs(x) - w / 2.0) < 1e-9
+                seen.add("+x" if n[0] > 0 else "-x")
+            else:
+                seen.add("+y" if n[1] > 0 else "-y")
+        assert seen == want, (form, seen)
+
+
+def test_the_sections_run_in_order_and_new_releases_is_the_display_racks():
+    w, d, h = V.DC_SIZES[2]
+    for variant in range(6):
+        g, art, _d = _art("wall", variant, V.DC_SIZES[2])
+        heads = [_tile(p) for p in art if _tile(p).startswith("head_")]
+        assert len(heads) == g["facts"]["bays"] == 4
+        assert heads == ["head_" + x for x in g["facts"]["genres"]]
+        assert g["facts"]["genres"] == [V.AISLE_GENRES[(variant + i) % len(V.AISLE_GENRES)] for i in range(4)]
+        assert "new" not in g["facts"]["genres"] and "adult" not in g["facts"]["genres"]
+    g, art, _d = _art("display")
+    assert set(g["facts"]["genres"]) == {"new"}
+    assert {_tile(p) for p in art if _tile(p).startswith("head_")} == {"head_new"}
+    g, art, _d = _art("island")
+    assert not [p for p in art if _tile(p).startswith("head_")]
+    assert sorted(_tile(p) for p in art if _tile(p).startswith("cap_")) == sorted(
+        "cap_" + x for x in (g["facts"]["genres"][0], g["facts"]["genres"][g["facts"]["bays"] - 1]))
+
+
+def test_a_bay_rents_its_section_and_the_back_room_only_its_own():
+    genre_of = {t[0]: t[1] for t in V.TITLES}
+    g, art, (w, d, h) = _art("wall", 2)
+    bw = g["facts"]["bay_width"]
+    for p in art:
+        if _tile(p).startswith("spines_"):
+            cx = sum(v[0] for v in p["verts"]) / len(p["verts"])
+            assert _tile(p) == "spines_" + g["facts"]["genres"][int((cx + w / 2.0) // bw)]
+    _g, art, _d = _art("adult", 2)
+    assert {_tile(p) for p in art} <= {"spines_adult", "head_adult"} | set(V.TAGS)
+    _g, art, _d = _art("display", 2)
+    for p in art:
+        assert _tile(p) == "head_new" or genre_of[_tile(p)[5:]] == "new", _tile(p)
+    # and no other form rents the back room's
+    for form in ("wall", "island", "display"):
+        for variant in range(6):
+            _g, art, _d = _art(form, variant)
+            assert not [p for p in art if "adult" in _tile(p)], (form, variant)
+
+
+def test_spines_out_pack_a_shelf():
+    """The walker's photographs: shelves are dense rows of tape SPINES, top
+    edges uneven. Thirty tapes a metre of shelf or more; each block a whole
+    number of tapes showing its own stretch of the strip; blocks 3 mm apart
+    or more (touching, two share a plane); more than one height."""
+    g, art, (w, d, h) = _art("wall", 1)
+    blocks = [p for p in art if _tile(p).startswith("spines_")]
+    shelves, heights = {}, set()
+    for p in blocks:
+        xs = [v[0] for v in p["verts"]]
+        zs = [v[2] for v in p["verts"]]
+        n = round((max(xs) - min(xs)) / V.SPINE_W)
+        assert abs((max(xs) - min(xs)) - n * V.SPINE_W) < 1e-9 and n >= 2
+        u = sorted({c[1] for c in p["uvs"][p["front"][0]]})
+        assert 0.0 <= u[0] < u[1] <= 1.0 and abs((u[1] - u[0]) - n / float(V.STRIP_SPINES)) < 1e-9
+        heights.add(round(max(zs) - min(zs), 4))
+        bay = int((min(xs) + w / 2.0) // g["facts"]["bay_width"])
+        shelves.setdefault((bay, round(min(zs), 3)), []).append((min(xs), max(xs), n))
+    assert len(heights) >= 2
+    assert sum(n for row in shelves.values() for _a, _b, n in row) == g["facts"]["tapes"]
+    for row in shelves.values():
+        row.sort()
+        assert len(row) >= 2
+        for (a0, a1, _n), (b0, _b1, _m) in zip(row, row[1:]):
+            assert b0 - a1 >= 0.003 - 1e-9
+        assert sum(n for _a, _b, n in row) >= 30 * g["facts"]["bay_width"] * 0.9, row
+
+
+def test_the_display_rack_faces_its_boxes_out_three_or_four_a_title():
+    g, art, (w, d, h) = _art("display")
+    rows = {}
+    for p in (q for q in art if _tile(q).startswith("tile_")):
+        cx = sum(v[0] for v in p["verts"]) / len(p["verts"])
+        z = round(min(v[2] for v in p["verts"]), 2)
+        rows.setdefault((int((cx + w / 2.0) // g["facts"]["bay_width"]), z), []).append((cx, _tile(p)))
+    assert rows and g["facts"]["boxes"] == sum(len(r) for r in rows.values())
+    for row in rows.values():
+        runs = [len(list(grp)) for _t, grp in itertools.groupby(t for _x, t in sorted(row))]
+        assert all(n in (3, 4) for n in runs[:-1]), runs      # the last run is what the shelf had left
+
+
+def test_a_unit_is_painted_one_colour_and_the_display_rack_is_black():
+    assert [V.unit_colour("wall", v) for v in range(4)] == list(V.UNIT_COLOURS)
+    assert V.unit_colour("island", 5) == V.UNIT_COLOURS[1]
+    assert V.unit_colour("display", 2) == V.WIRE == V.unit_colour("adult", 2)
+    assert len(set(V.UNIT_COLOURS)) == len(V.UNIT_COLOURS) == 4
+    unit = V.UNIT_COLOURS[0]
+    _k, steel = V.vertex_tint("steel", unit)
+    _k, kick = V.vertex_tint("kick", unit)
+    _k, lip = V.vertex_tint("lip", unit)
+    assert steel == unit and all(a < b for a, b in zip(kick, steel)) and all(a > b for a, b in zip(lip, steel))
+    # with no unit it is the grey 1.43.0 shipped
+    assert V.vertex_tint("steel")[1] == V.MATERIALS["steel"][0]
+    assert V.plan(*V.DC_SIZES[0], "wall", 3)["facts"]["unit"] == V.UNIT_COLOURS[3]
+
+
+def test_a_shelf_carries_a_tag_or_two_inside_its_lip():
+    g, art, _d = _art("wall", 0)
+    tags = [p for p in art if _tile(p) in V.TAGS]
+    lips = [p for p in g["prims"] if p["part"] == "VideoRack_Lip"]
+    assert len(lips) <= len(tags) <= 2 * len(lips)
+    assert {_tile(p) for p in tags} == set(V.TAGS)
+    for t in tags:
+        lo, hi = P.bounds([t])
+        host = [l for l in lips if P.bounds([l])[0][0] <= lo[0] and hi[0] <= P.bounds([l])[1][0]
+                and P.bounds([l])[0][2] < lo[2] and hi[2] < P.bounds([l])[1][2]]
+        assert len(host) == 1, (lo, hi)
+        assert lo[1] < P.bounds(host)[0][1] < hi[1]            # proud of its face, and into it
+    assert not [p for p in _art("display")[1] if _tile(p) in V.TAGS]
+
+
 # --------------------------------------------------------------------------- #
 # The built half
 # --------------------------------------------------------------------------- #
@@ -227,7 +305,7 @@ def _glb_json(path):
 
 
 @pytest.mark.parametrize("dims,form", [(V.DC_SIZES[0], "wall"), (V.DC_SIZES[3], "island"),
-                                       (V.DC_SIZES[1], "adult")])
+                                       (V.DC_SIZES[1], "adult"), (V.DC_SIZES[0], "display")])
 def test_bpy_a_rack_passes_fits_and_is_two_submissions(tmp_path, dims, form):
     pytest.importorskip("bpy")
     from zoo_keeper.core import partnames

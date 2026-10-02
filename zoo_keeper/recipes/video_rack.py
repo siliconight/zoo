@@ -57,7 +57,7 @@ def build(plan, streams, collection):
     objs = []
     steel = [p for p in got["prims"] if p["mat"] != "art"]
     for mk in sorted({p["mat"] for p in steel}):
-        kind, factor = VR.vertex_tint(mk)
+        kind, factor = VR.vertex_tint(mk, f["unit"])
         built = prim_mesh.build([p for p in steel if p["mat"] == mk], collection, plan, rng,
                                 {mk: ("M_VideoRack_steel", list(VR.KIND_BASE[kind]), kind)}, texel=1.0)
         for o in built:
@@ -67,7 +67,7 @@ def build(plan, streams, collection):
     paint = materials.make_painted_material(
         f"M_VideoRack_{A['name']}", materials.image_from_png(A["name"], A["canvas"].png()), 0.45)
     objs.append(_art([p for p in got["prims"] if p["mat"] == "art"], A, paint, collection, streams))
-    print(f"[video_rack] form={form} bays={f['bays']} shelves={f['shelves']} boxes={f['boxes']} "
+    print(f"[video_rack] form={form} bays={f['bays']} shelves={f['shelves']} tapes={f['tapes']} "
           f"genres={','.join(f['genres'])} art={A['name']}")
     return {"objects": objs, "collision_boxes": [f["collision"]], "attachments": {},
-            "video_rack": {"form": form, "bays": f["bays"], "boxes": f["boxes"], "genres": f["genres"]}}
+            "video_rack": {"form": form, "bays": f["bays"], "tapes": f["tapes"], "genres": f["genres"]}}

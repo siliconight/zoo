@@ -8,24 +8,36 @@ left the rest to the era: a 1997 strip-mall rental store is WALLS OF BOXES
 FACED OUT under a genre board, low islands of more down the floor, and a
 back room behind a curtain.
 
-THREE FORMS, in the recipe frame (metres, Z up, floor 0, CENTRE pivot, x
+REVISED 1.44.0 FROM THE WALKER'S TEN PHOTOGRAPHS (docs/SET_DRESSING_
+REFERENCES.md, "The walker's video store references"). 1.43.0 was built with
+none: every box faced out, grey steel, printed boards. The photographs are a
+cult store and a chain store and this is both.
+
+FOUR FORMS, in the recipe frame (metres, Z up, floor 0, CENTRE pivot, x
 along the run):
 
-  wall    shopped from -Y, its back board at +Y against the building's
-          wall: a kick, end panels, an upright a bay, a top board; shelves
-          up the height, a lip on each; VHS BOXES faced out on every shelf;
-          a GENRE BOARD across the head of each bay (NEW RELEASES, ACTION,
-          COMEDY, HORROR, DRAMA, SCI-FI -- a bay each, from a start the
-          slot's `variant` picks);
-  island  the same shelves on both faces of a spine, low enough to see
-          over, no boards;
-  adult   the wall form for the back room: every board says ADULTS ONLY
-          18+ and every box is one of the back room's.
+  wall     shopped from -Y, its back board at +Y against the building's
+           wall. TAPES SPINE OUT, packed: each shelf a few blocks of spines,
+           uneven on top, a hand's gap here and there. A section board
+           across the head of each bay (ACTION, COMEDY, HORROR, DRAMA,
+           SCI-FI, from a start the slot's `variant` picks), a shelf tag or
+           two on every lip;
+  island   the same on both faces of a spine -- full height, an aisle and
+           not a counter -- with a yellow section sign on each end panel;
+  adult    the wall form for the back room: its own boards, its own spines;
+  display  the chain store's new-release rack: black, every box FACED OUT
+           and leaning back on its foot, three or four facings a title,
+           NEW RELEASES across its head.
 
-A BOX IS A BOX: 0.105 x 0.19 x 0.03 m, the tape's cardboard sleeve stood on
-its shelf with its front out, twelve triangles, its front on its title's
-tile and its other faces its title's colour. Three or four facings a title,
-as a rental wall is stocked -- the copies.
+A UNIT IS PAINTED ONE COLOUR -- purple, green, black or blue, by the slot's
+variant -- frame, shelves and all; the colour is in the `Wear` vertex colour,
+so it is no new material.
+
+A BLOCK OF SPINES IS A BOX, a whole number of 25 mm tapes wide, showing its
+own stretch of its section's strip of forty painted spines: a row of tapes
+is a slab with an uneven top, which is what it is from an aisle. A 2.4 m
+wall is 493 tapes in 1,560 triangles; faced out it was 126 boxes in 2,028.
+A faced-out box is still a box: 0.105 x 0.19 x 0.03 m, twelve triangles.
 
 A PART NAME IS ONE MATERIAL'S: the kick, the board and the lip are their own
 parts because each is its own tint, and two tints under one part name build
@@ -53,9 +65,9 @@ from . import prims as P
 from .card_art import _ellipse
 from .vending_forms import Canvas
 
-FORMS = ("wall", "island", "adult")
+FORMS = ("wall", "island", "adult", "display")
 #: Deli Counter's slots (long side first), then the genome's range.
-DC_SIZES = ((3.0, 0.45, 2.0), (2.0, 0.45, 2.0), (4.0, 0.45, 2.0), (3.0, 0.9, 1.4), (2.0, 0.9, 1.4))
+DC_SIZES = ((2.4, 0.45, 2.0), (3.0, 0.45, 2.0), (4.0, 0.45, 2.0), (2.4, 0.9, 1.9), (2.0, 0.9, 1.4))
 RANGES = {"width": (1.0, 8.0), "depth": (0.35, 1.2), "height": (1.2, 2.2)}
 
 BURY = 0.004
@@ -71,6 +83,25 @@ LIP_T = 0.012
 HEAD_H = 0.16             # a genre board
 BOX = (0.105, 0.19, 0.03)  # a VHS sleeve: width, height, depth
 BOX_GAP = 0.012
+LEAN_DEG = 12.0           # a faced-out box leans back on its foot
+#: SPINE OUT (1.44.0, the walker's photographs): a tape's spine is 25 mm
+#: and the sleeve runs 105 mm back into the shelf; a genre's strip of
+#: painted spines is forty tapes, one metre.
+SPINE_W = 0.025
+SPINE_D = 0.105
+STRIP_SPINES = 40
+#: A shelf tag and an aisle-end sign: width, height.
+TAG = (0.05, 0.024)
+CAP = (0.30, 0.125)
+TAGS = ("tag_yellow", "tag_orange")
+TAG_RGB = ((244, 220, 60), (250, 150, 50))
+#: THE UNITS ARE PAINTED (1.44.0): purple, green, black, blue -- a colour a
+#: unit, by the slot's variant. The display rack is black wire and the back
+#: room's is black.
+UNIT_COLOURS = ((0.29, 0.16, 0.45), (0.22, 0.48, 0.17), (0.06, 0.06, 0.07), (0.10, 0.22, 0.52))
+WIRE = (0.05, 0.05, 0.06)
+#: A part's shade of its unit's colour.
+SHADE = {"steel": 1.0, "kick": 0.55, "board": 0.8, "lip": 1.25}
 STORE = "MACDADE MOVIES"
 STICKER = "MM"
 
@@ -86,6 +117,8 @@ _VARIANT = re.compile(r"_n\d+(?=_|$)")
 #: The genres, in the order a wall runs them, and each one's board: the
 #: words, the board's field and its ink.
 GENRES = ("new", "action", "comedy", "horror", "drama", "scifi")
+#: The sections an AISLE runs; NEW RELEASES is the display rack's alone.
+AISLE_GENRES = GENRES[1:]
 BOARDS = {
     "new": ("NEW RELEASES", "#c8202a", "#fff4dc"),
     "action": ("ACTION", "#1a1a1e", "#f0c020"),
@@ -152,8 +185,23 @@ def all_words():
     return out
 
 
-def vertex_tint(mat_key):
+def unit_colour(form, variant):
+    """The colour a unit is painted: a cult store's shelving is painted one
+    bold colour a unit (the walker's photographs: purple, green, black,
+    blue); the display rack and the back room's are black."""
+    if form in ("display", "adult"):
+        return WIRE
+    return UNIT_COLOURS[int(variant) % len(UNIT_COLOURS)]
+
+
+def vertex_tint(mat_key, unit=None):
+    """``(kind, rgb)`` for a structural part: the unit's colour, the kick a
+    shade under it and the shelf's edge a shade over. No unit is the grey
+    this species shipped with (1.43.0)."""
     rgb, kind = MATERIALS[mat_key]
+    if unit is not None:
+        k = SHADE[mat_key]
+        rgb = tuple(min(1.0, c * k) for c in unit)
     return kind, tuple(c / b for c, b in zip(rgb, KIND_BASE[kind]))
 
 
@@ -174,8 +222,8 @@ def resolve(plan_):
 
 
 def shelf_levels(h, form):
-    """z of each shelf's top, the kick's deck first, up to where a box no
-    longer fits under the genre board (or an island's top board)."""
+    """z of each shelf's top, the kick's deck first, up to where a tape no
+    longer fits under the section board (or an island's top board)."""
     top = h - (TOP_T + 0.02 if form == "island" else HEAD_H + 0.02)
     n = max(2, int((top - KICK_H) // SHELF_PITCH_MIN))
     pitch = (top - KICK_H) / n
@@ -183,22 +231,27 @@ def shelf_levels(h, form):
 
 
 def genre(form, variant, face, bi):
-    """What bay ``bi`` of ``face`` rents: the genres in order along the run,
-    from a start the slot's variant picks; the back room's are its own."""
+    """What bay ``bi`` of ``face`` rents. The back room's is its own, the
+    display rack is NEW RELEASES end to end, and an aisle runs the five
+    sections in order from a start the slot's variant picks."""
     if form == "adult":
         return "adult"
-    return GENRES[(int(variant) + bi + (3 if face == "b" else 0)) % len(GENRES)]
+    if form == "display":
+        return "new"
+    return AISLE_GENRES[(int(variant) + bi + (2 if face == "b" else 0)) % len(AISLE_GENRES)]
 
 
-def _art_box(part, lo, hi, tile, solid):
+def _art_box(part, lo, hi, tile, solid, win=(0.0, 1.0)):
     """A box whose -Y face (`prims.box` face 2, corners 0, 1, 5, 4: the
     tile's bottom-left, bottom-right, top-right, top-left) carries ``tile``
-    and whose other faces carry ``solid``'s colour block."""
+    -- the part of it between ``win``'s two u -- and whose other faces carry
+    ``solid``'s colour block."""
     p = P.box(part, "art", lo, hi)
+    u0, u1 = win
     uvs = []
     for k, f in enumerate(p["faces"]):
         if k == 2:
-            uvs.append(((tile, 0.0, 0.0), (tile, 1.0, 0.0), (tile, 1.0, 1.0), (tile, 0.0, 1.0)))
+            uvs.append(((tile, u0, 0.0), (tile, u1, 0.0), (tile, u1, 1.0), (tile, u0, 1.0)))
         else:
             uvs.append(tuple((solid,) for _ in f))
     p["uvs"] = uvs
@@ -206,41 +259,107 @@ def _art_box(part, lo, hi, tile, solid):
     return p
 
 
+def _spines(sx0, sx1, y, z, bh, g, salt):
+    """One shelf of tapes SPINE OUT: a few blocks of spines, each a box as
+    wide as a whole number of tapes, their heights and depths a little
+    uneven and a hand's gap here and there -- a row somebody has been
+    pulling tapes out of. Each block shows its own stretch of the genre's
+    strip of painted spines. Blocks stand 3 mm apart or more: touching, two
+    blocks share a plane."""
+    out, n_tapes = [], 0
+    x, end, j = sx0 + 0.008, sx1 - 0.008, 0
+    while end - x >= 2 * SPINE_W:
+        want = 5 + _h(*salt, j, "n") % 12
+        n = min(want, int((end - x) // SPINE_W))
+        if n < 2:
+            break
+        height = bh - (0.0, 0.008, 0.016, 0.024)[_h(*salt, j, "h") % 4]
+        depth = SPINE_D - (0.0, 0.01, 0.02)[_h(*salt, j, "d") % 3]
+        start = _h(*salt, j, "s") % (STRIP_SPINES - n + 1)
+        out.append(_art_box("VideoRack_Art", (x, y, z - BURY),
+                            (x + n * SPINE_W, y + depth, z - BURY + height),
+                            "spines_" + g, "solid_spines",
+                            (start / float(STRIP_SPINES), (start + n) / float(STRIP_SPINES))))
+        n_tapes += n
+        x += n * SPINE_W + (0.04 if _h(*salt, j, "g") % 4 == 0 else 0.003)
+        j += 1
+    return out, n_tapes
+
+
+def _faced(sx0, sx1, y, z, bh, titles, salt):
+    """One shelf of boxes FACED OUT and leaning back: the display rack's."""
+    out = []
+    bw_, _bh, bd_ = BOX
+    n = max(1, int((sx1 - sx0 - 0.02) // (bw_ + BOX_GAP)))
+    span = n * bw_ + (n - 1) * BOX_GAP
+    x0 = (sx0 + sx1) / 2.0 - span / 2.0 + bw_ / 2.0
+    facings = 3 + _h(*salt, "f") % 2
+    for i in range(n):
+        t = titles[(_h(*salt[:-1]) + salt[-1] + i // facings) % len(titles)]
+        x = x0 + i * (bw_ + BOX_GAP)
+        p = _art_box("VideoRack_Art", (x - bw_ / 2.0, y, z - BURY),
+                     (x + bw_ / 2.0, y + bd_, z - BURY + bh), "tile_" + t, "solid_" + t)
+        # leaning back on its foot: the top goes toward the rack
+        out.append(P.rotate_x(p, -math.radians(LEAN_DEG), about=(y, z - BURY)))
+    return out, n
+
+
 def _face(bays_, h, y_front, y_back, form, key, variant, face):
-    """One shelved face (the -Y one): shelves, lips, boxes, genre boards."""
-    out, n_boxes, genres = [], 0, []
+    """One shelved face (the -Y one): shelves, lips, tapes, tags, boards."""
+    out, n_items, genres = [], 0, []
     levels, pitch = shelf_levels(h, form)
-    bw_, bh_, bd_ = BOX
-    bh = min(bh_, pitch - SHELF_T - 0.04)
+    bh = min(BOX[1], pitch - SHELF_T - 0.04)
     for bi, (bx, bw) in enumerate(bays_):
-        sx0, sx1 = bx - bw / 2.0 + UPRIGHT_W / 2.0 + 0.004, bx + bw / 2.0 - UPRIGHT_W / 2.0 - 0.004
+        # an island's end panels stand 3 mm in, so its shelves stop 3 mm
+        # shorter: at the wall form's 4 mm they were 1 mm off the panels
+        pad = 0.007 if form == "island" else 0.004
+        sx0, sx1 = bx - bw / 2.0 + UPRIGHT_W / 2.0 + pad, bx + bw / 2.0 - UPRIGHT_W / 2.0 - pad
         g = genre(form, variant, face, bi)
         genres.append(g)
-        titles = BY_GENRE[g]
         for k, z in enumerate(levels):
             if k:        # the deck is the kick's top
                 out.append(P.box("VideoRack_Shelf", "steel", (sx0, y_front, z - SHELF_T), (sx1, y_back, z)))
             # the lip's foot 8 mm under the shelf's: at 2 mm the two shared a plane
             out.append(P.box("VideoRack_Lip", "lip", (sx0 + 0.003, y_front - LIP_T, z - SHELF_T - 0.008),
                              (sx1 - 0.003, y_front + BURY, z + 0.006)))
-            n = max(1, int((sx1 - sx0 - 0.02) // (bw_ + BOX_GAP)))
-            span = n * bw_ + (n - 1) * BOX_GAP
-            x0 = (sx0 + sx1) / 2.0 - span / 2.0 + bw_ / 2.0
-            facings = 3 + _h(key, variant, face, bi, k, "f") % 2
-            for i in range(n):
-                t = titles[(_h(key, variant, face, bi) + k + i // facings) % len(titles)]
-                x = x0 + i * (bw_ + BOX_GAP)
-                out.append(_art_box("VideoRack_Art", (x - bw_ / 2.0, y_front + 0.014, z - BURY),
-                                    (x + bw_ / 2.0, y_front + 0.014 + bd_, z - BURY + bh),
-                                    "tile_" + t, "solid_" + t))
-                n_boxes += 1
+            salt = (key, variant, face, bi, k)
+            if form == "display":
+                got, n = _faced(sx0, sx1, y_front + 0.014, z, bh, BY_GENRE[g], salt)
+            else:
+                got, n = _spines(sx0, sx1, y_front + 0.014, z, bh, g, salt)
+                # a shelf tag or two on the lip: 3 mm proud, 5 mm into it, its
+                # top and foot 4 mm or more inside the lip's own (the first
+                # cut's top WAS the lip's top), and each in its own half of
+                # the shelf (two drawn anywhere overlapped, face on face)
+                half = (sx1 - sx0) / 2.0
+                for j in range(1 + _h(*salt, "tags") % 2):
+                    tx = sx0 + j * half + 0.04 + (_h(*salt, "tag", j) % 1000) / 1000.0 * (half - 0.08 - TAG[0])
+                    tile = TAGS[_h(*salt, "tagc", j) % len(TAGS)]
+                    out.append(_art_box("VideoRack_Art",
+                                        (tx, y_front - LIP_T - 0.003, z - TAG[1]),
+                                        (tx + TAG[0], y_front - LIP_T + 0.005, z),
+                                        tile, "solid_" + tile))
+            out += got
+            n_items += n
         if form != "island":
-            # the genre board, proud of the shelves' lips and 4 mm inside the
-            # slot's front
+            # the section board, proud of the shelves' lips and 4 mm inside
+            # the slot's front
             out.append(_art_box("VideoRack_Art", (sx0, y_front - 0.026, h - HEAD_H),
                                 (sx1, y_front - 0.004, h - TOP_T - 0.006),
                                 "head_" + g, "solid_head_" + g))
-    return out, n_boxes, genres
+    return out, n_items, genres
+
+
+def _end_sign(w, h, g, side):
+    """An island's aisle-end sign: a yellow board on its end panel at the
+    eye, the section's word. Built facing -Y at the origin and turned to
+    face along the aisle; its face IS the slot's end."""
+    z1 = min(h - 0.15, 1.62)
+    z0 = z1 - CAP[1]
+    p = _art_box("VideoRack_Art", (-CAP[0] / 2.0, -0.006, z0), (CAP[0] / 2.0, 0.0, z1),
+                 "cap_" + g, "solid_cap")
+    p = P.rotate_z(p, side * math.pi / 2.0, about=(0.0, 0.0))
+    return P.translate(p, (side * (w / 2.0 - 0.006), 0.0, 0.0))
 
 
 def layout(w, d, h, form="wall", variant=0, key="video_rack"):
@@ -252,25 +371,28 @@ def layout(w, d, h, form="wall", variant=0, key="video_rack"):
     n_bays = int(math.ceil(w / BAY_MAX - 1e-9))
     bays_ = [(xa + (w / n_bays) * (i + 0.5), w / n_bays) for i in range(n_bays)]
     island = form == "island"
+    # an island's end panels stand 3 mm inside the slot's ends: its aisle-end
+    # signs are what reach them
+    inset = 0.003 if island else 0.0
     # --- the frame. Each part buries into its neighbours at its own depth,
     # 4 mm or more from every parallel face (the snack gondola's rule).
     # the wall form's kick ends 8 mm INSIDE the back board (whose front face
     # is at d/2 - 0.030: ending there, the two shared it)
-    out.append(P.box("VideoRack_Kick", "kick", (xa + 0.006, -d / 2.0 + 0.03, 0.004),
-                     (xb - 0.006, d / 2.0 - (0.03 if island else 0.022), KICK_H)))
-    for s in (-1, 1):                                        # the end panels own the slot's bounds
-        ex0, ex1 = sorted((s * w / 2.0, s * (w / 2.0 - 0.020)))
+    out.append(P.box("VideoRack_Kick", "kick", (xa + 0.010, -d / 2.0 + 0.03, 0.004),
+                     (xb - 0.010, d / 2.0 - (0.03 if island else 0.022), KICK_H)))
+    for s in (-1, 1):
+        ex0, ex1 = sorted((s * (w / 2.0 - inset), s * (w / 2.0 - 0.020 - inset)))
         out.append(P.box("VideoRack_Frame", "steel", (ex0, -d / 2.0, 0.0), (ex1, d / 2.0, h)))
-    out.append(P.box("VideoRack_Frame", "steel", (xa + 0.004, -d / 2.0 + 0.036, h - TOP_T - 0.006),
-                     (xb - 0.004, d / 2.0 - 0.036, h - 0.006)))
+    out.append(P.box("VideoRack_Frame", "steel", (xa + 0.008, -d / 2.0 + 0.036, h - TOP_T - 0.006),
+                     (xb - 0.008, d / 2.0 - 0.036, h - 0.006)))
     if island:
-        out.append(P.box("VideoRack_Board", "board", (xa + 0.012, -SPINE_T / 2.0, KICK_H - BURY),
-                         (xb - 0.012, SPINE_T / 2.0, h - TOP_T - 0.006 + BURY)))
+        out.append(P.box("VideoRack_Board", "board", (xa + 0.014, -SPINE_T / 2.0, KICK_H - BURY),
+                         (xb - 0.014, SPINE_T / 2.0, h - TOP_T - 0.006 + BURY)))
         y_back = -SPINE_T / 2.0 + BURY
         up_y = (-SPINE_T / 2.0 - 0.012, SPINE_T / 2.0 + 0.012)
     else:
-        out.append(P.box("VideoRack_Board", "board", (xa + 0.012, d / 2.0 - 0.006 - BOARD_T, KICK_H - BURY),
-                         (xb - 0.012, d / 2.0 - 0.006, h - 0.012)))
+        out.append(P.box("VideoRack_Board", "board", (xa + 0.014, d / 2.0 - 0.006 - BOARD_T, KICK_H - BURY),
+                         (xb - 0.014, d / 2.0 - 0.006, h - 0.012)))
         y_back = d / 2.0 - 0.006 - BOARD_T + 0.008
         up_y = (-d / 2.0 + 0.05, d / 2.0 - 0.006 - BOARD_T + 0.012)
     for j in range(1, n_bays):
@@ -278,15 +400,19 @@ def layout(w, d, h, form="wall", variant=0, key="video_rack"):
         out.append(P.box("VideoRack_Frame", "steel", (ux - UPRIGHT_W / 2.0, up_y[0], KICK_H - 0.012),
                          (ux + UPRIGHT_W / 2.0, up_y[1], h - TOP_T - 0.006 + 0.012)))
     y_front = -d / 2.0 + 0.03
-    side, n_boxes, genres = _face(bays_, h, y_front, y_back, form, key, variant, "a")
+    side, n_items, genres = _face(bays_, h, y_front, y_back, form, key, variant, "a")
     out += side
     if island:
         other, n_b, g_b = _face(bays_, h, y_front, y_back, form, key, variant, "b")
         out += [P.rotate_z(p, math.pi, about=(0.0, 0.0)) for p in other]
-        n_boxes += n_b
+        n_items += n_b
+        out.append(_end_sign(w, h, genres[-1], 1))
+        out.append(_end_sign(w, h, genres[0], -1))
         genres += g_b
-    facts = {"form": form, "bays": n_bays, "bay_width": bays_[0][1], "boxes": n_boxes,
+    facts = {"form": form, "bays": n_bays, "bay_width": bays_[0][1],
+             "tapes": n_items, "boxes": n_items if form == "display" else 0,
              "shelves": len(shelf_levels(h, form)[0]), "genres": genres,
+             "unit": unit_colour(form, variant),
              "collision": ((-w / 2.0, -d / 2.0, 0.0), (w / 2.0, d / 2.0, h))}
     return out, facts
 
@@ -312,14 +438,17 @@ def signed_volume(p):
 
 TILE = (40, 70)           # a box's front: 0.105 x 0.19 m
 COLS = 6
-HEAD_TILE = (120, 20)     # a genre board
-HEAD_COLS = 2
+STRIP = (240, 46)         # forty spines: 1.0 x 0.19 m
+HEAD_TILE = (168, 24)     # a section board, 7 : 1 as the board is
+CAP_TILE = (48, 20)       # an aisle-end sign
+TAG_TILE = (12, 8)        # a shelf tag
+SIGN_YELLOW = (244, 208, 40)
 
 
-def _set(c, text, x0, y, tw, ink, plate=None, face="m5x7"):
+def _set(c, text, x0, y, tw, ink, plate=None, face="m5x7", scale=1):
     """``text`` centred on a tile ``tw`` wide whose left edge is ``x0``, its
     top at ``y``. A word wider than the tile raises: a defect, not a crop."""
-    m = pt.trim(pt.render(text, 1, face))
+    m = pt.trim(pt.render(text, scale, face))
     assert len(m[0]) <= tw - 2, (text, len(m[0]), tw)
     mx = x0 + (tw - len(m[0])) // 2
     if plate is not None:
@@ -386,47 +515,115 @@ def _paint_box(c, x0, y0, t):
     c.rect(x0, y0 + th - 1, x0 + tw, y0 + th, _dark(body, 40))
 
 
+def _paint_strip(c, x0, y0, g):
+    """Forty tape spines, side by side: each its own colour off the
+    genre's boxes or a plain black, white or red sleeve; a paler label
+    panel with a column of ticks where a title runs up it -- too small to
+    read, as a spine is from an aisle -- and on some a rental sticker at
+    the foot. One pixel of shadow between tapes."""
+    sw, sh = STRIP[0] // STRIP_SPINES, STRIP[1]
+    pal = [hex_rgb(BY_ID[t][3]) for t in BY_GENRE[g]] + [(22, 22, 26), (232, 228, 214), (190, 30, 40)]
+    for i in range(STRIP_SPINES):
+        x = x0 + i * sw
+        body = pal[_h("spine", g, i) % len(pal)]
+        c.rect(x, y0, x + sw, y0 + sh, body)
+        light = sum(body) > 380
+        panel = _dark(body, 46) if light else tuple(min(255, v + 70) for v in body)
+        if _h("spine", g, i, "p") % 4:
+            c.rect(x + 1, y0 + 5, x + sw - 1, y0 + 30, panel)
+        tick = (24, 22, 26) if sum(panel) > 300 else (236, 232, 220)
+        for y in range(y0 + 8, y0 + 28, 3):
+            if _h("spine", g, i, y - y0) % 3:
+                c.rect(x + 2, y, x + sw - 2, y + 1, tick)
+        if _h("spine", g, i, "s") % 3 == 0:
+            c.rect(x + 1, y0 + sh - 9, x + sw - 1, y0 + sh - 4, (244, 220, 60))
+        c.rect(x + sw - 1, y0, x + sw, y0 + sh, _dark(body, 70))
+
+
 def _paint_head(c, x0, y0, g):
+    """A section board: the word lettered as large as it sets."""
     text, field, ink = BOARDS[g]
     tw, th = HEAD_TILE
     field, ink = hex_rgb(field), hex_rgb(ink)
     c.rect(x0, y0, x0 + tw, y0 + th, field)
-    c.rect(x0 + 1, y0 + 1, x0 + tw - 1, y0 + 2, ink)
-    c.rect(x0 + 1, y0 + th - 2, x0 + tw - 1, y0 + th - 1, ink)
-    _set(c, text, x0, y0 + 6, tw, ink)
+    scale = 2 if len(pt.trim(pt.render(text, 2, "m5x7"))[0]) <= tw - 6 else 1
+    m = pt.trim(pt.render(text, scale, "m5x7"))
+    _set(c, text, x0, y0 + (th - len(m)) // 2, tw, ink, scale=scale)
+
+
+def _paint_cap(c, x0, y0, g):
+    tw, th = CAP_TILE
+    c.rect(x0, y0, x0 + tw, y0 + th, SIGN_YELLOW)
+    c.rect(x0, y0, x0 + tw, y0 + 1, (30, 26, 20))
+    c.rect(x0, y0 + th - 1, x0 + tw, y0 + th, (30, 26, 20))
+    _set(c, BOARDS[g][0], x0, y0 + 6, tw, (30, 26, 20))
+
+
+def _paint_tag(c, x0, y0, rgb):
+    tw, th = TAG_TILE
+    c.rect(x0, y0, x0 + tw, y0 + th, rgb)
+    c.rect(x0 + 2, y0 + 2, x0 + tw - 2, y0 + 3, (40, 36, 30))
+    c.rect(x0 + 2, y0 + 5, x0 + tw - 4, y0 + 6, (40, 36, 30))
 
 
 def rack_art():
-    """ONE image for every box and every genre board: ``tile_<title>`` and
-    ``solid_<title>`` a title, ``head_<genre>`` and ``solid_head_<genre>`` a
-    board. ``{canvas, size, rects, said, name}``; rects are pixel boxes, row
-    0 at the top."""
+    """ONE image for everything on a rack that is not its frame: a tile a
+    title (``tile_<id>``, ``solid_<id>``), a strip of spines a genre
+    (``spines_<genre>``; their tops and ends are ``solid_spines``), a
+    section board a genre (``head_<genre>``, ``solid_head_<genre>``), an
+    aisle-end sign an aisle genre (``cap_<genre>``, ``solid_cap``) and the
+    shelf tags. ``{canvas, size, rects, said, name}``; rects are pixel
+    boxes, row 0 at the top."""
     tw, th = TILE
     rows = int(math.ceil(len(TITLES) / float(COLS)))
+    strips = list(BOARDS)                         # every genre, the back room's too
     heads = list(BOARDS)
-    head_rows = int(math.ceil(len(heads) / float(HEAD_COLS)))
-    y_head = rows * th
-    y_solid = y_head + head_rows * HEAD_TILE[1]
+    y_strip = rows * th
+    y_head = y_strip + len(strips) * STRIP[1]
+    y_cap = y_head + len(heads) * HEAD_TILE[1]
+    y_tag = y_cap + CAP_TILE[1]
+    y_solid = y_tag + TAG_TILE[1]
     W, H = COLS * tw, y_solid + 8
-    assert HEAD_COLS * HEAD_TILE[0] <= W and (len(TITLES) + len(heads)) * 5 <= W
+    assert STRIP[0] <= W and HEAD_TILE[0] <= W and len(AISLE_GENRES) * CAP_TILE[0] <= W
     c = Canvas(W, H, (20, 20, 20))
-    rects, said = {}, []
+    rects, said, solids = {}, [], []
+
+    def put(name, rect):
+        assert name not in rects, name
+        rects[name] = rect
+
     for i, t in enumerate(TITLES):
         x0, y0 = (i % COLS) * tw, (i // COLS) * th
         _paint_box(c, x0, y0, t)
-        rects["tile_" + t[0]] = (x0, y0, x0 + tw, y0 + th)
+        put("tile_" + t[0], (x0, y0, x0 + tw, y0 + th))
         said += list(t[2]) + [STICKER]
-        sx = i * 5
-        c.rect(sx, y_solid + 2, sx + 4, y_solid + 6, hex_rgb(t[3]))
-        rects["solid_" + t[0]] = (sx, y_solid + 2, sx + 4, y_solid + 6)
+        solids.append(("solid_" + t[0], hex_rgb(t[3])))
+    for j, g in enumerate(strips):
+        y0 = y_strip + j * STRIP[1]
+        _paint_strip(c, 0, y0, g)
+        put("spines_" + g, (0, y0, STRIP[0], y0 + STRIP[1]))
+    solids.append(("solid_spines", (26, 26, 30)))
     for j, g in enumerate(heads):
-        x0, y0 = (j % HEAD_COLS) * HEAD_TILE[0], y_head + (j // HEAD_COLS) * HEAD_TILE[1]
-        _paint_head(c, x0, y0, g)
-        rects["head_" + g] = (x0, y0, x0 + HEAD_TILE[0], y0 + HEAD_TILE[1])
+        y0 = y_head + j * HEAD_TILE[1]
+        _paint_head(c, 0, y0, g)
+        put("head_" + g, (0, y0, HEAD_TILE[0], y0 + HEAD_TILE[1]))
         said.append(BOARDS[g][0])
-        sx = (len(TITLES) + j) * 5
-        c.rect(sx, y_solid + 2, sx + 4, y_solid + 6, hex_rgb(BOARDS[g][1]))
-        rects["solid_head_" + g] = (sx, y_solid + 2, sx + 4, y_solid + 6)
+        solids.append(("solid_head_" + g, hex_rgb(BOARDS[g][1])))
+    for j, g in enumerate(AISLE_GENRES):
+        x0 = j * CAP_TILE[0]
+        _paint_cap(c, x0, y_cap, g)
+        put("cap_" + g, (x0, y_cap, x0 + CAP_TILE[0], y_cap + CAP_TILE[1]))
+    solids.append(("solid_cap", SIGN_YELLOW))
+    for j, (name, rgb) in enumerate(zip(TAGS, TAG_RGB)):
+        x0 = j * TAG_TILE[0]
+        _paint_tag(c, x0, y_tag, rgb)
+        put(name, (x0, y_tag, x0 + TAG_TILE[0], y_tag + TAG_TILE[1]))
+        solids.append(("solid_" + name, rgb))
+    assert len(solids) * 4 <= W, len(solids)
+    for i, (name, rgb) in enumerate(solids):
+        sx = i * 4
+        c.rect(sx, y_solid + 2, sx + 3, y_solid + 6, rgb)
+        put(name, (sx, y_solid + 2, sx + 3, y_solid + 6))
     digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
     return {"canvas": c, "size": (W, H), "rects": rects, "said": said,
             "name": f"videorack_{W}x{H}_{digest:08x}"}

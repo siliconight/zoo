@@ -1,3 +1,41 @@
+## [1.44.0] - the video rack, revised from the walker's photographs
+
+1.43.0 built the tape racks "from the era" with no references: every box
+faced out, grey steel, printed genre boards, low islands. Cold run 9132 put
+it in a level and the walker sent ten photographs (docs/SET_DRESSING_
+REFERENCES.md, "The walker's video store references"): a cult store and a
+chain store. This is both.
+
+  * SPINES OUT. A shelf is a few blocks of tape spines, each a whole number
+    of 25 mm tapes, uneven on top, a hand's gap here and there, showing its
+    own stretch of its section's strip of forty painted spines. A 2.4 m wall
+    is 493 tapes in 1,560 triangles; faced out it was 126 boxes in 2,028.
+  * PAINTED UNITS. Purple, green, black or blue by the slot's variant, frame
+    and shelves and all, in the `Wear` vertex colour -- no new material.
+  * A FOURTH FORM, `display`: the chain store's new-release rack. Black,
+    every box faced out and leaning back 12 degrees on its foot, three or
+    four facings a title, NEW RELEASES across its head. NEW RELEASES is this
+    form's alone; an aisle runs the other five sections.
+  * SECTION BOARDS lettered as large as they set (scale 2 where the word
+    fits), and on an ISLAND a yellow section sign on each end panel at the
+    eye -- its face is the slot's end.
+  * SHELF TAGS: a yellow or orange tag or two on every lip.
+
+Still two submissions: one image, 240 x 946 (it was 240 x 508).
+
+WHAT THE FIRST CUT GOT WRONG, each found by the planner's coincident-face
+check before a frame was rendered: a tag's top was its lip's top; two tags
+drawn anywhere on a lip overlapped face on face; an island's shelves stood 1
+mm off its inset end panels.
+
+NOT DRAWN: a tape leaning in a gap or lying flat on a row; round price
+stickers on the display boxes; cut-out letters standing ON a unit (the board
+is a board); the ceiling sign with arrows.
+
+Census: "3 builds, 0 with coincident pairs, 0 that did not build".
+
+Tests: `tests/test_video_rack.py` 48 -> 64 (+5 in Blender).
+
 ## [1.43.0] - the video store's tape racks, and its name over the door
 
 The walker's queue, 2026-09-29: "a new building type: a VHS movie rental

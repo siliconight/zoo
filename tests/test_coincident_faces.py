@@ -402,6 +402,8 @@ DID_NOT_BUILD = {"boots"}
 #: builds, 0 with coincident pairs, 0 that did not build". The planner's
 #: check found two pairs a build first -- a shelf's lip 2 mm under its
 #: shelf, the kick ending on the back board's face -- fixed at the source.
+#: 1.44.0: the rack revised (spines out, painted, a display form); the same
+#: three builds, "0 with coincident pairs" (360 / 1,668 / 5,028 tris).
 CENSUS_BUILDS = 351
 
 

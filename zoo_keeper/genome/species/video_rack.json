@@ -34,7 +34,8 @@
   "form": [
    "wall",
    "island",
-   "adult"
+   "adult",
+   "display"
   ]
  },
  "module_variants": 6,
