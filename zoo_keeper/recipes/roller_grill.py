@@ -85,7 +85,8 @@ def build(plan, streams, collection):
     objs = _build_solid([p for p in got["prims"] if p["mat"] != "paint"], plan, rng, collection)
     A = RG.art(w, d, h, variant)
     paint = materials.make_painted_material(
-        f"M_Roller_{A['name']}", materials.image_from_png(A["name"], A["canvas"].png()), 0.5)
+        f"M_Roller_{A['name']}", materials.image_from_png(A["name"], A["canvas"].png()), 0.5,
+        smooth=True)
     objs.append(_painted([p for p in got["prims"] if p["mat"] == "paint"], A, paint, collection, streams))
     print(f"[roller_grill] rollers={f['rollers']} columns={f['columns']} kinds={f['kinds']} "
           f"dogs={f['dogs']} buns={f['buns']} art={A['name']}")

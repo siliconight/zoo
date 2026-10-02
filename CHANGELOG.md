@@ -1,3 +1,36 @@
+## [1.53.0] - the roller grill: its panels drawn and lettered by owner
+
+The last of the store's counter props in the pixel look (the walker,
+2026-10-02). The warm-buns panel across the cabinet, the grill's control
+panel and the tags on the rollers.
+
+THE BRIEF. The buns panel is the shop's joke, printed on card and slid into
+the cabinet's front: the shop's face, a dog each end, red rules. The control
+panel and the tags are the grill maker's: dials with their scales, two
+lamps, a switch, the kinds named on black tube tags. What is left out:
+grease on the panel -- it is below the pan; the grease is on the rollers,
+in their `Wear`, as it was.
+
+### Changed
+- **The hot dog in its bun is drawn** (`_dog_in_bun`): two halves of a bun,
+  the dog between, a squiggle of mustard -- where it was a 12 x 6 bitmap.
+- **The dials have scales and the lamps have lenses**: rings in curves, a
+  tick every 45 degrees, a highlight on each lamp, a bevelled switch.
+- **The lettering has owners** (`smooth_type.OWNERS`): NICE BUNS in the
+  shop's face with a brown outline and WARM ALL DAY in the shop's copy
+  face; the tags in the maker's. 1.17.0's `monogram` and `m5x7` are gone.
+- The image is packed by `card_art.atlas` with gutters each tile bleeds
+  into, and sampled with filtering. Same densities as before (`TEXEL` 400,
+  `TAG_TEXEL` 800).
+
+### Cost
+The image for the 1.0 m grill is 395 x 401 px where it was 368 x 305: the
+gutters. One material, now Linear; no draw changes (the four submissions of
+1.17.0). Level Factory 0.128.0 ships a filtered texture VRAM-compressed.
+Measured in a scratch Godot project, GL Compatibility, the 1.0 m grill built
+at 1.52.0 and at this version, three cameras: 5 draws before and 5 after in
+each (the scene's floor included).
+
 ## [1.52.0] - the frozen drink station: its mascot drawn, its lettering owned
 
 The next of the store's props (the walker, 2026-10-02): the thing in the

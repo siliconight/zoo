@@ -200,3 +200,27 @@ def test_bpy_the_same_file_every_build(tmp_path):
         res, _o = _build(out, R.DC_SIZES[0], variant=1)
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
+
+
+# --- 1.53.0: drawn and lettered by owner, behind a filtered sampler --------------------
+
+
+def test_every_line_sets_and_the_lettering_has_owners():
+    from zoo_keeper.core import smooth_type as ST
+    assert R.SHOP_FACE == ST.owned("shop") and R.MAKER_FACE == ST.owned("maker")
+    for w, d, h in (R.DC_SIZES[0], (0.7, 0.5, 1.3), (1.4, 0.8, 1.6)):
+        for variant in range(4):
+            a = R.art(w, d, h, variant)
+            assert a["unset"] == [], (w, variant, a["unset"])
+            assert a["said"] == list(R.PANEL_WORDS) + [k[1] for k in R.KINDS]
+
+
+def test_the_art_has_gutters_each_tile_bleeds_into():
+    from zoo_keeper.core import card_art as CA
+    a = R.art(*R.DC_SIZES[0])
+    G, c = CA.SMOOTH_GUTTER, a["canvas"]
+    for key, (x0, y0, x1, y1) in a["rects"].items():
+        y = (y0 + y1) // 2
+        assert c.get(x0 - G // 2, y) == c.get(x0, y) and c.get(x1 - 1 + G // 2, y) == c.get(x1 - 1, y), key
+    x0, y0, _x1, _y1 = a["rects"]["edge"]
+    assert c.get(x0 + 2, y0 + 2) == R.PANEL_BLACK

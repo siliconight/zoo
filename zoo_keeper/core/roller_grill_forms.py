@@ -57,9 +57,10 @@ from __future__ import annotations
 import math
 import zlib
 
-from . import pixel_type as pt
+from . import card_art as CA
+from . import paint as PT
 from . import prims as P
-from .vending_forms import Canvas
+from . import smooth_type as ST
 
 #: Deli Counter's volume (long side first), then the genome's range.
 DC_SIZES = ((1.0, 0.6, 1.4),)
@@ -113,6 +114,8 @@ KIND_BASE = {"metal_bare": (1.0, 1.0, 1.0), "metal_painted": (1.0, 1.0, 1.0), "g
 GLASS_OPACITY = 0.18
 #: Grease: the front roller is `chrome` at 1.0, the back one at this.
 GREASE_BACK = 0.45
+#: 1.53.0: the same densities, the art drawn and lettered in smooth faces
+#: and sampled with filtering (`card_art.atlas` gutters round each tile).
 TEXEL = 400
 TAG_TEXEL = 800
 
@@ -329,95 +332,111 @@ WHITE = (250, 250, 246)
 INK = (20, 18, 18)
 PANEL_BLACK = (16, 16, 18)
 STEEL = (170, 172, 176)
+#: WHOSE VOICE (1.52.0, `smooth_type.OWNERS`). The warm-buns panel is the
+#: shop's own joke, in the shop's face; the control panel's marks and the
+#: tags on the rollers are the grill maker's.
+SHOP_FACE = ST.owned("shop")
+SHOP_COPY = ST.owned("shop_copy")
+MAKER_FACE = ST.owned("maker")
 
 
-def _scale(text, width, height, face, cap):
-    for k in range(cap, 0, -1):
-        if pt.ink_width(text, k, face) <= width and pt.line(face) * k <= height:
-            return k
-    return 0
+def _lift(rgb, by):
+    return tuple(max(0.0, min(255.0, c + by)) for c in rgb)
 
 
-def _words(c, text, x0, y0, width, height, face, colour, outline=None, cap=3):
-    s = _scale(text, width, height, face, cap)
-    if not s:
-        return 0
-    m = pt.trim(pt.render(text, s, face))
-    ox, oy = x0 + (width - len(m[0])) // 2, y0 + (height - len(m)) // 2
-    if outline:
-        c.mask(m, ox, oy, outline, grow=1)
-    c.mask(m, ox, oy, colour)
-    return s
+def _outlined(im, text, box, face, colour, outline, cap=None):
+    x0, y0, x1, y1 = box
+    for dx, dy in ((-1.5, 0), (1.5, 0), (0, -1.5), (0, 1.5), (-1, -1), (1, 1), (-1, 1), (1, -1)):
+        im.text(text, (x0 + dx, y0 + dy, x1 + dx, y1 + dy), outline, face, cap=cap)
+    return im.text(text, box, colour, face, cap=cap)
 
 
-def _dog_in_bun(c, x, y, k):
-    """A hot dog in a bun, 12 x 6 at scale ``k``."""
-    c.rect(x, y + 2 * k, x + 12 * k, y + 6 * k, (214, 160, 90))
-    c.rect(x + k, y + k, x + 11 * k, y + 3 * k, (150, 40, 26))
-    c.rect(x + 2 * k, y + 2 * k, x + 10 * k, y + 2 * k + max(1, k // 2), YELLOW)
+def _dog_in_bun(im, box):
+    """A hot dog in a bun, drawn: the bun's two halves, the dog between
+    them, a squiggle of mustard."""
+    x0, y0, x1, y1 = box
+    w, h = x1 - x0, y1 - y0
+    im.rrect((x0, y0 + h * 0.45, x1, y1), h * 0.25, (214, 160, 90))
+    im.vgrad((x0 + 1, y0 + h * 0.47, x1 - 1, y1 - 1), (232, 184, 112), (190, 136, 70))
+    im.rrect((x0 + w * 0.06, y0 + h * 0.18, x1 - w * 0.06, y0 + h * 0.62), h * 0.22, (150, 40, 26))
+    im.vgrad((x0 + w * 0.08, y0 + h * 0.2, x1 - w * 0.08, y0 + h * 0.6), (180, 60, 40), (120, 30, 20))
+    for i in range(5):
+        cx = x0 + w * (0.18 + 0.16 * i)
+        im.disc(cx, y0 + h * (0.36 if i % 2 else 0.44), h * 0.07, YELLOW)
 
 
-def _ring(c, cx, cy, r, rgb):
-    for a in range(0, 360, 6):
-        t = math.radians(a)
-        c.px(int(round(cx + r * math.cos(t))), int(round(cy + r * math.sin(t))), rgb)
+def _ring(im, cx, cy, r, rgb, t=1.5):
+    im.disc(cx, cy, r, rgb)
+    im.disc(cx, cy, r - t, PANEL_BLACK)
 
 
 def art(w, d, h, variant=0):
     """ONE image: the cabinet's buns panel (`buns`), the grill's control
-    panel (`controls`), a tag a kind (`tag_*`), and an `edge` block.
-    ``{canvas, size, rects, name, said}``."""
+    panel (`controls`), a tag a kind (`tag_*`), and an `edge` block --
+    packed with a gutter each tile bleeds into, because the image is sampled
+    with filtering (1.52.0). ``{canvas, size, rects, name, said, unset}``."""
     G = geometry(w, d, h)
     BW = int(round((w - 0.10) * TEXEL))
     BH = int(round((CAB_H - CAB_TOP_T - 0.10 - KICK_H) * TEXEL))
     CW = int(round((G["px1"] - G["px0"] - 0.012) * TEXEL))
     CH = int(round((PAN_H - 0.012) * TEXEL))
     TW, TH = int(round(TAG_L * TAG_TEXEL)), int(round(TAG_S * TAG_TEXEL))
-    W = max(BW, CW, len(KINDS) * (TW + 2) + 8)
-    H = BH + CH + TH + 8
-    c = Canvas(W, H, CREAM)
-    rects, said = {}, []
-    # the warm-buns panel
-    c.rect(0, 0, BW, 4, RED)
-    c.rect(0, BH - 4, BW, BH, RED)
-    for i in range(0, BW, 16):
-        c.rect(i, BH - 14, i + 8, BH - 6, RED)
-    k = max(1, min(BH // 20, BW // 60))
-    _dog_in_bun(c, 8, 10, k)
-    _dog_in_bun(c, BW - 8 - 12 * k, 10, k)
-    _words(c, PANEL_WORDS[0], 0, 8, BW, int(BH * 0.55), "monogram", RED, BROWN, cap=5)
-    _words(c, PANEL_WORDS[1], 0, int(BH * 0.55), BW, int(BH * 0.28), "m5x7", BROWN, cap=2)
+    tiles, said = [], []
+    # --- the warm-buns panel: cream card, red rules, a dog each end ------------------------
+    im = PT.Img(BW, BH, CREAM)
+    im.vgrad((0, 0, BW, BH), _lift(CREAM, 4), _lift(CREAM, -14))
+    b = max(3, BH // 50)
+    im.rect((0, 0, BW, b), RED)
+    im.rect((0, BH - b, BW, BH), RED)
+    for i in range(0, BW, b * 5):
+        im.rect((i, BH - b * 4, i + b * 2.5, BH - b * 2), RED)
+    # the name across the whole card, the dogs flanking the line under it
+    dw = min(BW * 0.2, BH * 0.9)
+    dy = BH * 0.62 + (BH - b * 5 - BH * 0.62 - dw * 0.5) / 2.0
+    _dog_in_bun(im, (b * 3, dy, b * 3 + dw, dy + dw * 0.5))
+    _dog_in_bun(im, (BW - b * 3 - dw, dy, BW - b * 3, dy + dw * 0.5))
+    _outlined(im, PANEL_WORDS[0], (b * 3, b * 2, BW - b * 3, BH * 0.6), SHOP_FACE, RED, BROWN)
+    im.text(PANEL_WORDS[1], (b * 4 + dw, BH * 0.62, BW - b * 4 - dw, BH - b * 5), BROWN, SHOP_COPY,
+            tracking=0.08)
+    im.edge_dark((0, 0, BW, BH), BH * 0.1, 0.12)
     said += list(PANEL_WORDS)
-    rects["buns"] = (0, 0, BW, BH)
-    # the control panel: black, a chef-less little dog at the left, two
-    # lights, the two dials' scales behind the knobs, a red switch
-    y = BH + 2
-    c.rect(0, y, CW, y + CH, PANEL_BLACK)
-    c.rect(0, y, CW, y + 1, STEEL)
-    _dog_in_bun(c, 6, y + CH // 2 - 3, max(1, CH // 14))
-    for i, lx in enumerate((0.26, 0.36)):
-        c.rect(int(CW * lx) - 3, y + CH // 2 - 3, int(CW * lx) + 3, y + CH // 2 + 3, (220, 30, 30))
+    tiles.append(("buns", im.to_canvas()))
+    # --- the control panel: black, a little dog, two lights, two dials, a switch -----------
+    im = PT.Img(CW, CH, PANEL_BLACK)
+    im.vgrad((0, 0, CW, CH), _lift(PANEL_BLACK, 14), _lift(PANEL_BLACK, -6))
+    im.rect((0, 0, CW, 1.5), STEEL)
+    _dog_in_bun(im, (6, CH * 0.25, 6 + CH * 1.3, CH * 0.75))
+    for lx in (0.26, 0.36):
+        im.disc(CW * lx, CH / 2.0, CH * 0.12, (90, 10, 10))
+        im.disc(CW * lx, CH / 2.0, CH * 0.08, (240, 40, 40))
+        im.disc(CW * lx - CH * 0.03, CH / 2.0 - CH * 0.03, CH * 0.025, (255, 200, 200), 0.8)
     px0 = G["px0"] + 0.006
     for kx in knob_x(w):
-        u = int(round((kx - px0) * TEXEL))
-        _ring(c, u, y + CH // 2, CH // 2 - 2, (230, 120, 30))
-        _ring(c, u, y + CH // 2, CH // 2 - 4, (200, 30, 30))
-    c.rect(int(CW * 0.90) - 4, y + CH // 2 - 6, int(CW * 0.90) + 4, y + CH // 2 + 6, (230, 30, 30))
-    rects["controls"] = (0, y, CW, y + CH)
-    # the tags: black tubes with the name in white, a red cap each end
-    y = BH + CH + 4
-    for i, (kid, text, _col, _r, _l) in enumerate(KINDS):
-        x = i * (TW + 2)
-        c.rect(x, y, x + TW, y + TH, PANEL_BLACK)
-        c.rect(x, y, x + 5, y + TH, RED)
-        c.rect(x + TW - 5, y, x + TW, y + TH, RED)
-        if not _words(c, text, x + 6, y, TW - 12, TH, "m5x7", WHITE, cap=2):
-            _words(c, text.split()[-1], x + 6, y, TW - 12, TH, "m5x7", WHITE, cap=2)
-        rects["tag_" + kid] = (x, y, x + TW, y + TH)
+        u = (kx - px0) * TEXEL
+        _ring(im, u, CH / 2.0, CH / 2.0 - 2, (230, 120, 30), 2)
+        _ring(im, u, CH / 2.0, CH / 2.0 - 5, (200, 30, 30), 1.5)
+        for a in range(-135, 136, 45):
+            t = math.radians(a - 90)
+            im.disc(u + math.cos(t) * (CH / 2.0 - 1), CH / 2.0 + math.sin(t) * (CH / 2.0 - 1), 1.2, WHITE)
+    sw = (CW * 0.90 - CH * 0.18, CH * 0.2, CW * 0.90 + CH * 0.18, CH * 0.8)
+    im.rrect(sw, 2, (230, 30, 30))
+    im.bevel(sw, 1, 30.0, 40.0)
+    tiles.append(("controls", im.to_canvas()))
+    # --- the tags: black tubes, the name in white, a red cap each end --------------------
+    for kid, text, _col, _r, _l in KINDS:
+        im = PT.Img(TW, TH, PANEL_BLACK)
+        im.vgrad((0, 0, TW, TH), _lift(PANEL_BLACK, 30), _lift(PANEL_BLACK, -6))
+        cap = max(3, TH // 8)
+        im.rect((0, 0, cap, TH), RED)
+        im.rect((TW - cap, 0, TW, TH), RED)
+        box = (cap + 3, TH * 0.18, TW - cap - 3, TH * 0.82)
+        if im.text(text, box, WHITE, MAKER_FACE, min_cap=int(TH * 0.3)) is None:
+            im.unset.pop()
+            im.text(text.split()[-1], box, WHITE, MAKER_FACE)
+        tiles.append(("tag_" + kid, im.to_canvas()))
         said.append(text)
-    e = len(KINDS) * (TW + 2) + 2
-    rects["edge"] = (e, y, e + 4, y + 4)
-    c.rect(*rects["edge"], PANEL_BLACK)
-    digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-    return {"canvas": c, "size": (W, H), "rects": rects, "said": said,
-            "name": f"rollerart_{W}x{H}_{digest:08x}"}
+    tiles.append(("edge", PT.Img(24, 24, PANEL_BLACK).to_canvas()))
+    A = CA.atlas(tiles, "rollerart", gutter=CA.SMOOTH_GUTTER, bleed=True)
+    A["said"] = said
+    A["unset"] = [s for _k, c in tiles for s in getattr(c, "unset", [])]
+    return A
