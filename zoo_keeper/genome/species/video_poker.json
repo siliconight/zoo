@@ -24,7 +24,8 @@
   },
   "parts": [
     "VideoPoker_Art",
-    "VideoPokerGlow_Art"
+    "VideoPokerGlow_Art",
+    "VideoPoker_Shutter"
   ],
   "params": {},
   "materials": {

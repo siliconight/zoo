@@ -33,6 +33,7 @@ denylists and the real makers and the real Pennsylvania mark
 from __future__ import annotations
 
 from . import prims as P
+from . import shutters as SH
 from .vending_forms import Canvas
 
 #: The brands, by variant: marquee line, its colours (field, ink). No brand
@@ -67,6 +68,15 @@ HEAD_TOP = 0.86
 SET_BACK = 0.30
 SCREEN_INSET = 0.015
 TEXEL = 256
+#: THE DEAL (1.45.0). The screen's five cards come up one after another,
+#: the hand holds, and all five go for the next deal: a shutter a card,
+#: open from `DEAL_FIRST + i * DEAL_STEP` to `DEAL_HOLD` of a period.
+DEAL_PERIOD_S = 8.0
+DEAL_FIRST = 0.08
+DEAL_STEP = 0.05
+DEAL_HOLD = 0.92
+#: A closed shutter's colour: the tube's blue, between its two scanline rows.
+SHUTTER_RGB = (7, 17, 80)
 
 
 def _quad(part, mat, tile, verts, uv=(0.0, 1.0, 0.0, 1.0)):
@@ -138,6 +148,15 @@ def plan(w, d, h, variant=0):
         _quad("VP_Well_R", "paint", "trim", [(sx1, yi, sz0), (sx1, yh, sz0), (sx1, yh, sz1), (sx1, yi, sz1)]),
         _quad("VP_Screen", "glow", "screen", [(sx0, yi, sz0), (sx1, yi, sz0), (sx1, yi, sz1), (sx0, yi, sz1)]),
     ]
+    # THE DEAL: a shutter over each card on the screen, a pixel wider all
+    # round than the card it hides
+    screen = [(sx0, yi, sz0), (sx1, yi, sz0), (sx1, yi, sz1), (sx0, yi, sz1)]
+    wpx, hpx = _px(sw), _px(sh)
+    for i, (bx0, by0, bx1, by1) in enumerate(card_boxes(wpx, hpx)):
+        rect = (max(0.0, (bx0 - 1) / wpx), max(0.0, 1.0 - (by1 + 1) / hpx),
+                min(1.0, (bx1 + 1) / wpx), min(1.0, 1.0 - (by0 - 1) / hpx))
+        prims.append(SH.over("VP_ScreenShutter", screen, rect,
+                             (DEAL_FIRST + i * DEAL_STEP, DEAL_HOLD, DEAL_PERIOD_S, 0.0)))
     prims += _box("VP_Marquee", "paint", "trim", (x0, yh, zh), (x1, y1, h), skip=("front", "bottom"))
     prims.append(_quad("VP_Sign", "glow", "marquee", [(x0, yh, zh), (x1, yh, zh), (x1, yh, h), (x0, yh, h)]))
     tiles = {
@@ -151,7 +170,7 @@ def plan(w, d, h, variant=0):
     }
     return {"prims": prims, "tiles": tiles,
             "collision": ((x0, y0, 0.0), (x1, y1, h)),
-            "facts": {"brand": brand, "variant": v, "tris": P.tri_count(prims), "materials": 2}}
+            "facts": {"brand": brand, "variant": v, "tris": P.tri_count(prims), "materials": 3}}
 
 
 # --- the art -----------------------------------------------------------------------------
@@ -162,6 +181,17 @@ def _px(m):
 
 
 SUIT_RGB = {"S": (20, 20, 24), "C": (20, 20, 24), "H": (200, 20, 30), "D": (200, 20, 30)}
+
+
+def card_boxes(w, h):
+    """The five cards' pixel boxes on a ``w`` x ``h`` screen, row 0 at the
+    top: ONE derivation for the painter and for the shutters that hide them
+    (1.45.0), so a shutter cannot drift off its card."""
+    n = 5
+    gap = max(2, w // 60)
+    cw = (w - 8 - gap * (n - 1)) // n
+    cy0, cy1 = int(h * 0.26), int(h * 0.74)
+    return [(4 + i * (cw + gap), cy0, 4 + i * (cw + gap) + cw, cy1) for i in range(n)]
 
 
 def paint(spec):
@@ -193,12 +223,8 @@ def paint(spec):
             c.rect(0, y, w, y + 1, (6, 14, 70))
         say(GAME, (4, 3, w - 4, int(h * 0.22)), (255, 220, 60), cap=2)
         # five cards across the middle, white faces, rank and suit letter
-        n = 5
-        gap = max(2, w // 60)
-        cw = (w - 8 - gap * (n - 1)) // n
-        cy0, cy1 = int(h * 0.26), int(h * 0.74)
-        for i, (rank, suit) in enumerate(HANDS[v]):
-            x = 4 + i * (cw + gap)
+        for (x, cy0, x1, cy1), (rank, suit) in zip(card_boxes(w, h), HANDS[v]):
+            cw = x1 - x
             c.rect(x, cy0, x + cw, cy1, (248, 248, 240))
             # the rank in its suit's colour: "10S" does not set on the
             # narrowest unit's 18 px card, and red / black is what reads

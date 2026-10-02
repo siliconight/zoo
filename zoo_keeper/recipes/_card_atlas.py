@@ -24,6 +24,37 @@ from ..bpylayer import geometry, materials
 from ..core import card_art as CA
 
 
+def build_shutters(prims, collection, streams, name, rgb=(0, 0, 0)):
+    """Every prim carrying a ``shutter`` (`core/shutters.py`, 1.45.0) built
+    into ONE object, ``<name>_Shutter``, on the shutter material. The
+    schedule goes into two UV sets as glTF will read them: Blender's v is
+    glTF's 1 - v, so each second component is written flipped and arrives
+    as it was meant -- UV (open from, open to), UV2 (period, phase).
+    ``rgb`` is the screen's background, the colour a closed shutter is."""
+    from ..core import shutters as SH
+    quads = [p for p in prims if p.get("shutter")]
+    if not quads:
+        return []
+    bm = geometry.new_bm()
+    uv = bm.loops.layers.uv.new("UVMap")
+    uv2 = bm.loops.layers.uv.new("Schedule")
+    for q in quads:
+        a, b, period, phase = q["shutter"]
+        vs = [bm.verts.new(v) for v in q["verts"]]
+        for face in q["faces"]:
+            f = bm.faces.new([vs[i] for i in face])
+            for loop in f.loops:
+                loop[uv].uv = (a, 1.0 - b)
+                loop[uv2].uv = (period, 1.0 - phase)
+    bm.normal_update()
+    # every Zoo mesh carries `Wear` (the build's own check warns without it);
+    # a shutter does not grime, so it is white
+    geometry.wear_colors(bm, streams.stream("shutters"), 0.0)
+    obj = geometry.bm_to_object(bm, f"{name}_Shutter", collection, finish=False)
+    obj.data.materials.append(materials.make_shutter_material(SH.material_name(rgb), rgb))
+    return [obj]
+
+
 def build_art(prims, collection, plan, streams, name, roughness=None, lit=None):
     """Build every prim carrying a ``tile`` into one object.
 

@@ -20,7 +20,7 @@ def build(plan, streams, collection):
     variant = int(params.get("variant", 0) or 0)
     sign = bool(params.get("sign", 1))
     got = AF.plan(w, d, h, variant, sign)
-    from ._card_atlas import build_art
+    from ._card_atlas import build_art, build_shutters
     objs = []
     for atlas_name, lit in (("paint", None), ("glow", (AF.GLOW_EMISSION, AF.GLOW_ALBEDO))):
         tiles = {k: spec for k, (a, spec) in got["tiles"].items() if a == atlas_name}
@@ -28,8 +28,10 @@ def build(plan, streams, collection):
         name = "ATM" if atlas_name == "paint" else "ATMGlow"
         o, atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, name, lit=lit)
         objs += o
+    # the screen's shutters (1.45.0): one more object, drawn by the consumer
+    objs += build_shutters(got["prims"], collection, streams, "ATM", AF.SHUTTER_RGB)
     f = got["facts"]
     print(f"[atm] {w:.2f} x {d:.2f} x {h:.2f} network={f['network']} sign={f['sign']} "
-          f"{f['tris']} tris, 2 materials")
+          f"{f['tris']} tris, 3 materials")
     return {"objects": objs, "collision_boxes": [got["collision"]], "attachments": {},
             "atm": {"network": f["network"], "sign": f["sign"]}}

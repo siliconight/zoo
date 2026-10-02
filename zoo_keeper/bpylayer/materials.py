@@ -454,6 +454,34 @@ def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35):
     return mat
 
 
+def make_shutter_material(name, rgb=(0, 0, 0)):
+    """A shutter's material (1.45.0, `core/shutters.py`): black and FULLY
+    TRANSPARENT. What draws a shutter is the consumer's shader, found by
+    this name; a consumer without one draws nothing here, which is the
+    screen as painted. (Alpha 0 on a blended material leaves the glTF
+    exporter as alphaMode MASK: under the cutoff, so still nothing drawn.)"""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    # the closed colour, sRGB 0-255 to the linear the socket and glTF hold
+    lin = [((c / 255.0) / 12.92 if c / 255.0 <= 0.04045 else ((c / 255.0 + 0.055) / 1.055) ** 2.4)
+           for c in rgb]
+    bsdf.inputs["Base Color"].default_value = (lin[0], lin[1], lin[2], 1.0)
+    bsdf.inputs["Roughness"].default_value = 1.0
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Alpha"].default_value = 0.0
+    for _attr, _val in (("blend_method", "BLEND"),
+                        ("surface_render_method", "BLENDED")):
+        try:
+            setattr(mat, _attr, _val)
+        except Exception:
+            pass
+    return mat
+
+
 def make_painted_material(name, image, roughness, tile=False):
     """A face whose artwork is PAINT on it, not light: ``image`` drives Base
     Color at full strength, nothing drives emission, roughness is the

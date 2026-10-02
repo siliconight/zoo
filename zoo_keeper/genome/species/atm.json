@@ -24,7 +24,8 @@
   },
   "parts": [
     "ATM_Art",
-    "ATMGlow_Art"
+    "ATMGlow_Art",
+    "ATM_Shutter"
   ],
   "params": {
     "sign": {

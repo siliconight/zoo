@@ -20,7 +20,7 @@ def build(plan, streams, collection):
     module = plan.get("module") or {}
     variant = int(module.get("variant") or params.get("variant") or 0)
     got = VF.plan(w, d, h, variant)
-    from ._card_atlas import build_art
+    from ._card_atlas import build_art, build_shutters
     objs = []
     for atlas_name, lit in (("paint", None), ("glow", (VF.GLOW_EMISSION, VF.GLOW_ALBEDO))):
         tiles = {k: spec for k, (a, spec) in got["tiles"].items() if a == atlas_name}
@@ -28,7 +28,9 @@ def build(plan, streams, collection):
         name = "VideoPoker" if atlas_name == "paint" else "VideoPokerGlow"
         o, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, name, lit=lit)
         objs += o
+    # the deal's shutters (1.45.0): one more object, drawn by the consumer
+    objs += build_shutters(got["prims"], collection, streams, "VideoPoker", VF.SHUTTER_RGB)
     f = got["facts"]
-    print(f"[video_poker] {w:.2f} x {d:.2f} x {h:.2f} brand={f['brand']} {f['tris']} tris, 2 materials")
+    print(f"[video_poker] {w:.2f} x {d:.2f} x {h:.2f} brand={f['brand']} {f['tris']} tris, 3 materials")
     return {"objects": objs, "collision_boxes": [got["collision"]], "attachments": {},
             "video_poker": {"brand": f["brand"]}}

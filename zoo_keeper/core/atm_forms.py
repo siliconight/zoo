@@ -35,6 +35,7 @@ from __future__ import annotations
 import zlib
 
 from . import prims as P
+from . import shutters as SH
 from .vending_forms import Canvas
 
 #: The networks, by variant: topper line, screen greeting.
@@ -68,6 +69,11 @@ HEAD_TOP = 0.86                      # the housing; the topper above it
 SET_BACK = 0.22                      # the head's front, of the depth
 SCREEN_INSET = 0.012
 TEXEL = 256
+#: THE SCREEN CYCLES (1.45.0): its greeting and INSERT CARD take turns, half
+#: of this period each.
+CYCLE_PERIOD_S = 3.0
+#: A closed shutter's colour: the tube's dark green, between its scanline rows.
+SHUTTER_RGB = (4, 14, 6)
 
 
 def _h(*k):
@@ -157,6 +163,17 @@ def plan(w, d, h, variant=0, sign=True):
         _quad("ATM_Well_R", "paint", "trim", [(sx1, yi, sz0), (sx1, yh, sz0), (sx1, yh, sz1), (sx1, yi, sz1)]),
         _quad("ATM_Screen", "glow", "screen", [(sx0, yi, sz0), (sx1, yi, sz0), (sx1, yi, sz1), (sx0, yi, sz1)]),
     ]
+    # THE CYCLE: the greeting and the line under it take turns. A tube too
+    # small for two lines shows its one line and has no shutter.
+    wpx, hpx = _px(sw), _px(sh)
+    lines, band = crt_bands(hpx, greet)
+    if len(lines) >= 2:
+        screen = [(sx0, yi, sz0), (sx1, yi, sz0), (sx1, yi, sz1), (sx0, yi, sz1)]
+        for i, (a, b) in enumerate(((0.0, 0.5), (0.5, 1.0))):
+            top, foot = 4 + i * band - 1, 4 + (i + 1) * band - 1
+            rect = (2.0 / wpx, max(0.0, 1.0 - foot / float(hpx)),
+                    1.0 - 2.0 / wpx, min(1.0, 1.0 - top / float(hpx)))
+            prims.append(SH.over("ATM_ScreenShutter", screen, rect, (a, b, CYCLE_PERIOD_S, 0.0)))
     if sign:
         # the topper: the head's footprint, its front lit, its other sides body
         prims += _box("ATM_Topper", "paint", "trim", (x0, yh, zh), (x1, y1, h),
@@ -185,6 +202,14 @@ def _px(m):
     return max(4, int(round(m * TEXEL)))
 
 
+def crt_bands(h, greet):
+    """``(lines, band)`` for a tube ``h`` px tall: as many lines as it holds
+    at 9 px a line, the greeting first, and each line's band height. ONE
+    derivation for the painter and for the shutters (1.45.0)."""
+    lines = ((greet,) + SCREEN_LINES)[:max(1, (h - 8) // 9)]
+    return lines, (h - 8) // len(lines)
+
+
 def paint(spec):
     """One tile as a Canvas."""
     from .poster_art import fit_text
@@ -201,8 +226,7 @@ def paint(spec):
         # as many lines as the tube holds at 9 px a line, the greeting first:
         # at the genome's smallest unit the screen is 36 px tall, and four
         # lines set none (`fit_text` drops what it cannot fit)
-        lines = ((spec["greet"],) + SCREEN_LINES)[:max(1, (h - 8) // 9)]
-        band = (h - 8) // len(lines)
+        lines, band = crt_bands(h, spec["greet"])
         c.unset = [line for i, line in enumerate(lines)
                    if fit_text(c, line, (4, 4 + i * band, w - 4, 4 + (i + 1) * band - 2), CRT_INK,
                                face="m5x7", cap=2) is None]

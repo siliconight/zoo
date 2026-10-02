@@ -45,7 +45,7 @@ def _normal(p, f):
 def test_the_genome_and_the_kit_stem():
     g = genome_mod.load_species("atm")
     assert genome_mod.validate_genome(g) == []
-    assert g["parts"] == ["ATM_Art", "ATMGlow_Art"] and g["module_variants"] == 4
+    assert g["parts"] == ["ATM_Art", "ATMGlow_Art", "ATM_Shutter"] and g["module_variants"] == 4
     slot = {"slot_id": "a", "role": "prop", "size_mod": "full", "style": 1, "species": "atm",
             "variant": 2, "material": "metal_painted",
             "fit": {"dims": [0.6, 0.55, 1.45], "pivot": "center"}}
@@ -92,7 +92,8 @@ def test_every_face_points_where_its_part_faces():
 
 def test_two_atlases_two_materials_the_glow_is_the_screen_and_the_topper():
     g = A.plan(0.6, 0.55, 1.45, 1)
-    assert {p["mat"] for p in g["prims"]} == {"paint", "glow"}
+    # 1.45.0: and the screen's shutters, which are neither atlas
+    assert {p["mat"] for p in g["prims"]} == {"paint", "glow", "shutter"}
     assert {k for k, (a, _s) in g["tiles"].items() if a == "glow"} == {"screen", "topper"}
     assert {p["tile"] for p in g["prims"] if p["mat"] == "glow"} == {"screen", "topper"}
     assert not {k for k, (a, _s) in A.plan(0.6, 0.55, 1.45, 1, sign=False)["tiles"].items()
@@ -136,11 +137,17 @@ def test_bpy_an_atm_is_two_objects_two_materials_and_fits(tmp_path, variant):
                              options={"save_blend": False})
     assert res["report"]["status"] == "pass", res["report"]["checks"]
     objs = [o for o in bpy.context.scene.objects if o.type == "MESH" and not o.name.endswith(_COL_SUFFIXES)]
-    assert len(objs) == 2
+    assert len(objs) == 3                # 1.45.0: paint, glow, and the screen's shutters
+    assert sum(o.name.endswith("_Shutter") for o in objs) == 1
     raw = open(os.path.join(str(tmp_path), res["files"]["glb"]), "rb").read()
     ln, _kind = struct.unpack_from("<I4s", raw, 12)
     doc = json.loads(raw[20:20 + ln])
     mats = doc["materials"]
-    assert len(mats) == 2
+    assert len(mats) == 3
+    shut = [m for m in mats if m["name"].startswith("M_Shutter_Screen")]
+    # alpha 0 leaves Blender's exporter as MASK (measured: BLEND was asked
+    # for), which is what is wanted anyway -- under the cutoff, nothing drawn
+    assert len(shut) == 1 and shut[0].get("alphaMode") == "MASK"
+    assert shut[0]["pbrMetallicRoughness"]["baseColorFactor"][3] == 0.0
     lit = [m for m in mats if m.get("emissiveFactor") and max(m["emissiveFactor"]) > 0]
     assert len(lit) == 1 and lit[0]["name"].endswith("_Face"), [m["name"] for m in mats]

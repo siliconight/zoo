@@ -1,3 +1,54 @@
+## [1.45.0] - screens that run: shutters over the ATM's and the video poker's CRTs
+
+The walker, 2026-10-02, after walking cold run 9131: "there is a relatively
+frozen/static feeling, where the lights in the atm, gambling machine, and
+cash register are just fixed with nothing dynamic/alive about them". Of four
+steps toward levels that feel alive, this is the first.
+
+A SHUTTER (`core/shutters.py`) is a quad standing 3 mm proud of a lit
+screen, over ONE PART of its picture, with a schedule: the fraction of a
+period in which it is open. Closed, it hides that part behind the screen's
+own background colour; open, it is not there. A screen's picture stays one
+painted image and the shutters decide when each part of it shows.
+
+  * THE VIDEO POKER DEALS: a shutter a card, opening one after another
+    (8 %, 13 %, 18 %, 23 %, 28 % of an 8 s period), all closing at 92 %.
+  * THE ATM TAKES TURNS: its greeting and INSERT CARD, half of 3 s each. A
+    tube too small for two lines has no shutter.
+
+WHAT SHIPS: one more object a machine (`ATM_Shutter`, `VideoPoker_Shutter`)
+on a material whose name begins `M_Shutter_Screen`, exported fully
+transparent with the closed colour as its base colour -- so a consumer that
+knows nothing about shutters draws the screen exactly as it was. The
+schedule is in two UV sets: UV (open from, open to), UV2 (period, phase).
+THE CLOCK IS THE CONSUMER'S: Level Factory 0.127.0's import swaps the
+material for a shader that reads them.
+
+ONE DERIVATION, TWO READERS: `video_poker_forms.card_boxes` and
+`atm_forms.crt_bands` are what the painter draws from and what the shutters
+are placed from, so a shutter cannot drift off its card.
+
+COST: one more draw a machine, 10 or 4 triangles, no texture. Three
+materials a machine where there were two.
+
+MEASURED in a scratch Godot project with 0.127.0's import, ten frames a
+second apart (root repo, docs/findings/screens_that_run/): the poker's
+screen empty, then Q, then Q Q J, then the hand, held, then empty; the ATM's
+first line and second line alternating, never both, never neither.
+
+WHAT THE FIRST CUTS GOT WRONG: a closed shutter was black, which is a hole
+in the poker's blue tube (it is the tube's colour); the shutter mesh had no
+`Wear` attribute and the build warned; alpha 0 on a blended material leaves
+Blender's exporter as alphaMode MASK, not BLEND, which is as good.
+
+KNOWN: the closed colour is unlit, so on a machine with its power cut a
+closed shutter is its dark background where the dead screen round it is the
+room's light on its picture.
+
+Tests: `tests/test_shutters.py` (6 + 2 in Blender); `test_atm.py` and
+`test_video_poker.py` learn the third object and material. Census: both
+species "3 builds, 0 with coincident pairs".
+
 ## [1.44.0] - the video rack, revised from the walker's photographs
 
 1.43.0 built the tape racks "from the era" with no references: every box
