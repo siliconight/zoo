@@ -50,9 +50,9 @@ import re
 import zlib
 
 from . import cigarette_brands as CB
-from . import pixel_type as pt
+from . import paint as PT
 from . import prims as P
-from .vending_forms import Canvas, _BAYER, _lerp
+from . import smooth_type as ST
 
 FORMS = ("pull_knob", "pull_knob_split")
 #: Deli Counter's slots (`level_design._PIECES`) and the genome's range.
@@ -352,152 +352,197 @@ def resolve(plan_, streams=None):
 
 
 # --- the art -----------------------------------------------------------------------------
+#
+# 1.48.0, THE REAL LOOK. Until now the display was `pixel_type` on a Canvas,
+# sampled Closest. It is painted with `paint.Img` and `smooth_type` and
+# sampled with filtering, at the density it already had (`TEXEL`).
+#
+# THE BRIEF, because the walker's authorship guide asks for one before a
+# surface is painted. A pack is a printed card box in cellophane: flat ink,
+# a seam a quarter of the way down where the flip-top opens, and the wrap
+# catching the room along its top edge and in one streak. A row of packs
+# stands under a shelf, so the row's head is in that shelf's shade and each
+# pack throws a little onto the backing. An ad is a printed sheet behind
+# acrylic, lit from behind on the header: its ink is flat and its light is
+# even. What is left out: wear. A pack is new by definition and the display
+# is behind glass.
+
+#: Faces: the brand's lettering, the slogan, and the small print.
+LOGO_FACE = "highway_bold"
+COPY_FACE = "highway"
+SMALL_FACE = "highway_cond"
+#: Rows under the art for the faces that show none of it: a dark band wide
+#: enough that a filtered, mip-mapped sample of its middle is still dark.
+DARK_ROWS = 16
+CREAM = (232, 222, 196)
+
 
 def _rgb(h):
     return CB.hex_rgb(h)
 
 
-def _pack(c, brand, x0, y0, pw, ph):
+def _lift(rgb, by):
+    return tuple(max(0.0, min(255.0, c + by)) for c in rgb)
+
+
+def _wrap(text, max_w, cap, face):
+    """``text`` broken into lines no wider than ``max_w`` at ``cap``, greedy.
+    A single word wider than the line is left on its own line for `Img.text`
+    to refuse and report."""
+    lines, cur = [], ""
+    for word in str(text).split():
+        trial = (cur + " " + word).strip()
+        if cur and ST.width(trial, cap, face) > max_w:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = trial
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def _pack(im, brand, x0, y0, pw, ph):
     """One pack, faced out: the body, its design in the second colour, the
-    short name, and a filter-coloured band across the top of the pack."""
+    short name, the flip-top's seam and the cellophane's light."""
     b = CB.BY_ID[brand]
     body, second, ink = _rgb(b["pack"]), _rgb(b["second"]), _rgb(b["ink"])
-    c.rect(x0, y0, x0 + pw, y0 + ph, body)
+    box = (x0, y0, x0 + pw, y0 + ph)
+    im.vgrad(box, _lift(body, 12), _lift(body, -14))
     design = b["design"]
     if design == "band":
-        c.rect(x0, y0 + ph * 45 // 100, x0 + pw, y0 + ph * 70 // 100, second)
+        im.rect((x0, y0 + ph * 0.45, x0 + pw, y0 + ph * 0.70), second)
     elif design == "split":
-        c.rect(x0, y0, x0 + pw, y0 + ph * 40 // 100, second)
+        im.rect((x0, y0, x0 + pw, y0 + ph * 0.40), second)
     elif design == "stripe":
-        c.rect(x0 + pw * 60 // 100, y0, x0 + pw * 80 // 100, y0 + ph, second)
+        im.rect((x0 + pw * 0.60, y0, x0 + pw * 0.80, y0 + ph), second)
     elif design == "disc":
-        r = pw * 0.30
-        cx, cy = x0 + pw / 2.0, y0 + ph * 0.30
-        for yy in range(int(cy - r), int(cy + r) + 1):
-            for xx in range(int(cx - r), int(cx + r) + 1):
-                if (xx + 0.5 - cx) ** 2 + (yy + 0.5 - cy) ** 2 <= r * r:
-                    c.px(xx, yy, second)
+        im.disc(x0 + pw / 2.0, y0 + ph * 0.30, pw * 0.30, second)
     elif design == "diamond":
-        r = pw * 0.34
-        cx, cy = x0 + pw / 2.0, y0 + ph * 0.32
-        for yy in range(int(cy - r), int(cy + r) + 1):
-            for xx in range(int(cx - r), int(cx + r) + 1):
-                if abs(xx + 0.5 - cx) + abs(yy + 0.5 - cy) <= r:
-                    c.px(xx, yy, second)
+        im.diamond(x0 + pw / 2.0, y0 + ph * 0.32, pw * 0.34, second)
     elif design == "bars":
         for f in (0.18, 0.28):
-            c.rect(x0, y0 + int(ph * f), x0 + pw, y0 + int(ph * f) + max(2, ph // 20), second)
+            im.rect((x0, y0 + ph * f, x0 + pw, y0 + ph * f + max(2, ph // 20)), second)
     else:
         raise ValueError(f"pack {brand}: unknown design {design!r}")
-    m = pt.trim(pt.render(b["short"], 1))
-    ty = y0 + ph * 72 // 100 - len(m) // 2 if design != "band" else y0 + ph * 57 // 100 - len(m) // 2
-    text_ink = ink if design != "band" else (ink if sum(second) < 360 else (16, 16, 16))
-    c.mask(m, x0 + (pw - len(m[0])) // 2, ty, text_ink)
-    # the cellophane catches the light along the top edge
-    c.rect(x0, y0, x0 + pw, y0 + 1, tuple(min(255, v + 50) for v in body))
+    if design == "band":
+        band = (y0 + ph * 0.47, y0 + ph * 0.68)
+        text_ink = ink if sum(second) < 360 else (16, 16, 16)
+    else:
+        band = (y0 + ph * 0.62, y0 + ph * 0.84)
+        text_ink = ink
+    im.text(b["short"], (x0 + 2, band[0], x0 + pw - 2, band[1]), text_ink, LOGO_FACE)
+    # the flip-top's seam, a quarter of the way down
+    im.rect((x0, y0 + ph * 0.26, x0 + pw, y0 + ph * 0.26 + 1), (0, 0, 0), 0.22)
+    # the cellophane: the room along its top edge and in one streak, and the
+    # pack's own side in shade
+    im.rect((x0, y0, x0 + pw, y0 + 1.5), (255, 255, 255), 0.35)
+    im.gloss(box, 0.07, 0.5, 0.25, 0.14)
+    im.rect((x0 + pw - 1.5, y0, x0 + pw, y0 + ph), (0, 0, 0), 0.25)
 
 
-def _gradient(c, x0, y0, x1, y1, top, bottom):
-    steps = 7
-    hh = max(1, y1 - y0 - 1)
-    for y in range(y0, y1):
-        lv = steps * (y - y0) / hh
-        row = _BAYER[y % 4]
-        for x in range(x0, x1):
-            k = min(steps, int(lv + row[x % 4] / 16.0))
-            c.px(x, y, _lerp(top, bottom, k / steps))
-
-
-def _text_block(c, lines, x0, x1, y, ink, scale, shadow=None):
-    for line in lines:
-        m = pt.trim(pt.render(line, scale))
-        x = x0 + (x1 - x0 - len(m[0])) // 2
-        if shadow:
-            c.mask(m, x + 1, y + 1, shadow, grow=0)
-        c.mask(m, x, y, ink)
-        y += len(m) + 3 * scale
-    return y
-
-
-def _ad(c, brand, x0, y0, x1, y1, with_cards=True):
-    """A brand's ad: its gradient, the logo as large as fits, a big pack,
-    the slogan, and (on the header) the price card and the warning sticker."""
+def _ad(im, brand, x0, y0, x1, y1, with_cards=True):
+    """A brand's ad: its gradient, a big pack, the logo as large as fits,
+    the slogan, and (on the header) the price card and the warning sticker.
+    Returns every line it set."""
     b = CB.BY_ID[brand]
-    top, bottom = _rgb(b["bg"][0]), _rgb(b["bg"][1])
-    _gradient(c, x0, y0, x1, y1, top, bottom)
+    im.vgrad((x0, y0, x1, y1), _rgb(b["bg"][0]), _rgb(b["bg"][1]))
     W, H = x1 - x0, y1 - y0
     said = []
-    # the pack, big, on the left
-    pw = max(20, int(W * 0.16))
-    ph = min(int(pw * 1.55), int(H * 0.72))
+    # the pack, big, on the left, and the shadow it throws on the sheet
+    # a pack keeps a pack's proportions: on a long shallow header (the
+    # counter's rack) the height binds and the width follows it. Until
+    # 1.48.0 the width was a share of the sheet's whatever its height, and
+    # the rack's header carried a pack five times as wide as it was tall.
+    ph = min(int(max(20, int(W * 0.16)) * 1.55), int(H * 0.72))
+    pw = max(8, int(round(ph / 1.55)))
     px0, py0 = x0 + max(6, W // 24), y0 + (H - ph) // 2
-    c.rect(px0 + 3, py0 + 3, px0 + pw + 3, py0 + ph + 3, (8, 8, 8))
-    _pack(c, brand, px0, py0, pw, ph)
-    # the logo and slogan on the right of it
+    im.rrect((px0 + 3, py0 + 4, px0 + pw + 5, py0 + ph + 6), 3, (0, 0, 0), 0.55)
+    _pack(im, brand, px0, py0, pw, ph)
+    # the price card's width decides how far the lettering may run
+    price_cap, note_cap = max(10, min(22, H // 5)), max(6, min(9, H // 12))
+    card_w = max(ST.width(CB.PRICE[0], price_cap, LOGO_FACE),
+                 ST.width(CB.PRICE[1], note_cap, SMALL_FACE)) + 12
     tx0 = px0 + pw + max(6, W // 30)
-    card_w = max(pt.ink_width(CB.PRICE[1], 1), pt.ink_width(CB.PRICE[0], 2)) + 8
     tx1 = x1 - (card_w + 12 if with_cards else 6)
     avail = tx1 - tx0
-    scale = 3
-    while scale > 1 and max(pt.ink_width(l, scale) for l in b["logo"]) > avail:
-        scale -= 1
-    logo_h = len(b["logo"]) * (pt.LINE * scale)
-    y = y0 + max(4, (H - logo_h - 2 * pt.LINE) // 3)
-    y = _text_block(c, b["logo"], tx0, tx1, y, (250, 246, 232), scale, shadow=(10, 6, 4))
+    # the logo: every line at one height, the tallest that sets them all.
+    # A long shallow sheet sets the name on ONE line: stacked, it is two
+    # small lines in a strip with room for one large one.
+    logo = [" ".join(b["logo"])] if W > 5 * H else list(b["logo"])
+    most = max(8, int(min(H * 0.52 / (len(logo) * 1.2), W * 0.2)))
+    caps = [ST.fit_cap(line, avail, most, LOGO_FACE, 6) for line in logo]
+    cap = min(c for c in caps if c is not None) if any(c is not None for c in caps) else 6
+    slogan_cap = max(7, min(13, H // 13))
+    lines = _wrap(b["slogan"], avail, slogan_cap, COPY_FACE)[:2]
+    block = len(logo) * cap * 1.2 + len(lines) * slogan_cap * 1.45 + cap * 0.3
+    y = y0 + max(3.0, (H - block) / 2.0)
+    for line in logo:
+        im.text(line, (tx0, y, tx1, y + cap * 1.2), (250, 246, 232), LOGO_FACE, cap=cap,
+                shadow=(10, 6, 4))
+        y += cap * 1.2
     said += list(b["logo"])
-    lines = pt.wrap(b["slogan"], avail, 1) or [b["slogan"]]
-    _text_block(c, lines[:2], tx0, tx1, y + 2, (236, 220, 170), 1)
-    said += lines[:2]
+    y += cap * 0.3
+    for line in lines:
+        im.text(line, (tx0, y, tx1, y + slogan_cap * 1.45), (236, 220, 170), COPY_FACE,
+                cap=slogan_cap)
+        y += slogan_cap * 1.45
+    said += lines
     if with_cards:
-        # the price card: white, black type, taped on
-        cw = card_w
-        ch = pt.LINE * 2 + pt.LINE + 6
+        # the price card: white, black type, taped on, a little shadow under
+        cw, ch = card_w, price_cap * 1.5 + note_cap * 1.8 + 4
         cx0, cy0 = x1 - cw - 6, y0 + 6
-        c.rect(cx0, cy0, cx0 + cw, cy0 + ch, (244, 242, 232))
-        c.rect(cx0 + cw // 2 - 6, cy0 - 2, cx0 + cw // 2 + 6, cy0 + 3, (200, 196, 170))
-        yy = _text_block(c, [CB.PRICE[0]], cx0, cx0 + cw, cy0 + 3, (20, 20, 20), 2)
-        _text_block(c, [CB.PRICE[1]], cx0, cx0 + cw, yy - 2, (170, 20, 20), 1)
+        im.rrect((cx0 + 2, cy0 + 3, cx0 + cw + 2, cy0 + ch + 3), 2, (0, 0, 0), 0.4)
+        im.rect((cx0, cy0, cx0 + cw, cy0 + ch), (244, 242, 232))
+        im.rect((cx0 + cw / 2.0 - 7, cy0 - 3, cx0 + cw / 2.0 + 7, cy0 + 3), (206, 200, 170), 0.85)
+        im.text(CB.PRICE[0], (cx0 + 3, cy0 + 4, cx0 + cw - 3, cy0 + 4 + price_cap * 1.3), (20, 20, 20),
+                LOGO_FACE, cap=price_cap)
+        im.text(CB.PRICE[1], (cx0 + 3, cy0 + 4 + price_cap * 1.4, cx0 + cw - 3, cy0 + ch - 2),
+                (170, 20, 20), SMALL_FACE, cap=note_cap)
         said += list(CB.PRICE)
-        # the warning sticker, bottom right
-        ww = max(pt.ink_width(l, 1) for l in CB.WARNING) + 6
-        wh = len(CB.WARNING) * (pt.LINE - 2) + 6
+        # the warning sticker, bottom right, where the law puts it
+        warn_cap = max(5, min(8, H // 16))
+        ww = max(ST.width(line, warn_cap, SMALL_FACE) for line in CB.WARNING) + 8
+        wh = len(CB.WARNING) * warn_cap * 1.5 + 6
         if ww <= W - (px0 - x0) - pw - 8 and wh <= H // 2:
             wx0, wy0 = x1 - ww - 4, y1 - wh - 4
-            c.rect(wx0, wy0, wx0 + ww, wy0 + wh, (236, 236, 228))
-            c.rect(wx0, wy0, wx0 + ww, wy0 + 1, (40, 40, 40))
-            yy = wy0 + 2
+            im.rect((wx0, wy0, wx0 + ww, wy0 + wh), (236, 236, 228))
+            im.rect((wx0, wy0, wx0 + ww, wy0 + 1), (40, 40, 40))
+            yy = wy0 + 3
             for line in CB.WARNING:
-                m = pt.trim(pt.render(line, 1))
-                c.mask(m, wx0 + 3, yy, (24, 24, 24))
-                yy += pt.LINE - 2
+                im.text(line, (wx0 + 4, yy, wx0 + ww - 4, yy + warn_cap * 1.5), (24, 24, 24),
+                        SMALL_FACE, cap=warn_cap, align="left")
+                yy += warn_cap * 1.5
             said += list(CB.WARNING)
     return said
 
 
-def _row(c, brands, x0, y0, x1, y1, n, cards, key):
+def _row(im, brands, x0, y0, x1, y1, n, cards, key):
     """A row of pack windows: a black backing (or cream display cards with
-    black notches), one pack faced out per knob column."""
+    black notches), one pack faced out per knob column, each with its shadow,
+    and the shelf above in shade across the row's head."""
     W, H = x1 - x0, y1 - y0
     pitch = W / n
-    c.rect(x0, y0, x1, y1, (10, 10, 10))
+    im.rect((x0, y0, x1, y1), (10, 10, 10))
     for k in range(n):
         wx0 = int(x0 + pitch * k) + 1
         wx1 = int(x0 + pitch * (k + 1)) - 1
         if cards:
-            c.rect(wx0, y0 + 2, wx1, y1 - 2, (232, 222, 196))
+            im.rect((wx0, y0 + 2, wx1, y1 - 2), CREAM)
             # the notch: a black triangle cut into the card's top
-            mid = (wx0 + wx1) / 2.0
-            for yy in range(y0 + 2, y0 + 2 + max(4, H // 7)):
-                half = (y0 + 2 + max(4, H // 7) - yy) * 0.9
-                for xx in range(int(mid - half), int(mid + half) + 1):
-                    c.px(xx, yy, (10, 10, 10))
+            depth = max(4, H // 7)
+            im.tri_down((wx0 + wx1) / 2.0, y0 + 2, depth * 0.9, depth, (10, 10, 10))
         pw = min(pack_px(), wx1 - wx0 - 4)
         ph = min(int(pw * 1.55), H - 10)
         px0 = (wx0 + wx1 - pw) // 2
         py0 = y1 - ph - 4
-        _pack(c, brands[k % len(brands)], px0, py0, pw, ph)
+        im.rrect((px0 + 2, py0 + 3, px0 + pw + 3, py0 + ph + 2), 2, (0, 0, 0), 0.5)
+        _pack(im, brands[k % len(brands)], px0, py0, pw, ph)
         # the window's glass edge
-        c.rect(wx0 - 1, y0, wx0, y1, (60, 60, 60))
+        im.rect((wx0 - 1, y0, wx0, y1), (60, 60, 60))
+    # the shelf over the row keeps its head in shade
+    im.rect((x0, y0, x1, y0 + H * 0.05), (0, 0, 0), 0.45)
+    im.rect((x0, y0 + H * 0.05, x1, y0 + H * 0.10), (0, 0, 0), 0.2)
 
 
 def pack_px():
@@ -505,25 +550,27 @@ def pack_px():
     return int(PACK_PITCH * TEXEL * 0.92)
 
 
-def _strip(c, x0, y0, x1, y1):
-    c.rect(x0, y0, x1, y1, (226, 224, 214))
-    c.rect(x0, y0, x1, y0 + 1, (120, 120, 116))
-    text = CB.MINORS if pt.ink_width(CB.MINORS, 1) <= x1 - x0 - 6 else CB.MINORS_SHORT
-    m = pt.trim(pt.render(text, 1))
-    c.mask(m, x0 + (x1 - x0 - len(m[0])) // 2, y0 + (y1 - y0 - len(m)) // 2, (30, 30, 30))
+def _strip(im, x0, y0, x1, y1):
+    """The law, on a cream strip under a row: the long wording where it
+    sets, the short where it does not."""
+    im.rect((x0, y0, x1, y1), (226, 224, 214))
+    im.rect((x0, y0, x1, y0 + 1), (120, 120, 116))
+    cap = max(6, min(10, int((y1 - y0) * 0.5)))
+    text = CB.MINORS if ST.fit_cap(CB.MINORS, x1 - x0 - 8, cap, SMALL_FACE, cap) else CB.MINORS_SHORT
+    im.text(text, (x0 + 4, y0, x1 - 4, y1), (30, 30, 30), SMALL_FACE, cap=cap)
     return text
 
 
 def art(facts, brand, variant, key, form, cards):
     """The display's raster: header, rows, strips and the middle, with the
     knob shelf in front of the middle painted dark. Returns ``{canvas,
-    rects, size, name, brands, said}``; rects are pixel boxes (x0, y0, x1,
-    y1), row 0 at the TOP of the display."""
+    rects, size, name, brands, said, unset}``; rects are pixel boxes (x0,
+    y0, x1, y1), row 0 at the TOP of the display."""
     dx0, dx1, dz0, dz1 = facts["display"]
     Z = facts["zones"]
     W = int(round((dx1 - dx0) * TEXEL))
     H = int(round((dz1 - dz0) * TEXEL))
-    c = Canvas(W, H + 6, (12, 12, 12))
+    im = PT.Img(W, H + DARK_ROWS, (12, 12, 12))
 
     def py(z):
         return int(round((dz1 - z) * TEXEL))
@@ -536,7 +583,7 @@ def art(facts, brand, variant, key, form, cards):
     # header
     y0, y1 = max(0, py(Z["header"][1])), py(Z["header"][0])
     rects["header"] = (0, y0, W, y1)
-    said += _ad(c, header, 0, y0, W, y1, with_cards=True)
+    said += _ad(im, header, 0, y0, W, y1, with_cards=True)
     # rows and strips: the first row leads with the header's brand
     row_brands = {1: [header] + others[:4], 2: others[4:9] or others[:5]}
     for r in (1, 2):
@@ -545,35 +592,34 @@ def art(facts, brand, variant, key, form, cards):
         brands = [row_brands[r][(_h(key, variant, r, k) % len(row_brands[r]))] for k in range(n)]
         if r == 1:
             brands[0] = header          # the first column sells what the header does
-        _row(c, brands, 0, ry0, W, ry1, n, cards, key)
+        _row(im, brands, 0, ry0, W, ry1, n, cards, key)
         sy0, sy1 = py(Z["strip_%d" % r][1]), py(Z["strip_%d" % r][0])
         rects["strip_%d" % r] = (0, sy0, W, sy1)
-        said.append(_strip(c, 0, sy0, W, sy1))
+        said.append(_strip(im, 0, sy0, W, sy1))
     # the shelf in front of the middle: dark
     ky0, ky1 = py(Z["shelf_1"][1]), py(Z["shelf_1"][0])
-    c.rect(0, ky0, W, ky1, (14, 14, 14))
+    im.rect((0, ky0, W, ky1), (14, 14, 14))
     my0, my1 = py(Z["middle"][1]), py(Z["middle"][0])
     rects["middle"] = (0, my0, W, my1)
     middle = None
     if form == "pull_knob_split":
-        c.rect(0, my0, W, my1, (8, 8, 8))
-        scale = 3
-        while scale > 1 and (pt.ink_width(CB.PANEL_WORD, scale) > W - 20 or pt.LINE * scale > my1 - my0 - 4):
-            scale -= 1
-        m = pt.trim(pt.render(CB.PANEL_WORD, scale))
-        c.mask(m, (W - len(m[0])) // 2 + 1, my0 + (my1 - my0 - len(m)) // 2 + 1, (60, 60, 60))
-        c.mask(m, (W - len(m[0])) // 2, my0 + (my1 - my0 - len(m)) // 2, (214, 214, 208))
+        im.rect((0, my0, W, my1), (8, 8, 8))
+        im.text(CB.PANEL_WORD, (10, my0 + 2, W - 10, my1 - 2), (214, 214, 208), LOGO_FACE,
+                cap=int((my1 - my0) * 0.5), shadow=(60, 60, 60), tracking=0.08)
         said.append(CB.PANEL_WORD)
     else:
         # the variant walks the middle ad too: 0.91.0's first contact sheet
         # showed one brand there on all four variants of a stem
         middle = others[(5 + 3 * variant) % len(others)]
-        said += _ad(c, middle, 0, my0, W, my1, with_cards=False)
-    rects["dark"] = (0, H + 1, 4, H + 5)
+        said += _ad(im, middle, 0, my0, W, my1, with_cards=False)
+    im.rect((0, H, W, H + DARK_ROWS), (12, 12, 12))
+    rects["dark"] = (0, H + 4, W, H + DARK_ROWS - 4)
+    c = im.to_canvas()
     digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-    return {"canvas": c, "rects": rects, "size": (W, H + 6), "said": said,
+    return {"canvas": c, "rects": rects, "size": (W, H + DARK_ROWS), "said": said,
+            "unset": list(im.unset),
             "brands": {"header": header, "rows": row_brands, "middle": middle},
-            "name": f"cig_{header}_{form}_v{variant % 4}_{W}x{H + 6}_{digest:08x}"}
+            "name": f"cig_{header}_{form}_v{variant % 4}_{W}x{H + DARK_ROWS}_{digest:08x}"}
 
 
 def uv_rect(rect, size):

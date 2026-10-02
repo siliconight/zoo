@@ -335,9 +335,9 @@ def build(plan, streams, collection):
             R = SC.rack_art(facts, key, variant)
             image = materials.image_from_png(R["name"], R["canvas"].png())
             lit = materials.make_backlit_material(f"M_Counter_CigRack_{R['name']}_Face", image,
-                                                  CF.HEADER_EMISSION, CF.HEADER_ALBEDO)
+                                                  CF.HEADER_EMISSION, CF.HEADER_ALBEDO, smooth=True)
             paint = materials.make_painted_material(f"M_Counter_CigRack_{R['name']}_Display",
-                                                    image, CF.DISPLAY_ROUGHNESS)
+                                                    image, CF.DISPLAY_ROUGHNESS, smooth=True)
             # the rack's art, not a register's face: all three carry ``uvs``
             art_p = next(q for q in on_top if "uvs" in q and q["mat"] not in _REGISTER_MATS)
             top_objs.append(_art_face(art_p, R, paint, lit, collection, streams))

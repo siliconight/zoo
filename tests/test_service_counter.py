@@ -390,3 +390,33 @@ def test_bpy_the_same_file_every_build(tmp_path):
         res, _o = _build(out, DC_SIZES[0], variant=2)
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
+
+
+# --- 1.48.0: the rack is stocked in blocks, and painted smooth ------------------------
+
+
+def test_the_rack_is_stocked_in_blocks_of_one_brand():
+    """A clerk stocks a rack by the carton: a brand has a run of pushers side
+    by side. Until 1.48.0 every slot drew its own brand and the rack read as
+    confetti. Every run but a row's last (which the rack's end cuts) is two
+    to four facings, no two neighbouring runs are one brand, the top row
+    opens with the header's, and the three rows are not one row three times."""
+    _in, _on, facts, _tw = _fit(6.0, 0.9, 1.1, variant=2)
+    a = S.rack_art(facts, "counter_service", 2)
+    assert a["unset"] == []
+    for row in a["rows"]:
+        runs = []
+        for b in row:
+            if runs and runs[-1][0] == b:
+                runs[-1][1] += 1
+            else:
+                runs.append([b, 1])
+        assert all(2 <= n <= 4 for _b, n in runs[:-1]), runs
+        assert 1 <= runs[-1][1] <= 4
+        assert len(runs) >= len(row) // 4
+    assert a["rows"][0][0] == a["header"] and a["rows"][0][1] == a["header"]
+    assert len({tuple(r) for r in a["rows"]}) == S.RACK_ROWS
+    # the band the slab's other faces sample: full width, dark
+    x0, y0, x1, y1 = a["dark"]
+    assert (x0, x1) == (0, a["size"][0]) and y1 <= a["size"][1]
+    assert max(a["canvas"].get(a["size"][0] // 2, (y0 + y1) // 2)) < 20

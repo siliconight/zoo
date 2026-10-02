@@ -45,10 +45,12 @@ def build(plan, streams, collection):
     objs = prim_mesh.build(rest, collection, plan, streams.stream("wear"), mats, texel=1.0)
 
     image = materials.image_from_png(A["name"], A["canvas"].png())
+    # 1.48.0: the display is smooth type and painted shading, so both
+    # materials sample it with filtering
     lit = materials.make_backlit_material(f"M_CigMachine_{A['name']}_Face", image,
-                                          CF.HEADER_EMISSION, CF.HEADER_ALBEDO)
+                                          CF.HEADER_EMISSION, CF.HEADER_ALBEDO, smooth=True)
     paint = materials.make_painted_material(f"M_CigMachine_{A['name']}_Display", image,
-                                            CF.DISPLAY_ROUGHNESS)
+                                            CF.DISPLAY_ROUGHNESS, smooth=True)
     bm = geometry.new_bm()
     uv = bm.loops.layers.uv.new("UVMap")
     for p in display:

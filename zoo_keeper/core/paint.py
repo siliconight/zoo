@@ -84,6 +84,27 @@ class Img:
     def disc(self, cx, cy, r, rgb, alpha=1.0):
         self.rrect((cx - r, cy - r, cx + r, cy + r), r, rgb, alpha)
 
+    def _shape(self, box, cover, rgb, alpha):
+        """``rgb`` over the box where ``cover(xs, ys)`` -- pixel centres,
+        image coordinates -- says how much of each pixel is inside (0..1)."""
+        x0, y0, x1, y1 = self._box(box)
+        if x1 <= x0 or y1 <= y0:
+            return
+        ys, xs = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+        self._mix((x0, y0, x1, y1), rgb, np.clip(cover(xs + 0.5, ys + 0.5), 0.0, 1.0) * float(alpha))
+
+    def diamond(self, cx, cy, r, rgb, alpha=1.0):
+        """A square stood on its corner, ``r`` from centre to point."""
+        self._shape((cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1),
+                    lambda xs, ys: (r - np.abs(xs - cx) - np.abs(ys - cy)) * 0.7071 + 0.5, rgb, alpha)
+
+    def tri_down(self, cx, y0, half, depth, rgb, alpha=1.0):
+        """A triangle hanging from a ``2 * half`` wide top edge at ``y0`` to
+        a point ``depth`` below it: a notch cut into a card's top."""
+        self._shape((cx - half - 1, y0, cx + half + 1, y0 + depth),
+                    lambda xs, ys: half * (1.0 - (ys - y0) / float(depth)) - np.abs(xs - cx) + 0.5,
+                    rgb, alpha)
+
     # --- shading --------------------------------------------------------------------
     def shade(self, box, k):
         """Multiply the box by ``k`` (a scalar or rows x cols): darker under 1."""

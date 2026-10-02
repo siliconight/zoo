@@ -158,7 +158,9 @@ def test_no_brand_is_a_real_cigarette_mark_or_its_pack():
         assert not hits, (b["id"], hits)
         assert b["design"] in CB.DESIGNS and b["design"] not in CB.DENY_DESIGNS
         assert all(ch in G.GLYPHS for ch in text), text
-        # the pack's name fits a pack at the display's density
+        # the pack's name fits a pack at the display's density, in the
+        # pixel face it was first drawn in (1.48.0 sets it in a smooth face:
+        # `test_a_pack_s_name_sets_on_a_pack_in_the_smooth_face`)
         assert pt.ink_width(b["short"], 1) <= F.pack_px() - 1, b["short"]
     assert not set(CB.DESIGNS) & set(CB.DENY_DESIGNS)
     # the guard is live, and it caught the suggestion it was built around
@@ -261,3 +263,66 @@ def test_bpy_the_same_file_every_build_and_four_variants_four_displays(tmp_path)
         assert len(arts) == 1
         names.add(arts[0])
     assert len(names) == 4
+
+
+# --- 1.48.0: the display is smooth type and painted shading ---------------------------
+
+
+def test_every_line_of_every_display_sets_at_every_size():
+    """The real look's rule for lettering: a line that does not set is
+    REPORTED in ``unset``, never cropped or shrunk past reading. Every brand
+    on the header, both forms, cards and none, at each size Deli Counter
+    authors and at the genome's corners."""
+    sizes = list(F.DC_SIZES) + [tuple(F.RANGES[k][0] for k in ("width", "depth", "height")),
+                                tuple(F.RANGES[k][1] for k in ("width", "depth", "height"))]
+    for w, d, h in sizes:
+        facts = F.plan(w, d, h)["facts"]
+        for i, brand in enumerate(CB.IDS):
+            for form in F.FORMS:
+                a = F.art(facts, brand, i, "k", form, cards=bool(i % 2))
+                assert a["unset"] == [], (w, d, h, brand, form, a["unset"])
+
+
+def test_a_pack_s_name_sets_on_a_pack_in_the_smooth_face():
+    from zoo_keeper.core import smooth_type as ST
+    for b in CB.BRANDS:
+        cap = ST.fit_cap(b["short"], F.pack_px() - 4, 14, F.LOGO_FACE, 6)
+        assert cap is not None and cap >= 8, (b["short"], cap)
+
+
+def test_the_band_the_dark_faces_sample_is_dark_and_deep_enough_to_filter():
+    """The display's other faces map to the middle of a band under the art.
+    Sampled with filtering and mip-mapped, a 4 px patch bleeds the art into
+    them; `DARK_ROWS` of it does not."""
+    a = F.art(F.plan(0.88, 0.45, 1.5)["facts"], CB.IDS[0], 0, "k", "pull_knob", True)
+    x0, y0, x1, y1 = a["rects"]["dark"]
+    W, H = a["size"]
+    assert (x0, x1) == (0, W) and H - F.DARK_ROWS < y0 < y1 < H and F.DARK_ROWS >= 16
+    for x in (0, W // 2, W - 1):
+        for y in range(H - F.DARK_ROWS, H):
+            assert max(a["canvas"].get(x, y)) < 20, (x, y)
+
+
+def test_bpy_the_display_is_sampled_with_filtering(tmp_path):
+    """Both display materials are Linear (glTF magFilter 9729): smooth type
+    sampled Closest is the pixel look by another road, and Level Factory
+    0.128.0 reads this same record to decide which textures ship compressed."""
+    pytest.importorskip("bpy")
+    from zoo_keeper.bpylayer import build
+    from zoo_keeper.core import kit
+    slot = {"slot_id": "cig", "role": "prop", "size_mod": "full", "style": 1,
+            "species": "cigarette_machine", "material": "metal_painted",
+            "fit": {"dims": [0.88, 0.45, 1.5], "pivot": "center"}}
+    plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
+    res = build.build_module(plan["modules"][0], str(tmp_path), theme="delco_1997", style=1,
+                             options={"save_blend": False})
+    raw = open(os.path.join(str(tmp_path), res["files"]["glb"]), "rb").read()
+    doc = json.loads(raw[20:20 + struct.unpack("<I", raw[12:16])[0]])
+    seen = 0
+    for m in doc["materials"]:
+        if not m["name"].startswith("M_CigMachine_cig_"):
+            continue
+        tex = doc["textures"][m["pbrMetallicRoughness"]["baseColorTexture"]["index"]]
+        assert doc["samplers"][tex["sampler"]]["magFilter"] == 9729, m["name"]
+        seen += 1
+    assert seen == 2

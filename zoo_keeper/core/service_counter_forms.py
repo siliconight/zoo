@@ -77,6 +77,7 @@ from . import cigarette_forms as CF
 from . import pixel_type as pt
 from . import prims as P
 from . import counter_lottery as CL
+from . import paint as PT
 from . import counter_register as CREG
 from .back_bar_forms import REG_D, REG_H, REG_SCREEN_H, REG_W
 from .vending_forms import Canvas
@@ -494,6 +495,24 @@ def candy_art(tiers, key, variant):
     return out
 
 
+def rack_facings(header, others, n, key, variant, r):
+    """Row ``r`` of the rack, ``n`` packs: BLOCKS OF ONE BRAND, two to four
+    facings wide, walking the lineup -- the top row from the header's brand,
+    each row below from further along it.
+
+    Until 1.48.0 every slot drew its own brand, and a rack read as confetti.
+    A clerk stocks a rack by the carton: a brand has a run of pushers side by
+    side, so the eye finds REDS as a red block and not as forty single packs.
+    The run lengths are seeded; which brand follows which is the lineup's.
+    """
+    pool = ([header] + others) if r == 0 else (others[(4 * r) % len(others):] + others[:(4 * r) % len(others)])
+    out, i = [], 0
+    while len(out) < n:
+        out += [pool[i % len(pool)]] * (2 + _h(key, variant, "rack", r, i) % 3)
+        i += 1
+    return out[:n]
+
+
 def rack_art(facts, key, variant):
     """The cigarette rack's raster: a lit header carrying one brand's ad
     and `RACK_ROWS` rows of packs faced out. ``{canvas, size, name,
@@ -502,31 +521,33 @@ def rack_art(facts, key, variant):
     zh = facts["rack"]["header_z"]
     W = int(round((ax1 - ax0) * RACK_TEXEL))
     H = int(round((az1 - az0) * RACK_TEXEL))
-    c = Canvas(W, H + 6, (12, 12, 12))
+    # 1.48.0: painted with `paint.Img` and smooth type, sampled with
+    # filtering (`cigarette_forms`' painters); the band under the art that
+    # the slab's other faces show is `CF.DARK_ROWS` deep so a filtered,
+    # mip-mapped sample of its middle is still dark
+    im = PT.Img(W, H + CF.DARK_ROWS, (12, 12, 12))
 
     def py(z):
         return int(round((az1 - z) * RACK_TEXEL))
     order = CF.lineup(key)
     header = order[variant % len(order)]
     others = [b for b in order if b != header]
-    said = list(CF._ad(c, header, 0, 0, W, py(zh), with_cards=False))
+    said = list(CF._ad(im, header, 0, 0, W, py(zh), with_cards=False))
     n = facts["rack"]["n_packs"]
     row_h = (H - py(zh)) / RACK_ROWS
     rows = []
     for r in range(RACK_ROWS):
         ry0 = int(py(zh) + row_h * r)
         ry1 = int(py(zh) + row_h * (r + 1))
-        pool = [header] + others if r == 0 else others
-        brands = [pool[_h(key, variant, "rack", r, k) % len(pool)] for k in range(n)]
-        if r == 0:
-            brands[0] = header
-        CF._row(c, brands, 0, ry0, W, ry1, n, False, key)
+        brands = rack_facings(header, others, n, key, variant, r)
+        CF._row(im, brands, 0, ry0, W, ry1, n, False, key)
         rows.append(brands)
-    c.rect(0, H + 1, 4, H + 5, (12, 12, 12))
+    im.rect((0, H, W, H + CF.DARK_ROWS), (12, 12, 12))
+    c = im.to_canvas()
     digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-    return {"canvas": c, "size": (W, H + 6), "header": header, "rows": rows, "said": said,
-            "dark": (0, H + 1, 4, H + 5),
-            "name": f"cigrack_{header}_v{variant % 4}_{W}x{H + 6}_{digest:08x}"}
+    return {"canvas": c, "size": (W, H + CF.DARK_ROWS), "header": header, "rows": rows, "said": said,
+            "unset": list(im.unset), "dark": (0, H + 4, W, H + CF.DARK_ROWS - 4),
+            "name": f"cigrack_{header}_v{variant % 4}_{W}x{H + CF.DARK_ROWS}_{digest:08x}"}
 
 
 def art_uv(rect, size):

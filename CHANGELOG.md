@@ -1,3 +1,42 @@
+## [1.48.0] - the cigarette rack and the cigarette machine, repainted; the rack stocked in blocks
+
+The walker, 2026-10-02: "yes, do the cigarette rack next". The rack over a
+store counter and the pull-knob machine share their painters
+(`cigarette_forms._pack`, `_ad`, `_row`, `_strip`), so both change.
+
+### Changed
+- **The display art is smooth type and painted shading, sampled with
+  filtering.** Same density as before (`TEXEL` 700), so the images are the
+  size they were; what changes is the lettering (Blue Highway where it was
+  the pixel face) and what a pack is: a printed box in cellophane, with the
+  flip-top's seam a quarter of the way down, the wrap catching the room
+  along its top edge and in one streak, and a shadow on the backing. A row's
+  head is in the shade of the shelf above it. No wear: a pack is new and the
+  display is behind glass.
+- **The counter's rack is stocked in BLOCKS** (`service_counter_forms.
+  rack_facings`): two to four facings of a brand side by side, walking the
+  lineup. Every slot used to draw its own brand, and 45 packs a row read as
+  confetti. A clerk stocks by the carton.
+- **A pack on an ad keeps a pack's proportions.** The ad sized its pack as a
+  share of the sheet's WIDTH whatever its height, so the rack's long shallow
+  header carried a pack five times as wide as it was tall. On such a sheet
+  the name is also set on one line where it was two small ones.
+- The band under the art that a display's other faces sample is 16 rows deep
+  and full width (`DARK_ROWS`), where it was a 4 px patch: a filtered,
+  mip-mapped sample of a patch bleeds the art into them.
+- `paint.Img.diamond` and `tri_down`, for a pack's diamond and a display
+  card's notch.
+
+### Cost
+No draw changes. Measured in a scratch Godot project, GL Compatibility, the
+machine and a 6 m counter built at 1.45.0 and at this version, the same
+cameras (`docs/findings/real_look_trial/` in the root repo): the machine 9
+and 8 draws in its two views before and after, the rack 9, 4 and 3 in its
+three before and after. The same two materials on each, now Linear. The
+rack's image is 1652 x 282 (was 1652 x 272) and the machine's 403 x 617 (was
+403 x 607). Level Factory 0.128.0 ships a filtered texture VRAM-compressed,
+so both are smaller on a client than they were.
+
 ## [1.47.0] - the lottery dispensers, built to a brief; the store counter back to seven draws
 
 Cold run 9135's frames put the real-look till beside three flat red boxes:
