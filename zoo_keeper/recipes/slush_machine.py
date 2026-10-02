@@ -92,7 +92,7 @@ def build(plan, streams, collection):
     A = SM.glow_art(w, f["bowls"], f["flavours"], f["rail"], key, variant)
     image = materials.image_from_png(A["name"], A["canvas"].png())
     glow = materials.make_backlit_material(f"M_Slush_{A['name']}_Face", image,
-                                           SM.GLOW_EMISSION, SM.GLOW_ALBEDO)
+                                           SM.GLOW_EMISSION, SM.GLOW_ALBEDO, smooth=True)
     objs.append(_glow([p for p in got["prims"] if p["mat"] == "glow"], A, glow, collection, streams))
     print(f"[slush_machine] bowls={f['bowls']} flavours={f['flavours']} rail={f['rail']} "
           f"bowl_h={f['bowl_height']:.2f} art={A['name']}")

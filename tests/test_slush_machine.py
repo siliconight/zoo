@@ -201,3 +201,41 @@ def test_bpy_the_same_file_every_build(tmp_path):
         res, _o = _build(out, S.DC_SIZES[0], variant=2)
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
+
+
+# --- 1.52.0: drawn, not stamped --------------------------------------------------------
+
+
+def test_every_line_sets_and_the_mascot_is_drawn_with_curves():
+    """The mascot was a 16 x 20 bitmap stamped at a whole scale; it is drawn
+    now (`_mascot`), so the panel holds grey where a curve crosses a pixel.
+    And every word on every tile sets, at every width the planner takes."""
+    from zoo_keeper.core import paint as PT
+    im = PT.Img(120, 150, (16, 40, 150))
+    S._mascot(im, (10, 5, 110, 145))
+    greys = int(((im.a > 20) & (im.a < 235)).any(axis=2).sum())
+    assert greys > 400
+    assert not hasattr(S, "MASCOT") and not hasattr(S, "_stamp_mascot")
+    for w, n, rail in ((1.0, 2, False), (1.6, 2, True), (2.6, 3, True)):
+        for variant in range(4):
+            a = S.glow_art(w, n, S.BOWL_SETS[variant][:n], rail, "k", variant)
+            assert a["unset"] == [], (w, variant, a["unset"])
+
+
+def test_the_lettering_is_the_brand_s_and_the_maker_s():
+    from zoo_keeper.core import smooth_type as ST
+    assert S.BRAND_FACE in ST.FACES
+    assert S.TAG_FACE == ST.owned("print_italic")
+    assert S.MAKER_FACE == ST.owned("maker") and S.MAKER_SMALL == ST.owned("maker_small")
+
+
+def test_the_glow_image_has_gutters_each_tile_bleeds_into():
+    from zoo_keeper.core import card_art as CA
+    a = S.glow_art(1.6, 2, ("cherry", "blue"), True)
+    G, c = CA.SMOOTH_GUTTER, a["canvas"]
+    for key, (x0, y0, x1, y1) in a["rects"].items():
+        y = (y0 + y1) // 2
+        assert c.get(x0 - G // 2, y) == c.get(x0, y) and c.get(x1 - 1 + G // 2, y) == c.get(x1 - 1, y), key
+    # the churn tile is seamless left to right: its last column meets its first
+    x0, y0, x1, y1 = a["rects"]["slush_cherry"]
+    assert x1 - x0 == S.SLUSH_TILE == y1 - y0

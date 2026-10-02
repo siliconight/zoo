@@ -56,9 +56,12 @@ import math
 import re
 import zlib
 
-from . import pixel_type as pt
+import numpy as np
+
+from . import card_art as CA
+from . import paint as PT
 from . import prims as P
-from .vending_forms import Canvas
+from . import smooth_type as ST
 
 #: Deli Counter's volume (long side first), then the genome's range.
 DC_SIZES = ((1.6, 0.7, 2.0),)
@@ -143,11 +146,15 @@ GLOW_EMISSION = 1.0
 GLOW_ALBEDO = 0.6
 #: Pixels a metre, per region: each region maps to its own rect, so each is
 #: sized for the lettering on it rather than to one compromise.
-TEXEL_PANEL = 160
-TEXEL_TOPPER = 240
-TEXEL_STEPS = 300
+#: 1.52.0, the real look: 480 for the panel, the topper and the steps where
+#: they were 160, 240 and 300 -- the mascot is drawn with curves and the
+#: lettering is a smooth face; the rail keeps its 600; the churn tile is
+#: twice its size for the same pattern.
+TEXEL_PANEL = 480
+TEXEL_TOPPER = 480
+TEXEL_STEPS = 480
 TEXEL_RAIL = 600
-SLUSH_TILE = 48
+SLUSH_TILE = 96
 _VARIANT = re.compile(r"_n\d+(?=_|$)")
 
 
@@ -412,183 +419,185 @@ def signed_volume(p):
 
 #: The mascot, a slush cup with a face: 16 x 20, one letter a pixel.
 #: s straw, b slush dome, k black, w white, r red, p tongue, y cheeks.
-MASCOT = (
-    "..........ss....",
-    ".........ss.....",
-    "........ss......",
-    "....bbbbsbbb....",
-    "...bbbbbbbbbb...",
-    "..bbbbbbbbbbbb..",
-    "..kkkkkkkkkkkk..",
-    "..wwwwwwwwwwww..",
-    "..wkkwwwwwwkkw..",
-    "..wkwwwwwwwkww..",
-    "..wwwwwwwwwwww..",
-    "k.ywkkkkkkkkwy.k",
-    ".kwwkrrrrrrkwwk.",
-    "..rrrkrppprkrr..",
-    "..rrrrkpppkrrr..",
-    "...wwwwkkkwwww..",
-    "...rrrrrrrrrr...",
-    "....wwwwwwww....",
-    "....rrrrrrrr....",
-    ".....kk..kk.....",
-)
-_MASCOT_RGB = {"s": (250, 210, 40), "b": (70, 150, 255), "k": (16, 16, 20), "w": (250, 250, 246),
-               "r": (214, 24, 36), "p": (255, 130, 160), "y": (255, 170, 170)}
-#: The headline face. NOT `bold`: its N is its H with a three-pixel
-#: diagonal, and under the red outline FROZEN JAWN read as "FROZEH JAWH" in
-#: the first render of this atlas. Monogram's N is a clean diagonal.
-HEAD_FACE = "monogram"
+#: The brand's colours: a deep blue field, a red accent, a cold white, a
+#: yellow for the second line.
 PANEL_BG = (16, 40, 150)
 ACCENT = (214, 24, 36)
 YELLOW = (255, 214, 40)
 WHITE = (252, 252, 246)
+#: WHOSE VOICE (1.52.0, `smooth_type.OWNERS`). FROZEN JAWN is a brand and
+#: its lettering is the brand's own: the headline in the plain bold sans
+#: with a red outline, the line under it in the printed italic. The
+#: instruction panel and the flavour strip are the MACHINE MAKER's.
+BRAND_FACE = "highway_bold"
+TAG_FACE = ST.owned("print_italic")
+MAKER_FACE = ST.owned("maker")
+MAKER_SMALL = ST.owned("maker_small")
 
 
-def _stamp_mascot(c, x0, y0, k):
-    for j, row in enumerate(MASCOT):
-        for i, ch in enumerate(row):
-            if ch != ".":
-                c.rect(x0 + i * k, y0 + j * k, x0 + (i + 1) * k, y0 + (j + 1) * k, _MASCOT_RGB[ch])
+def _lift(rgb, by):
+    return tuple(max(0.0, min(255.0, c + by)) for c in rgb)
 
 
-def _scale(text, width, height, face, cap):
-    for k in range(cap, 0, -1):
-        if pt.ink_width(text, k, face) <= width and pt.line(face) * k <= height:
-            return k
-    return 0
+def _outlined(im, text, box, face, colour, outline, cap=None):
+    """Lettering with a one-pixel outline: the same line set four times a
+    pixel off in the outline colour, then once in its own."""
+    x0, y0, x1, y1 = box
+    r = None
+    for dx, dy in ((-1.5, 0), (1.5, 0), (0, -1.5), (0, 1.5), (-1, -1), (1, 1), (-1, 1), (1, -1)):
+        im.text(text, (x0 + dx, y0 + dy, x1 + dx, y1 + dy), outline, face, cap=cap)
+    r = im.text(text, box, colour, face, cap=cap)
+    return r
 
 
-def _headline(c, text, x0, y0, width, height, face, colour, outline, cap=3):
-    """``text`` on one line, or its words one a line, whichever is larger;
-    a tie keeps one line."""
+def _headline(im, text, box, face, colour, outline):
+    """``text`` on one line, or its words one a line, whichever sets larger;
+    a tie keeps one line. Returns the cap it set at."""
+    x0, y0, x1, y1 = box
     words = text.split()
-    one = _scale(text, width, height, face, cap)
-    rows = height // max(1, len(words))
-    many = min(_scale(w_, width, rows, face, cap) for w_ in words) if len(words) > 1 else 0
+    one = ST.fit_cap(text, x1 - x0 - 6, int((y1 - y0) * 0.8), face, 6) or 0
+    rows = (y1 - y0) / max(1, len(words))
+    many = min((ST.fit_cap(w_, x1 - x0 - 6, int(rows * 0.8), face, 6) or 0) for w_ in words) if len(words) > 1 else 0
     if many > one:
         for j, w_ in enumerate(words):
-            _words(c, w_, x0, y0 + j * rows, width, rows, face, colour, outline, cap=many)
+            _outlined(im, w_, (x0, y0 + j * rows, x1, y0 + (j + 1) * rows), face, colour, outline, cap=many)
         return many
-    _words(c, text, x0, y0, width, height, face, colour, outline, cap=one)
+    _outlined(im, text, box, face, colour, outline, cap=one)
     return one
 
 
-def _words(c, text, x0, y0, width, height, face, colour, outline=None, cap=3):
-    """Centre ``text`` in the box at the largest scale that fits; the mask
-    is returned so a caller can see what was said (None when nothing fits)."""
-    s = _scale(text, width, height, face, cap)
-    if not s:
-        return None
-    m = pt.trim(pt.render(text, s, face))
-    ox, oy = x0 + (width - len(m[0])) // 2, y0 + (height - len(m)) // 2
-    if outline:
-        c.mask(m, ox, oy, outline, grow=1)
-    c.mask(m, ox, oy, colour)
-    return m
+def _mascot(im, box):
+    """The brand's mascot, drawn: a frozen cup with a face. A domed blue lid
+    with a straw stuck through it at a slant, a black rim, a white cup with
+    two red bands, two eyes with their lights, a grin with a tongue, pink
+    cheeks, and two black feet. 1.15.0 stamped a 16 x 20 pixel bitmap of
+    the same character; a printed panel's mascot is drawn with curves."""
+    x0, y0, x1, y1 = box
+    w, h = x1 - x0, y1 - y0
+    cx = x0 + w / 2.0
+    # the straw, at a slant: a run of discs
+    for t in range(12):
+        f = t / 11.0
+        im.disc(cx + w * (0.10 + 0.26 * f), y0 + h * (0.22 - 0.21 * f), w * 0.028, (250, 210, 40))
+    # the lid, domed, and its rim
+    im.rrect((x0 + w * 0.12, y0 + h * 0.12, x1 - w * 0.12, y0 + h * 0.34), w * 0.2, (70, 150, 255))
+    im.vgrad((x0 + w * 0.14, y0 + h * 0.14, x1 - w * 0.14, y0 + h * 0.32), (120, 190, 255), (50, 120, 230))
+    im.rect((x0 + w * 0.1, y0 + h * 0.31, x1 - w * 0.1, y0 + h * 0.37), (16, 16, 20))
+    # the cup, a little narrower at its foot, and its red bands
+    im.rrect((x0 + w * 0.12, y0 + h * 0.36, x1 - w * 0.12, y0 + h * 0.90), w * 0.08, WHITE)
+    im.vgrad((x0 + w * 0.14, y0 + h * 0.38, x1 - w * 0.14, y0 + h * 0.88), (255, 255, 252), (222, 222, 216))
+    im.rect((x0 + w * 0.12, y0 + h * 0.66, x1 - w * 0.12, y0 + h * 0.74), ACCENT)
+    im.rect((x0 + w * 0.14, y0 + h * 0.80, x1 - w * 0.14, y0 + h * 0.86), ACCENT)
+    im.rect((x0 + w * 0.12, y0 + h * 0.36, x0 + w * 0.15, y0 + h * 0.90), (0, 0, 0), 0.12)
+    # the face
+    for ex in (0.34, 0.66):
+        im.disc(cx + w * (ex - 0.5), y0 + h * 0.47, w * 0.065, (16, 16, 20))
+        im.disc(cx + w * (ex - 0.5) - w * 0.02, y0 + h * 0.45, w * 0.022, WHITE)
+    im.rrect((x0 + w * 0.3, y0 + h * 0.54, x1 - w * 0.3, y0 + h * 0.64), w * 0.05, (16, 16, 20))
+    im.rrect((x0 + w * 0.4, y0 + h * 0.585, x1 - w * 0.4, y0 + h * 0.64), w * 0.04, (255, 130, 160))
+    for chx in (0.2, 0.8):
+        im.disc(cx + w * (chx - 0.5), y0 + h * 0.57, w * 0.055, (255, 170, 170), 0.8)
+    # the feet
+    for fx in (0.36, 0.64):
+        im.disc(cx + w * (fx - 0.5), y0 + h * 0.93, w * 0.07, (16, 16, 20))
 
 
-def _churn(c, x0, y0, cols):
-    """The slush tile: diagonal churn bands, seamless left to right, with a
-    dither of ice through them."""
+def _churn(im, box, cols):
+    """The slush tile: diagonal churn bands, seamless left to right, with
+    ice through them -- 1.15.0's pattern at twice the size, so a band is
+    two pixels wide where the image is twice as dense."""
     base, light, dark, ice = cols
-    S = SLUSH_TILE
-    for y in range(S):
-        for x in range(S):
-            t = (x + y // 2) % 16
-            rgb = light if t < 3 else dark if 8 <= t < 10 else base
-            if (x * 7 + y * 13) % 29 == 0:
-                rgb = ice
-            c.px(x0 + x, y0 + y, rgb)
+    x0, y0, x1, y1 = box
+    S = x1 - x0
+    ys, xs = np.mgrid[0:S, 0:S]
+    t = (xs // 2 + ys // 4) % 16
+    a = np.empty((S, S, 3), dtype=np.float32)
+    a[:] = base
+    a[t < 3] = light
+    a[(t >= 8) & (t < 10)] = dark
+    a[((xs // 2) * 7 + (ys // 2) * 13) % 29 == 0] = ice
+    im.a[y0:y1, x0:x1] = a
 
 
 def glow_art(w, n, flavours, rail, key="slush_machine", variant=0):
     """ONE image for everything that glows: the mascot panel (`panel`), the
     topper (`topper`), the instruction panel (`steps`) and flavour strip
     (`rail`) when there is a rail, a churn tile (`slush_*`) and a solid
-    (`top_*`) per barrel flavour, and the topper's sides (`side`).
-    ``{canvas, size, rects, name, said}``; rects are pixel boxes, row 0 at
-    the top."""
+    (`top_*`) per barrel flavour, and the topper's sides (`side`) -- packed
+    with a gutter each tile bleeds into, because the image is sampled with
+    filtering (1.52.0). ``{canvas, size, rects, name, said, unset}``; rects
+    are pixel boxes, row 0 at the top."""
     pw = w - 0.12
     ph = CTR_H - SLAB_T - 0.05 - KICK_H - 0.05
     PW, PH = int(round(pw * TEXEL_PANEL)), int(round(ph * TEXEL_PANEL))
     TW, TH = int(round(machine_width(n) * TEXEL_TOPPER)), int(round(TOPPER_H * TEXEL_TOPPER))
     SW, SH = int(round((RAIL_W - 0.02) * TEXEL_STEPS)), int(round((SPLASH_UP - 0.03 - 0.40) * TEXEL_STEPS))
     RW, RH = int(round((RAIL_W - 0.02) * TEXEL_RAIL)), int(round(0.04 * TEXEL_RAIL))
-    tiles = len(flavours)
-    # the tiles, then a 6 px block a flavour on an 8 px pitch, then the side
-    W = max(PW, TW + (SW if rail else 0), RW if rail else 0, tiles * (SLUSH_TILE + 8) + 16)
-    H = PH + max(TH, SH if rail else 0) + (RH if rail else 0) + SLUSH_TILE + 4
-    c = Canvas(W, H, (14, 14, 16))
-    rects, said = {}, []
-    # --- the mascot panel ------------------------------------------------------------------
-    c.rect(0, 0, PW, PH, PANEL_BG)
-    c.rect(0, 0, PW, 3, ACCENT)
-    c.rect(0, PH - 3, PW, PH, ACCENT)
-    k = max(1, min((PH - 8) // len(MASCOT), (PW // 3) // len(MASCOT[0])))
-    mw = len(MASCOT[0]) * k
-    _stamp_mascot(c, 6, (PH - len(MASCOT) * k) // 2, k)
-    tx0, tw = 6 + mw + 6, PW - (6 + mw + 6) - 4
-    _headline(c, PANEL_WORDS[0], tx0, 4, tw, (PH - 8) * 2 // 3, HEAD_FACE, WHITE, ACCENT)
-    _words(c, PANEL_WORDS[1], tx0, 4 + (PH - 8) * 2 // 3, tw, (PH - 8) // 3, "m5x7", YELLOW, cap=2)
+    tiles, said = [], []
+    # --- the mascot panel: the mascot on the left, the name beside it -----------------------
+    im = PT.Img(PW, PH, PANEL_BG)
+    im.vgrad((0, 0, PW, PH), _lift(PANEL_BG, 22), _lift(PANEL_BG, -14))
+    b = max(3, PH // 60)
+    im.rect((0, 0, PW, b), ACCENT)
+    im.rect((0, PH - b, PW, PH), ACCENT)
+    mw = min(PW * 0.3, PH * 0.78)
+    _mascot(im, (b * 2, (PH - mw * 1.25) / 2.0, b * 2 + mw, (PH + mw * 1.25) / 2.0))
+    tx0 = b * 2 + mw + b * 3
+    _headline(im, PANEL_WORDS[0], (tx0, b * 2, PW - b * 2, b * 2 + (PH - 4 * b) * 0.64), BRAND_FACE, WHITE, ACCENT)
+    im.text(PANEL_WORDS[1], (tx0, b * 2 + (PH - 4 * b) * 0.66, PW - b * 2, PH - b * 2), YELLOW, TAG_FACE)
+    im.vignette((0, 0, PW, PH), 0.25)
     said += list(PANEL_WORDS)
-    rects["panel"] = (0, 0, PW, PH)
-    # --- the topper ----------------------------------------------------------------------------
-    y = PH
-    c.rect(0, y, TW, y + TH, PANEL_BG)
-    c.rect(0, y, TW, y + 2, (120, 190, 255))
-    c.rect(0, y + TH - 2, TW, y + TH, (120, 190, 255))
-    body = TH * 3 // 4
-    _headline(c, TOPPER_WORDS[0], 2, y + 2, TW - 4, body - 2, HEAD_FACE, WHITE, ACCENT)
-    _words(c, TOPPER_WORDS[1], 2, y + body, TW - 4, TH - body - 2, "m5x7", YELLOW, cap=1)
+    tiles.append(("panel", im.to_canvas()))
+    # --- the topper ---------------------------------------------------------------------------
+    im = PT.Img(TW, TH, PANEL_BG)
+    im.vgrad((0, 0, TW, TH), _lift(PANEL_BG, 30), _lift(PANEL_BG, -12))
+    b = max(3, TH // 40)
+    im.rect((0, 0, TW, b), (120, 190, 255))
+    im.rect((0, TH - b, TW, TH), (120, 190, 255))
+    _headline(im, TOPPER_WORDS[0], (b * 2, b * 2, TW - b * 2, TH * 0.70), BRAND_FACE, WHITE, ACCENT)
+    im.text(TOPPER_WORDS[1], (b * 2, TH * 0.70, TW - b * 2, TH - b * 2), YELLOW, TAG_FACE)
+    im.vignette((0, 0, TW, TH), 0.3)
+    im.glow((0, 0, TW, TH), max(2, TH // 30), 0.2)
     said += list(TOPPER_WORDS)
-    rects["topper"] = (0, y, TW, y + TH)
-    # --- the instruction panel and the flavour strip ------------------------------------------------
+    tiles.append(("topper", im.to_canvas()))
+    # --- the instruction panel and the flavour strip --------------------------------------------
     if rail:
-        sx = TW
-        c.rect(sx, y, sx + SW, y + SH, WHITE)
-        c.rect(sx, y, sx + SW, y + 3, ACCENT)
-        row = (SH - 6) // 3
+        im = PT.Img(SW, SH, WHITE)
+        im.vgrad((0, 0, SW, SH), (255, 255, 250), (236, 236, 228))
+        im.rect((0, 0, SW, max(3, SH // 40)), ACCENT)
+        row = (SH - 8) / 3.0
         for j, text in enumerate(STEPS):
-            ry = y + 4 + j * row
-            b = min(row - 2, 12)
-            c.rect(sx + 4, ry + (row - b) // 2, sx + 4 + b, ry + (row - b) // 2 + b, ACCENT)
-            _words(c, str(j + 1), sx + 4, ry + (row - b) // 2, b, b, "small", WHITE, cap=1)
-            if _words(c, text, sx + 8 + b, ry, SW - 12 - b, row, "bold", PANEL_BG, cap=1) is None:
-                _words(c, text, sx + 8 + b, ry, SW - 12 - b, row, "m5x7", PANEL_BG, cap=1)
+            ry = 4 + j * row
+            d = min(row * 0.72, SW * 0.12)
+            im.disc(6 + d / 2.0, ry + row / 2.0, d / 2.0, ACCENT)
+            im.text(str(j + 1), (6, ry + row * 0.2, 6 + d, ry + row * 0.8), WHITE, MAKER_FACE)
+            im.text(text, (10 + d, ry + row * 0.18, SW - 6, ry + row * 0.82), PANEL_BG, MAKER_FACE, align="left")
             said.append(f"{j + 1} {text}")
-        rects["steps"] = (sx, y, sx + SW, y + SH)
-        y2 = y + max(TH, SH)
-        c.rect(0, y2, RW, y2 + RH, (24, 24, 30))
+        tiles.append(("steps", im.to_canvas()))
+        im = PT.Img(RW, RH, (24, 24, 30))
         pitch = BOTTLE_PITCH * TEXEL_RAIL
         for i, fl in enumerate(RAIL_ORDER[:N_BOTTLES]):
             cx = RW / 2.0 + (i - (N_BOTTLES - 1) / 2.0) * pitch
             name, cols, _t = FLAVOURS[fl]
-            x0 = int(cx - pitch / 2.0) + 2
-            c.rect(x0, y2 + 2, int(cx + pitch / 2.0) - 2, y2 + RH - 2, cols[0])
-            _words(c, name, x0, y2 + 2, int(pitch) - 4, RH - 4, "m5x7", WHITE, (0, 0, 0), cap=2)
+            box = (cx - pitch / 2.0 + 2, 2, cx + pitch / 2.0 - 2, RH - 2)
+            im.rrect(box, 2, cols[0])
+            im.vgrad((box[0] + 1, 3, box[2] - 1, RH - 3), cols[1], cols[0])
+            im.text(name, (box[0] + 3, 4, box[2] - 3, RH - 4), WHITE, MAKER_SMALL, shadow=cols[2])
             said.append(name)
-        rects["rail"] = (0, y2, RW, y2 + RH)
-        y3 = y2 + RH
-    else:
-        y3 = y + TH
-    # --- the slush tiles, the solid blocks ------------------------------------------------------------
-    for i, fl in enumerate(flavours):
-        x0 = i * SLUSH_TILE
-        if "slush_" + fl in rects:
+        tiles.append(("rail", im.to_canvas()))
+    # --- the slush tiles, the solid blocks ------------------------------------------------------
+    seen = set()
+    for fl in flavours:
+        if fl in seen:
             continue
+        seen.add(fl)
         cols = FLAVOURS[fl][1]
-        _churn(c, x0, y3, cols)
-        rects["slush_" + fl] = (x0, y3, x0 + SLUSH_TILE, y3 + SLUSH_TILE)
-    bx = tiles * SLUSH_TILE + 4
-    for i, fl in enumerate(flavours):
-        r = (bx + i * 8, y3, bx + i * 8 + 6, y3 + 6)
-        c.rect(*r, FLAVOURS[fl][1][0])
-        rects["top_" + fl] = r
-    r = (bx, y3 + 10, bx + 6, y3 + 16)
-    c.rect(*r, PANEL_BG)
-    rects["side"] = r
-    digest = zlib.crc32(bytes(c.buf)) & 0xFFFFFFFF
-    return {"canvas": c, "size": (W, H), "rects": rects, "said": said,
-            "name": f"slushglow_v{variant % 4}_{W}x{H}_{digest:08x}"}
+        im = PT.Img(SLUSH_TILE, SLUSH_TILE, cols[0])
+        _churn(im, (0, 0, SLUSH_TILE, SLUSH_TILE), cols)
+        tiles.append(("slush_" + fl, im.to_canvas()))
+        tiles.append(("top_" + fl, PT.Img(24, 24, cols[0]).to_canvas()))
+    tiles.append(("side", PT.Img(24, 24, PANEL_BG).to_canvas()))
+    A = CA.atlas(tiles, f"slushglow_v{variant % 4}", gutter=CA.SMOOTH_GUTTER, bleed=True)
+    A["said"] = said
+    A["unset"] = [s for _k, c in tiles for s in getattr(c, "unset", [])]
+    return A

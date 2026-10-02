@@ -1,3 +1,39 @@
+## [1.52.0] - the frozen drink station: its mascot drawn, its lettering owned
+
+The next of the store's props (the walker, 2026-10-02): the thing in the
+corner that is "the most SATURATED object in a 1990s convenience store".
+
+THE BRIEF. A printed panel across the stand's front and a lit topper over
+the machine, both the brand's; an instruction panel and a flavour strip,
+both the machine maker's; two barrels of churning slush. A printed mascot
+is drawn with curves, not stamped from a bitmap. What is left out: wear --
+the panel is behind the station's glass and the topper is a lit box.
+
+### Changed
+- **The mascot is drawn** (`_mascot`): the same frozen cup with a face --
+  domed lid, slanted straw, black rim, two red bands, eyes with their
+  lights, a grin with a tongue, pink cheeks, two feet -- in curves at the
+  panel's size, where 1.15.0 stamped a 16 x 20 bitmap at a whole scale.
+- **The lettering has owners**: FROZEN JAWN in the brand's bold sans with a
+  red outline and its tag line in the printed italic; the three numbered
+  steps and the six flavours in the machine maker's face
+  (`smooth_type.OWNERS`). 1.15.0's `monogram` headline and `m5x7` lines are
+  gone with the bitmap.
+- **Three times the density** on the panel, the topper and the steps
+  (`TEXEL_*` 480 where they were 160, 240 and 300); the rail keeps 600; the
+  churn tile is 96 px square for the same pattern at the same scale.
+- The image is packed by `card_art.atlas` with gutters each tile bleeds
+  into, and sampled with filtering.
+
+### Cost
+The glow image for the 1.6 m station is 742 x 621 px (0.46 M px) where it
+was 293 x 254 (0.07 M px): 6.2 times. One material, now Linear; no draw
+changes (the three submissions of 1.15.0). Level Factory 0.128.0 ships a
+filtered texture VRAM-compressed. Measured in a scratch Godot project, GL
+Compatibility, the 1.6 m station built at 1.51.0 and at this version, three
+cameras: 4 draws before and 4 after in each (the scene's floor included).
+Frames in the root repo's `docs/findings/real_look_trial/`.
+
 ## [1.51.0] - the cooler wall: its products drawn in metres, lit from the sides, stocked by the case
 
 The next of the store's props after the candy rack (the walker, 2026-10-02:
