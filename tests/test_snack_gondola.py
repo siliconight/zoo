@@ -74,6 +74,40 @@ def test_both_faces_and_both_end_caps_face_out():
     assert seen == {"+y", "-y", "+x", "-x"}
 
 
+def test_a_bag_is_pinched_at_its_seals_and_fat_between():
+    """1.42.0, the walker's tutorials: the sheet's top and bottom rows are
+    pinned flat -- the seals -- and the bag fills between them. Thin at the
+    foot and the head, the full thickness across the belly, front and back
+    alike; every face planar and wound outward; 28 triangles."""
+    for bw, bh, d, crown in ((S.BAG_W, 0.30, S.BAG_D, S.BAG_CROWN), (0.125, 0.17, 0.05, S.CANDY_CROWN)):
+        p = S.bag(0.0, 0.0, 0.0, bw, bh, SB.IDS[0], d, crown)
+        ys = lambda lo, hi: [v[1] for v in p["verts"] if lo <= (v[2] + S.BURY) / bh <= hi]   # noqa: E731
+        foot, belly, head = ys(-0.01, 0.01), ys(S.BELLY[0] - 0.01, S.BELLY[1] + 0.01), ys(0.99, 1.01)
+        assert abs((max(foot) - min(foot)) - S.SEAL_T) < 1e-9
+        assert abs((max(head) - min(head)) - S.SEAL_T) < 1e-9
+        assert abs((max(belly) - min(belly)) - (d + crown)) < 1e-9
+        # front and back alike: the seals sit on the belly's mid-plane
+        mid = (max(belly) + min(belly)) / 2.0
+        assert abs((max(foot) + min(foot)) / 2.0 - mid) < 1e-9
+        assert abs(min(belly) - 0.0) < 1e-9                      # the belly reaches y_front
+        xs = [v[0] for v in p["verts"]]
+        assert abs(max(xs) - bw / 2.0) < 1e-9 and abs(min(xs) + bw / 2.0) < 1e-9
+        assert S.signed_volume(p) > 0
+        assert P.tri_count([p]) == 28
+        for f in p["faces"]:                                    # planar
+            a, b, c, e = (p["verts"][i] for i in f)
+            u = [b[k] - a[k] for k in range(3)]
+            v = [c[k] - a[k] for k in range(3)]
+            n = (u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0])
+            assert abs(sum(n[k] * (e[k] - a[k]) for k in range(3))) < 1e-12
+        # the three front faces look toward -Y
+        for k in p["front"]:
+            a, b, c = (p["verts"][i] for i in p["faces"][k][:3])
+            u = [b[j] - a[j] for j in range(3)]
+            v = [c[j] - a[j] for j in range(3)]
+            assert u[2] * v[0] - u[0] * v[2] < 0, k
+
+
 def test_every_bag_face_maps_into_the_art():
     art = S.bag_art()
     for p in (q for q in S.plan(*S.DC_SIZES[2])["prims"] if q["mat"] == "bag"):

@@ -1,3 +1,34 @@
+## [1.42.0] - a bag is pinched flat at its seals and puffed between them
+
+The walker, 2026-10-02, sent two tutorials on making a chip bag in Blender: a
+flat sheet whose top and bottom rows are PINNED, inflated by a cloth
+simulation's pressure, the pinned rows staying flat as the crimped seals.
+A gondola's bag was `prims.pillow` stood on its back -- a box with a crowned
+front, as deep at its edges as at its middle -- and read as a padded box.
+
+`snack_gondola_forms.bag` now lofts four rings up the bag: the bottom seal's
+edge (8 mm thick, full width), the belly's foot and head at 30% and 70% of
+the height (the full thickness, 94% of the width -- a filled bag draws in),
+the top seal's edge. Fourteen planar quads; the three toward -Y carry the
+print, mapped by x and z as it was. The candy bags are the same shape.
+
+THE SIMULATION IS NOT RUN, and that is the performance rule. A sheet dense
+enough to wrinkle is thousands of triangles a bag and a 6 m gondola stands
+two hundred. The cheap shape is 28 triangles where the pillow was 22. What
+the simulation would have bought and this does not: wrinkles and creases, a
+belly that curves rather than facets, a zigzag cut along the seal (the crimp
+is painted), and no two bags alike.
+
+MEASURED. 6.0 x 1.0 x 1.6, variant 1: 5,076 -> 5,868 triangles. The genome's
+largest (14 x 1.5 x 2.2): 18,528 -> 20,676 to 21,660 by variant (the census
+build is the higher), so its budget -- a regression
+detector, not a frame cost -- goes 20,000 -> 22,000. Still two submissions.
+Census: 3 builds, 0 with coincident pairs (852 / 5,868 / 21,660 tris).
+
+Tests: `test_snack_gondola.py` +1 -- a bag is `SEAL_T` thick at its foot and
+head and the full thickness across the belly, the seals on the belly's
+mid-plane, every face planar and wound outward, 28 triangles.
+
 ## [1.41.0] - most posters are on plain paper, and one or two a cluster are loud
 
 The walker, 2026-09-30, on cold run 9119's pole flyers and the posters so

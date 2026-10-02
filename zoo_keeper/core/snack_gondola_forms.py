@@ -20,8 +20,9 @@ x along the aisle, both +Y and -Y shopped):
     steel UPRIGHT at every bay joint and an END PANEL at each end; a TOP RAIL;
   * per side and per bay, SHELVES up the height, each with a white PRICE
     STRIP on its front edge;
-  * CHIP BAGS on every shelf, faced out: each a real bag -- a puffed front,
-    flat sides (`prims.pillow` stood on its back) -- its front printed from
+  * CHIP BAGS on every shelf, faced out: each a real bag -- pinched flat at
+    its top and bottom seals and puffed between them (`bag`) -- its front
+    printed from
     one image (`bag_art`), the rest of it its brand's colour from the same
     image;
   * END CAPS at both ends when the run is long enough: three shelves facing
@@ -29,7 +30,8 @@ x along the aisle, both +Y and -Y shopped):
 
 REAL STRUCTURE, NOT A PRINTED CARD. The walker's standing preference: a bag
 is a bag-shaped solid with its print on it, not a picture of a row of bags
-on a flat panel. It costs 22 triangles a bag.
+on a flat panel. It costs 28 triangles a bag (1.42.0; the pillow it
+replaced was 22).
 
 MORE THAN CHIPS (1.40.0). The walker's 90s snack references: "fruit snacks,
 lunch kits, snack cakes on shelves, candy". The -Y face stays the chip aisle;
@@ -79,6 +81,14 @@ BAG_W = 0.19
 BAG_D = 0.07
 BAG_GAP = 0.02
 BAG_CROWN = 0.03          # the puff of a bag's front
+#: A BAG'S SHAPE (1.42.0), from the walker's tutorials: the top and bottom
+#: rows of the sheet are pinned and stay flat -- the seals -- and pressure
+#: fills what is between. The seal's edge is this thick; the belly runs
+#: between these fractions of the bag's height, at this fraction of its
+#: width (a filled bag draws in at the waist).
+SEAL_T = 0.008
+BELLY = (0.30, 0.70)
+BELLY_W = 0.94
 
 #: WHAT A BAY OF THE SECTIONED FACE SELLS (1.40.0), cycled along the run.
 SECTIONS = ("cake", "fruit", "kit", "candy")
@@ -130,29 +140,51 @@ def shelf_levels(h):
 
 
 def bag(x, y_front, z0, bw, bh, brand, depth=BAG_D, crown=BAG_CROWN):
-    """One bag, its puffed front toward -Y at ``y_front``, standing on
-    ``z0`` (buried `BURY`), centred on ``x``. A `prims.pillow` built on its
-    back and turned up: its crowned top becomes the front. ``uvs`` put the
-    four front quads on the brand's tile and every other face on the
-    brand's colour block; ``front`` names those four faces."""
-    # the pillow in a local frame: x across, y is the bag's height, z its depth
-    p = P.pillow("Snack_Bag", "bag", (-bw / 2.0, 0.0, 0.0), (bw / 2.0, bh, depth), crown)
-    # turn +Z (the crown) to -Y and +Y (the bag's height) to +Z
-    p = P.rotate_x(p, math.pi / 2.0, about=(0.0, 0.0))
-    p = P.translate(p, (x, y_front + depth + crown, z0 - BURY))
-    # faces 1-4 are the crowned top -- the front now
-    xs = [v[0] for v in p["verts"]]
-    zs = [v[2] for v in p["verts"]]
-    x0, x1, zb, zt = min(xs), max(xs), min(zs), max(zs)
+    """One bag, its front toward -Y at ``y_front``, standing on ``z0``
+    (buried `BURY`), centred on ``x``; ``depth + crown`` is its thickness at
+    the belly.
+
+    FOUR RINGS UP ITS HEIGHT, lofted: the bottom seal's edge (`SEAL_T`
+    thick, full width), the belly's foot and head (full thickness,
+    `BELLY_W` of the width), the top seal's edge. Pinched at the seals and
+    fat between, front and back alike -- the walker's tutorials, without
+    the simulation. Fourteen planar quads: the bottom cap, three toward -Y
+    (``front``: shoulder, belly, shoulder), three to each other side, the
+    top cap. ``uvs`` put the front on the brand's tile by x and z and every
+    other face on the brand's colour block."""
+    thick = depth + crown
+    yc = y_front + thick / 2.0
+    zb = z0 - BURY
+    rings = ((0.0, 1.0, SEAL_T), (BELLY[0], BELLY_W, thick), (BELLY[1], BELLY_W, thick),
+             (1.0, 1.0, SEAL_T))
+    verts = []
+    for f, wk, t in rings:
+        hw = bw * wk / 2.0
+        z = zb + bh * f
+        verts += [(x - hw, yc - t / 2.0, z), (x + hw, yc - t / 2.0, z),
+                  (x + hw, yc + t / 2.0, z), (x - hw, yc + t / 2.0, z)]
+    faces = [(0, 3, 2, 1)]                                    # the bottom cap
+    spans = [(4 * i, 4 * i + 4) for i in range(len(rings) - 1)]
+    faces += [(a, a + 1, b + 1, b) for a, b in spans]         # the front, -Y
+    faces += [(a + 1, a + 2, b + 2, b + 1) for a, b in spans]     # +X
+    faces += [(a + 2, a + 3, b + 3, b + 2) for a, b in spans]     # the back, +Y
+    faces += [(a + 3, a, b, b + 3) for a, b in spans]             # -X
+    top = 4 * (len(rings) - 1)
+    faces.append((top, top + 1, top + 2, top + 3))            # the top cap
+    p = P.mesh("Snack_Bag", "bag", verts, faces)
+    front = tuple(range(1, 1 + len(spans)))
+    x0, x1 = x - bw / 2.0, x + bw / 2.0
     uvs = []
     for k, f in enumerate(p["faces"]):
-        if 1 <= k <= 4:
-            uvs.append(tuple(("tile_" + brand, (p["verts"][i][0] - x0) / (x1 - x0),
-                              (p["verts"][i][2] - zb) / (zt - zb)) for i in f))
+        if k in front:
+            # clamped: a ring's own corner is the tile's edge to a rounding
+            uvs.append(tuple(("tile_" + brand,
+                              min(1.0, max(0.0, (p["verts"][i][0] - x0) / (x1 - x0))),
+                              min(1.0, max(0.0, (p["verts"][i][2] - zb) / bh))) for i in f))
         else:
             uvs.append(tuple(("solid_" + brand,) for _ in f))
     p["uvs"] = uvs
-    p["front"] = (1, 2, 3, 4)
+    p["front"] = front
     return p
 
 
