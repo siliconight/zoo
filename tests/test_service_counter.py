@@ -97,9 +97,11 @@ def test_a_register_at_every_station_and_lottery_beside_it():
     # 1.46.0: a register is painted faces; one key block a station
     regs = [p for p in on_top if p["part"] == "Counter_RegisterKeys"]
     assert len(regs) == 2
-    lottos = [p for p in on_top if p["part"] == "Counter_Lottery"]
-    # every dispenser stands on the top at the customer edge
-    for p in lottos:
+    # 1.47.0: a dispenser is painted faces under one stem; its foot is the
+    # part that stands at the customer edge
+    feet = [p for p in on_top if p["part"] == "Counter_Lottery_Foot_front"]
+    assert len(feet) == 2 * S.LOTTO_MAX
+    for p in feet:
         assert min(v[1] for v in p["verts"]) == pytest.approx(-0.45 + S.LOTTO_IN, abs=1e-6)
 
 
@@ -216,7 +218,10 @@ def test_one_material_per_kind_and_the_colours_survive_the_move():
         assert got == pytest.approx(tuple(rgb)), mk
         assert all(0.0 <= f <= 1.0 for f in factor), (mk, factor)   # COLOR_0 cannot exceed 1
         kinds.setdefault(kind, []).append(mk)
-    assert sorted(kinds) == ["laminate", "metal_painted", "plastic"]
+    # 1.47.0: no `plastic`. Its only users were the tills' bodies and the
+    # lottery dispensers, and both are painted into the till's image now
+    assert sorted(kinds) == ["laminate", "metal_painted"]
+    assert sorted(S.KIND_BASE) == ["laminate", "metal_painted"]
     assert all(0.0 < f <= 1.0 for t in S.BODY_TINT.values() for f in t)
 
 
@@ -239,9 +244,12 @@ def test_every_candy_brand_is_invented_and_legible():
 def test_the_genome_offers_the_form_and_names_the_parts():
     g = genome_mod.load_species("counter")
     assert "service" in g["params"]["form"]
-    for part in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_Lottery",
+    # 1.47.0: the lottery dispensers are in `Counter_RegisterArt`, the one
+    # painted object on a counter's top
+    for part in ("Counter_Trim", "Counter_CandyTier", "Counter_CandyArt", "Counter_RegisterArt",
                  "Counter_CigPost", "Counter_CigRack", "Counter_CigRackArt"):
         assert part in g["parts"], part
+    assert "Counter_Lottery" not in g["parts"]
     assert genome_mod.validate_genome(g) == []
 
 
@@ -328,7 +336,7 @@ def test_bpy_only_the_rack_header_and_the_registers_glow_and_the_paint_is_paint(
     assert wrap_of(next(n for n in painted if n.endswith("_Display"))) == 33071
 
 
-def test_bpy_eight_materials_eight_submissions_and_no_colour_only_twins(tmp_path):
+def test_bpy_seven_materials_seven_submissions_and_no_colour_only_twins(tmp_path):
     """1.8.0, the point of the release: 1.7.0 shipped this counter as 15
     meshes over 14 materials. Now one material per surface kind, one
     painted atlas, the rack's display and its lit header -- and no two
@@ -336,21 +344,23 @@ def test_bpy_eight_materials_eight_submissions_and_no_colour_only_twins(tmp_path
     1.16.0: seven. The registers' green displays are one more backlit image,
     ``M_Counter_VFD_<art>_Face``, whatever the register count.
 
-    1.46.0: EIGHT, and the eighth is a look that was priced rather than a
-    regression. The registers' bodies rode in the counter's shared plastic as
-    flat-coloured boxes; painted (`counter_register.paint_art`) they are one
-    more image, ``M_Counter_Register_<art>_Art`` -- one draw a counter,
-    whatever the register count. What would take it back: one material whose
-    emission is a mask over the same image, so the body and the displays
-    share a draw; it needs the lit-face contract downstream to stop assuming
-    a `_Face` material glows all over."""
+    1.46.0: eight. The registers' bodies rode in the counter's shared plastic
+    as flat-coloured boxes; painted (`counter_register.paint_art`) they are
+    one more image, ``M_Counter_Register_<art>_Art``.
+
+    1.47.0: SEVEN AGAIN. The lottery dispensers were the last thing in that
+    shared plastic; painted into the till's image they ride in its draw, and
+    ``M_Counter_svc_plastic`` has nothing left to draw. So the painted till
+    and the painted dispensers together cost the counter no draw over
+    1.45.0's flat boxes."""
     import os
     import re as _re
     pytest.importorskip("bpy")
     res, _objs = _build(tmp_path, DC_SIZES[0])
     doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
     names = [m["name"] for m in doc["materials"]]
-    assert len(names) == 8, names
+    assert len(names) == 7, names
+    assert "M_Counter_svc_plastic" not in names, names
     assert sum(1 for n in names if n.startswith("M_Counter_VFD_") and n.endswith("_Face")) == 1, names
     assert sum(1 for n in names if n.startswith("M_Counter_Register_") and n.endswith("_Art")) == 1, names
     # visual submissions only: a collision proxy (`-colonly` and kin) becomes
@@ -358,7 +368,7 @@ def test_bpy_eight_materials_eight_submissions_and_no_colour_only_twins(tmp_path
     from zoo_keeper.core import partnames
     visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
     prims = sum(len(m["primitives"]) for m in visual)
-    assert prims == 8, (prims, [m["name"] for m in visual])
+    assert prims == 7, (prims, [m["name"] for m in visual])
     assert len(visual) < len(doc["meshes"]), "the collision proxy should still be exported"
     kinds = [(_re.match(r"M_Skin_([a-z_]+?)_delco_1997", n) or [None, n])[1] for n in names
              if n.startswith("M_Skin_")]

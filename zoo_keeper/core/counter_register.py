@@ -58,6 +58,7 @@ it is one draw more than before.
 from __future__ import annotations
 
 from . import card_art as CA
+from . import counter_lottery as CL
 from . import machine_parts as MP
 from . import paint as PT
 from . import register_forms as RF
@@ -284,7 +285,9 @@ _PAINT = []
 def paint_art():
     """The painted register's ONE image, the same for every station on
     every counter -- so it is painted once and every counter shares it:
-    ``{canvas, size, rects, name, unset}``."""
+    ``{canvas, size, rects, name, unset}``. It also holds what else stands
+    painted on a counter's top beside a till: `counter_lottery`'s tickets
+    and case (1.47.0), which ride in the till's draw."""
     if not _PAINT:
         tiles = [
             ("reg_deck", paint_deck()),
@@ -295,7 +298,7 @@ def paint_art():
             ("head_side", RF._plastic(48, 32, DARK, 35, 14, -16, 0.16).to_canvas()),
             ("head_edge", RF._plastic(16, 32, RF._lift(DARK, 18), 36, 14, -16, 0.0).to_canvas()),
             ("head_top", RF._plastic(48, 32, RF._lift(DARK, 10), 37, 4, -4, 0.2).to_canvas()),
-        ]
+        ] + CL.tiles()
         A = CA.atlas(tiles, "counter_register", gutter=CA.SMOOTH_GUTTER, bleed=True)
         A["unset"] = [s for _k, c in tiles for s in getattr(c, "unset", [])]
         _PAINT.append(A)

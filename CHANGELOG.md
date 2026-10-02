@@ -1,3 +1,53 @@
+## [1.47.0] - the lottery dispensers, built to a brief; the store counter back to seven draws
+
+Cold run 9135's frames put the real-look till beside three flat red boxes:
+two looks in one room. The walker, 2026-10-02: roll the new look out to the
+props around the machines, the lottery dispensers first. The same day they
+handed over an art-direction guide (`docs/reference/HUMAN_AUTHORSHIP_GUIDE.md`
+in the root repo) that asks for a brief before a surface is painted, a cause
+for every detail, and quiet where nothing needs saying. This is the first
+prop built to it.
+
+### Changed
+- **`core/counter_lottery.py`: an instant-ticket dispenser.** A clear acrylic
+  case on a black foot, its face leaning back about five degrees toward a
+  standing customer, a roll of tickets seen from the clerk's side. Three in
+  a row beside each till, a DIFFERENT GAME IN EACH -- WOODER WINS $1, HOAGIE
+  MONEY $2, FAT STACKS $5, invented -- in identical cases at identical
+  heights (1.7.0 stepped each box a centimetre shorter than the last; nothing
+  made them differ). The ticket is the loud part and the case is quiet: no
+  grain, no grime, because acrylic by a till is wiped and a ticket is new.
+  No transparency: the acrylic is painted as what is seen through it.
+- **They are painted into the till's image** (`counter_register.paint_art`)
+  and built into the till's object, so they ride in a draw the counter
+  already makes.
+- **The service counter has no `plastic` kind any more.** The tills' bodies
+  (1.46.0) and these were its only users. `M_Counter_svc_plastic` is gone
+  and the counter is SEVEN materials and seven draws again -- what it was at
+  1.45.0, before either was painted.
+
+### Measured
+One 6 m service counter, built at 1.45.0 and at this version, a scratch
+Godot project in GL Compatibility, the same three cameras
+(`docs/findings/real_look_trial/` in the root repo):
+
+| view | draws at 1.45.0 | draws at 1.47.0 |
+|---|---|---|
+| the dispensers from the customer's side | 7 | 7 |
+| from the clerk's side | 7 | 7 |
+| the counter from across the room | 9 | 9 |
+
+(Each count includes the scratch scene's floor.) 1.46.0 alone read one more
+in its own views of the till (6 to 7, 8 to 9); that draw is what this
+release takes back. A dispenser is
+32 triangles where it was 12.
+
+### Not measured
+- In a level. Run 9135's package predates this.
+- The till's image is now 262 x 1111 px; `card_art.atlas` packs shelves to
+  the widest tile and this one is tall for it. Level Factory 0.128.0 ships it
+  VRAM-compressed, so nobody has priced the shape.
+
 ## [1.46.0] - the real look, trialled: the video poker, the ATM and both registers
 
 The walker, 2026-10-02, on the screens-that-run frames: "this looks like it

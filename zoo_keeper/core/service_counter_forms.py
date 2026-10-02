@@ -76,6 +76,7 @@ from . import cigarette_brands as CB
 from . import cigarette_forms as CF
 from . import pixel_type as pt
 from . import prims as P
+from . import counter_lottery as CL
 from . import counter_register as CREG
 from .back_bar_forms import REG_D, REG_H, REG_SCREEN_H, REG_W
 from .vending_forms import Canvas
@@ -110,9 +111,9 @@ ART_REPEAT_M = 1.0
 CANDY_TEXEL = 400
 
 # --- the lottery dispensers -----------------------------------------------------
-LOTTO_W = 0.11
-LOTTO_D = 0.09
-LOTTO_H = 0.28
+LOTTO_W = CL.W
+LOTTO_D = CL.D
+LOTTO_H = CL.H
 LOTTO_PITCH = 0.13
 LOTTO_MAX = 3
 LOTTO_IN = 0.07          # from the top's customer edge
@@ -134,7 +135,6 @@ RACK_TEXEL = CF.TEXEL
 BLACK = (0.015, 0.015, 0.016)
 CHROME = (0.66, 0.66, 0.66)
 WHITE = (0.86, 0.85, 0.82)
-LOTTO_RED = (0.72, 0.10, 0.10)
 #: Each primitive's ``mat`` key -> (its colour, its surface kind).
 #:
 #: 1.8.0: ONE MATERIAL PER KIND, the colour in the vertex. 1.7.0 shipped these
@@ -150,14 +150,18 @@ CHROME_PAINT = (0.62, 0.62, 0.63)
 MATERIALS = {
     "black": (BLACK, "metal_painted"),
     "chrome": (CHROME_PAINT, "metal_painted"),
-    "lotto": (LOTTO_RED, "plastic"),
     "shelf": (WHITE, "laminate"),
 }
 #: The one material each kind is built with. Laminate keeps the counter's
 #: white as its tint, so the body, top, kick and shelves are `WHITE` times a
 #: vertex factor; plastic and painted metal are neutral and take their whole
 #: colour from the vertex.
-KIND_BASE = {"laminate": WHITE, "plastic": (1.0, 1.0, 1.0), "metal_painted": (1.0, 1.0, 1.0)}
+#:
+#: 1.47.0: there is no `plastic` here any more. The tills' bodies (1.46.0)
+#: and the lottery dispensers (1.47.0) were its only users and both are
+#: painted into `counter_register.paint_art` now, so the counter makes one
+#: draw fewer for that kind.
+KIND_BASE = {"laminate": WHITE, "metal_painted": (1.0, 1.0, 1.0)}
 #: The counter's own parts, as factors on `KIND_BASE["laminate"]`, chosen to
 #: land where 1.7.0's separate materials did -- the merge is not a restyle.
 #: MEASURED by a headless Godot readback of both builds: 1.7.0's top was
@@ -311,9 +315,9 @@ def fitout(w, d, h, attachments, top_w, face_y, base_h, top_t, key="counter_serv
                 break
             if any(abs(lx - bx) < REG_W / 2.0 + LOTTO_W / 2.0 + 0.02 for bx in regs if bx != ax):
                 break
-            on_top.append(P.box("Counter_Lottery", "lotto",
-                                (lx - LOTTO_W / 2.0, ly0, h - 0.004 - 0.002 * i),
-                                (lx + LOTTO_W / 2.0, ly0 + LOTTO_D, h + LOTTO_H - 0.01 * i)))
+            # `counter_lottery` (1.47.0): an acrylic case on a black foot,
+            # a different game in each, painted into the till's image
+            on_top.extend(CL.dispenser(lx, ly0, h, i, CREG.PAINT))
             lottos.append(lx)
     facts["registers"] = regs
     facts["lottery"] = lottos
