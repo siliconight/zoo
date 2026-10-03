@@ -71,6 +71,7 @@ def _small_cluster(bm, centre, size):
     cx, cy, cz = centre
     verts = geometry.add_box(bm, (cx, cy, cz), (size, size, size * 1.1))
     geometry.taper_z(verts, 0.5, 0.6)
+    return verts
 
 
 def _stick(bm, a, b, r0, r1):
@@ -112,6 +113,30 @@ def _cluster(bm, centre, size):
     middle = geometry.add_box(bm, (cx, cy, cz + hh * 0.0), (s, s, hh * 0.20))
     upper = geometry.add_box(bm, (cx, cy, cz + hh * 0.30), (s, s, hh * 0.40))
     geometry.taper_z(upper, 0.45, 1.0)
+    return list(lower) + list(middle) + list(upper)
+
+
+def _sway_layer(leaves, members):
+    """THE WIND'S HANDLE ON THE CROWN (1.56.0, `tree_forms.sway_weight`): a
+    second UV set, ``Sway``, on every corner of the crown -- the weight by
+    height, and the phase of the corner's own cluster from ``members``, a
+    list of (vertex list, phase). Written after the last thing that moves a
+    vertex, and `UVMap` made first so it stays TEXCOORD_0 for the finish's
+    projection; the weight is a fraction of the crown's own height, so the
+    re-centring and the fit that follow cannot stale it."""
+    zs = [v.co.z for v in leaves.verts]
+    z_foot, z_top = min(zs), max(zs)
+    phase = {}
+    for verts, ph in members:
+        for v in verts:
+            phase[v] = ph
+    leaves.loops.layers.uv.get("UVMap") or leaves.loops.layers.uv.new("UVMap")
+    sway = leaves.loops.layers.uv.new("Sway")
+    for face in leaves.faces:
+        for loop in face.loops:
+            v = loop.vert
+            loop[sway].uv = (tree_forms.sway_weight(v.co.z, z_foot, z_top), phase.get(v, 0.0))
+    return len(members)
 
 
 def _fit(bm, w, d, h):
@@ -272,12 +297,15 @@ def build(plan, streams, collection):
         for a, b, r0, r1 in sticks:
             _stick(twigs, _fitp(a), _fitp(b), r0, r1)
         leaves = geometry.new_bm()
+        members = []          # (the cluster's vertices, its sway phase)
         for p, c in big:
             q = _fitp(p)
-            _cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)
+            members.append((_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c),
+                            tree_forms.cluster_phase(len(members))))
         for p, c in small:
             q = _fitp(p)
-            _small_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)
+            members.append((_small_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c),
+                            tree_forms.cluster_phase(len(members))))
         # the exact slot: a last per-axis correction of both meshes, small
         # now that the skeleton fits, so a cluster keeps its shape
         xs, ys, zs = [], [], []
@@ -296,6 +324,8 @@ def build(plan, streams, collection):
                 v.co.y = (v.co.y - cy) * ky
                 v.co.z = z0 + (v.co.z - z0) * kz
         trunk_top_z = z0 + (first - z0)
+        # after the last correction above: nothing moves a leaf after this
+        clusters = _sway_layer(leaves, members)
         trunk = part(wood, "StreetTree_Wood", texel=1.5)
         twig_obj = part(twigs, "StreetTree_Twigs", texel=2.0, part_bevel=0.0,
                         smooth=False)
@@ -325,4 +355,5 @@ def build(plan, streams, collection):
     materials.assign([crown], leaf)
     materials.assign([grate], iron)
     return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_top": (0.0, 0.0, h / 2.0)}}
+            "attachments": {"ATT_top": (0.0, 0.0, h / 2.0)},
+            "street_tree": {"sway_clusters": clusters if style != "cards" else 0}}

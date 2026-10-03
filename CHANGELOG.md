@@ -1,3 +1,40 @@
+## [1.56.0] - the crown carries the wind's handle
+
+The walker, 2026-10-03, on the wind design at the factory root
+(`docs/proposals/WIND_DESIGN.md`): "start with the crowns". A street tree's
+crown sways and its wood does not, and what Zoo ships is the HANDLE, not
+the motion: every corner of the crown carries, in a second UV set `Sway`
+(TEXCOORD_1), a WEIGHT -- its height above the crown's foot over the
+crown's height, squared, so the top sways and the branch tips barely -- and
+a PHASE of its own leaf cluster, stepped round the circle by the golden
+fraction as the branches step round the trunk, so no two neighbours flap
+in step. Level Factory 0.130.0's import gives the crown's skin a vertex
+stage that reads both against the level's wind; nothing in Zoo moves.
+
+`tree_forms.sway_weight` and `tree_forms.cluster_phase` are the two pure
+functions; `street_tree._cluster` and `_small_cluster` return the vertices
+they made so `_sway_layer` can say which cluster a corner belongs to. The
+layer is written after the last correction that moves a leaf and before
+the finish, with `UVMap` made first so the finish's projection keeps
+TEXCOORD_0. A weight is a fraction of the crown's own height, so the
+re-centring and the fit that follow cannot stale it -- the roller grill's
+pivots (1.55.0) were positions and went 0.7 m stale; the test here reads
+the shipped file against its own vertices anyway. The `cards` crown (behind
+a param, not ready) carries no layer. The recipe reports
+`street_tree.sway_clusters`.
+
+Built in Blender 5.1 with the delco_1997 skins, a 5 x 5 x 6.5 London
+plane: the crown's 1,891 corners carry TEXCOORD_1, every weight within
+0.001 of height squared read off the shipped POSITION, 67 cluster phases;
+the wood and the grate carry no second UV set. The crown's material is
+unchanged (`M_Skin_vegetation_delco_1997`): the import, not Zoo, decides
+what moves it, and a crown an older import meets is a crown as before.
+
+Tests: the weight is 0 at the foot, 1 at the top and bends upward; a flat
+crown does not divide by zero; phases step round the circle and never
+repeat nearby; the bpy suite reads the shipped crown's weights against its
+own height and finds the layer on the crown alone.
+
 ## [1.55.0] - the rollers turn, the dogs ride them, the slush churns
 
 The walker, 2026-10-02, on the design for small things that move

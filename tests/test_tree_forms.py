@@ -113,3 +113,25 @@ def test_every_genome_carries_the_budget_its_form_derives():
         g = genome.load_species(sp)
         assert g["budgets"]["tris_lod0"] == tree_forms.tri_budget(f), sp
         assert g["budgets"]["tris_lod0"] > tree_forms.tri_count(f), sp
+
+
+# --- 1.56.0: the wind's handle on the crown ------------------------------------------------
+
+
+def test_the_sway_weight_is_zero_at_the_foot_one_at_the_top_and_bends_upward():
+    from zoo_keeper.core import tree_forms
+    assert tree_forms.sway_weight(0.0, 0.0, 4.0) == 0.0
+    assert tree_forms.sway_weight(4.0, 0.0, 4.0) == 1.0
+    assert tree_forms.sway_weight(2.0, 0.0, 4.0) == 0.25          # height squared
+    assert tree_forms.sway_weight(-1.0, 0.0, 4.0) == 0.0 and tree_forms.sway_weight(9.0, 0.0, 4.0) == 1.0
+    assert tree_forms.sway_weight(1.0, 1.0, 1.0) == 0.0            # a flat crown does not divide by zero
+    ws = [tree_forms.sway_weight(z / 10.0, 0.0, 1.0) for z in range(11)]
+    assert ws == sorted(ws)
+
+
+def test_cluster_phases_step_round_the_circle_and_never_repeat_nearby():
+    from zoo_keeper.core import tree_forms
+    ph = [tree_forms.cluster_phase(i) for i in range(40)]
+    assert all(0.0 <= p < 1.0 for p in ph)
+    assert len({round(p, 6) for p in ph}) == 40
+    assert all(abs(ph[i] - ph[i + 1]) > 0.3 for i in range(39))

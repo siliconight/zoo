@@ -189,3 +189,33 @@ def envelope(f: dict, z01: float) -> float:
         return 0.6 + 0.4 * min(1.0, z01 * 1.5)
     # oval: widest at mid height
     return 0.55 + 0.45 * (1.0 - abs(2.0 * z01 - 1.0))
+
+
+# --- the wind (1.56.0) -------------------------------------------------------------------
+#: THE CROWN SWAYS AND THE WOOD DOES NOT. Each vertex of the crown carries
+#: how much it moves in a second UV set, `Sway` (TEXCOORD_1): x is the
+#: WEIGHT, the vertex's height above the crown's foot over the crown's
+#: height, squared -- the top of the crown sways, the branch tips barely --
+#: and y is a PHASE of the vertex's own leaf cluster, so two clusters do not
+#: flap in step. Level Factory's import gives the crown's material a vertex
+#: stage that reads both against the level's wind; nothing in Zoo moves. A
+#: weight is a scalar: re-centring, fitting and merging leave it alone (the
+#: roller grill's pivots, 1.55.0, were positions and went 0.7 m stale).
+SWAY_WEIGHT_POWER = 2.0
+#: Cluster phases step round the circle by the golden fraction, as the
+#: branches step round the trunk: no two neighbours alike, no period.
+SWAY_PHASE_STEP = 0.6180339887
+
+
+def sway_weight(z: float, z_foot: float, z_top: float) -> float:
+    """0 at the crown's foot, 1 at its top, by `SWAY_WEIGHT_POWER`."""
+    span = z_top - z_foot
+    if span <= 1e-9:
+        return 0.0
+    t = min(1.0, max(0.0, (z - z_foot) / span))
+    return t ** SWAY_WEIGHT_POWER
+
+
+def cluster_phase(i: int) -> float:
+    """The i-th cluster's phase in [0, 1)."""
+    return (i * SWAY_PHASE_STEP) % 1.0
