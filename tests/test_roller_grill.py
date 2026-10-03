@@ -366,18 +366,21 @@ def test_bpy_the_turning_prims_carry_their_axles_in_the_engine_s_axes(tmp_path):
 # --- 1.57.0: the heat lamp ----------------------------------------------------------------
 
 
-def test_the_heat_lamp_hangs_over_the_dogs_under_the_shelf_or_the_hood():
-    """The rod runs across the pan over the middle of the roller bank, below
-    the bun shelf where there is one and below the hood's top where there is
-    not, with the marker a little under it; and it is inside the hood."""
+def test_the_heat_lamp_hangs_under_the_hood_s_top_above_the_buns_and_the_dogs():
+    """The rod runs across the pan over the middle of the roller bank, under
+    the hood's top and ABOVE the bun shelf and its buns where there is one
+    (the walker: the light must show the buns too), with the marker a little
+    under it; and it is inside the hood."""
     for dims in (R.DC_SIZES[0], (0.7, 0.5, 1.3), (1.4, 0.8, 1.6)):
         w, d, h = dims
         got = R.plan(*dims)
         lx0, lx1, ly, lz = R.heat_lamp(w, d, h)
         rs = R.rollers(d, h)
         zs = R.shelf_z(h)
-        plane = zs if zs else h - R.HOOD_T
-        assert lz < plane - R.HEAT_LAMP_DROP
+        assert lz < h - R.HOOD_T - R.HEAT_LAMP_DROP
+        if zs:
+            bun_top = zs + R.SHELF_T + R.BUN_H - R.BUN_CROWN
+            assert lz - R.HEAT_LAMP_R > bun_top + 0.03, "the rod is on the buns"
         assert max(z for _y, z in rs) + R.ROLLER_R + 0.03 < lz, "the rod is on the dogs"
         assert rs[0][0] < ly < rs[-1][0]
         G = R.geometry(w, d, h)

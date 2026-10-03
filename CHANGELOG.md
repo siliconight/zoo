@@ -1,3 +1,14 @@
+## [1.57.1] - the heat lamp goes up under the hood, above the buns
+
+The walker, 2026-10-03, on the first cut walked (the rod hung under the bun
+shelf, a downlight on the dogs): "light should show the buns too, not
+seeing those". A real one hangs under the hood's top, above the shelf; so
+does this one now, `HEAT_LAMP_DROP` under the hood's top, clear of the buns'
+crowns by 3 cm or more at every size, with the marker under it. Lux 0.63.0
+makes the lamp an omni, so the buns under it and the dogs through the glass
+shelf both get it. The forms' test holds the clearance over the buns and
+over the dogs.
+
 ## [1.57.0] - the roller grill's heat lamp
 
 The walker, 2026-10-03, on a frame of the grill walked at night: "can we

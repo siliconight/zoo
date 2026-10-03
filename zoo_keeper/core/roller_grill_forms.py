@@ -155,9 +155,11 @@ GREASE_BACK = 0.45
 #: THE HEAT LAMP (1.57.0). The walker, 2026-10-03, on a frame of the grill
 #: at night: "a dim but warm warming light to bring a bit more light to the
 #: dogs". A roller grill has an infrared element under its hood; this is it:
-#: a red-orange rod the width of the pan, under a chrome trough, hung below
-#: the bun shelf where there is one and below the hood's top where there is
-#: not, HEAT_LAMP_DROP under that plane. The rod is a LIT FACE (`M_Roller_
+#: a red-orange rod the width of the pan, under a chrome trough, hung
+#: HEAT_LAMP_DROP under the hood's top -- ABOVE the bun shelf, where a real
+#: one is, so it warms the buns under it and the dogs through the glass
+#: shelf (the walker, on the first cut hung under the shelf: "light should
+#: show the buns too, not seeing those"). The rod is a LIT FACE (`M_Roller_
 #: Lamp_Face`, Lux cuts it with the power) and the prim list carries a
 #: `LuxEmit_heat_lamp` attachment HEAT_LAMP_EMIT below the rod's axis, so
 #: `LuxFixtureSpawner` stands the lamp there and Lux's loader (>= 0.63.0)
@@ -237,11 +239,9 @@ def shelf_z(h):
 
 def heat_lamp(w, d, h):
     """``(x0, x1, y, z)`` of the heat lamp's rod: across the pan under the
-    bun shelf (or the hood's top), over the middle of the roller bank."""
+    hood's top, above the bun shelf, over the middle of the roller bank."""
     G = geometry(w, d, h)
-    zs = shelf_z(h)
-    plane = zs if zs else h - HOOD_T
-    z = plane - HEAT_LAMP_DROP - HEAT_LAMP_R
+    z = h - HOOD_T - HEAT_LAMP_DROP - HEAT_LAMP_R
     rs = rollers(d, h)
     y = (rs[0][0] + rs[-1][0]) / 2.0
     return (-G["ci"] + 0.02, G["ci"] - 0.02, y, z)
