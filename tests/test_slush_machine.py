@@ -239,3 +239,37 @@ def test_the_glow_image_has_gutters_each_tile_bleeds_into():
     # the churn tile is seamless left to right: its last column meets its first
     x0, y0, x1, y1 = a["rects"]["slush_cherry"]
     assert x1 - x0 == S.SLUSH_TILE == y1 - y0
+
+
+# --- 1.55.0: the churn moves -------------------------------------------------------------
+
+
+def test_the_churn_tile_is_the_flavour_and_its_ice_and_no_band():
+    """The bands are drawn moving by the consumer now; the tile carries
+    none, so a still band under a moving one cannot happen."""
+    for fl, (_name, cols, _rgb) in S.FLAVOURS.items():
+        base, light, dark, ice = cols
+        im = S.PT.Img(S.SLUSH_TILE, S.SLUSH_TILE, base)
+        S._churn(im, (0, 0, S.SLUSH_TILE, S.SLUSH_TILE), cols)
+        px = {tuple(int(round(c)) for c in im.a[y, x]) for y in range(S.SLUSH_TILE) for x in range(S.SLUSH_TILE)}
+        assert px <= {tuple(base), tuple(ice)}, (fl, px - {tuple(base), tuple(ice)})
+        assert tuple(ice) in px and tuple(base) in px
+
+
+def test_every_churn_corner_says_where_it_is_round_the_barrel():
+    """The slush's side facets carry (u round, v up) into the churn tile, u
+    by segment with the seam's far side at 1 and v from the band's bottom
+    to its top; the slush's cap and the solid blocks carry no such place."""
+    g = S.plan(*S.DC_SIZES[0])
+    slush = [p for p in g["prims"] if p["part"] == "Slush_Glow"
+             and any(len(c) == 3 and c[0].startswith("slush_") for face in p["uvs"] for c in face)]
+    assert len(slush) == g["facts"]["bowls"]
+    for p in slush:
+        side = [c for face in p["uvs"] for c in face if len(c) == 3 and c[0].startswith("slush_")]
+        other = [c for face in p["uvs"] for c in face if not (len(c) == 3 and c[0].startswith("slush_"))]
+        assert side and other
+        us = sorted({round(c[1], 6) for c in side})
+        assert us[0] == 0.0 and us[-1] == 1.0 and len(us) == S.SEG + 1, us
+        assert {round(c[2], 6) for c in side} == {0.0, 1.0}
+        assert all(len(c) == 1 for c in other)
+    assert S.CHURN_PERIOD_S > 0.0

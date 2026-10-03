@@ -22,6 +22,18 @@ def offset(lo, hi):
     return ((lo[0] + hi[0]) / 2.0, (lo[1] + hi[1]) / 2.0, (lo[2] + hi[2]) / 2.0)
 
 
+def _shift_pivots(me, oy, oz) -> int:
+    layers = getattr(me, "uv_layers", None)
+    layer = layers.get("Pivot") if layers is not None else None
+    if layer is None:
+        return 0
+    n = 0
+    for d in layer.data:
+        d.uv = (d.uv[0] - oy, d.uv[1] - oz)
+        n += 1
+    return n
+
+
 def recentre(result: dict, plan: dict, lo, hi, tol: float = TOL) -> dict:
     """Shift a recipe's output so its visual bounds ``lo..hi`` are centred on
     the origin when the plan's pivot is ``center``. Vertices move in place;
@@ -43,6 +55,10 @@ def recentre(result: dict, plan: dict, lo, hi, tol: float = TOL) -> dict:
             v.co.x -= ox
             v.co.y -= oy
             v.co.z -= oz
+        # a turning part's axles move with its vertices (1.55.0): the
+        # pivot layer is (y, z) in the same coordinates, see
+        # `bpylayer.geometry.PIVOT_LAYER`; duck-typed, no bpy here
+        _shift_pivots(o.data, oy, oz)
         if hasattr(o.data, "update"):
             o.data.update()
     result["collision_boxes"] = [

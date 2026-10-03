@@ -59,6 +59,12 @@ def _glow(prims, art, mat, collection, streams):
         return cache[name]
     bm = geometry.new_bm()
     uv = bm.loops.layers.uv.new("UVMap")
+    # WHERE A CHURN FACET IS ROUND ITS BARREL (1.55.0): a second UV set,
+    # ``Churn`` -- TEXCOORD_1 -- carrying the churn tile's own (u round, v
+    # up) on the slush's side facets, so the import's pass can walk the
+    # bands round it; every other corner carries v = 2 (written -1: Blender's
+    # v arrives as 1 - v), which that pass reads as "not slush" and leaves.
+    uv2 = bm.loops.layers.uv.new("Churn")
     for p in prims:
         vs = [bm.verts.new(v) for v in p["verts"]]
         for f, corners in zip(p["faces"], p["uvs"]):
@@ -69,6 +75,10 @@ def _glow(prims, art, mat, collection, streams):
                     loop[uv].uv = ((r[0] + r[2]) / 2.0, (r[1] + r[3]) / 2.0)
                 else:
                     loop[uv].uv = (r[0] + (r[2] - r[0]) * c[1], r[1] + (r[3] - r[1]) * c[2])
+                if len(c) == 3 and c[0].startswith("slush_"):
+                    loop[uv2].uv = (c[1], 1.0 - c[2])
+                else:
+                    loop[uv2].uv = (0.0, -1.0)
     bm.normal_update()
     # the slush barrels are round and the boxes are not: 30 degrees smooths
     # a 16-sided barrel and keeps every box edge hard

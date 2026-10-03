@@ -349,7 +349,15 @@ def pack_by_material(collection):
         if len(sources) == 1 and len(_slots_used(sources[0][0].data)) == 1:
             passed.append(sources[0][0])
             continue
-        dst_layers = {"uv": sorted(sig[0]),
+        # UV LAYERS IN THE SOURCE'S ORDER, not the signature's (1.55.0). The
+        # signature sorts names to compare them, and a merged mesh built in
+        # that order put the roller grill's `Pivot` set before its `UVMap`:
+        # glTF writes TEXCOORD_n in layer order, so the pivots went out as
+        # TEXCOORD_0 and the projection as TEXCOORD_1. Measured on the
+        # first build: 280 distinct "axles" for 14 rollers. Every source in
+        # a group carries the same set, so the first one's order is the
+        # group's.
+        dst_layers = {"uv": [l.name for l in sources[0][0].data.uv_layers],
                       "col": sorted(n for n, _d, t in sig[1]
                                     if t == "BYTE_COLOR"),
                       "fcol": sorted(n for n, _d, t in sig[1]

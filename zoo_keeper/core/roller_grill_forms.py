@@ -109,8 +109,46 @@ MATERIALS = {
     "glass": ((0.80, 0.86, 0.88), "glass"),
 }
 for _k, _t, _c, _r, _l in KINDS:
-    MATERIALS["dog_" + _k] = (_c, "metal_painted")
-KIND_BASE = {"metal_bare": (1.0, 1.0, 1.0), "metal_painted": (1.0, 1.0, 1.0), "glass": (0.80, 0.86, 0.88)}
+    MATERIALS["dog_" + _k] = (_c, "metal_painted_turn")
+KIND_BASE = {"metal_bare": (1.0, 1.0, 1.0), "metal_painted": (1.0, 1.0, 1.0), "glass": (0.80, 0.86, 0.88),
+             "metal_bare_turn": (1.0, 1.0, 1.0), "metal_painted_turn": (1.0, 1.0, 1.0)}
+#: THE PARTS THAT TURN (1.55.0). The rollers are `metal_bare_turn` and the
+#: dogs `metal_painted_turn`: a kind of their own each, because a part that
+#: moves on its own needs a surface of its own (`merge.pack_by_material`
+#: packs a kind into one mesh, and one mesh is one draw), and a kind outside
+#: the skin library so the material stays FLAT -- Level Factory's import
+#: replaces it with a shader that turns the vertices and reproduces a flat
+#: material exactly; a textured skin it would have to carry whole. Two
+#: draws a grill, priced in Level Factory 0.129.0's changelog.
+#:
+#: The rollers turn at a motor's rate. A dog turns because the rollers under
+#: it do, the other way, at the rollers' surface speed: its rate is the
+#: rollers' times ROLLER_R over its radius -- derived, not chosen. One
+#: material for every dog, so one rate for every dog, at the MEAN radius of
+#: the kinds (10-15 mm; the eye cannot tell a quarter of a turn a minute on
+#: a 12 mm dog). 6 rpm is a countertop roller grill's low setting, by eye
+#: against a store's: a dog goes round in ten seconds.
+ROLLER_RPM = 6.0
+
+
+def turn_rates():
+    """Degrees a second, signed, about the engine's +X, by turning kind."""
+    roller = ROLLER_RPM * 6.0
+    mean_r = sum(k[3] for k in KINDS) / float(len(KINDS))
+    return {"metal_bare_turn": roller,
+            "metal_painted_turn": -roller * ROLLER_R / mean_r}
+
+
+def material_name(kind):
+    """`M_Roller_<kind>`; a turning kind's name also carries ITS AXIS AND
+    RATE -- ``_x36`` is 36 degrees a second about +X, ``_xn36`` the other
+    way -- because that is the one place the consumer can read it from:
+    the second UV set carries the pivot and has no room for a rate."""
+    name = "M_Roller_" + kind
+    if kind.endswith("_turn"):
+        r = int(round(turn_rates()[kind]))
+        name += "_x" + ("n%d" % -r if r < 0 else "%d" % r)
+    return name
 GLASS_OPACITY = 0.18
 #: Grease: the front roller is `chrome` at 1.0, the back one at this.
 GREASE_BACK = 0.45
@@ -124,7 +162,7 @@ def vertex_tint(mat_key):
     """``(kind, factor)``; a roller's key carries its grease factor."""
     if mat_key.startswith("roller_"):
         f = float(mat_key.split("_")[1])
-        return "metal_bare", tuple(c * f for c in MATERIALS["chrome"][0])
+        return "metal_bare_turn", tuple(c * f for c in MATERIALS["chrome"][0])
     rgb, kind = MATERIALS[mat_key]
     return kind, tuple(c / b for c, b in zip(rgb, KIND_BASE[kind]))
 
@@ -220,9 +258,9 @@ def layout(w, d, h, variant=0):
     n = len(rs)
     for k, (ry, rz) in enumerate(rs):
         g = 1.0 - (1.0 - GREASE_BACK) * k / max(1, n - 1)
-        out.append(P.translate(P.lay_along_x(P.cyl("Roller_Roller", "roller_%.3f" % g, (0.0, 0.0), ROLLER_R,
-                                                   -ci - 0.006, ci + 0.006, segments=ROLLER_SEG)),
-                               (0.0, ry, rz)))
+        out.append(P.turning(P.translate(P.lay_along_x(P.cyl("Roller_Roller", "roller_%.3f" % g, (0.0, 0.0), ROLLER_R,
+                                                             -ci - 0.006, ci + 0.006, segments=ROLLER_SEG)),
+                                         (0.0, ry, rz)), "x", (ry, rz)))
 
     def rest(g, r):
         """``(y, z)`` of the axis of a round thing of radius ``r`` lying in
@@ -250,7 +288,8 @@ def layout(w, d, h, variant=0):
                 continue
             y, z = rest(g, r)
             x0 = mx - length / 2.0 + (0.008 if g % 2 else -0.008)
-            out.append(P.rod("Roller_Dog", "dog_" + kid, (x0, y, z), (x0 + length, y, z), r, segments=6))
+            out.append(P.turning(P.rod("Roller_Dog", "dog_" + kid, (x0, y, z), (x0 + length, y, z), r, segments=6),
+                                 "x", (y, z)))
             dogs += 1
     # the dividers, chrome rods lying on the bank between columns
     (ya, za), (yb, zb) = rs[0], rs[-1]
@@ -294,7 +333,7 @@ def layout(w, d, h, variant=0):
                                     (bx + BUN_L, byy + BUN_W, zs + SHELF_T + BUN_H - BUN_CROWN), BUN_CROWN))
                 buns += 1
     facts = {"rollers": n, "columns": len(cols), "kinds": kinds, "dogs": dogs, "buns": buns,
-             "shelf": zs is not None,
+             "shelf": zs is not None, "turn": turn_rates(),
              "collision": ((-w / 2.0, -d / 2.0, 0.0), (w / 2.0, d / 2.0, h))}
     return out, facts
 

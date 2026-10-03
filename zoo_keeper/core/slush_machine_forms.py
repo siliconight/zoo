@@ -502,19 +502,29 @@ def _mascot(im, box):
         im.disc(cx + w * (fx - 0.5), y0 + h * 0.93, w * 0.07, (16, 16, 20))
 
 
+#: THE CHURN MOVES (1.55.0). The tile used to carry the bands -- 1.15.0's
+#: ``(x // 2 + y // 4) % 16``: a light band 3 steps of 16, a dark band 2 --
+#: and they stood still. Now the tile is the flavour's base with the ice
+#: through it, and the BANDS ARE DRAWN BY THE CONSUMER, moving: Level
+#: Factory's import lays a pass over the barrel's churn facets that darkens
+#: the same diagonal (three bands round, one and a half up) and walks it
+#: round the barrel once every CHURN_PERIOD_S. The facets say where they are
+#: round the barrel in a second UV set (`recipes.slush_machine._glow`).
+#: Darkens only: a pass that could lighten would still glow on a machine
+#: whose power is cut, where a darkening of nothing is nothing. What that
+#: costs is the light band; what it buys is the churn turning.
+CHURN_PERIOD_S = 6.0
+
+
 def _churn(im, box, cols):
-    """The slush tile: diagonal churn bands, seamless left to right, with
-    ice through them -- 1.15.0's pattern at twice the size, so a band is
-    two pixels wide where the image is twice as dense."""
-    base, light, dark, ice = cols
+    """The slush tile: the flavour's base with ice through it. The bands
+    that used to be painted here move now (see `CHURN_PERIOD_S`)."""
+    base, _light, _dark, ice = cols
     x0, y0, x1, y1 = box
     S = x1 - x0
     ys, xs = np.mgrid[0:S, 0:S]
-    t = (xs // 2 + ys // 4) % 16
     a = np.empty((S, S, 3), dtype=np.float32)
     a[:] = base
-    a[t < 3] = light
-    a[(t >= 8) & (t < 10)] = dark
     a[((xs // 2) * 7 + (ys // 2) * 13) % 29 == 0] = ice
     im.a[y0:y1, x0:x1] = a
 

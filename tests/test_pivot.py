@@ -109,3 +109,53 @@ def test_a_surface_species_with_no_module_block_is_not_judged_or_moved():
     out = pivot.recentre({"objects": [], "collision_boxes": [], "attachments": {}},
                          plan, (-0.04, -0.04, 0.0), (0.04, 0.04, 0.05))
     assert "recentred_by" not in out
+
+
+def test_the_recentre_moves_a_turning_part_s_axles_with_its_vertices():
+    """1.55.0: a mesh carrying a `Pivot` UV layer (the roller grill's
+    rollers and dogs, `bpylayer.prim_mesh`) has its (y, z) axles shifted by
+    the same offset as its vertices, or the part turns about where it used
+    to be -- measured on the first build, 0.7 m stale. Stand-ins again:
+    `.uv_layers.get(name).data[i].uv`, the attributes a bpy mesh has."""
+    from zoo_keeper.core import pivot
+
+    class _Co:
+        def __init__(self, x, y, z):
+            self.x, self.y, self.z = x, y, z
+
+    class _V:
+        def __init__(self, x, y, z):
+            self.co = _Co(x, y, z)
+
+    class _Loop:
+        def __init__(self, uv):
+            self.uv = uv
+
+    class _Layer:
+        def __init__(self, uvs):
+            self.data = [_Loop(u) for u in uvs]
+
+    class _Layers(dict):
+        pass
+
+    class _Mesh:
+        def __init__(self, pts, pivots=None):
+            self.vertices = [_V(*p) for p in pts]
+            self.uv_layers = _Layers()
+            if pivots is not None:
+                self.uv_layers["Pivot"] = _Layer(pivots)
+
+    class _Obj:
+        type = "MESH"
+
+        def __init__(self, pts, pivots=None):
+            self.data = _Mesh(pts, pivots)
+
+    turning = _Obj([(-0.5, 0.2, 1.0), (0.5, 0.2, 1.0)], pivots=[(0.2, 1.0), (0.2, 1.0)])
+    plain = _Obj([(-0.5, -0.3, 0.0), (0.5, 0.3, 1.4)])
+    res = {"objects": [turning, plain], "collision_boxes": [], "attachments": {}}
+    out = pivot.recentre(res, {"pivot": "center"}, (-0.5, -0.3, 0.0), (0.5, 0.3, 1.4))
+    assert out["recentred_by"] == [0.0, 0.0, 0.7]
+    assert [round(v.co.z, 6) for v in turning.data.vertices] == [0.3, 0.3]
+    assert [tuple(round(c, 6) for c in d.uv) for d in turning.data.uv_layers["Pivot"].data] == [(0.2, 0.3), (0.2, 0.3)]
+    assert "Pivot" not in plain.data.uv_layers

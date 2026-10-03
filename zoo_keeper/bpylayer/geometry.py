@@ -638,6 +638,29 @@ def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
     return obj
 
 
+#: The second UV set a TURNING part carries (Zoo 1.55.0, `prim_mesh`): the
+#: axle's (y, z) in Blender's axes, in the mesh's own coordinates. Anything
+#: that moves a mesh's vertices in place must move this too -- `fit_to`
+#: below and `core.pivot.recentre` do -- or the part turns about where it
+#: used to be. `export.pivots_to_engine` turns it into the engine's axes.
+PIVOT_LAYER = "Pivot"
+
+
+def map_pivots(me, fn):
+    """Apply ``fn((y, z)) -> (y, z)`` to every corner of ``me``'s pivot
+    layer, when it has one. Duck-typed so `core.pivot` can call it on
+    whatever stands in for a mesh."""
+    layers = getattr(me, "uv_layers", None)
+    layer = layers.get(PIVOT_LAYER) if layers is not None else None
+    if layer is None:
+        return 0
+    n = 0
+    for d in layer.data:
+        d.uv = fn((d.uv[0], d.uv[1]))
+        n += 1
+    return n
+
+
 def fit_to(objs, size, boxes=None):
     """Scale ``objs`` about their union centre so their bounds are exactly
     ``size`` = (w, d, h), and return ``boxes`` scaled the same way.
@@ -667,6 +690,10 @@ def fit_to(objs, size, boxes=None):
     for _o, v in verts:
         for i in range(3):
             v.co[i] = centre[i] + (v.co[i] - centre[i]) * k[i]
+    # a turning part's axles scale with its vertices (PIVOT_LAYER)
+    for o in objs:
+        map_pivots(o.data, lambda yz: (centre[1] + (yz[0] - centre[1]) * k[1],
+                                       centre[2] + (yz[1] - centre[2]) * k[2]))
     out = []
     for a, b in (boxes or []):
         out.append((tuple(centre[i] + (a[i] - centre[i]) * k[i] for i in range(3)),

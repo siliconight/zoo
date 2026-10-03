@@ -52,10 +52,44 @@ def build(prims, collection, plan, rng, mats, texel=1.2, ambient=None):
             k += 1
         names_used.add(name)
         bm = geometry.new_bm()
-        for p in groups[(part, bev, mat_key)]:
+        mine = groups[(part, bev, mat_key)]
+        turns = any(p.get("turn") for p in mine)
+        pivot_layer = None
+        if turns:
+            # THE AXLE INTO A SECOND UV SET, as `_card_atlas.build_shutters`
+            # writes a schedule: on the bmesh, before the finish. `UVMap`
+            # is made first so it stays TEXCOORD_0 -- `cube_project_uv`
+            # finds it by name and fills it -- and `Pivot` is TEXCOORD_1.
+            # Only a group that turns gets the layer: a second UV set is
+            # part of a mesh's layer signature, and `merge.pack_by_material`
+            # will not pack a part that has one with a part that has not.
+            #
+            # IN BLENDER'S OWN AXES, (y, z) for a turn about x, and in the
+            # prim's own coordinates: whatever moves the vertices after this
+            # -- `core.pivot.recentre`, `geometry.fit_to` -- moves this layer
+            # with them (`geometry.PIVOT_LAYER`), and `export.export_glb`
+            # turns it into the engine's axes at the last moment. The first
+            # build wrote engine values here and shipped them 0.7 m stale:
+            # the module was re-centred after, and the vertices moved while
+            # the pivots did not.
+            #
+            # REFUTED on the first build: a `Pivot` layer added to the Mesh
+            # after `bm_to_object` (``me.uv_layers.new`` and a write per
+            # loop) exported carrying the UVMap's projection, 280 distinct
+            # values for 14 rollers. Written on the bmesh, it exports as
+            # written.
+            bm.loops.layers.uv.get("UVMap") or bm.loops.layers.uv.new("UVMap")
+            pivot_layer = bm.loops.layers.uv.new(geometry.PIVOT_LAYER)
+        for p in mine:
             vs = [bm.verts.new(v) for v in p["verts"]]
+            pv = _blender_pivot(p.get("turn")) if turns else None
             for f in p["faces"]:
-                bm.faces.new([vs[i] for i in f])
+                face = bm.faces.new([vs[i] for i in f])
+                if pivot_layer is not None:
+                    # A face that does not turn carries (0, 0); the consumer
+                    # rotates nothing on a material whose name names no rate.
+                    for loop in face.loops:
+                        loop[pivot_layer].uv = pv if pv is not None else (0.0, 0.0)
         # Faces made with `faces.new` carry a zero normal until this runs,
         # and `geometry.bevel_edges` picks edges by the angle between face
         # normals -- without it nothing was beveled: the first furnace
@@ -77,6 +111,18 @@ def build(prims, collection, plan, rng, mats, texel=1.2, ambient=None):
             materials.assign([obj], materials.make_material(mname, colour, kind))
         objs.append(obj)
     return objs
+
+
+def _blender_pivot(turn):
+    """A prim's `turn` (`prims.turning`: Blender's axis and the axle's two
+    coordinates) as ``(y, z)``, or None. Only a turn about x is written;
+    `export.pivots_to_engine` is where the axes change hands."""
+    if turn is None:
+        return None
+    axis, a, b = turn
+    if axis != "x":
+        raise ValueError("prim_mesh: no pivot layout for a turn about %r" % (axis,))
+    return (a, b)
 
 
 def build_stock(plan, streams, collection, regions, host_rgb):

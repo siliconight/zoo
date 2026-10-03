@@ -107,6 +107,23 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
 METALLIC = {"metal": 0.85, "carbon": 0.30,
             "metal_painted": 0.0, "metal_bare": 0.90}
 
+#: A KIND THAT TURNS (Zoo 1.55.0, the roller grill): `metal_bare_turn` is
+#: `metal_bare` and `metal_painted_turn` is `metal_painted` -- the same sheet,
+#: the same enamel, the base kind's own numbers -- named apart so a part that
+#: moves on its own gets a surface of its own, and kept OFF THE SKIN LIBRARY
+#: on purpose: Level Factory's import replaces the material with a shader
+#: that turns the vertices and reproduces a FLAT material, and a textured
+#: skin it would have to carry whole. Not in `skins.KNOWN_KINDS`: no genome
+#: names a turning kind; a recipe derives it from the kind the genome named.
+TURN_SUFFIX = "_turn"
+
+
+def base_kind(material_kind):
+    """The kind whose numbers a turning kind takes: its own name less `_turn`."""
+    if material_kind.endswith(TURN_SUFFIX):
+        return material_kind[:-len(TURN_SUFFIX)]
+    return material_kind
+
 _SKINS = {"dir": None, "theme": "delco", "wet": False}
 
 
@@ -144,7 +161,8 @@ def make_material(name, base_color, material_kind):
     kind share one textured material named for the pack (the genome's
     per-specimen color rides only the flat path; textured paint jobs are
     the pack's job)."""
-    pack = _find_pack(material_kind)
+    # a turning kind takes the flat path whatever library is set (see TURN_SUFFIX)
+    pack = None if material_kind.endswith(TURN_SUFFIX) else _find_pack(material_kind)
     if pack:
         # A TINTABLE pack is achromatic on purpose: it carries grain, wear and
         # sheen, and the mesh supplies the hue. Such a material CANNOT be
@@ -195,8 +213,8 @@ def make_material(name, base_color, material_kind):
     bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
     rgba = (*base_color, 1.0)
     bsdf.inputs["Base Color"].default_value = rgba
-    bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(material_kind, 0.6)
-    bsdf.inputs["Metallic"].default_value = METALLIC.get(material_kind, 0.0)
+    bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(base_kind(material_kind), 0.6)
+    bsdf.inputs["Metallic"].default_value = METALLIC.get(base_kind(material_kind), 0.0)
     try:  # preview-only wear multiply; harmless if node API differs
         attr = tree.nodes.new("ShaderNodeVertexColor")
         attr.layer_name = WEAR_LAYER

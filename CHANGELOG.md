@@ -1,3 +1,90 @@
+## [1.55.0] - the rollers turn, the dogs ride them, the slush churns
+
+The walker, 2026-10-02, on the design for small things that move
+(`docs/proposals/MOVING_PARTS_DESIGN.md` at the factory root): "start with
+the roller grill, and i want some motion on the slurpee stuff too". The
+rule the design set: a thing moves because something drives it. Both of
+these are motors in a store that is open.
+
+**The roller grill.** The rollers are a kind of their own now,
+`metal_bare_turn`, and the dogs `metal_painted_turn`: a part that moves on
+its own needs a surface of its own (`merge.pack_by_material` packs a kind
+into one mesh, and one mesh is one draw), so the grill is six submissions
+where it was four. Each roller and each dog is a prim that `prims.turning`
+marks with its AXLE -- the axis it was built on, not a guess from its
+bounds -- and `prim_mesh` writes that into a second UV set, `Pivot`
+(TEXCOORD_1, the slot the shutters' schedule uses), in Blender's own axes
+and the prim's own coordinates. Whatever moves the vertices afterwards
+moves the layer with them: `core.pivot.recentre` shifts it by the module's
+re-centring, `geometry.fit_to` scales it about the same centre. Only at
+export (`export.pivots_to_engine`, after the merge) does it become the
+engine's: glTF is Y-up, Blender's (y, z) arrives as (z, -y), and the v is
+written flipped because glTF reads 1 - v. The material's name carries the rate,
+because the UV set has no room for one: `M_Roller_metal_bare_turn_x36` is
+36 degrees a second about +X, `M_Roller_metal_painted_turn_xn36` the other
+way. Level Factory 0.129.0's import reads both and turns the vertices on
+the shader clock; nothing in Zoo moves.
+
+The rates: `ROLLER_RPM` 6, a countertop grill's low setting by eye against
+a store's (a dog goes round in ten seconds). A dog turns BECAUSE the
+rollers under it do, the other way, at their surface speed: its rate is the
+rollers' times `ROLLER_R` over its radius, derived in `turn_rates`. One
+material for every dog means one rate at the mean radius of the four kinds
+(12.5 mm, which happens to be the roller's, so the two rates are equal and
+opposite); the eye cannot tell a quarter-turn a minute on a 12 mm dog.
+
+The turning kinds take the FLAT material path past any skin library
+(`skins.find_pack` finds no pack of these names): the import's vertex stage
+reproduces a flat material -- albedo times the vertex colour, roughness,
+metallic, the same numbers as `metal_bare` and `metal_painted` -- and
+would have to carry a textured skin whole. A roller is smooth chrome; the
+grease is its tint, as before.
+
+**The frozen drink station.** The slush tile painted its churn bands and
+they stood still. The tile is the flavour's base with the ice through it
+now, and the bands are DRAWN MOVING by the import: a darkening pass over
+the barrel's churn facets walks the same diagonal (three bands round, one
+and a half up) round the barrel once every `CHURN_PERIOD_S` (6 s). The
+facets say where they are round the barrel in a second UV set, `Churn`
+(u by segment, v up the band, both 0..1); every other corner of the glow
+surface carries v = 2, which the pass reads as not slush. Darkens only, so
+a machine whose power is cut stays dark under it; the light band the tile
+used to paint is what that costs, and what it buys is the churn turning.
+Zero added draws for the tile; the pass itself is one draw a machine,
+priced in Level Factory 0.129.0.
+
+**Two refutations the first builds found, kept.** The pivots were first
+written in the engine's axes at build time and compared with the forms'
+numbers, and the test passed while the shipped rollers swept through the
+air: `build_module` re-centres a module after the recipe returns, the
+vertices moved 0.7 m and the pivots did not (measured in the shipped
+scene: vertex y 0.24..0.32 against pivot y 0.95..1.00). The layer now
+rides with the vertices and the bpy test compares the pivots with the
+VERTICES as shipped -- every roller corner one radius from the axle it
+carries -- rather than with the numbers the recipe meant. And
+`merge.pack_by_material` built
+a merged mesh's UV layers in the signature's SORTED order, which put
+`Pivot` before `UVMap`; glTF writes TEXCOORD_n in layer order, so the
+pivots went out as TEXCOORD_0 and the projection as TEXCOORD_1 (280
+distinct "axles" for 14 rollers). The layers follow the source's order
+now. Nothing shipped before this carried two UV sets through a merge (the
+shutters are one object), so nothing shipped was affected.
+
+Built in Blender 5.1 with the delco_1997 skins: the grill's two turning
+primitives carry TEXCOORD_1 with fourteen distinct axles for fourteen
+rollers, every roller vertex 0.0125 m from its own and every dog vertex at
+its kind's radius; the slush's glow carries TEXCOORD_1 with (u, v) in 0..1
+on its side facets and v = 2 everywhere else.
+
+Tests: the rollers and the dogs turn about their own axles and nothing else
+does; the dogs' rate is derived and opposite; the material name carries
+axis and rate; the turning kinds match their flat tables; `turning` is set
+on the final prim and refuses an axis nobody writes; the churn tile is the
+flavour and its ice and no band; every churn corner says where it is round
+the barrel; the re-centring moves a stand-in mesh's pivot layer with its
+vertices; the bpy suite expects six submissions, TEXCOORD_1 on the turning
+primitives only, and every shipped vertex one radius from its own axle.
+
 ## [1.54.0] - one price faces the customer
 
 The walker, 2026-10-02, on a frame from cold run 9137 with the hump's

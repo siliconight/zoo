@@ -8,8 +8,11 @@ FOUR SUBMISSIONS WHATEVER THE WIDTH. Every chrome part builds with one
 `metal_bare` material and every painted part with one `metal_painted`
 material, each part's colour in its `Wear` attribute (`geometry.tint_wear`)
 -- a roller's grease is its tint -- so `merge.pack_by_material` packs each
-kind into one mesh; the glass is one see-through material (built under a
-placeholder name first: `make_see_through_material` returns any material
+kind into one mesh; the ROLLERS and the DOGS are two turning kinds of their
+own (1.55.0, `RG.turn_rates`): each prim carries its axle, `prim_mesh`
+writes it into a second UV set and the material's name carries the rate,
+for Level Factory's import to turn them; the glass is one see-through
+material (built under a placeholder name first: `make_see_through_material` returns any material
 already carrying its name); and the buns panel, the control panel and the
 tags are ONE object on ONE painted image, ``M_Roller_<art>``. Nothing
 glows: a roller grill is lit by the room.
@@ -21,7 +24,8 @@ from ..core import roller_grill_forms as RG
 
 
 def _kind_material_name(kind):
-    return f"M_Roller_{kind}"
+    # a turning kind's name carries its axis and rate (1.55.0, `RG.material_name`)
+    return RG.material_name(kind)
 
 
 def _build_solid(prims, plan, rng, collection):
@@ -92,4 +96,4 @@ def build(plan, streams, collection):
           f"dogs={f['dogs']} buns={f['buns']} art={A['name']}")
     return {"objects": objs, "collision_boxes": [f["collision"]], "attachments": {},
             "roller_grill": {"rollers": f["rollers"], "kinds": f["kinds"], "dogs": f["dogs"],
-                             "shelf": f["shelf"], "art": A["name"]}}
+                             "shelf": f["shelf"], "art": A["name"], "turn": f["turn"]}}

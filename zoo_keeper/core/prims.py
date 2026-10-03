@@ -173,6 +173,22 @@ def lay_along_y(p):
     return _map(p, lambda v: (v[0], v[2], -v[1]))
 
 
+def turning(p, axis, pivot):
+    """Mark ``p`` as a part that TURNS at runtime (1.55.0): about ``axis``
+    -- ``"x"``, Blender's, the only one a species asks for yet -- through
+    ``pivot``, the axle's two coordinates in the other two axes, in order
+    (for ``"x"``: ``(y, z)``). Pure data on the prim: `bpylayer.prim_mesh`
+    writes it into a second UV set in the engine's own axes, and Level
+    Factory's import gives the material a vertex stage that reads it. Set it
+    on the FINAL prim: `translate` and the lays copy a prim's fields and move
+    only its vertices, so a pivot set before a move would stay behind."""
+    if axis != "x":
+        raise ValueError("turning: only axis 'x' is written today, not %r" % (axis,))
+    q = dict(p)
+    q["turn"] = (axis, float(pivot[0]), float(pivot[1]))
+    return q
+
+
 def recolour(p, part=None, mat=None):
     q = dict(p)
     if part is not None:

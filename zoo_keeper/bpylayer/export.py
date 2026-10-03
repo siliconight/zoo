@@ -43,12 +43,16 @@ def export_glb(filepath, collection, merge_parts=True, share_textures=True):
     """
     packed = merge.pack_by_material(collection) if merge_parts else None
     objs = packed.objects if packed is not None else list(collection.objects)
+    turned = pivots_to_engine(objs)
     try:
         _select_only(objs)
         _export_selection(filepath)
         if share_textures:
             _share_textures(filepath)
     finally:
+        # the pivots go back BEFORE the merged copies are torn down: a
+        # merged mesh is one of `turned`, and a freed one cannot be written
+        pivots_to_blender(turned)
         if packed is not None:
             packed.discard()
     return packed.stats if packed is not None else None
@@ -73,6 +77,32 @@ def _share_textures(filepath):
               f"+ {st['shared']} already beside the GLB; "
               f"{st['bytes_before']} -> {st['bytes_after']} bytes")
     return st
+
+
+def pivots_to_engine(objs):
+    """A turning part's pivot layer (`geometry.PIVOT_LAYER`, Blender's
+    (y, z) about x) rewritten for the engine, on every mesh in ``objs``
+    that carries one; returns the meshes touched so `pivots_to_blender`
+    can put them back. glTF is Y-up: Blender's ``(x, y, z)`` arrives as
+    ``(x, z, -y)``, so an axle at ``(y, z)`` is at the engine's ``(z, -y)``
+    -- the two coordinates the vertex stage rotates in, ``VERTEX.yz`` --
+    and Blender's v is glTF's ``1 - v``, so the second is written as
+    ``1 - (-y)``. Done here, after the merge and after everything that
+    moved a vertex, so the pivots and the vertices agree."""
+    touched = []
+    for o in objs:
+        me = getattr(o, "data", None)
+        if me is None or getattr(o, "type", "MESH") != "MESH":
+            continue
+        if geometry.map_pivots(me, lambda yz: (yz[1], 1.0 + yz[0])):
+            touched.append(me)
+    return touched
+
+
+def pivots_to_blender(meshes):
+    """The inverse of `pivots_to_engine`: ``(a, b)`` back to ``(b - 1, a)``."""
+    for me in meshes:
+        geometry.map_pivots(me, lambda ab: (ab[1] - 1.0, ab[0]))
 
 
 def _export_selection(filepath):
