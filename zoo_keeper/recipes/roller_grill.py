@@ -31,11 +31,19 @@ def _kind_material_name(kind):
 def _build_solid(prims, plan, rng, collection):
     out = []
     for mk in sorted({p["mat"] for p in prims}):
-        kind, factor = RG.vertex_tint(mk)
-        mname = _kind_material_name(kind) + ("_build" if kind == "glass" else "")
         # a part is named for its key: two keys under one part came back from
         # Blender as `<part>.001` (the slush machine's first build)
         mine = [dict(p, part=f"{p['part']}_{mk.replace('.', '_')}") for p in prims if p["mat"] == mk]
+        if mk == "lamp":
+            # the heat lamp's element, a lit face (1.57.0): `prim_mesh` builds
+            # an emissive entry with no wear and a white COLOR_0, and the
+            # name ends `_Face` so Lux's binder cuts it with the power
+            out.extend(prim_mesh.build(mine, collection, plan, rng,
+                                       {mk: ("M_Roller_Lamp_Face", list(RG.HEAT_LAMP_RGB),
+                                             "emissive", RG.HEAT_LAMP_GLOW)}, texel=1.0))
+            continue
+        kind, factor = RG.vertex_tint(mk)
+        mname = _kind_material_name(kind) + ("_build" if kind == "glass" else "")
         built = prim_mesh.build(mine, collection, plan, rng,
                                 {mk: (mname, list(RG.KIND_BASE[kind]), kind)}, texel=1.0)
         if kind == "glass":
@@ -94,6 +102,9 @@ def build(plan, streams, collection):
     objs.append(_painted([p for p in got["prims"] if p["mat"] == "paint"], A, paint, collection, streams))
     print(f"[roller_grill] rollers={f['rollers']} columns={f['columns']} kinds={f['kinds']} "
           f"dogs={f['dogs']} buns={f['buns']} art={A['name']}")
-    return {"objects": objs, "collision_boxes": [f["collision"]], "attachments": {},
+    # the heat lamp's marker (1.57.0): an attachment becomes an empty in the
+    # GLB, `LuxEmit_heat_lamp`, which the fixture spawner reads by name
+    return {"objects": objs, "collision_boxes": [f["collision"]], "attachments": dict(f["attachments"]),
             "roller_grill": {"rollers": f["rollers"], "kinds": f["kinds"], "dogs": f["dogs"],
-                             "shelf": f["shelf"], "art": A["name"], "turn": f["turn"]}}
+                             "shelf": f["shelf"], "art": A["name"], "turn": f["turn"],
+                             "heat_lamp": f["heat_lamp"]}}

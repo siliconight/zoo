@@ -1,3 +1,36 @@
+## [1.57.0] - the roller grill's heat lamp
+
+The walker, 2026-10-03, on a frame of the grill walked at night: "can we
+add a dim but warm warming light to bring a bit more light to the dogs".
+A roller grill has an infrared element under its hood, and that is the
+cause the light hangs on.
+
+What ships: a red-orange rod the width of the pan under a chrome trough,
+hung `HEAT_LAMP_DROP` below the bun shelf where there is one and below the
+hood's top where there is not, over the middle of the roller bank
+(`roller_grill_forms.heat_lamp`). The rod is the grill's one LIT FACE,
+`M_Roller_Lamp_Face` (`HEAT_LAMP_RGB`, `HEAT_LAMP_GLOW` 3.0): an emissive
+entry through `prim_mesh`, no wear, a white COLOR_0, and the `_Face` suffix
+Lux's binder cuts with the power. The prim list's facts carry an
+attachment, `LuxEmit_heat_lamp`, `HEAT_LAMP_EMIT` below the rod's axis;
+`build_module` makes every attachment an empty, so the GLB carries the
+marker by name and `LuxFixtureSpawner` stands the lamp on it, which Lux
+0.63.0's loader tunes (`heat_lamp`: 1,900 K, a third of a fluorescent, the
+hood's reach). The trough's floor sits `BURY` into the rod: a flush contact
+is a coincident pair, an overlap is not. The genome names `Roller_Lamp`.
+
+Cost: one surface and one light a grill, priced in Lux 0.63.0's changelog.
+The grill is seven submissions where it was six.
+
+Built in Blender 5.1 with the delco_1997 skins: `M_Roller_Lamp_Face` lit
+at strength 3, `LuxEmit_heat_lamp` at (0, 0.41, 0.00) in the module, the
+rod inside the hood over the dogs.
+
+Tests: the rod hangs over the dogs under the shelf or the hood and inside
+the hood at every size; its two prims wear `chrome` and `lamp`; the
+attachment sits `HEAT_LAMP_EMIT` under the axis; the bpy suite expects
+seven submissions, one lit face named for the lamp, and the marker.
+
 ## [1.56.0] - the crown carries the wind's handle
 
 The walker, 2026-10-03, on the wind design at the factory root

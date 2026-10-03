@@ -152,6 +152,22 @@ def material_name(kind):
 GLASS_OPACITY = 0.18
 #: Grease: the front roller is `chrome` at 1.0, the back one at this.
 GREASE_BACK = 0.45
+#: THE HEAT LAMP (1.57.0). The walker, 2026-10-03, on a frame of the grill
+#: at night: "a dim but warm warming light to bring a bit more light to the
+#: dogs". A roller grill has an infrared element under its hood; this is it:
+#: a red-orange rod the width of the pan, under a chrome trough, hung below
+#: the bun shelf where there is one and below the hood's top where there is
+#: not, HEAT_LAMP_DROP under that plane. The rod is a LIT FACE (`M_Roller_
+#: Lamp_Face`, Lux cuts it with the power) and the prim list carries a
+#: `LuxEmit_heat_lamp` attachment HEAT_LAMP_EMIT below the rod's axis, so
+#: `LuxFixtureSpawner` stands the lamp there and Lux's loader (>= 0.63.0)
+#: tunes it. One surface and one light a grill, priced in Lux 0.63.0.
+HEAT_LAMP_R = 0.009
+HEAT_LAMP_DROP = 0.035
+HEAT_LAMP_EMIT = 0.03
+HEAT_LAMP_RGB = (1.0, 0.36, 0.12)
+HEAT_LAMP_GLOW = 3.0
+TROUGH_H = 0.016
 #: 1.53.0: the same densities, the art drawn and lettered in smooth faces
 #: and sampled with filtering (`card_art.atlas` gutters round each tile).
 TEXEL = 400
@@ -217,6 +233,18 @@ def shelf_z(h):
     """The bun shelf's underside, or None when the hood is too low for it."""
     room = h - (CAB_H + PAN_H)
     return CAB_H + PAN_H + room * 0.55 if room >= SHELF_ROOM else None
+
+
+def heat_lamp(w, d, h):
+    """``(x0, x1, y, z)`` of the heat lamp's rod: across the pan under the
+    bun shelf (or the hood's top), over the middle of the roller bank."""
+    G = geometry(w, d, h)
+    zs = shelf_z(h)
+    plane = zs if zs else h - HOOD_T
+    z = plane - HEAT_LAMP_DROP - HEAT_LAMP_R
+    rs = rollers(d, h)
+    y = (rs[0][0] + rs[-1][0]) / 2.0
+    return (-G["ci"] + 0.02, G["ci"] - 0.02, y, z)
 
 
 def columns(ci):
@@ -291,6 +319,13 @@ def layout(w, d, h, variant=0):
             out.append(P.turning(P.rod("Roller_Dog", "dog_" + kid, (x0, y, z), (x0 + length, y, z), r, segments=6),
                                  "x", (y, z)))
             dogs += 1
+    # --- the heat lamp: a chrome trough and the glowing rod under it ----------------------
+    lx0, lx1, ly, lz = heat_lamp(w, d, h)
+    # the trough's floor sits BURY into the rod's top: a flush contact is a
+    # coincident pair (`coincident_pairs`), an overlap is not
+    out.append(P.box("Roller_Lamp", "chrome", (lx0 - 0.01, ly - 0.03, lz + HEAT_LAMP_R - BURY),
+                     (lx1 + 0.01, ly + 0.03, lz + HEAT_LAMP_R - BURY + TROUGH_H)))
+    out.append(P.rod("Roller_Lamp", "lamp", (lx0, ly, lz), (lx1, ly, lz), HEAT_LAMP_R, segments=6))
     # the dividers, chrome rods lying on the bank between columns
     (ya, za), (yb, zb) = rs[0], rs[-1]
     for cx0, _cx1 in cols[1:]:
@@ -334,6 +369,8 @@ def layout(w, d, h, variant=0):
                 buns += 1
     facts = {"rollers": n, "columns": len(cols), "kinds": kinds, "dogs": dogs, "buns": buns,
              "shelf": zs is not None, "turn": turn_rates(),
+             "heat_lamp": {"x0": lx0, "x1": lx1, "y": ly, "z": lz},
+             "attachments": {"LuxEmit_heat_lamp": ((lx0 + lx1) / 2.0, ly, lz - HEAT_LAMP_EMIT)},
              "collision": ((-w / 2.0, -d / 2.0, 0.0), (w / 2.0, d / 2.0, h))}
     return out, facts
 

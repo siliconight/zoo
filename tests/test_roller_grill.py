@@ -180,20 +180,23 @@ def test_bpy_the_grill_passes_and_fits(tmp_path, dims):
         assert "." not in o.name, o.name
 
 
-def test_bpy_six_submissions_nothing_lit_and_the_glass_is_clear(tmp_path):
-    """Four until 1.55.0; the rollers and the dogs are two surfaces of their
-    own now, because a part that turns on its own needs a surface of its own."""
+def test_bpy_seven_submissions_one_lit_and_the_glass_is_clear(tmp_path):
+    """Four until 1.55.0, six with the rollers and the dogs as surfaces of
+    their own, seven with the heat lamp's element (1.57.0): the one lit
+    face of the grill, and a `LuxEmit_heat_lamp` empty below it."""
     pytest.importorskip("bpy")
     from zoo_keeper.core import partnames
     res, _objs = _build(tmp_path, R.DC_SIZES[0])
     doc = _glb_json(os.path.join(str(tmp_path), res["files"]["glb"]))
     names = [m["name"] for m in doc["materials"]]
-    assert len(names) == 6, names
+    assert len(names) == 7, names
     assert sorted(n for n in names if "_turn_" in n) == sorted(
         R.material_name(k) for k in ("metal_bare_turn", "metal_painted_turn")), names
     visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
-    assert sum(len(m["primitives"]) for m in visual) == 6, [m["name"] for m in visual]
-    assert [m["name"] for m in doc["materials"] if m.get("emissiveFactor") and any(m["emissiveFactor"])] == []
+    assert sum(len(m["primitives"]) for m in visual) == 7, [m["name"] for m in visual]
+    lit = [m["name"] for m in doc["materials"] if m.get("emissiveFactor") and any(m["emissiveFactor"])]
+    assert lit == ["M_Roller_Lamp_Face"], lit
+    assert [n["name"] for n in doc["nodes"] if n["name"].startswith("LuxEmit_")] == ["LuxEmit_heat_lamp"]
     assert [m["name"] for m in doc["materials"] if m.get("alphaMode") == "BLEND"] == ["M_Roller_glass"]
 
 
@@ -358,3 +361,30 @@ def test_bpy_the_turning_prims_carry_their_axles_in_the_engine_s_axes(tmp_path):
             else:
                 assert all(any(abs(d - r) < 2e-4 for r in radii) for d in ds), (min(ds), max(ds))
     assert [n for n, h in seen.items() if h] and all(("_turn_" in n) == h for n, h in seen.items()), seen
+
+
+# --- 1.57.0: the heat lamp ----------------------------------------------------------------
+
+
+def test_the_heat_lamp_hangs_over_the_dogs_under_the_shelf_or_the_hood():
+    """The rod runs across the pan over the middle of the roller bank, below
+    the bun shelf where there is one and below the hood's top where there is
+    not, with the marker a little under it; and it is inside the hood."""
+    for dims in (R.DC_SIZES[0], (0.7, 0.5, 1.3), (1.4, 0.8, 1.6)):
+        w, d, h = dims
+        got = R.plan(*dims)
+        lx0, lx1, ly, lz = R.heat_lamp(w, d, h)
+        rs = R.rollers(d, h)
+        zs = R.shelf_z(h)
+        plane = zs if zs else h - R.HOOD_T
+        assert lz < plane - R.HEAT_LAMP_DROP
+        assert max(z for _y, z in rs) + R.ROLLER_R + 0.03 < lz, "the rod is on the dogs"
+        assert rs[0][0] < ly < rs[-1][0]
+        G = R.geometry(w, d, h)
+        assert -G["ci"] < lx0 < lx1 < G["ci"]
+        lamp = [p for p in got["prims"] if p["part"] == "Roller_Lamp"]
+        assert len(lamp) == 2 and {p["mat"] for p in lamp} == {"chrome", "lamp"}
+        mx, my, mz = got["facts"]["attachments"]["LuxEmit_heat_lamp"]
+        assert abs(mx - (lx0 + lx1) / 2.0) < 1e-9 and abs(my - ly) < 1e-9
+        assert mz == lz - R.HEAT_LAMP_EMIT
+        assert got["facts"]["heat_lamp"] == {"x0": lx0, "x1": lx1, "y": ly, "z": lz}
