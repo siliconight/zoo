@@ -91,7 +91,11 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # recipe, the way the display case's aluminium frame is, so
            # bare metal is not an option a slot can ask for and the
            # species sits here rather than in BARE
-           "cash_register")
+           "cash_register",
+           # a dumpster is painted plate, its fleet colour in the
+           # painted atlas; its lids are plastic in the same image
+           # (1.58.0)
+           "dumpster")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)

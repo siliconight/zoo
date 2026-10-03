@@ -503,6 +503,11 @@ def paint(spec):
     if kind.startswith("atm_"):
         from . import atm_forms as AF
         return AF.paint(spec)
+    # THE DUMPSTER (1.58.0): its plate, sticker, lids and trim are
+    # `dumpster_forms`' tiles
+    if kind.startswith("dumpster_"):
+        from . import dumpster_forms as DF
+        return DF.paint(spec)
     # THE PUMP (1.36.0): its panels, price wheels and header are
     # `pump_forms`' tiles
     if kind.startswith("pump_"):

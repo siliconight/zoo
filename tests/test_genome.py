@@ -71,7 +71,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "roller_grill",
                 # the roadside price pylon (1.19.0): brand, prices to the
                 # nine-tenths, both faces lit
-                "price_pylon"}
+                "price_pylon",
+                # the front-load dumpster (1.58.0)
+                "dumpster"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

@@ -404,7 +404,11 @@ DID_NOT_BUILD = {"boots"}
 #: shelf, the kick ending on the back board's face -- fixed at the source.
 #: 1.44.0: the rack revised (spines out, painted, a display form); the same
 #: three builds, "0 with coincident pairs" (360 / 1,668 / 5,028 tris).
-CENSUS_BUILDS = 351
+#: 1.58.0: `dumpster`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build", 92 tris at
+#: each corner. Its test runs `coincident_pairs` over 27 sizes x 4
+#: haulers.
+CENSUS_BUILDS = 354
 
 
 def test_the_census_covers_every_species_there_is():
