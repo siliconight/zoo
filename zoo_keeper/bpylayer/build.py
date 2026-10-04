@@ -350,6 +350,12 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
         "dressing_fallbacks": plan.get("dressing_fallbacks", []),
         "n_fail": n_fail,
         "n_missing": n_missing,
+        # Two geometries planned under one name (1.62.0): one file overwrote
+        # the other and the loser's slots got the winner's module. Printed
+        # since `plan_kit` was written and read by nobody -- cold run 9148
+        # shipped six Empties' 2.8 m walls into 3.1 m slots with the warning
+        # in every log. In the index, and it fails the build (`zoo_cli`).
+        "stem_collisions": plan.get("stem_collisions", []),
     }
     index_file = f"{building_id}_kit.built.json"
     meta_mod.write_meta(os.path.join(out_dir, index_file), index)
@@ -383,6 +389,7 @@ def build_kit(manifest: dict, out_dir: str, theme: str = "delco",
     return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
             "style": int(style), "modules": modules, "n_fail": n_fail,
             "n_missing": n_missing,
+            "stem_collisions": plan.get("stem_collisions", []),
             "missing_modules": plan.get("missing_modules", []),
             "deferred_variants": plan.get("deferred_variants", []),
             "results": results, "index_file": index_file}

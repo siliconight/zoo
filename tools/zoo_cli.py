@@ -459,7 +459,18 @@ def build_kit_run(args):
     print(f"[zoo] index: {res['index_file']}")
     print("[zoo] copy these into your game's art/zoo/ so Deli Counter's "
           "resolver swaps them in.")
-    return 0 if res["n_fail"] == 0 else 2
+    for c in res.get("stem_collisions", []):
+        print("[zoo] REFUSED: STEM COLLISION %s -- %d geometries planned under "
+              "one name; the kit is wrong whichever was written last"
+              % (c.get("stem"), c.get("count", 0)))
+    return kit_exit_code(res)
+
+
+def kit_exit_code(res):
+    """2 when the kit is wrong, else 0: a module failed to build, or two
+    geometries were planned under one name (1.62.0) -- the second is a module
+    in the wrong place as surely as the first is a missing one."""
+    return 0 if res.get("n_fail", 0) == 0 and not res.get("stem_collisions") else 2
 
 
 def dress_run(args):
