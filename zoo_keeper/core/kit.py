@@ -749,7 +749,16 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             # keying them on their slot dims split one unit module into two
             # identical ones. `test_plan_collapses_to_distinct_modules` caught
             # it, and it was right to.
-            dims_key = (tuple(round(float(v), 4) for v in dims[:3])
+            #
+            # IN WHOLE CENTIMETRES, the resolution the name carries (1.63.0).
+            # Grouped to 0.1 mm, two slots a millimetre apart -- Deli
+            # Counter's parapet tiles, cut at millimetre-snapped lines, 4.514
+            # and 4.515 m on the freight terminal in cold run 9149 -- were two
+            # modules under ONE name, and the collision refusal (1.62.0)
+            # stopped the run. A group finer than its name is a collision by
+            # construction; two slots that can only get one name are one
+            # module, built to the first slot's dims.
+            dims_key = (tuple(int(round(float(v) * 100)) for v in dims[:3])
                         if exact else None)
             # Keyed on the material TAG, not the slot's raw material (0.89.0):
             # a slot with no material, one naming an unknown kind and one
