@@ -16,6 +16,15 @@ from ..core import arch, partnames
 #: off-white wall, the drywall a 1990s store is painted.
 INNER_COLOR = (0.82, 0.80, 0.74)
 
+#: AN EMPTY'S DOOR (1.61.0): a painted panel door, set back from the street
+#: face the depth a real frame recesses it, and as thick as a solid-core door.
+#: Navy, one of the rowhouse comp's three door colours
+#: (`docs/reference/EMPTIES_COMPS.md`); per-house colour is instance data,
+#: not a material per colour, when it comes.
+FACADE_DOOR_SETBACK = 0.08
+FACADE_DOOR_THICK = 0.045
+FACADE_DOOR_COLOR = (0.16, 0.20, 0.28)
+
 
 def build_slab(plan, streams, collection, species):
     dims = plan["dimensions"]
@@ -214,5 +223,28 @@ def build_slab(plan, streams, collection, species):
             plan.get("glass_color", [0.55, 0.66, 0.72]), glazing_kind)
         materials.assign([pane], glass)
         objs.append(pane)
+
+    # AN EMPTY'S DOOR IS SHUT (1.61.0). A doorway tagged `glazing: "facade"`
+    # belongs to a shell with nothing behind it (Deli Counter >= 0.178.0), the
+    # same tag that glazes its windows opaque. Its collision has been solid
+    # since Deli Counter 0.174.0; drawn as an open frame it was a doorway the
+    # player could see into and not walk through. Filled with a leaf, set back
+    # from the +Y street face (+Y is outdoors, see THE ROOM FACE above), no
+    # collision of its own -- the wall's box already holds. After the room
+    # face, like the panes: a door is not structure.
+    if species == "doorway" and void and plan.get("glazing_kind") == "glass_facade":
+        lw = void["x1"] - void["x0"]
+        lh = void["z1"] - void["z0"]
+        bm = geometry.new_bm()
+        geometry.add_box(bm, ((void["x0"] + void["x1"]) / 2.0,
+                              d / 2.0 - FACADE_DOOR_SETBACK - FACADE_DOOR_THICK / 2.0,
+                              (void["z0"] + void["z1"]) / 2.0),
+                         (lw - 0.004, FACADE_DOOR_THICK, lh - 0.002))
+        leaf = geometry.bm_to_object(
+            bm, f"{root}_Leaf", collection, bevel=bevel, texel=1.0,
+            rng=rng, wear=wear, smooth_angle=_WALL_SMOOTH, butt_planes=butts)
+        materials.assign([leaf], materials.make_material(
+            "M_Door_wood_panel", plan.get("door_color", FACADE_DOOR_COLOR), "wood_panel"))
+        objs.append(leaf)
 
     return {"objects": objs, "collision_boxes": cboxes, "attachments": {}}
