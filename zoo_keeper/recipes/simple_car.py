@@ -842,8 +842,23 @@ def build(plan, streams, collection):
         "bumper_grey": materials.make_material(
             "M_Car_bumper_grey", list(car_forms.CLADDING["grey"]), "metal_painted"),
     }
+    # ONE PAINTED MATERIAL (1.59.0): every `metal_painted` part wears
+    # `car_forms.PAINTED` and carries its own colour in `Wear`, so the
+    # merge packs them into one mesh -- the same base colour glTF computed
+    # from the material's factor, moved into COLOR_0, which Level Factory's
+    # import draws as albedo. A lamp renamed to light at night (see the
+    # lamps above) would have to leave this material again.
+    tints = car_forms.paint_tints(f, kind_paint)
+    painted = materials.make_material("M_Car_painted", list(car_forms.PAINTED),
+                                      "metal_painted")
     for key, obj in by_group.items():
-        materials.assign([obj], mats[key])
+        if key not in tints:
+            materials.assign([obj], mats[key])
+            continue
+        materials.assign([obj], painted)
+        if not geometry.tint_wear(obj, tints[key]):
+            raise RuntimeError(f"simple_car: {obj.name} has no Wear layer, so its "
+                               f"paint would not land")
     glass = materials.make_see_through_material("M_Car_glass", list(GLASS_TINT), GLASS_OPACITY)
     materials.assign(glass_objs, glass)
 

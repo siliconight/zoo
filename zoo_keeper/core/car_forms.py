@@ -181,6 +181,38 @@ CLADDING = {"tan": (0.42, 0.34, 0.22), "silver": (0.40, 0.42, 0.44),
 INTERIOR = {"grey": (0.24, 0.24, 0.25), "tan": (0.40, 0.33, 0.24),
             "blue_grey": (0.18, 0.21, 0.27)}
 
+
+#: THE PAINTED PARTS (1.59.0). Every part of a car painted with the
+#: `metal_painted` pack, by the recipe's group key, and the colour it wears
+#: when it is not the body's paint or the cladding: brightwork, the three lamp
+#: lenses, the plate and the grey bumper. These are the colours the recipe
+#: passed to `make_material` before 1.59.0, moved here so a test can hold them.
+#: They share ONE material, `PAINTED`, whose base is white; each part carries
+#: its colour in its `Wear` attribute (`geometry.tint_wear`), so
+#: `merge.pack_by_material` packs them into one mesh. Before, a tintable pack
+#: made one material per colour and a car was 9-11 materials, 10-12 draws.
+PAINTED = (1.0, 1.0, 1.0)
+FIXED_PAINT = {
+    "chrome": (0.66, 0.67, 0.68),
+    "lamp_head": (0.86, 0.88, 0.87),
+    "lamp_tail": (0.50, 0.03, 0.03),
+    "lamp_amber": (0.80, 0.38, 0.03),
+    "plate": (0.80, 0.78, 0.62),
+    "bumper_grey": CLADDING["grey"],
+}
+
+
+def paint_tints(form, body_kind="metal_painted"):
+    """{group key: rgb} for every part that wears `PAINTED`, from a car's
+    form. The body joins only when its kind is `metal_painted` -- a genome
+    may ask for `plastic`, which is another pack and keeps its own material.
+    Pure."""
+    out = dict(FIXED_PAINT)
+    out["cladding"] = tuple(CLADDING[form["cladding"]])
+    if body_kind == "metal_painted":
+        out["body"] = tuple(form["paint"])
+    return out
+
 DEFAULT = "sedan"
 
 
