@@ -594,8 +594,14 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         depth_cm = (int(round(dims[1] * 100))
                     if exact and typ in PLATE_ROLES + VOLUME_ROLES + CORNER_ROLES
                     else None)
+        # `fit.key_height` (1.60.0): Deli Counter (>= 0.176.0) marks a slot
+        # whose name would otherwise cover two heights in one building -- an
+        # Empty's 3.1 m walls and its 2.8 m walls under the roof were one
+        # name, and the later build overwrote the earlier. Unmarked, every
+        # name is unchanged. `themed_tscn.resolve_themed_stem` is the mirror.
         height_cm = (int(round(dims[2] * 100))
-                     if exact and typ in VOLUME_ROLES + CORNER_ROLES else None)
+                     if exact and (typ in VOLUME_ROLES + CORNER_ROLES
+                                   or fit.get("key_height")) else None)
         vtag = void_tag(fit.get("voids")) if typ in PLATE_ROLES else None
         otag = (opening_tag(fit.get("openings"))
                 if typ in OPENING_ROLES else None)
