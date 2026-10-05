@@ -95,6 +95,23 @@ STRAP_IN = 0.14
 IRON_COVERS = ("window_bars",)
 IRON_COLOR = (0.07, 0.07, 0.07)
 
+#: AN EMPTY'S STONE LINTELS AND SILLS (1.71.0). The walker's South Philly
+#: photograph: "white stone lintels and sills over and under every window".
+#: A lintel stands on the opening's HEAD, 20 cm tall, bearing 10 cm into the
+#: brick past each jamb and 2.8 cm proud -- behind the bars, whose uprights
+#: run up past the head 3.1 cm off the wall. A sill hangs below the SILL
+#: line, 7 cm deep, 6 cm proud so it reads as a ledge, 5 cm past each jamb.
+#: Both stand 1 mm off the wall face.
+LINTEL_H, LINTEL_PROUD, LINTEL_BEAR = 0.20, 0.028, 0.10
+SILL_H, SILL_PROUD, SILL_BEAR = 0.07, 0.06, 0.05
+#: In `plaster` -- Pixelcoat's `plaster_delco`, cream and matte, the nearest
+#: skin to the photograph's white stone that a cover already offers. One more
+#: material, so one more surface on a side that has openings. The colour is
+#: the flat fallback; the pack is not tintable.
+STONE_TRIM_COVERS = ("lintel", "window_sill")
+STONE_TRIM_KIND = "plaster"
+STONE_TRIM_COLOR = (0.80, 0.76, 0.68)
+
 #: The gutter's sheet, drawn thicker than aluminium so it holds at street
 #: distance; its front stands a little lower than its back, as a hung gutter's
 #: does; and a rolled bead runs along the top of the front.
@@ -260,6 +277,9 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
     # and an Empty's window bars are black painted iron (1.69.0)
     elif order.get("cover") in IRON_COVERS and METAL_KIND in genome["materials"]["options"]:
         material, color = METAL_KIND, [round(float(c), 4) for c in IRON_COLOR]
+    # and its lintels and sills are stone-coloured plaster (1.71.0)
+    elif order.get("cover") in STONE_TRIM_COVERS and STONE_TRIM_KIND in genome["materials"]["options"]:
+        material, color = STONE_TRIM_KIND, [round(float(c), 4) for c in STONE_TRIM_COLOR]
     return {
         "species": "dress_cover",
         "tool_version": tool_version,
@@ -471,6 +491,22 @@ def bar_parts(opening_w: float, opening_h: float):
             parts.append(((sx * (ow / 2.0 + STRAP_REACH - 0.02), 0.001 + (back - 0.001) / 2.0, z),
                           (0.03, back - 0.001, 0.03)))
     return parts
+
+
+def lintel_parts(opening_w: float):
+    """A stone lintel (1.71.0): one block standing on the opening's head --
+    z from 0 up, where Patina orders it -- bearing past both jambs, 1 mm off
+    the wall face."""
+    w = float(opening_w) + 2.0 * LINTEL_BEAR
+    return [((0.0, 0.001 + LINTEL_PROUD / 2.0, LINTEL_H / 2.0), (w, LINTEL_PROUD, LINTEL_H))]
+
+
+def sill_parts(opening_w: float):
+    """A stone sill (1.71.0): one block hung below the sill line -- z from 0
+    down, where Patina orders it -- projecting as a ledge, 1 mm off the wall
+    face."""
+    w = float(opening_w) + 2.0 * SILL_BEAR
+    return [((0.0, 0.001 + SILL_PROUD / 2.0, -SILL_H / 2.0), (w, SILL_PROUD, SILL_H))]
 
 
 def frame_strips(w: float, h: float, frame_w: float, proud: float):
