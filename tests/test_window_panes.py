@@ -54,6 +54,42 @@ def test_each_state_s_uvs_sit_inside_its_own_cell():
         assert 1 - y1 / h < v0 < v1 < 1 - y0 / h
 
 
+def _inside(uv, state):
+    u0, v0, u1, v1 = P.uv_rect(state)
+    return u0 - 1e-9 <= uv[0] <= u1 + 1e-9 and v0 - 1e-9 <= uv[1] <= v1 + 1e-9
+
+
+def test_both_big_faces_carry_the_cell_and_the_edges_the_frame():
+    """FAILS ON 1.65.0: only the +Y face was painted, and cold run 9151
+    measured that face pointing INTO the house -- the street saw frame paint."""
+    box = (0.0, 1.55, 0.475, 0.8)          # cx, cz, hx, hz
+    for ny in (1.0, -1.0):
+        for x in (-0.475, 0.475):
+            for z in (0.75, 2.35):
+                assert _inside(P.face_uv("lit_amber", ny, x, z, *box), "lit_amber")
+    assert P.face_uv("lit_amber", 0.0, 0.475, 1.5, *box) == P.frame_uv()
+    a, _ = P.atlas()
+    w, h = P.COLS * P.CELL_W, P.ROWS * P.CELL_H
+    fu, fv = P.frame_uv()
+    assert a.get(int(fu * w), min(h - 1, int((1 - fv) * h))) == P.FRAME_RGB
+
+
+def test_each_face_reads_unmirrored_from_its_own_side():
+    """Seen from +Y the viewer's right is -X; seen from -Y it is +X. On both,
+    u must grow toward the viewer's right, or one side shows the cell
+    mirrored."""
+    box = (0.0, 1.55, 0.475, 0.8)
+    left_from_plus = P.face_uv("lit", 1.0, 0.4, 1.5, *box)[0]
+    right_from_plus = P.face_uv("lit", 1.0, -0.4, 1.5, *box)[0]
+    assert right_from_plus > left_from_plus
+    left_from_minus = P.face_uv("lit", -1.0, -0.4, 1.5, *box)[0]
+    right_from_minus = P.face_uv("lit", -1.0, 0.4, 1.5, *box)[0]
+    assert right_from_minus > left_from_minus
+    # and up is up on both: v grows with z
+    assert P.face_uv("lit", 1.0, 0.0, 2.3, *box)[1] > P.face_uv("lit", 1.0, 0.0, 0.8, *box)[1]
+    assert P.face_uv("lit", -1.0, 0.0, 2.3, *box)[1] > P.face_uv("lit", -1.0, 0.0, 0.8, *box)[1]
+
+
 def _window(pane=None, glazing="facade"):
     s = {"slot_id": "w", "role": "window", "size_mod": "full", "style": 1,
          "material": "brick", "fit": {"dims": [0.95, 0.3, 3.1], "pivot": "center",

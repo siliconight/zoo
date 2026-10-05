@@ -215,26 +215,21 @@ def build_slab(plan, streams, collection, species):
         glazing_kind = plan.get("glazing_kind", "glass")
         state = plan.get("pane")
         if glazing_kind == "glass_facade" and state in window_panes.STATES:
-            # A PAINTED PANE (1.64.0): the street face (+Y, outdoors) shows
-            # its state's cell of the shared atlas; every other face takes a
-            # point of the frame paint. Own UVs, so `finish=False` -- the
+            # A PAINTED PANE (1.64.0): both big faces show the state's cell
+            # of the shared atlas, each unmirrored from its own side, and the
+            # thin edges take frame paint (`window_panes.face_uv`, 1.66.0 --
+            # 1.64.0 painted only +Y, and cold run 9151 measured that face
+            # pointing into the house). Own UVs, so `finish=False` -- the
             # cube projection would overwrite them -- and a white COLOR_0,
             # which Level Factory's import multiplies by.
-            u0, v0, u1, v1 = window_panes.uv_rect(state)
-            frame = window_panes.uv_rect("lit")[0] * 0.25
             uv = bm.loops.layers.uv.new("UVMap")
             hx, hz = pane_w * 0.49, pane_h * 0.49
             bm.normal_update()
             for face in bm.faces:
                 for loop in face.loops:
-                    if face.normal.y > 0.9:
-                        co = loop.vert.co
-                        # seen from +Y looking at -Y, +X is the viewer's
-                        # LEFT: u runs from the +X edge, or the cell mirrors
-                        loop[uv].uv = (u0 + (u1 - u0) * ((cx + hx) - co.x) / (2 * hx),
-                                       v0 + (v1 - v0) * (co.z - (cz - hz)) / (2 * hz))
-                    else:
-                        loop[uv].uv = (frame, frame)
+                    co = loop.vert.co
+                    loop[uv].uv = window_panes.face_uv(
+                        state, face.normal.y, co.x, co.z, cx, cz, hx, hz)
             geometry.wear_colors(bm, streams.stream("pane"), 0.0)
             pane = geometry.bm_to_object(bm, f"{root}_Glass", collection,
                                          finish=False, bevel=0.0)

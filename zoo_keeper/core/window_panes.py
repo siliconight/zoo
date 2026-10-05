@@ -128,6 +128,36 @@ def uv_rect(state):
             (x1 - FRAME) / w, 1.0 - (y0 + FRAME) / h)
 
 
+def frame_uv():
+    """A UV point inside frame paint: the faces of a pane nobody looks at
+    straight on (its thin edges) take the frame colour from here."""
+    f = uv_rect(STATES[0])[0] * 0.25
+    return (f, f)
+
+
+def face_uv(state, normal_y, x, z, cx, cz, hx, hz):
+    """The UV of one corner of a pane's face (1.66.0).
+
+    ``normal_y`` is the face normal's Y in the module's own frame; ``x``, ``z``
+    the corner; ``cx``, ``cz``, ``hx``, ``hz`` the pane's centre and half size.
+
+    BOTH BIG FACES CARRY THE CELL. 1.64.0 painted only the +Y face, on the
+    assumption that +Y is outdoors, and cold run 9151 measured the painted
+    face pointing INTO the houses: the street saw frame paint. Painting both
+    faces makes the answer independent of how a module is turned.
+
+    EACH READS UNMIRRORED FROM ITS OWN SIDE. Looking along the view direction
+    ``d`` with up +Z, the viewer's right is ``d x up``: -X for a viewer on
+    the +Y side, +X on the -Y side. ``u`` runs toward that right on both.
+    The thin faces take `frame_uv`.
+    """
+    if abs(normal_y) < 0.9:
+        return frame_uv()
+    u0, v0, u1, v1 = uv_rect(state)
+    t = ((cx + hx) - x) / (2 * hx) if normal_y > 0 else (x - (cx - hx)) / (2 * hx)
+    return (u0 + (u1 - u0) * t, v0 + (v1 - v0) * (z - (cz - hz)) / (2 * hz))
+
+
 def _room(c, e, x0, y0, x1, y1, light):
     """A lit room behind the glass, into albedo ``c`` and emission ``e``."""
     top, mid, low = light
