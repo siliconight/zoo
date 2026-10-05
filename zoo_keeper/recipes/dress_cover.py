@@ -32,6 +32,12 @@ anchor normal:
   (1.71.0; ``core.dressing.sill_parts``).
 * ``security_door`` — an Empty's black iron security door in its doorway's
   reveal (1.72.0; ``core.dressing.security_door_parts``).
+* ``tv_antenna``   — an Empty's rooftop TV antenna: a mast, and a boom toward
+  the transmitter with its elements (1.74.0; ``size2`` = [boom, mast];
+  ``core.dressing.antenna_parts``).
+* ``sat_dish``     — an Empty's satellite dish on a roof pole, its bowl tilted
+  up toward the satellite (1.74.0; ``size2`` = [width, the bowl's height];
+  ``core.dressing.dish_parts``).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -60,7 +66,8 @@ carried, not used.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core.dressing import (ac_parts, bar_parts, downspout_parts, frame_strips,
+from ..core.dressing import (DISH_R, DISH_TILT, ac_parts, antenna_parts, bar_parts,
+                             dish_parts, downspout_parts, frame_strips,
                              gutter_parts, lintel_parts, security_door_parts,
                              sill_parts, strip_size, uv_offset)
 
@@ -110,6 +117,28 @@ def build(plan, streams, collection):
             parts = sill_parts(ow)
         for center, size in parts:
             geometry.add_box(bm, center, size)
+    elif cover == "tv_antenna":
+        # an Empty's rooftop TV antenna (1.74.0); `size2` is [boom, mast]
+        boom, mast = (order.get("size2") or [2.0, 2.8])[:2]
+        for center, size in antenna_parts(boom, mast):
+            geometry.add_box(bm, center, size)
+    elif cover == "sat_dish":
+        # and its satellite dish (1.74.0); `size2` is [width, the bowl's
+        # height above the roof]. The head is built level and tilted up to
+        # the satellite about the bowl's centre.
+        import math
+
+        import bmesh
+        from mathutils import Matrix, Vector
+        _w, centre_h = (order.get("size2") or [0.5, 1.2])[:2]
+        mount, head, bc = dish_parts(centre_h)
+        for center, size in mount:
+            geometry.add_box(bm, center, size)
+        verts = list(geometry.add_ellipsoid(bm, bc, DISH_R, u_seg=12, v_seg=6))
+        for (hx, hy, hz), size in head:
+            verts += list(geometry.add_box(bm, (bc[0] + hx, bc[1] + hy, bc[2] + hz), size))
+        bmesh.ops.rotate(bm, verts=verts, cent=Vector(bc),
+                         matrix=Matrix.Rotation(math.radians(-DISH_TILT), 3, "Y"))
     else:
         w, d, h = strip_size(cover, order.get("size", 0.6),
                              order.get("size2"))
