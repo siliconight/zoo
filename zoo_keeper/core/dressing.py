@@ -92,7 +92,7 @@ STRAP_REACH = 0.07
 STRAP_IN = 0.14
 #: Black painted iron: the same painted metal in a second colour, so ONE more
 #: surface on a side that has bars, however many windows they cover.
-IRON_COVERS = ("window_bars",)
+IRON_COVERS = ("window_bars", "security_door")
 IRON_COLOR = (0.07, 0.07, 0.07)
 
 #: AN EMPTY'S STONE LINTELS AND SILLS (1.71.0). The walker's South Philly
@@ -507,6 +507,41 @@ def sill_parts(opening_w: float):
     face."""
     w = float(opening_w) + 2.0 * SILL_BEAR
     return [((0.0, 0.001 + SILL_PROUD / 2.0, -SILL_H / 2.0), (w, SILL_PROUD, SILL_H))]
+
+
+#: AN EMPTY'S IRON SECURITY DOOR (1.72.0). The walker's South Philly
+#: photograph: "a black iron security door with a grille". Hung in the
+#: doorway's reveal: from 6 cm to 2 cm behind the wall face, so 2 cm in front
+#: of the leaf `_arch` sets back 8 cm. Two stiles and three rails -- top,
+#: bottom and the lock rail at handle height -- with uprights between, and a
+#: lock box on the lock rail. In the bars' black iron, so on a side with bars
+#: it merges into their mesh.
+SEC_Y0, SEC_Y1 = -0.06, -0.02
+SEC_STILE = SEC_RAIL = 0.05
+SEC_BAR = 0.016
+SEC_PITCH = 0.11
+SEC_LOCK_Z = 1.0
+
+
+def security_door_parts(opening_w: float, opening_h: float):
+    """An iron security door's parts (1.72.0), as (center, size) boxes in
+    cover-local space with z about the opening's centre, where Patina orders
+    it: 5 mm clear of the jambs and head, the threshold at the bottom."""
+    ow, oh = float(opening_w), float(opening_h)
+    w, h = ow - 0.01, oh - 0.01
+    y, d = (SEC_Y0 + SEC_Y1) / 2.0, SEC_Y1 - SEC_Y0
+    zb = -h / 2.0
+    parts = [((sx * (w / 2.0 - SEC_STILE / 2.0), y, 0.0), (SEC_STILE, d, h))
+             for sx in (-1.0, 1.0)]
+    inner = w - 2.0 * SEC_STILE
+    for z in (zb + SEC_RAIL / 2.0, zb + h - SEC_RAIL / 2.0, zb + SEC_LOCK_Z):
+        parts.append(((0.0, y, z), (inner + 0.002, d, SEC_RAIL)))
+    n = max(2, int(round(inner / SEC_PITCH)) - 1)
+    pitch = inner / (n + 1)
+    for j in range(1, n + 1):
+        parts.append(((-inner / 2.0 + j * pitch, y, 0.0), (SEC_BAR, SEC_BAR, h - 2.0 * SEC_RAIL + 0.002)))
+    parts.append(((inner / 2.0 - 0.05, SEC_Y1 + 0.0115, zb + SEC_LOCK_Z + 0.07), (0.07, 0.024, 0.14)))
+    return parts
 
 
 def frame_strips(w: float, h: float, frame_w: float, proud: float):

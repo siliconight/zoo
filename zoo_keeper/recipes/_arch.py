@@ -9,7 +9,7 @@ come from the pure ``core.arch`` module so they stay unit-testable.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core import arch, partnames, window_panes
+from ..core import arch, doors, partnames, window_panes
 
 
 #: The flat colour a room face falls back to with no skin library: a warm
@@ -19,8 +19,13 @@ INNER_COLOR = (0.82, 0.80, 0.74)
 #: AN EMPTY'S DOOR (1.61.0): a painted panel door, set back from the street
 #: face the depth a real frame recesses it, and as thick as a solid-core door.
 #: Navy, one of the rowhouse comp's three door colours
-#: (`docs/reference/EMPTIES_COMPS.md`); per-house colour is instance data,
-#: not a material per colour, when it comes.
+#: (`docs/reference/EMPTIES_COMPS.md`).
+#:
+#: CORRECTED (1.72.0): that navy never showed. It is the FLAT colour, and a
+#: skinned `wood_panel` takes no tint, so every Empty door rendered brown. A
+#: house's finish now rides in the module (`doors.FINISHES`, `_e<finish>`),
+#: painted metal for the paints. It costs no draw: a doorway module is drawn
+#: once per placement either way. This colour stays the unpainted leaf's.
 FACADE_DOOR_SETBACK = 0.08
 FACADE_DOOR_THICK = 0.045
 FACADE_DOOR_COLOR = (0.16, 0.20, 0.28)
@@ -271,8 +276,11 @@ def build_slab(plan, streams, collection, species):
         leaf = geometry.bm_to_object(
             bm, f"{root}_Leaf", collection, bevel=bevel, texel=1.0,
             rng=rng, wear=wear, smooth_angle=_WALL_SMOOTH, butt_planes=butts)
-        materials.assign([leaf], materials.make_material(
-            "M_Door_wood_panel", plan.get("door_color", FACADE_DOOR_COLOR), "wood_panel"))
+        # in its house's finish (1.72.0, Deli Counter >= 0.182.0); no finish
+        # is the stained `wood_panel` leaf every Empty door had
+        name, colour, kind = doors.leaf_material(
+            plan.get("door"), plan.get("door_color", FACADE_DOOR_COLOR))
+        materials.assign([leaf], materials.make_material(name, colour, kind))
         objs.append(leaf)
 
     return {"objects": objs, "collision_boxes": cboxes, "attachments": {}}

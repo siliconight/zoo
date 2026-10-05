@@ -30,6 +30,8 @@ anchor normal:
   (1.71.0; ``core.dressing.lintel_parts``).
 * ``window_sill``  — an Empty's stone sill hung below a window's sill line
   (1.71.0; ``core.dressing.sill_parts``).
+* ``security_door`` — an Empty's black iron security door in its doorway's
+  reveal (1.72.0; ``core.dressing.security_door_parts``).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -59,8 +61,8 @@ from __future__ import annotations
 
 from ..bpylayer import geometry, materials
 from ..core.dressing import (ac_parts, bar_parts, downspout_parts, frame_strips,
-                             gutter_parts, lintel_parts, sill_parts, strip_size,
-                             uv_offset)
+                             gutter_parts, lintel_parts, security_door_parts,
+                             sill_parts, strip_size, uv_offset)
 
 
 def build(plan, streams, collection):
@@ -92,7 +94,7 @@ def build(plan, streams, collection):
         w, _d, h = strip_size(cover, order.get("size", 0.6), order.get("size2"))
         for center, size in downspout_parts(h, w):
             geometry.add_box(bm, center, size)
-    elif cover in ("ac_unit", "window_bars", "lintel", "window_sill"):
+    elif cover in ("ac_unit", "window_bars", "lintel", "window_sill", "security_door"):
         # an Empty's window fixtures (1.69.0) and its stone lintels and sills
         # (1.71.0), each sized from the opening Patina passes as `size2`
         ow, oh = (order.get("size2") or [0.95, 1.6])[:2]
@@ -102,6 +104,8 @@ def build(plan, streams, collection):
             parts = bar_parts(ow, oh)
         elif cover == "lintel":
             parts = lintel_parts(ow)
+        elif cover == "security_door":
+            parts = security_door_parts(ow, oh)
         else:
             parts = sill_parts(ow)
         for center, size in parts:

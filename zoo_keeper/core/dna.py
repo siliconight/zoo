@@ -441,6 +441,9 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     # pane to its cell of `window_panes`' atlas
     if module.get("pane"):
         plan["pane"] = str(module["pane"])
+    # An Empty front door's finish (1.72.0): `_arch.build_slab` paints the leaf
+    if module.get("door"):
+        plan["door"] = str(module["door"])
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan
