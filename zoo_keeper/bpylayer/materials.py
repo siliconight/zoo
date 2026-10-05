@@ -52,6 +52,8 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              "glass": 0.05, "glass_facade": 0.08, "paper": 0.80,
              "concrete": 0.92, "plaster": 0.88,
              "brick": 0.90, "tile": 0.35, "drywall": 0.90, "ceiling_tile": 0.92,
+             # a house's own brick (1.73.0): the same fired clay, another colour
+             "brick_brown": 0.90, "brick_orange": 0.90,
              # Fieldstone: a broken face with mortar between, above concrete
              # (0.92) and brick (0.90). A stone wall that catches a highlight
              # reads as wet plastic at every angle.

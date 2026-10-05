@@ -67,6 +67,10 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                # here the pack is built into every library and reaches no
                # surface, which is what happened to `stone` for one commit.
                "stone", "siding", "shingle",
+               # A HOUSE'S OWN BRICK (1.73.0, Pixelcoat 0.57.0): the comp's row
+               # is brown, red and orange, one brick a house, and a theme holds
+               # one grammar per kind
+               "brick_brown", "brick_orange",
                "ceiling_tile", "carpet", "dirt", "tar",
                # a club chair's upholstery (0.87.0): object-owned like the
                # prop metals -- the mesh carries the hue. Pixelcoat 0.43.0's
