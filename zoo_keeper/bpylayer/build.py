@@ -441,6 +441,9 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
     writes them into a single ``<building>_dressing.glb`` plus a
     ``<building>_dressing.built.json`` index. Never emits collision: covers are
     visual only, so the DC greybox collision stays authoritative.
+
+    The covers are merged at export (1.68.0), one mesh per SIDE of the
+    building per material -- see the comment at the export below.
     """
     import mathutils
 
@@ -472,22 +475,42 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
         trans = mathutils.Matrix.Translation(mathutils.Vector(order["pos"]))
         m = trans @ rot
         for obj in result["objects"]:
-            obj.matrix_world = m @ obj.matrix_world
+            # BUILT IN PLACE (1.68.0): the placement goes into the vertices and
+            # the object stays at identity, as every Zoo part is built. The
+            # merge reads raw coordinates and leaves an object with a
+            # transform unmerged (`merge._identity`), so a cover placed by its
+            # matrix could never join its side. A yaw and a translation: the
+            # UVs, colours and shading edges written before this are untouched.
+            if obj.data.users != 1:
+                raise AssertionError(
+                    "dressing: cover %r shares its mesh; baking its placement "
+                    "would move the other user too" % obj.name)
+            obj.data.transform(m @ obj.matrix_world)
+            obj.matrix_world = mathutils.Matrix.Identity(4)
         # covers carry no collision boxes by contract -> no -colonly proxy.
         built += len(result["objects"])
 
     os.makedirs(out_dir, exist_ok=True)
     stem = f"{building_id}_dressing"
     base = os.path.join(out_dir, stem)
-    # NOT MERGED, AND THIS IS THE LINE THAT SAYS SO. This collection is a
-    # whole BUILDING's covers, each already transformed to its own anchor --
-    # not one module. Packing them by material would weld geometry from
-    # opposite faces of the building into one mesh, which is a single
-    # bounding box that is never off-screen: it trades every cover's culling
-    # for the draw calls, and the covers are the one layer already handled
-    # downstream (`level_factory/assets/godot/extract_meshes.gd` merges them
-    # with the placement baked in, per visible chunk).
-    export.export_glb(base + ".glb", coll, merge_parts=False)
+    # MERGED ONE SIDE OF THE BUILDING PER MATERIAL (1.68.0). Until this
+    # version the covers were exported unmerged, on the claim that Level
+    # Factory's `extract_meshes.gd` merged them downstream "per visible
+    # chunk". It does not: that script is the surface-clutter layer's, and
+    # every `Dressing/Cover_*` reached the level as its own MeshInstance3D --
+    # 3,370 of them in cold run 9154's gas_block_001, and hiding them took the
+    # worst view from 8,690 draws / 27.33 ms p95 to 5,571 / 17.74 ms
+    # (roadmap 180).
+    #
+    # The worry that comment carried was right, and it sets the unit: packing
+    # a whole building by material welds its opposite faces into one bounding
+    # box, and with the export's occlusion culling that keeps a building's
+    # back covers drawn whenever its front is seen. A SIDE enters and leaves
+    # view together. Each cover is named for its side (`dress_cover`,
+    # `core.dressing.cover_side`), so the family `merge.pack_by_material`
+    # groups by IS the side, and the merge's own guarantees -- triangle count
+    # asserted, vertices unwelded, one surface per material -- come with it.
+    stats = export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
     files = {"glb": f"{stem}.glb"}
     if opts["save_blend"]:
         export.save_blend(base + ".blend")
@@ -503,6 +526,10 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
         "collision": "none",
         "cover_count": plan["cover_count"],
         "counts": plan["counts"],
+        "sides": plan["sides"],
+        # what the merge did (1.68.0): None when it was off or found nothing
+        # to merge; `refused` names every cover left as its own mesh, and why
+        "merge": stats,
         "files": files,
     }
     index_file = f"{stem}.built.json"
@@ -510,7 +537,8 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
 
     return {"building_id": building_id, "out_dir": out_dir, "theme": theme,
             "cover_count": plan["cover_count"], "counts": plan["counts"],
-            "covers_built": built, "files": files, "index_file": index_file}
+            "covers_built": built, "files": files, "index_file": index_file,
+            "merge": stats}
 
 
 def build_habitat(theme: str, habitat: str, out_dir: str, seed: int = 0,

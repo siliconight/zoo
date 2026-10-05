@@ -87,8 +87,12 @@ def build(plan, streams, collection):
         w, d, h = strip_size(cover, order.get("size", 0.6),
                              order.get("size2"))
         geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))
+    # THE NAME IS THE MERGE GROUP (1.68.0): `partnames.family` is everything
+    # before the first underscore, so `CoverN_gutter_run` merges with the rest
+    # of the north side in its material and nothing else. A plan with no side
+    # (the prompt/DNA path) keeps the old `Cover_<kind>`.
     obj = geometry.bm_to_object(
-        bm, f"Cover_{cover}", collection,
+        bm, f"Cover{plan.get('side') or ''}_{cover}", collection,
         # Swept with the architecture in the same pass -- see roadmap 108.
         # CONTRAST_DIRECTION.md 6.3 flagged this 1.2 for putting covers at
         # 20% higher density than the wall behind them. The walls carried

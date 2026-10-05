@@ -252,6 +252,52 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
     }
 
 
+#: THE SIDES A BUILDING'S COVERS MERGE BY (1.68.0), in Deli Counter's facings
+#: -- N = +y, E = +x, S = -y, W = -x, the letters its `ext_<storey>_<facing>_*`
+#: slot ids carry, read against their own orders' normals on cold run 9154.
+#: A side is the unit that enters and leaves view together, which is what a
+#: merged mesh has to be: the export culls by occlusion, and one mesh holding
+#: a building's front and back covers keeps the back drawn whenever the front
+#: is seen.
+SIDES = ("N", "E", "S", "W")
+
+
+def footprint(points):
+    """``(cx, cy, hx, hy)``: the box the covers stand in, seen from above --
+    its centre and half-sizes in x and y. The building as its covers see it."""
+    xs = [float(p[0]) for p in points]
+    ys = [float(p[1]) for p in points]
+    if not xs:
+        return (0.0, 0.0, 0.0, 0.0)
+    return ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0,
+            (max(xs) - min(xs)) / 2.0, (max(ys) - min(ys)) / 2.0)
+
+
+def cover_side(normal, pos, box):
+    """Which of `SIDES` a cover belongs to.
+
+    A WALL-FACING cover is on the side its normal leaves. An UP-FACING one --
+    a curb at the wall's foot, an edge strip on the roof, 60 of a rowhome's
+    103 covers -- has no side of its own and takes the one it stands nearest,
+    measured in units of the footprint's half-size so a long building's end
+    curbs go to its end and not its flank. Grouped by normal alone, every curb
+    and roof edge of a building would be one mesh the size of the building.
+    Ties go to x, then to the negative side: deterministic, not meaningful.
+    """
+    nx, ny, nz = (float(v) for v in normal)
+    side = max(abs(nx), abs(ny))
+    if side > 1e-6 and side >= abs(nz):
+        if abs(nx) >= abs(ny):
+            return "E" if nx > 0 else "W"
+        return "N" if ny > 0 else "S"
+    cx, cy, hx, hy = box
+    dx = (float(pos[0]) - cx) / max(hx, 1e-6)
+    dy = (float(pos[1]) - cy) / max(hy, 1e-6)
+    if abs(dx) >= abs(dy):
+        return "E" if dx > 0 else "W"
+    return "N" if dy > 0 else "S"
+
+
 def plan_dressing(manifest: dict, genome: dict, theme: str,
                   tool_version: str) -> dict:
     """All cover plans for a dressing manifest, plus a summary.
@@ -264,10 +310,16 @@ def plan_dressing(manifest: dict, genome: dict, theme: str,
     orders = [o for o in manifest.get("orders", [])
               if o.get("collision", "none") == "none"]
     plans = [dress_plan(o, genome, theme, space, tool_version) for o in orders]
+    # every cover's side (1.68.0), against the footprint of ALL of them, in
+    # the Blender frame `dress_plan` has already put them in
+    box = footprint([p["order"]["pos"] for p in plans])
     counts: dict[str, int] = {}
+    sides: dict[str, int] = {}
     for p in plans:
         k = p["order"]["cover"]
         counts[k] = counts.get(k, 0) + 1
+        p["side"] = cover_side(p["order"]["normal"], p["order"]["pos"], box)
+        sides[p["side"]] = sides.get(p["side"], 0) + 1
     return {
         "building_id": manifest.get("building_id"),
         "trim_sheet": manifest.get("trim_sheet"),
@@ -275,6 +327,7 @@ def plan_dressing(manifest: dict, genome: dict, theme: str,
         "theme": theme,
         "plans": plans,
         "counts": dict(sorted(counts.items())),
+        "sides": dict(sorted(sides.items())),
         "cover_count": len(plans),
     }
 

@@ -490,17 +490,26 @@ def dress_run(args):
         return 1
 
     from zoo_keeper.bpylayer import build
-    # No `merge_parts`: a dressing layer is a whole building's covers, never
-    # one module, and `build_dressing` does not merge at all. Passing the
-    # flag here would be a knob with no effect.
+    # `merge_parts` reaches the dressing (1.68.0): `build_dressing` merges a
+    # building's covers one side per material, and --no-merge-parts is the
+    # one-build control, as it is for a kit.
     res = build.build_dressing(
         manifest, os.path.abspath(args.out), theme=args.theme,
-        options={"save_blend": not args.no_blend, "clear_scene": True})
+        options={"save_blend": not args.no_blend, "clear_scene": True,
+                 "merge_parts": not args.no_merge_parts})
 
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
     print(f"[zoo] dressing built for '{res['building_id']}' "
           f"(theme={res['theme']}) -> {res['out_dir']}")
     print(f"[zoo]   {res['covers_built']} covers ({summary}); collision: none")
+    st = res.get("merge")
+    if st:
+        print(f"[zoo]   merged: {st['parts_in']} covers -> {st['meshes_out']} meshes "
+              f"(a side of the building per material); refused {len(st['refused'])}")
+        for name, why in st["refused"][:5]:
+            print(f"[zoo]     refused {name}: {why}")
+    else:
+        print("[zoo]   merged: nothing (off, or every group a single cover)")
     print(f"[zoo]   glb: {res['files']['glb']}   index: {res['index_file']}")
     print("[zoo] covers are visual-only; the DC greybox collision is unchanged.")
     return 0
