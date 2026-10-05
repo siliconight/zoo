@@ -26,6 +26,13 @@ def test_the_atlas_is_the_same_bytes_every_build():
     assert (a1.w, a1.h) == (P.COLS * P.CELL_W, P.ROWS * P.CELL_H)
 
 
+def test_the_atlas_has_sixteen_states_and_five_room_lights():
+    """1.65.0, "color variation is key": more than one warm light."""
+    assert len(P.STATES) == P.COLS * P.ROWS == 16
+    lights = {P.ROOMS[s] for s in P.STATES if s.startswith("lit")}
+    assert len(lights) >= 4
+
+
 def test_only_a_lit_window_glows():
     """Glow taken from the albedo would light plywood and curtains; the
     emission image is black in every unlit cell and bright in every lit one."""

@@ -9,6 +9,16 @@ blinds; none of them a real light. Before this an Empty's pane was one
 opaque `glass_facade` surface, and at night the row read as a black mass
 outside the streetlight pools (cold run 9150).
 
+COLOUR VARIATION IS KEY (1.65.0, the walker, sending window photographs: a
+night facade of rowhouse and tenement windows, three street rows by day).
+The first atlas had one lit colour, and the night photographs have five at
+least -- tungsten yellow, the deep orange of a curtained room, a pale cool
+fluorescent, a pink lampshade glow -- and as many coverings: blinds, a
+roller shade pulled half down with the light below it, curtains. The day
+rows add the green roller shade, closed blinds, and a box fan in the lower
+sash. Sixteen states now; the AIR CONDITIONER every photograph shows is
+geometry standing out of the window, and is not painted here.
+
 ONE ATLAS, ONE MATERIAL, NO LIGHT. Every state is a cell of one image, and a
 pane's UVs pick its cell, so a whole street of windows is one material and
 the variety costs no submission (`CLAUDE.md`, "never express colour-only
@@ -20,7 +30,7 @@ window in the power cut.
 
 THE WINDOW IS A ROWHOUSE'S: a painted-wood frame, a double-hung sash with a
 meeting rail, six-over-six muntins -- the comp's sash -- and on the vacant
-house plywood. Deli Counter (>= 0.179.0) chooses the state per window, so
+house plywood. Deli Counter (>= 0.180.0) chooses the state per window, so
 which windows glow is decided where the building is known; this paints.
 
 Same machinery as `vending_forms` and `flat_art`: a `Canvas`, row 0 at the
@@ -31,11 +41,14 @@ from __future__ import annotations
 
 from .vending_forms import Canvas
 
-#: The states, in atlas order: row-major, ``COLS`` to a row.
-STATES = ("lit", "lit_blind", "lit_curtain", "lit_bars",
-          "dark", "dark_curtain", "dark_bars", "boarded")
+#: The states, in atlas order: row-major, ``COLS`` to a row. Lit first, then
+#: dark, then the odd ones -- the order is the cell, so append, never insert.
+STATES = ("lit", "lit_amber", "lit_cool", "lit_pink",
+          "lit_blind", "lit_blind_cool", "lit_curtain", "lit_shade",
+          "lit_bars", "dark", "dark_blind", "dark_shade",
+          "dark_curtain", "dark_bars", "dark_fan", "boarded")
 COLS = 4
-ROWS = 2
+ROWS = 4
 #: One cell, in pixels: a window is about 0.95 x 1.6 m, so taller than wide.
 CELL_W = 48
 CELL_H = 80
@@ -48,27 +61,41 @@ MUNTIN = 1
 FRAME_RGB = (198, 192, 178)
 MUNTIN_RGB = (150, 144, 132)
 BAR_RGB = (22, 22, 22)
-#: The lit room: a warm ceiling falling to a bright middle, a sofa back low.
-ROOM_TOP = (150, 92, 44)
-ROOM_MID = (240, 186, 96)
-ROOM_LOW = (226, 160, 78)
+
+#: THE ROOM LIGHTS (1.65.0), each (ceiling, middle, low): the colours the
+#: night photographs show, not one warm. A sofa back sits low in every room.
+TUNGSTEN = ((150, 92, 44), (240, 186, 96), (226, 160, 78))
+AMBER = ((140, 62, 26), (236, 138, 58), (214, 112, 44))
+COOL = ((128, 140, 122), (214, 228, 200), (196, 210, 182))
+PINK = ((146, 76, 70), (238, 166, 150), (220, 140, 124))
+ROOMS = {"lit": TUNGSTEN, "lit_amber": AMBER, "lit_cool": COOL, "lit_pink": PINK,
+         "lit_blind": TUNGSTEN, "lit_blind_cool": COOL, "lit_curtain": AMBER,
+         "lit_shade": TUNGSTEN, "lit_bars": TUNGSTEN}
 SOFA = (96, 52, 30)
+
 #: Dark glass: night sky reflected, a shade lighter at the bottom.
 DARK_TOP = (16, 22, 34)
 DARK_LOW = (30, 40, 56)
 STREAK = (52, 66, 88)
 SLAT = (226, 208, 158)
-CURTAIN = (118, 40, 34)
-CURTAIN_FOLD = (88, 28, 24)
+SLAT_COOL = (222, 226, 214)
+SLAT_SHUT = (128, 126, 116)
+SHADE = (220, 206, 168)
+SHADE_GREEN = (58, 88, 66)
+CURTAIN = (176, 70, 34)
+CURTAIN_FOLD = (132, 50, 24)
 NET = (92, 90, 84)
+FAN = (118, 116, 110)
+FAN_GRILLE = (72, 70, 66)
 PLY = (139, 109, 71)
 PLY_GRAIN = (116, 88, 56)
 NAIL = (70, 66, 60)
 
-#: How much of the room light a blind slat and a curtain let through, out of
-#: 255 -- the rest of the glow belongs to the gaps.
+#: How much of the room light a covering lets through, out of 255 -- the rest
+#: of the glow belongs to the gaps.
 SLAT_GLOW = 150
-CURTAIN_GLOW = 60
+CURTAIN_GLOW = 90
+SHADE_GLOW = 70
 
 #: Emission strength the material is built at. Lux scales it by energy and
 #: zeroes it in the power cut; the albedo is dimmed so a lit window is its
@@ -79,6 +106,10 @@ ALBEDO = 0.55
 
 def _lerp(a, b, t_num, t_den):
     return tuple(a[i] + (b[i] - a[i]) * t_num // max(1, t_den) for i in range(3))
+
+
+def _scale(rgb, num):
+    return tuple(v * num // 255 for v in rgb)
 
 
 def cell_rect(state):
@@ -97,13 +128,14 @@ def uv_rect(state):
             (x1 - FRAME) / w, 1.0 - (y0 + FRAME) / h)
 
 
-def _room(c, e, x0, y0, x1, y1):
+def _room(c, e, x0, y0, x1, y1, light):
     """A lit room behind the glass, into albedo ``c`` and emission ``e``."""
+    top, mid, low = light
     h = y1 - y0
     for y in range(y0, y1):
         k = y - y0
-        rgb = (_lerp(ROOM_TOP, ROOM_MID, k, h * 2 // 5) if k < h * 2 // 5
-               else _lerp(ROOM_MID, ROOM_LOW, k - h * 2 // 5, h - h * 2 // 5))
+        rgb = (_lerp(top, mid, k, h * 2 // 5) if k < h * 2 // 5
+               else _lerp(mid, low, k - h * 2 // 5, h - h * 2 // 5))
         c.rect(x0, y, x1, y + 1, rgb)
         e.rect(x0, y, x1, y + 1, rgb)
     sofa = y1 - h // 6
@@ -122,6 +154,13 @@ def _dark(c, x0, y0, x1, y1):
         if y < y1:
             c.px(x, y, STREAK)
             c.px(x + 1, y, STREAK)
+
+
+def _slats(c, e, x0, y0, x1, y1, rgb, glow):
+    for y in range(y0, y1):
+        if (y - y0) % 4 < 3:
+            c.rect(x0, y, x1, y + 1, rgb)
+            e.rect(x0, y, x1, y + 1, _scale(rgb, glow))
 
 
 def _sash(c, e, x0, y0, x1, y1):
@@ -150,6 +189,22 @@ def _bars(c, e, x0, y0, x1, y1):
         e.rect(x0, y, x1, y + 2, (0, 0, 0))
 
 
+def _fan(c, x0, y0, x1, y1):
+    """A box fan standing in the lower sash: a grey square, a round grille."""
+    mid = (y0 + y1) // 2
+    side = min(x1 - x0 - 6, y1 - mid - 4)
+    fx0 = (x0 + x1 - side) // 2
+    fy0 = mid + 2
+    c.rect(fx0, fy0, fx0 + side, fy0 + side, FAN)
+    r = side // 2 - 2
+    cx, cy = fx0 + side // 2, fy0 + side // 2
+    for y in range(fy0, fy0 + side):
+        for x in range(fx0, fx0 + side):
+            d = (x - cx) * (x - cx) + (y - cy) * (y - cy)
+            if d <= r * r and (d % 9 < 4 or abs(x - cx) < 1 or abs(y - cy) < 1):
+                c.px(x, y, FAN_GRILLE)
+
+
 def _paint(state, c, e):
     x0, y0, x1, y1 = cell_rect(state)
     c.rect(x0, y0, x1, y1, FRAME_RGB)
@@ -165,21 +220,31 @@ def _paint(state, c, e):
                 c.px(nx, ny, NAIL)
         return
     if state.startswith("lit"):
-        _room(c, e, gx0, gy0, gx1, gy1)
+        _room(c, e, gx0, gy0, gx1, gy1, ROOMS[state])
     else:
         _dark(c, gx0, gy0, gx1, gy1)
     if state == "lit_blind":
-        for y in range(gy0, gy1):
-            if (y - gy0) % 4 < 3:
-                c.rect(gx0, y, gx1, y + 1, SLAT)
-                e.rect(gx0, y, gx1, y + 1, tuple(v * SLAT_GLOW // 255 for v in SLAT))
+        _slats(c, e, gx0, gy0, gx1, gy1, SLAT, SLAT_GLOW)
+    elif state == "lit_blind_cool":
+        _slats(c, e, gx0, gy0, gx1, gy1, SLAT_COOL, SLAT_GLOW)
+    elif state == "dark_blind":
+        _slats(c, e, gx0, gy0, gx1, gy1, SLAT_SHUT, 0)
     elif state == "lit_curtain":
         cw = (gx1 - gx0) * 3 // 10
         for xa, xb in ((gx0, gx0 + cw), (gx1 - cw, gx1)):
             for x in range(xa, xb):
                 rgb = CURTAIN_FOLD if (x - xa) % 4 == 0 else CURTAIN
                 c.rect(x, gy0, x + 1, gy1, rgb)
-                e.rect(x, gy0, x + 1, gy1, tuple(v * CURTAIN_GLOW // 255 for v in ROOM_MID))
+                e.rect(x, gy0, x + 1, gy1, _scale(AMBER[1], CURTAIN_GLOW))
+    elif state in ("lit_shade", "dark_shade"):
+        # a roller shade pulled a little past half: the light shows below it
+        lit = state == "lit_shade"
+        bottom = gy0 + (gy1 - gy0) * 11 // 20
+        rgb = SHADE if lit else SHADE_GREEN
+        c.rect(gx0, gy0, gx1, bottom, rgb)
+        e.rect(gx0, gy0, gx1, bottom, _scale(rgb, SHADE_GLOW) if lit else (0, 0, 0))
+        c.rect(gx0, bottom, gx1, bottom + 1, MUNTIN_RGB)
+        e.rect(gx0, bottom, gx1, bottom + 1, (0, 0, 0))
     elif state == "dark_curtain":
         for x in range(gx0, gx1):
             rgb = NET if (x - gx0) % 5 else tuple(v - 14 for v in NET)
@@ -187,6 +252,8 @@ def _paint(state, c, e):
     _sash(c, e, gx0, gy0, gx1, gy1)
     if state.endswith("_bars"):
         _bars(c, e, gx0, gy0, gx1, gy1)
+    if state == "dark_fan":
+        _fan(c, gx0, gy0, gx1, gy1)
 
 
 def atlas():
