@@ -539,6 +539,46 @@ def make_painted_material(name, image, roughness, tile=False, smooth=False):
     return mat
 
 
+def make_pane_material(name, albedo, emission, strength, albedo_factor,
+                       roughness=0.2):
+    """A painted window (1.64.0): ``albedo`` is the pane as seen, dimmed by
+    ``albedo_factor``; ``emission`` -- a SEPARATE image, black wherever no
+    room light shows -- glows at ``strength``. One image could not do both:
+    glow taken from the albedo lights boarded plywood and curtain fabric.
+
+    Name it ``_Face`` (Lux's emissive binder matches the suffix) so the power
+    cut darkens every lit window. Nearest filter, clamped: an atlas cell never
+    bleeds into its neighbour. A strength of 0 links no emission at all, for
+    the reason `make_backlit_material` gives."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = float(roughness)
+    bsdf.inputs["Metallic"].default_value = 0.0
+
+    def tex(image):
+        node = tree.nodes.new("ShaderNodeTexImage")
+        node.image = image
+        node.interpolation = "Closest"
+        node.extension = "EXTEND"
+        return node
+
+    base = tex(albedo)
+    f = float(albedo_factor)
+    tree.links.new(_tint_multiply(tree, base.outputs["Color"], (f, f, f), name),
+                   bsdf.inputs["Base Color"])
+    if float(strength) > 0.0:
+        glow = tex(emission)
+        sock = "Emission Color" if "Emission Color" in bsdf.inputs else "Emission"
+        tree.links.new(glow.outputs["Color"], bsdf.inputs[sock])
+        bsdf.inputs["Emission Strength"].default_value = float(strength)
+    return mat
+
+
 def _load_image(path, non_color=False):
     img = bpy.data.images.load(path, check_existing=True)
     if non_color:

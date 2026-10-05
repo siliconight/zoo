@@ -9,7 +9,7 @@ come from the pure ``core.arch`` module so they stay unit-testable.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core import arch, partnames
+from ..core import arch, partnames, window_panes
 
 
 #: The flat colour a room face falls back to with no skin library: a warm
@@ -212,17 +212,50 @@ def build_slab(plan, streams, collection, species):
         bm = geometry.new_bm()
         geometry.add_box(bm, (cx, 0.0, cz),
                          (pane_w * 0.98, d * 0.15, pane_h * 0.98))
-        pane = geometry.bm_to_object(
-            bm, f"{root}_Glass", collection, bevel=0.0, texel=1.0,
-            rng=rng, wear=wear * 0.25)
-        # Enterable windows glaze see-through "glass"; facade-shell windows
-        # (hollow building) glaze opaque "glass_facade" via plan.glazing_kind.
         glazing_kind = plan.get("glazing_kind", "glass")
-        glass = materials.make_material(
-            f"M_Window_{glazing_kind}",
-            plan.get("glass_color", [0.55, 0.66, 0.72]), glazing_kind)
-        materials.assign([pane], glass)
-        objs.append(pane)
+        state = plan.get("pane")
+        if glazing_kind == "glass_facade" and state in window_panes.STATES:
+            # A PAINTED PANE (1.64.0): the street face (+Y, outdoors) shows
+            # its state's cell of the shared atlas; every other face takes a
+            # point of the frame paint. Own UVs, so `finish=False` -- the
+            # cube projection would overwrite them -- and a white COLOR_0,
+            # which Level Factory's import multiplies by.
+            u0, v0, u1, v1 = window_panes.uv_rect(state)
+            frame = window_panes.uv_rect("lit")[0] * 0.25
+            uv = bm.loops.layers.uv.new("UVMap")
+            hx, hz = pane_w * 0.49, pane_h * 0.49
+            bm.normal_update()
+            for face in bm.faces:
+                for loop in face.loops:
+                    if face.normal.y > 0.9:
+                        co = loop.vert.co
+                        # seen from +Y looking at -Y, +X is the viewer's
+                        # LEFT: u runs from the +X edge, or the cell mirrors
+                        loop[uv].uv = (u0 + (u1 - u0) * ((cx + hx) - co.x) / (2 * hx),
+                                       v0 + (v1 - v0) * (co.z - (cz - hz)) / (2 * hz))
+                    else:
+                        loop[uv].uv = (frame, frame)
+            geometry.wear_colors(bm, streams.stream("pane"), 0.0)
+            pane = geometry.bm_to_object(bm, f"{root}_Glass", collection,
+                                         finish=False, bevel=0.0)
+            albedo, emission = window_panes.atlas()
+            pane.data.materials.append(materials.make_pane_material(
+                "M_Window_pane_Face",
+                materials.image_from_png("window_pane_albedo", albedo.png()),
+                materials.image_from_png("window_pane_emission", emission.png()),
+                window_panes.EMISSION, window_panes.ALBEDO))
+            objs.append(pane)
+        else:
+            pane = geometry.bm_to_object(
+                bm, f"{root}_Glass", collection, bevel=0.0, texel=1.0,
+                rng=rng, wear=wear * 0.25)
+            # Enterable windows glaze see-through "glass"; facade-shell windows
+            # (hollow building) glaze opaque "glass_facade" via plan.glazing_kind.
+            glass = materials.make_material(
+                f"M_Window_{glazing_kind}",
+                plan.get("glass_color", [0.55, 0.66, 0.72]), glazing_kind)
+            materials.assign([pane], glass)
+            objs.append(pane)
 
     # AN EMPTY'S DOOR IS SHUT (1.61.0). A doorway tagged `glazing: "facade"`
     # belongs to a shell with nothing behind it (Deli Counter >= 0.178.0), the

@@ -184,7 +184,7 @@ def module_stem(typ: str, theme: str, style: int,
                 species: str = None, form: str = None, stock: str = None,
                 variant: int = None, material: str = None,
                 glazing: str = None, budget_tiles: bool = False,
-                material_in: str = None) -> str:
+                material_in: str = None, pane: str = None) -> str:
     """The exact filename stem Deli Counter's resolver looks for:
     ``<type>[_<species>]_<theme>_<style:02d>[_w<cm>][_d<cm>][_h<cm>][_f<form>][_s<stock>][_n<variant>][_m<material>][_i<material_in>][_v<hash>][_o<hash>][_<state>]``.
 
@@ -263,6 +263,11 @@ def module_stem(typ: str, theme: str, style: int,
         base += f"_m{material}"
     if material_in:
         base += f"_i{material_in}"
+    # A PAINTED PANE'S STATE (1.64.0): `_p<state>`, after the room face. Two
+    # facade windows of one size in different states are different modules.
+    # Deli Counter's `themed_tscn.module_stem` is the mirror.
+    if pane:
+        base += f"_p{pane}"
     # THE STOREFRONT IN THE NAME (1.18.0): `_g<glazing>` for a glazing that
     # changes the BUILD (`STEM_GLAZINGS`), after the material and before the
     # hashes and the state. A storefront wall and a plain glass-facade wall
@@ -701,6 +706,10 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         # THE ROOM FACE (1.38.0): a known kind on a wall-family slot, else none
         inner = (str(s["material_in"]) if typ in INNER_FACE_ROLES and s.get("material_in")
                  in skins.KNOWN_KINDS else None)
+        # A FACADE WINDOW'S PAINTED STATE (1.64.0, Deli Counter >= 0.179.0)
+        from zoo_keeper.core import window_panes as _panes
+        pane = (str(s["pane"]) if typ == "window" and s.get("glazing") == "facade"
+                and s.get("pane") in _panes.STATES else None)
 
         def _slot_art(sp, _sf=storefront):
             extra = STOREFRONT_STATE_ART.get(sp, frozenset()) if _sf else frozenset()
@@ -718,7 +727,8 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                                depth_cm, vtag, otag, height_cm,
                                species=hint if species == hint else None,
                                material=mtag, glazing=storefront,
-                               budget_tiles=budget, material_in=inner, **dress)
+                               budget_tiles=budget, material_in=inner, pane=pane,
+                               **dress)
             if is_deferred:
                 d = deferred.get(stem)
                 if d is None:
@@ -769,7 +779,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
             key = (typ, width_cm, st, species, glaze, slot_style,
                    dress["form"], dress["stock"], dress["variant"],
                    mtag, dims_key, _void_key(fit.get("voids")),
-                   _opening_key(fit.get("openings")), budget, inner)
+                   _opening_key(fit.get("openings")), budget, inner, pane)
             b = buckets.get(key)
             if b is None:
                 b = {
@@ -796,6 +806,7 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
                     "glazing": glaze,
                     "light_budget_tiles": budget,
                     "material_in": inner,
+                    "pane": pane,
                     "count": 0,
                 }
                 b.update(dress)

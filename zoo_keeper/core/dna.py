@@ -437,6 +437,10 @@ def resolve_module_plan(module: dict, genome: dict, theme: str, style: int,
     # A wall's ROOM FACE (1.38.0): the kind its -Y face is built in
     if module.get("material_in"):
         plan["material_in"] = str(module["material_in"])
+    # A facade window's painted state (1.64.0): `_arch.build_slab` maps the
+    # pane to its cell of `window_panes`' atlas
+    if module.get("pane"):
+        plan["pane"] = str(module["pane"])
     if "glass_color" in genome:
         plan["glass_color"] = list(genome["glass_color"])
     return plan
