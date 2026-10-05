@@ -47,9 +47,34 @@ _COVER = {
     "panel_field": {"proud": 0.012, "cross": 1.2, "span": 1.2},
     # v0.26 facade kit (Patina --frames/--gutters/--pilasters):
     "gutter_run":  {"proud": 0.10, "cross": 0.14, "span": 2.0},
+    # 1.67.0 (Patina >= 0.25.0): the pipe from the gutter to the ground. A
+    # 3-inch leader on straps; `span` is a placeholder -- `size` is the length.
+    "downspout":   {"proud": 0.07, "cross": 0.076, "span": 2.5},
     "pilaster":    {"proud": 0.05, "cross": 0.12, "span": 4.2},
     "frame":       {"proud": 0.05, "cross": 0.12, "span": 1.0},
 }
+
+#: COVERS THAT ARE PAINTED METAL (1.67.0), whatever trim the style names: a
+#: gutter and its downspout are aluminium on a 1990s rowhouse, and in the
+#: concrete every other cover wears they read as one more ledge.
+METAL_COVERS = ("gutter_run", "downspout")
+METAL_KIND = "metal_painted"
+#: White aluminium -- the flat colour, used only with no skin library.
+METAL_COLOR = (0.86, 0.86, 0.83)
+
+#: The gutter's sheet, drawn thicker than aluminium so it holds at street
+#: distance; its front stands a little lower than its back, as a hung gutter's
+#: does; and a rolled bead runs along the top of the front.
+GUTTER_SHEET = 0.008
+GUTTER_FRONT = 0.85
+#: The downspout: a 3 x 2 inch leader held off the wall on straps, ending in a
+#: cast boot at the ground, where a Philadelphia rowhouse's leader goes into
+#: the sewer. A boot also means no elbow kicking out across the sidewalk:
+#: non-collision geometry in walkable space is what panel fields were removed
+#: for.
+DOWNSPOUT_STANDOFF = 0.02
+DOWNSPOUT_DEPTH = 0.05
+BOOT_H, BOOT_W, BOOT_D = 0.35, 0.12, 0.10
 
 
 def strip_size(cover: str, size_hint: float, size2=None):
@@ -69,7 +94,7 @@ def strip_size(cover: str, size_hint: float, size2=None):
     if cover == "gutter_run":
         # spans its wall module exactly (sections join at module seams).
         return (max(size_hint, 0.2), c["proud"], c["cross"])
-    if cover == "conduit_run":
+    if cover in ("conduit_run", "downspout"):
         # `size` IS the run length (Patina v0.19: ground plane -> fixture), so
         # it is used as the span directly. It used to be a constant 0.3 hint
         # that got scaled by span/0.6; when the field's meaning changed and
@@ -193,13 +218,19 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
     material = style.get("material") or genome["materials"]["default"]
     if material not in genome["materials"]["options"]:
         material = genome["materials"]["default"]
+    color = [round(float(c), 4) for c in style.get("color", [0.6, 0.6, 0.6])]
+    # a gutter and its downspout are painted metal (1.67.0) -- when the
+    # genome offers it, so a genome that does not is never handed a kind it
+    # cannot build
+    if order.get("cover") in METAL_COVERS and METAL_KIND in genome["materials"]["options"]:
+        material, color = METAL_KIND, [round(float(c), 4) for c in METAL_COLOR]
     return {
         "species": "dress_cover",
         "tool_version": tool_version,
         "theme": theme,
         "style": theme if theme in genome.get("styles", {}) else "default",
         "material": material,
-        "color": [round(float(c), 4) for c in style.get("color", [0.6, 0.6, 0.6])],
+        "color": color,
         "wear": round(float(style.get("wear", 0.15)), 3),
         "ambient": round(float(style.get("ambient", 0.0)), 3),
         "bevel": style.get("bevel", 0.002),
@@ -246,6 +277,49 @@ def plan_dressing(manifest: dict, genome: dict, theme: str,
         "counts": dict(sorted(counts.items())),
         "cover_count": len(plans),
     }
+
+
+def gutter_parts(span: float, proud: float, cross: float):
+    """A hung gutter's parts, as (center, size) boxes in cover-local space:
+    x along the wall, y out from the wall FACE (y = 0 is the face, which is
+    where Patina's ``pos`` sits), z up about the gutter's centre line.
+
+    AN OPEN TROUGH, NOT A BAR (1.67.0). The box this replaces was centred on
+    the face, so half of it stood inside the wall, and it had no mouth. Here:
+    a back on the wall, a floor, a front a little lower than the back, and a
+    rolled bead along the front's top -- with nothing across the mouth, so a
+    street-level eye sees a lip and a shadow. Every part runs the full span,
+    so sections butt at module seams as real gutter sections join.
+    """
+    t = GUTTER_SHEET
+    front = cross * GUTTER_FRONT
+    zb = -cross / 2.0
+    return [
+        ((0.0, t / 2.0, 0.0), (span, t, cross)),                          # back
+        ((0.0, proud / 2.0, zb + t / 2.0), (span, proud, t)),             # floor
+        ((0.0, proud - t / 2.0, zb + front / 2.0), (span, t, front)),     # front
+        ((0.0, proud - 0.007, zb + front - 0.006), (span, 0.014, 0.012)),  # bead
+    ]
+
+
+def downspout_parts(length: float, cross: float):
+    """A downspout's parts, in the same cover-local space (y out from the wall
+    face, z about the run's middle): the leader on its standoff, a cast boot
+    at the ground, two straps. Bottom at ``-length / 2`` -- the ground -- and
+    top at ``+length / 2``, the gutter's underside (Patina 0.25.0 measures
+    the run between the two).
+    """
+    L = float(length)
+    zb = -L / 2.0
+    y0 = DOWNSPOUT_STANDOFF
+    pipe_z0 = zb + BOOT_H - 0.02                      # the leader enters the boot
+    pipe = ((0.0, y0 + DOWNSPOUT_DEPTH / 2.0, (pipe_z0 + L / 2.0) / 2.0),
+            (cross, DOWNSPOUT_DEPTH, L / 2.0 - pipe_z0))
+    boot = ((0.0, BOOT_D / 2.0, zb + BOOT_H / 2.0), (BOOT_W, BOOT_D, BOOT_H))
+    strap_d = y0 + DOWNSPOUT_DEPTH + 0.004
+    straps = [((0.0, strap_d / 2.0, zb + L * f), (cross + 0.012, strap_d, 0.025))
+              for f in (1.0 / 3.0, 2.0 / 3.0)]
+    return [pipe, boot] + straps
 
 
 def frame_strips(w: float, h: float, frame_w: float, proud: float):

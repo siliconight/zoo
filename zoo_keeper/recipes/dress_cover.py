@@ -50,7 +50,8 @@ carried, not used.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core.dressing import frame_strips, strip_size, uv_offset
+from ..core.dressing import (downspout_parts, frame_strips, gutter_parts,
+                             strip_size, uv_offset)
 
 
 def build(plan, streams, collection):
@@ -71,6 +72,16 @@ def build(plan, streams, collection):
         for center, size in frame_strips(float(size2[0]), float(size2[1]),
                                          float(order.get("frame_width",
                                                          0.12)), proud):
+            geometry.add_box(bm, center, size)
+    elif cover == "gutter_run":
+        # an open trough off the wall face (1.67.0), not a bar through it
+        w, d, h = strip_size(cover, order.get("size", 0.6), order.get("size2"))
+        for center, size in gutter_parts(w, d, h):
+            geometry.add_box(bm, center, size)
+    elif cover == "downspout":
+        # the leader, its straps and its boot (1.67.0)
+        w, _d, h = strip_size(cover, order.get("size", 0.6), order.get("size2"))
+        for center, size in downspout_parts(h, w):
             geometry.add_box(bm, center, size)
     else:
         w, d, h = strip_size(cover, order.get("size", 0.6),

@@ -39,7 +39,7 @@
   "options": [
    "concrete",
    "plaster",
-   "metal"
+   "metal_painted"
   ]
  },
  "budgets": {
@@ -68,7 +68,7 @@
    "bevel": 0.002
   },
   "center_city": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.56,
     0.5655,
@@ -79,7 +79,7 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal",
+   "material": "metal_painted",
    "color": [
     0.4708,
     0.4463,

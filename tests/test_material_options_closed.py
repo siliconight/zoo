@@ -95,7 +95,12 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a dumpster is painted plate, its fleet colour in the
            # painted atlas; its lids are plastic in the same image
            # (1.58.0)
-           "dumpster")
+           "dumpster",
+           # a cover's metal is painted flashing, and a gutter and its
+           # downspout are painted aluminium (1.67.0): `metal_painted` is
+           # what METAL_COVERS ask for, and the two styles whose every cover
+           # was raw `metal` moved with them
+           "dress_cover")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)
