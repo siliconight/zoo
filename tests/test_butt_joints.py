@@ -36,19 +36,20 @@ _GEOMETRY = os.path.join(_ZOO, "zoo_keeper", "bpylayer", "geometry.py")
 # --- which planes -----------------------------------------------------------
 
 @pytest.mark.parametrize("species", ["wall", "wallEnd", "doorway", "window", "breach"])
-def test_a_standing_module_meets_its_neighbours_at_its_two_ends(species):
-    assert arch.butt_planes(species, 2.0) == ((0, -1.0), (0, 1.0))
+def test_a_standing_module_meets_its_neighbours_at_its_ends_top_and_bottom(species):
+    """1.70.0 added the top and bottom: the next storey, or the slab's edge."""
+    assert arch.butt_planes(species, 2.0, 3.1) == ((0, -1.0), (0, 1.0), (2, -1.55), (2, 1.55))
 
 
 @pytest.mark.parametrize("species", arch.PLATE_SPECIES)
 def test_plates_declare_no_butt_planes(species):
     """Their tiles are unbevelled already; nothing to exempt."""
-    assert arch.butt_planes(species, 12.0) == ()
+    assert arch.butt_planes(species, 12.0, 0.3) == ()
 
 
 def test_a_prop_stands_alone_and_keeps_every_chamfer():
     """`prop` shares the slab builder with walls; a desk's ends are corners."""
-    assert arch.butt_planes("prop", 1.6) == ()
+    assert arch.butt_planes("prop", 1.6, 0.8) == ()
 
 
 def test_the_tolerance_is_below_any_bevel_a_style_uses():
@@ -62,7 +63,7 @@ _W, _D, _H = 2.0, 0.3, 3.1
 
 
 def _planes():
-    return arch.butt_planes("wall", _W)
+    return arch.butt_planes("wall", _W, _H)
 
 
 def test_the_vertical_edge_at_a_module_end_is_a_butt_edge():
@@ -71,16 +72,26 @@ def test_the_vertical_edge_at_a_module_end_is_a_butt_edge():
     assert arch.edge_on_butt_plane(a, b, _planes())
 
 
-def test_the_top_edge_of_a_face_is_not_although_both_ends_touch_a_butt_plane():
-    """One end on each plane lies in neither: the chamfer along the top stays."""
+def test_the_top_edge_of_a_face_is_a_butt_edge_now():
+    """REVERSED in 1.70.0, kept so the old decision is findable: this pinned
+    the top chamfer as kept ("one end on each plane lies in neither"). The
+    top edge lies in the module's top plane, which the next storey or the
+    slab's edge shares -- cold runs 9153-9155's storey-seam dashes."""
     a = (-1.0, -_D / 2, _H / 2)
     b = (1.0, -_D / 2, _H / 2)
+    assert arch.edge_on_butt_plane(a, b, _planes())
+
+
+def test_an_edge_from_one_plane_to_another_still_lies_in_neither():
+    """A face's diagonal from the top plane to an end plane is in no plane."""
+    a = (-0.5, -_D / 2, _H / 2)
+    b = (1.0, -_D / 2, 0.0)
     assert not arch.edge_on_butt_plane(a, b, _planes())
 
 
 def test_a_jamb_reveal_is_a_real_corner_and_keeps_its_chamfer():
     """A 1.25 m doorway's jamb: its outer end is a butt edge, its reveal is not."""
-    planes = arch.butt_planes("doorway", 1.25)
+    planes = arch.butt_planes("doorway", 1.25, _H)
     outer = ((-0.625, -_D / 2, -_H / 2), (-0.625, -_D / 2, _H / 2))
     reveal = ((-0.505, -_D / 2, -_H / 2), (-0.505, -_D / 2, _H / 2))
     assert arch.edge_on_butt_plane(*outer, planes)
@@ -145,7 +156,9 @@ def _xs(objs):
     return sorted({round(v.co.x, 4) for o in objs for v in o.data.vertices})
 
 
-def test_bpy_a_wall_has_no_chamfer_at_its_ends_and_keeps_its_top(tmp_path):
+def test_bpy_a_wall_has_no_chamfer_at_its_ends_top_or_bottom(tmp_path):
+    """1.70.0: the top and bottom lost their chamfer as the ends did. This
+    asserted the top chamfer KEPT until then."""
     pytest.importorskip("bpy")
     w, objs = _build(tmp_path, "wall", 200)
     xs = _xs(objs)
@@ -153,7 +166,7 @@ def test_bpy_a_wall_has_no_chamfer_at_its_ends_and_keeps_its_top(tmp_path):
     inside = [x for x in xs if w / 2 - 0.01 < abs(x) < w / 2 - 1e-4]
     assert not inside, inside
     zs = sorted({round(v.co.z, 4) for o in objs for v in o.data.vertices})
-    assert any(0.0 < _H / 2 - z < 0.01 for z in zs), zs      # top chamfer kept
+    assert not [z for z in zs if _H / 2 - 0.01 < abs(z) < _H / 2 - 1e-4], zs
 
 
 def test_bpy_a_doorway_keeps_its_reveal_and_loses_its_ends(tmp_path):

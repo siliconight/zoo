@@ -49,7 +49,7 @@ def build_slab(plan, streams, collection, species):
     #: Where this module meets its neighbours. Edges lying in these planes
     #: stay sharp, so two modules' chamfers no longer cut a V-groove into
     #: every joint of a run (`arch.butt_planes`).
-    butts = arch.butt_planes(species, w)
+    butts = arch.butt_planes(species, w, h)
 
     def part(bm, name, wr=wear, bv=None):
         objs.append(geometry.bm_to_object(

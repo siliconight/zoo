@@ -507,7 +507,7 @@ BUTT_TOL = 1e-4
 RUN_SPECIES = ("wall", "wallEnd", "doorway", "window", "breach")
 
 
-def butt_planes(species: str, w: float):
+def butt_planes(species: str, w: float, h: float):
     """The planes where this module MEETS ITS NEIGHBOUR, as ``(axis, coord)``.
 
     A standing module's two ends, ``x = -w/2`` and ``x = +w/2``: Deli Counter
@@ -524,9 +524,18 @@ def butt_planes(species: str, w: float):
     It is the plate-tile groove again (``recipes/_arch.py``), which was fixed
     for plates on the grounds that walls' chamfers "sit on real corners". A
     wall's END edges do not: they sit on the plane its neighbour shares. The
-    corners a person can see -- a jamb's reveal, a sill, a header's underside,
-    the top and bottom of the face -- are not on these planes and keep their
-    chamfer.
+    corners a person can see -- a jamb's reveal, a sill, a header's underside
+    -- are not on these planes and keep their chamfer.
+
+    AND ITS TOP AND BOTTOM (1.70.0), ``z = -h/2`` and ``z = +h/2``. This said
+    "the top and bottom of the face" were real corners too. They are not: in
+    Deli Counter's model a run module's top and bottom always meet something
+    -- the next storey's module, flush, on an Empty (0.175.2 stacks them:
+    gs_empty_rowhome_d's end wall is 0.0-3.1 then 3.1-5.9), or the slab's
+    edge on an enterable building (bank_tower_a02: 0.0-4.3, slab, 4.6-8.9).
+    Cold runs 9153-9155 drew the groove on the stone Empty's end wall: a V
+    6 mm wide and 3 mm deep along the storey seam, a quarter to a third of a
+    pixel in those frames, aliased into a row of pale-then-dark dashes.
 
     Only the species Deli Counter lays in a RUN have neighbours. Plates return
     none (their tiles are unbevelled throughout), and so does ``prop``, which
@@ -535,14 +544,15 @@ def butt_planes(species: str, w: float):
     """
     if species not in RUN_SPECIES:
         return ()
-    hw = w / 2.0
-    return ((0, -hw), (0, hw))
+    hw, hh = w / 2.0, h / 2.0
+    return ((0, -hw), (0, hw), (2, -hh), (2, hh))
 
 
 def edge_on_butt_plane(a, b, planes, tol: float = BUTT_TOL) -> bool:
     """True when edge ``a``-``b`` lies IN one of ``planes``: both ends on the
-    SAME plane. A full-width edge has one end on each butt plane and lies in
-    neither -- the top of a wall face, which keeps its chamfer."""
+    SAME plane. An edge with one end on each of two planes lies in neither;
+    the top edge of a wall face lies in its top plane (1.70.0), so it is a
+    butt edge now, and a jamb's reveal lies in none."""
     return any(abs(a[axis] - c) <= tol and abs(b[axis] - c) <= tol
                for axis, c in planes)
 
