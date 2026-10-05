@@ -60,7 +60,6 @@ MUNTIN = 1
 #: Painted wood frame, as a 1990s rowhouse sash is painted.
 FRAME_RGB = (198, 192, 178)
 MUNTIN_RGB = (150, 144, 132)
-BAR_RGB = (22, 22, 22)
 
 #: THE ROOM LIGHTS (1.65.0), each (ceiling, middle, low): the colours the
 #: night photographs show, not one warm. A sofa back sits low in every room.
@@ -209,16 +208,6 @@ def _sash(c, e, x0, y0, x1, y1):
         e.rect(x0, y, x1, y + MUNTIN, (0, 0, 0))
 
 
-def _bars(c, e, x0, y0, x1, y1):
-    for j in range(1, 6):
-        x = x0 + (x1 - x0) * j // 6
-        c.rect(x - 1, y0, x + 1, y1, BAR_RGB)
-        e.rect(x - 1, y0, x + 1, y1, (0, 0, 0))
-    for y in (y0 + 4, y1 - 5):
-        c.rect(x0, y, x1, y + 2, BAR_RGB)
-        e.rect(x0, y, x1, y + 2, (0, 0, 0))
-
-
 def _fan(c, x0, y0, x1, y1):
     """A box fan standing in the lower sash: a grey square, a round grille."""
     mid = (y0 + y1) // 2
@@ -280,8 +269,12 @@ def _paint(state, c, e):
             rgb = NET if (x - gx0) % 5 else tuple(v - 14 for v in NET)
             c.rect(x, gy0, x + 1, gy1, rgb)
     _sash(c, e, gx0, gy0, gx1, gy1)
-    if state.endswith("_bars"):
-        _bars(c, e, gx0, gy0, gx1, gy1)
+    # NO PAINTED BARS (1.69.0). A barred window's bars are geometry now --
+    # `dressing.bar_parts`, ordered by Patina (>= 0.26.0) from the slot Deli
+    # Counter (>= 0.181.0) marks -- standing 3.5 cm off the wall while this
+    # pane sits 13 cm behind it. Painted as well, they drew a second grid that
+    # slid against the real one as the eye moved. A barred pane paints its
+    # room and nothing else.
     if state == "dark_fan":
         _fan(c, gx0, gy0, gx1, gy1)
 

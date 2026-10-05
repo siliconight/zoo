@@ -22,6 +22,10 @@ anchor normal:
 * ``frame``        — four thin strips around a doorway/window opening
   (``size2`` = the exact opening rect from DC's ``fit.openings``;
   ``frame_width`` from the order).
+* ``ac_unit``      — an Empty's window air conditioner standing on the sill
+  (1.69.0; ``size2`` = the opening; parts from ``core.dressing.ac_parts``).
+* ``window_bars``  — an Empty's barred window: uprights on bolted straps
+  (1.69.0; ``size2`` = the opening; ``core.dressing.bar_parts``).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -50,8 +54,8 @@ carried, not used.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core.dressing import (downspout_parts, frame_strips, gutter_parts,
-                             strip_size, uv_offset)
+from ..core.dressing import (ac_parts, bar_parts, downspout_parts, frame_strips,
+                             gutter_parts, strip_size, uv_offset)
 
 
 def build(plan, streams, collection):
@@ -82,6 +86,13 @@ def build(plan, streams, collection):
         # the leader, its straps and its boot (1.67.0)
         w, _d, h = strip_size(cover, order.get("size", 0.6), order.get("size2"))
         for center, size in downspout_parts(h, w):
+            geometry.add_box(bm, center, size)
+    elif cover in ("ac_unit", "window_bars"):
+        # an Empty's window fixtures (1.69.0), sized from the opening Patina
+        # passes as `size2` -- an air conditioner on the sill, or bars over it
+        ow, oh = (order.get("size2") or [0.95, 1.6])[:2]
+        parts = ac_parts(ow) if cover == "ac_unit" else bar_parts(ow, oh)
+        for center, size in parts:
             geometry.add_box(bm, center, size)
     else:
         w, d, h = strip_size(cover, order.get("size", 0.6),
