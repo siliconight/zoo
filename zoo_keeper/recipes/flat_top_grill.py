@@ -4,9 +4,7 @@ proven primitives. Origin at floor center, controls face -Y."""
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-
-PLATE_T = 0.03
-GUARD_T = 0.02
+from ..core import flat_top_grill_forms as grill_forms
 
 
 def _darker(c, f=0.7):
@@ -26,57 +24,19 @@ def build(plan, streams, collection):
         objs.append(geometry.bm_to_object(
             bm, name, collection, bevel=bevel, texel=texel, rng=rng, wear=wear))
 
-    leg_h = 0.12
-    guard_h = 0.12
-    surface_z = h - guard_h            # cooking surface (~counter height)
-    body_h = surface_z - PLATE_T - leg_h
-
-    # cabinet body
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0, 0, leg_h + body_h / 2), (w, d, body_h))
-    part(bm, "Grill_Body")
+    # The parts, from core.flat_top_grill_forms: the cabinet stands
+    # KNOB_PROUD shallower than the slot and set back, so the knobs end on the
+    # slot's front face and the module measures exactly (w, d, h) (1.80.0).
+    for name, shape, centre, size in grill_forms.layout(w, d, h, n_knobs):
+        bm = geometry.new_bm()
+        if shape == "box":
+            geometry.add_box(bm, centre, size)
+        else:
+            radius, length, axis = size
+            geometry.add_cylinder(bm, centre, radius, length, segments=12,
+                                  axis=axis)
+        part(bm, name, texel=2.0 if name == "Grill_Cooktop" else 1.0)
     cboxes.append(((-w / 2, -d / 2, 0), (w / 2, d / 2, h)))
-
-    # cooktop plate — top surface at counter height
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0, 0, surface_z - PLATE_T / 2),
-                     (w * 0.98, d * 0.98, PLATE_T))
-    part(bm, "Grill_Cooktop", texel=2.0)
-
-    # splash guards rise from the surface to the overall height
-    gz = surface_z + guard_h / 2
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0, d / 2 - GUARD_T / 2, gz), (w, GUARD_T, guard_h))
-    part(bm, "Grill_SplashGuard_B")
-    for side, sx in (("L", -1), ("R", 1)):
-        bm = geometry.new_bm()
-        geometry.add_box(bm, (sx * (w / 2 - GUARD_T / 2), 0, gz),
-                         (GUARD_T, d, guard_h))
-        part(bm, f"Grill_SplashGuard_{side}")
-
-    # grease trap slot along the front lip
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0, -d / 2 + 0.02, surface_z - PLATE_T - 0.015),
-                     (w * 0.7, 0.03, 0.03))
-    part(bm, "Grill_GreaseTrap")
-
-    # control knobs on the front
-    for i in range(n_knobs):
-        x = (i - (n_knobs - 1) / 2) * (w * 0.14)
-        bm = geometry.new_bm()
-        geometry.add_cylinder(bm, (x, -d / 2 - 0.02, leg_h + body_h * 0.6),
-                              0.022, 0.03, segments=12, axis="Y")
-        part(bm, f"Grill_Knob_{i + 1}")
-
-    # legs
-    i = 0
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            i += 1
-            bm = geometry.new_bm()
-            geometry.add_box(bm, (sx * (w / 2 - 0.06), sy * (d / 2 - 0.06),
-                                  leg_h / 2), (0.05, 0.05, leg_h))
-            part(bm, f"Grill_Leg_{i}")
 
     # plan["material"], not the literal "metal". These three were hard-coded,
     # which made this species' genome INERT: editing materials.default or a
