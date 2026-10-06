@@ -1,10 +1,10 @@
 """The sign over a door names who is inside (1.37.0).
 
-Cold run 9120's FLAPPHAS walk: the box over the gas station's door was lit and
+Cold run 9120's FLAPPAHS walk: the box over the gas station's door was lit and
 blank, and so was every sign Deli Counter derives (102 across the library) --
 `sign_box` painted a face only from a sign pack, and no theme ships one. What
 is held: the kind is read from the business's words and a club's name is its
-neon's (the same key, the same modulus); a gas station says FLAPPHAS in the
+neon's (the same key, the same modulus); a gas station says FLAPPAHS in the
 pylon's colours; a building of no kind gets a street number, never a blank;
 every name SETS on every sign size the library derives (`fit_text` drops what
 it cannot set, silently); every name is invented; the business rides an
@@ -69,9 +69,26 @@ def test_a_club_s_door_says_what_its_neon_says():
         assert SN.sign_for(b)["text"] == CN.name_for(SN.key(b) % len(CN.NAMES))
 
 
-def test_a_gas_station_says_flapphas_in_the_pylon_s_colours():
+def test_a_gas_station_says_flappahs_in_the_pylon_s_colours():
     s = SN.sign_for("gas_station_a02")
     assert s["text"] == PY.STORE and s["colours"] == PY.COLOURWAYS[0]
+
+
+def test_the_brand_is_spelled_the_walkers_way():
+    """1.75.0: FLAPPAHS, as the walker writes it and Pixelcoat's sign spells
+    it. Zoo had FLAPPHAS."""
+    assert PY.STORE == "FLAPPAHS"
+
+
+def test_a_convenience_store_is_a_flappahs():
+    """1.75.0: the Flappahs store is always Flappahs (the walker,
+    2026-10-06). The library's is `convenience_store_a01`; a generated one
+    reads `<level> convenience_store` -- neither carries gas, fuel, gs or
+    stop, so before `convenience` joined the kind its door showed a street
+    number."""
+    for b in ("convenience_store_a01", "lf_flappahs_001_1 convenience_store"):
+        s = SN.sign_for(b)
+        assert s["kind"] == "gas" and s["text"] == PY.STORE, (b, s)
 
 
 def test_no_kind_is_a_street_number_never_blank():

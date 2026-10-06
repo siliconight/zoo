@@ -1,7 +1,7 @@
 """A 1997 two-sided mechanical gas pump: two atlases, two draws.
 
 Zoo 1.36.0, species `pump`. The walker, 2026-09-30, after cold run 9120's
-FLAPPHAS walk found the forecourt's six pumps were the 2026-09-12 placeholder
+FLAPPAHS walk found the forecourt's six pumps were the 2026-09-12 placeholder
 box: "pumps first". Until this the species was one grey box.
 
 THE REFERENCE (docs/proposals/GAS_STATION_SHOP.md, the walker's close-up):
@@ -25,7 +25,7 @@ From the bottom:
            stencilled plate, the grade button and a louvred door;
   nozzle   a holster boot on each panel, the nozzle in it, and a black hose
            hung in a loop from the nozzle's butt back into the body;
-  header   the store's name, FLAPPHAS, lit on both faces.
+  header   the store's name, FLAPPAHS, lit on both faces.
 
 Both faces are built once and turned 180 degrees, so each viewer reads
 REGULAR, PLUS, SUPER left to right and no text is mirrored.

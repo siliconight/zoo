@@ -24,7 +24,7 @@ from zoo_keeper.core import pixel_type as pt
 from zoo_keeper.core import pixel_type_glyphs as BOLD
 
 _ZOO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SAMPLES = ("WOODER", "IGGLES TEARS", "Tastes Like the Boulevard at 2 AM.", "75¢", "FLAPPHAS")
+SAMPLES = ("WOODER", "IGGLES TEARS", "Tastes Like the Boulevard at 2 AM.", "75¢", "FLAPPAHS")
 
 
 def _mint():
@@ -54,7 +54,7 @@ def test_every_face_loads_with_the_whole_charset(face):
     t = pt._table(face)
     assert set(m.CHARSET) <= set(t.GLYPHS), set(m.CHARSET) - set(t.GLYPHS)
     assert pt.line(face) == t.ASCENT + t.DESCENT > 0
-    mask = pt.render("FLAPPHAS 99¢", 1, face)
+    mask = pt.render("FLAPPAHS 99¢", 1, face)
     assert len(mask) == pt.line(face) and any(any(r) for r in mask)
     assert tuple(m.FACES) == tuple(sorted(m.FACES, key=list(pt.FACES).index))
 

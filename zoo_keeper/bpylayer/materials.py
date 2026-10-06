@@ -448,7 +448,7 @@ def make_backlit_material(name, image, strength, albedo_factor, roughness=0.35, 
     bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
     # 0.35 unless asked: a face with a LAMP IN FRONT OF IT (a door sign, Lux
     # stands its source 0.29 m off the face) takes a specular hot spot at
-    # 0.35 -- cold run 9122's FLAPPHAS and TERMINAL A, a white blob mid-word
+    # 0.35 -- cold run 9122's FLAPPAHS and TERMINAL A, a white blob mid-word
     bsdf.inputs["Roughness"].default_value = float(roughness)
     bsdf.inputs["Metallic"].default_value = 0.0
     tex = tree.nodes.new("ShaderNodeTexImage")

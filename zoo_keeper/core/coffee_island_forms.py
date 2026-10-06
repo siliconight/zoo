@@ -511,7 +511,7 @@ COLOURWAYS = (((24, 78, 52), (226, 206, 150), (246, 238, 214)),     # bottle gre
               ((70, 36, 20), (226, 176, 92), (250, 236, 206)),      # roast brown, tan
               ((22, 44, 82), (214, 196, 150), (240, 236, 222)),     # navy, sand
               ((96, 22, 26), (232, 212, 170), (248, 240, 222)))     # oxblood, parchment
-STORE = "FLAPPHAS"
+STORE = "FLAPPAHS"
 WORDS = ("COFFEE", "FRESH BREWED")
 #: The brewers' maker, invented: the walker's photos carry a real maker's
 #: plaque, black with a gold rule and cream lettering, and this keeps the

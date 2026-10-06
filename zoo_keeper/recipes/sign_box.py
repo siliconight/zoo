@@ -13,7 +13,7 @@ _WALL_GAP = 0.2      # DC's _SIGN_OUT: distance from face plane back to wall
 #: THE NAMED FACE TAKES LITTLE LIGHT (1.37.1). Its own lamp stands 0.29 m in
 #: front of it (Lux), and at the pylon's 0.6 diffuse copy and the backlit
 #: material's 0.35 roughness cold run 9122 photographed a white hot spot
-#: mid-word on FLAPPHAS and TERMINAL A. The glow is unchanged; what the face
+#: mid-word on FLAPPAHS and TERMINAL A. The glow is unchanged; what the face
 #: no longer does is mirror the lamp in front of it.
 SIGN_ALBEDO = 0.15
 SIGN_ROUGHNESS = 1.0

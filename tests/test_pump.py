@@ -1,7 +1,7 @@
 """The pump (1.36.0): a 1997 two-sided mechanical gas pump, two atlases, two draws.
 
 Minted 2026-09-12 by tools/new_species.py (roadmap 150) as a placeholder box;
-drawn after cold run 9120's FLAPPHAS walk, the walker: "pumps first". What is
+drawn after cold run 9120's FLAPPAHS walk, the walker: "pumps first". What is
 held: the slot is filled by construction, centred, with no face sharing a
 plane, over the whole genome range (the first cut's hose met the body's end
 at a narrow slot, and its trigger guard thinned to 1.75 mm); the faces are

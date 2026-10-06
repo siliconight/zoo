@@ -1,6 +1,6 @@
 """What the lit cabinet sign over a building's door says: ONE table, here.
 
-Zoo 1.37.0. Cold run 9120's FLAPPHAS walk found the box over the gas
+Zoo 1.37.0. Cold run 9120's FLAPPAHS walk found the box over the gas
 station's door lit and BLANK, and it was not that store's defect: Deli
 Counter derives one sign over the storefront door of every building with
 windows and a door (102 across the library, about fifty kinds), and
@@ -13,7 +13,7 @@ identity (`business`: `level_design.club_building_id`, its name and the
 recipe that made it). This reads the KIND from that string's words and the
 NAME from the kind's list by the string's crc32 -- the same key and the same
 modulus Deli Counter's `_make_volume` gives a club's `neon_sign`, so a club's
-door says what its neon says. A gas station says FLAPPHAS, as its pylon and
+door says what its neon says. A gas station says FLAPPAHS, as its pylon and
 its coffee sign do. A civic building says what it is in plain words; a
 building of no kind here shows its street number, which is what a lit box
 over an ordinary door is.
@@ -35,7 +35,9 @@ from . import price_pylon_forms as PY
 #: whole against the business string's words.
 KINDS = (
     ("club", ("strip",), None),                    # club_names, by the neon's rule
-    ("gas", ("gas", "fuel", "gs", "stop"), (PY.STORE,)),
+    # `convenience` (1.75.0): the Flappahs store, `convenience_store_a01` or a
+    # generated `<level> convenience_store`, carries none of the other words.
+    ("gas", ("gas", "fuel", "gs", "stop", "convenience"), (PY.STORE,)),
     ("pizza", ("pizza", "pizzeria"), ("PIE HOLE PIZZA", "TOMATO PIE TONY'S", "SAUCE BOSS PIZZA")),
     ("deli", ("deli", "hoagie"), ("JAWN'S HOAGIES", "WOODER ICE & HOAGIES", "SCRAPPLE & SONS DELI",
                                   "YO! DELI")),

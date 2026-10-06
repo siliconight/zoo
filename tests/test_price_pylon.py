@@ -42,7 +42,7 @@ def test_the_coincidence_check_can_see_a_pair_here():
 
 def test_both_faces_read_the_back_reversed():
     """Seen from +Y, +X is on the viewer's left: the back face's u must run
-    the other way, or FLAPPHAS reads mirrored from half the road."""
+    the other way, or FLAPPAHS reads mirrored from half the road."""
     for p in (q for q in PP.plan(*PP.DC_SIZES[0])["prims"] if q["mat"] == "glow"):
         fx = [(p["verts"][i][0], c[1]) for i, c in zip(p["faces"][2], p["uvs"][2])]
         bx = [(p["verts"][i][0], c[1]) for i, c in zip(p["faces"][4], p["uvs"][4])]
@@ -73,7 +73,7 @@ DENY = ("WAWA", "SUNOCO", "EXXON", "MOBIL", "SHELL", "GETTY", "GULF", "CITGO", "
 
 
 def test_the_brand_is_the_stores_own_and_invented():
-    assert PP.STORE == "FLAPPHAS"
+    assert PP.STORE == "FLAPPAHS"
     words = " ".join([PP.STORE, PP.STRIP] + [g for g, _c in PP.GRADES])
     for mark in DENY:
         assert not re.search(r"\b" + re.escape(mark) + r"\b", words), mark
@@ -166,7 +166,7 @@ def test_the_name_fills_half_its_face_and_the_dollars_their_row():
     x0, y0, x1, y1 = A["rects"]["brand"]
     ink = PP.COLOURWAYS[0][2]
     top, bot = _ink_rows(A, A["rects"]["brand"], ink)
-    # 1.19.0 set FLAPPHAS 21 px tall in a 112 px face
+    # 1.19.0 set FLAPPAHS 21 px tall in a 112 px face
     assert bot - top + 1 >= 0.35 * (y1 - y0), (top, bot)
     assert top > y0 + 4 and bot < y1 - 4                     # inside the rules
     px0, py0, px1, py1 = A["rects"]["price"]

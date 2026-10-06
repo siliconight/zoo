@@ -47,7 +47,7 @@ NO TWO FACES SHARE A PLANE among these primitives (`prims.coincident_pairs`
 is empty); every part meeting another is buried into it, and parts buried
 into one surface stop at different depths where their footprints overlap.
 
-THE BRAND IS INVENTED. FROZEN JAWN is FLAPPHAS's own frozen drink, in the
+THE BRAND IS INVENTED. FROZEN JAWN is FLAPPAHS's own frozen drink, in the
 walker's Delco slang: funny, a bit crass, no real mark.
 """
 from __future__ import annotations

@@ -99,5 +99,5 @@
     "pump"
   ],
   "module_variants": 4,
-  "notes": "1.36.0: drawn as a 1997 two-sided mechanical pump -- a base frame, three grade panels a face (silver, red, gold; core/price_pylon_forms.GRADES) each with a recessed window on lit price wheels to the nine-tenths, a holstered nozzle and a coiled hose, and a lit FLAPPHAS header -- in TWO atlases and two materials (painted; backlit `_Face`), so two draws. The faces are the slot's two long sides. `variant` picks the pylon's price set and colourway by the same index."
+  "notes": "1.36.0: drawn as a 1997 two-sided mechanical pump -- a base frame, three grade panels a face (silver, red, gold; core/price_pylon_forms.GRADES) each with a recessed window on lit price wheels to the nine-tenths, a holstered nozzle and a coiled hose, and a lit FLAPPAHS header -- in TWO atlases and two materials (painted; backlit `_Face`), so two draws. The faces are the slot's two long sides. `variant` picks the pylon's price set and colourway by the same index."
 }
