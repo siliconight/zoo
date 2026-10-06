@@ -89,6 +89,9 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                "gravel", "vegetation",
                # a leaf-cluster cutout for a tree's crown cards (roadmap 153)
                "foliage",
+               # a fence's wire fabric, an alpha-cut tile like `foliage`
+               # (Pixelcoat 0.56.0's `chain_link_galvanized`; 1.77.0)
+               "chain_link",
                # PROP METAL vs ARCHITECTURAL METAL. `metal` is theme-owned:
                # a rusted storefront facade and a corrugated wall belong to
                # the building, and a tintable pack in that slot would repaint

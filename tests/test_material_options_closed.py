@@ -112,7 +112,10 @@ BARE = ("gold_bar", "flat_top_grill",
         # a u-channel post and a stop sign's post are galvanised, not painted
         "sign_post", "stop_sign",
         # a bar stool's column, footring and base are chrome (0.87.0)
-        "bar_stool")
+        "bar_stool",
+        # a chain-link fence's posts, rail and wire are galvanised (1.77.0);
+        # its fabric is a kind of its own, `chain_link`
+        "chain_link_fence")
 MOVED = PAINTED + BARE
 
 

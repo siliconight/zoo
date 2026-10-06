@@ -408,7 +408,13 @@ DID_NOT_BUILD = {"boots"}
 #: builds, 0 with coincident pairs, 0 that did not build", 92 tris at
 #: each corner. Its test runs `coincident_pairs` over 27 sizes x 4
 #: haulers.
-CENSUS_BUILDS = 354
+#: 1.77.0: `chain_link_fence`, three builds more, same tool, Blender 5.1.1:
+#: "3 builds, 0 with coincident pairs, 0 that did not build" (132 / 196 /
+#: 1,380 tris). The first cut had three pairs a build, all the tension wire
+#: against the fabric card: its flat underside 0.6 mm over the card's
+#: (357 cm2 at 9 m) and its end caps flush with the card's ends. The wire
+#: now runs ON the fabric's edge and ends inside the terminal posts.
+CENSUS_BUILDS = 357
 
 
 def test_the_census_covers_every_species_there_is():

@@ -90,6 +90,9 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # foliage: a leaf-cluster CUTOUT for a tree's crown cards; the
              # pack's alpha is tested, not blended (see `_textured`)
              "foliage": 0.85,
+             # chain_link: a fence's galvanised wire fabric, a CUTOUT like
+             # foliage (1.77.0). Bare zinc, so as tight as `metal_bare`.
+             "chain_link": 0.28,
              # Prop metal (see skins.KNOWN_KINDS). Semi-gloss enamel sits
              # duller than the bare sheet it covers; brushed/polished stock
              # sits tighter than the generic `metal` average.
@@ -107,7 +110,9 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
 # the whole reason it is a separate kind from `metal_bare` is this number, and
 # a value that matters should not be inferred from an omission.
 METALLIC = {"metal": 0.85, "carbon": 0.30,
-            "metal_painted": 0.0, "metal_bare": 0.90}
+            "metal_painted": 0.0, "metal_bare": 0.90,
+            # the fence's wire is galvanised steel, a conductor (1.77.0)
+            "chain_link": 0.90}
 
 #: A KIND THAT TURNS (Zoo 1.55.0, the roller grill): `metal_bare_turn` is
 #: `metal_bare` and `metal_painted_turn` is `metal_painted` -- the same sheet,
