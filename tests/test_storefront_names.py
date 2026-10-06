@@ -91,6 +91,16 @@ def test_a_convenience_store_is_a_flappahs():
         assert s["kind"] == "gas" and s["text"] == PY.STORE, (b, s)
 
 
+def test_a_retail_strip_is_not_a_strip_club():
+    """1.76.0: the word `strip` alone made `strip_retail_a01`'s door say a
+    club's name, THE WOODER HOLE. Deli Counter's rule is `strip_club` in
+    the id, and the door follows it."""
+    for b in ("strip_retail_a01", "strip_retail_a02"):
+        assert SN.sign_for(b)["kind"] != "club", b
+    for b in ("strip_club_a01", "lf_club_block_014_7 strip_club"):
+        assert SN.sign_for(b)["kind"] == "club", b
+
+
 def test_no_kind_is_a_street_number_never_blank():
     for b in ("", "ext_0_S_sign", "twin_a01", "self_storage_a02"):
         s = SN.sign_for(b)

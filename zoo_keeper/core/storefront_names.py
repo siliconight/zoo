@@ -91,6 +91,12 @@ def sign_for(business):
         if not words & set(match):
             continue
         if kind == "club":
+            # A strip club by Deli Counter's own rule (`level_design.
+            # _strip_club_building`: "strip_club" in the id), not the word
+            # `strip` alone. Until 1.76.0 `strip_retail_a01`, a retail strip,
+            # said THE WOODER HOLE over its door.
+            if "strip_club" not in str(business or "").lower():
+                continue
             return {"kind": kind, "text": CN.name_for(k % len(CN.NAMES)),
                     "colours": PY.COLOURWAYS[(k // 7) % len(PY.COLOURWAYS)]}
         colours = CIVIC_COLOURS if kind in CIVIC else PY.COLOURWAYS[(k // 7) % len(PY.COLOURWAYS)]
