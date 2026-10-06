@@ -130,6 +130,11 @@ def parse_args():
                          "the streetlights out of a merged site manifest "
                          "whose interior fixtures are already baked "
                          "per-building.")
+    ap.add_argument("--sign-pack", dest="sign_pack",
+                    help="with --fixtures: a Pixelcoat sign pack directory "
+                         "every door box of this build wears -- the business "
+                         "the building's street band was dealt (1.79.0), so "
+                         "its two signs name one business")
     ap.add_argument("--build-kit", dest="build_kit",
                     help="a Deli Counter <name>.slots.json to BUILD the art/zoo "
                          "module GLBs for (center-pivot, exact-fit; needs "
@@ -570,7 +575,9 @@ def fixtures_run(args):
     res = build.build_fixtures(
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True,
-                 "seed": args.seed, "types": types})
+                 "seed": args.seed, "types": types,
+                 "sign_pack": (os.path.abspath(args.sign_pack)
+                               if getattr(args, "sign_pack", None) else None)})
 
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
     print(f"[zoo] fixtures built for '{res['scope_id']}' "

@@ -1,3 +1,33 @@
+## [1.79.0] - a door box can wear the sign pack its building's band wears
+
+**The walker, 2026-10-06, option A:** one name list on both of a building's
+signs. Level Factory 0.148.0 deals each shell one business, and builds its
+street band from that business's Pixelcoat pack. This release lets the door
+box wear the SAME pack, so one building's two signs name one business by
+construction, not by two tables agreeing.
+
+- **`zoo_cli --fixtures ... --sign-pack DIR`** takes the pack directory.
+- **`build_fixtures`** hands it to every `sign_box` placement of the build,
+  and to nothing else. A fixtures build is one shell, and a shell is one
+  business.
+- **`sign_box`** loads that pack before it would pick one from a skin
+  library, and wears it through the branch that already dressed a face from
+  a pack.
+- **Without a pack, nothing changes.** The face is named from
+  `storefront_names`, which Pixelcoat 0.61.0's sign profile now mirrors.
+
+**Built:** `deli_a01`'s fixtures with `--sign-pack` set to cold run 9184's
+`signs/sign_flappahs`. Its door face is `M_SignBox_sign_flappahs_Face`.
+
+**Tests:** `tests/test_door_wears_the_band.py`, 3.
+- The CLI takes the flag.
+- Only a door box is handed the pack.
+- The door box wears a given pack before it would pick one.
+- The Blender-bound code is read as source. All three fail on 1.78.0.
+
+**Suite:** 3,343 passed, 382 skipped, 1 xfailed: 1.78.0's 3,340 and these
+3.
+
 ## [1.78.0] - a pack can blend its texture's alpha: the fence's far fabric
 
 **The chain-link fabric vanished at distance** (cold run 9183, roadmap 188).

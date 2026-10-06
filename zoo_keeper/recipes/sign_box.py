@@ -33,8 +33,13 @@ def build(plan, streams, collection):
     # business, built here and lit in the block after the cabinet.
     face_t = 0.02
     pack = None
+    if plan.get("sign_pack"):
+        # 1.79.0: the business Level Factory dealt this building -- the pack
+        # its street band wears -- so the door and the band are one name
+        from ..core import skins as skinlib
+        pack = skinlib.load_pack(str(plan["sign_pack"]))
     skins_dir, skin_theme = materials.get_skin_library()
-    if skins_dir:
+    if pack is None and skins_dir:
         from ..core import skins as skinlib
         pack = skinlib.pick_pack(
             skinlib.find_sign_packs(skins_dir, skin_theme),

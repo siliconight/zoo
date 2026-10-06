@@ -760,6 +760,10 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # 1.37.0: and the building's identity, which a sign's face names
         if p.get("business"):
             sp_plan["business"] = p["business"]
+        # 1.79.0: the business the building's street band was dealt, as its
+        # pack; a door box wears it, so one building's two signs are one name
+        if species == "sign_box" and opts.get("sign_pack"):
+            sp_plan["sign_pack"] = opts["sign_pack"]
         # v0.94: a FIXTURES row may pin recipe params (the club can's form),
         # and an anchor may carry a gel colour for the lit lens. Merged over
         # whatever `dna.resolve_plan` chose, not instead of it.
