@@ -15,3 +15,8 @@ dist/
 _preview_dressing/
 _preview_*/
 _probe/
+
+# the preview and census output dirs themselves; `_preview_*/` above needs
+# the underscore after preview and missed `_preview/` (2026-10-06: 19 MB loose)
+_preview/
+_census/
