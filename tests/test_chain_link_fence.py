@@ -77,6 +77,31 @@ def test_the_fabric_stays_inside_the_slot():
     assert math.isclose(g["dimensions"]["depth"]["default"], F.TERMINAL_OD)
 
 
+def test_a_fabric_that_blends_its_texture_is_not_glass_and_not_a_cutout():
+    """1.78.0: the far fabric vanished under an alpha test (cold run 9183);
+    blended, its mips keep the fabric's coverage."""
+    hint = lambda mode, opacity=1.0: {"transparency": {"alpha_mode": mode, "opacity": opacity}}
+    assert skins.blends_its_texture(hint("blend_texture"))
+    assert not skins.is_see_through(hint("blend_texture"))
+    assert not skins.blends_its_texture(hint("scissor"))
+    assert not skins.blends_its_texture(hint("blend", 0.6))
+    assert skins.is_see_through(hint("blend", 0.6))
+    assert not skins.blends_its_texture(None)
+
+
+def test_the_material_code_acts_on_the_texture_blend():
+    """The branch is Blender-bound, so read it as source, as
+    `test_car_forms` does: it must ask `blends_its_texture` before the glass
+    test, or a blended fabric would fall through to an opaque surface."""
+    import os
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "zoo_keeper", "bpylayer", "materials.py"), encoding="utf-8").read()
+    i_blend = src.index("elif skins.blends_its_texture(pack):")
+    i_glass = src.index("elif skins.is_see_through(pack):")
+    assert i_blend < i_glass
+    assert '"surface_render_method", "BLENDED"' in src[i_blend:i_glass]
+
+
 def test_the_fabric_is_a_kind_the_skin_library_resolves():
     """Pixelcoat 0.56.0 maps `chain_link` in both level themes; a kind
     absent from KNOWN_KINDS is one no part can ask for."""

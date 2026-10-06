@@ -132,6 +132,19 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
 SEE_THROUGH_KINDS = ("glass",)
 
 
+def blends_its_texture(pack: dict | None) -> bool:
+    """True when a resolved pack asks for its ALBEDO's alpha to be blended,
+    not tested (``import_hints.transparency.alpha_mode == "blend_texture"``,
+    Pixelcoat 0.60.0). Glass blends one opacity across a surface
+    (`is_see_through`); a cutout tests its alpha at 0.5 (`scissor`). A
+    fabric too fine for a test -- chain link is about 25 % wire, so its mips
+    fall under any cutoff that keeps it crisp near -- blends its own alpha
+    instead (1.78.0). Pure, like `is_see_through`, so the material code and
+    its tests read the hint one way."""
+    trans = (pack or {}).get("transparency") or {}
+    return trans.get("alpha_mode") == "blend_texture"
+
+
 def is_see_through(pack: dict | None) -> bool:
     """True when a resolved pack asks to be BLENDED: an
     ``import_hints.transparency`` with opacity below 1 that is not a

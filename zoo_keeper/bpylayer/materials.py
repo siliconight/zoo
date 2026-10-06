@@ -786,6 +786,24 @@ def _textured(name, pack, material_kind, tint=None):
             mat.use_backface_culling = False       # a card reads from both sides
         except Exception:
             pass
+    elif skins.blends_its_texture(pack):
+        # THE TEXTURE'S OWN ALPHA, BLENDED (1.78.0, the chain-link fabric).
+        # Linked straight to the shader, so the exporter writes alphaMode
+        # BLEND with the albedo's alpha, and Godot draws it as alpha.
+        try:
+            tree.links.new(albedo.outputs["Alpha"], bsdf.inputs["Alpha"])
+        except Exception:
+            pass
+        for _attr, _val in (("blend_method", "BLEND"),
+                            ("surface_render_method", "BLENDED")):
+            try:
+                setattr(mat, _attr, _val)
+            except Exception:
+                pass
+        try:
+            mat.use_backface_culling = False       # a card reads from both sides
+        except Exception:
+            pass
     elif skins.is_see_through(pack):
         try:
             bsdf.inputs["Alpha"].default_value = float(trans["opacity"])
