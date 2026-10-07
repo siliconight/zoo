@@ -1,0 +1,133 @@
+{
+ "species": "deli_case",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Zoo 1.81.0. The corner deli's service case: a white enamel base with an accent band and a steel bumper, a black kick, curved front glass in three facets, glass end panes, a stainless top with a fluorescent tube under its front edge, sliding glass doors on the staff side over a black rail, and a lit deck -- price cards, plastic parsley, sixth pans of salads, trays of sliced meat -- with whole logs and blocks on its back half, their cut faces to the glass. Deli Counter's corner deli has stood a `deli_case_cover` since the recipe was written and no species answered to it: cold run 9189 built it as a plain glass box. Three submissions whatever the length: painted metal (colour in the Wear vertex colour; the accent band's follows the variant), glass, and the glow (deck, tube, logs and blocks on ONE backlit image, M_DeliCase_<art>_Face, Lux's power cut takes it). Every cold cut and salad is a generic word; no brand reaches the case. Collision is the slot's box."
+ },
+ "dimensions": {
+  "width": {
+   "min": 1.2,
+   "max": 8.0,
+   "default": 5.815
+  },
+  "depth": {
+   "min": 0.8,
+   "max": 1.4,
+   "default": 1.1
+  },
+  "height": {
+   "min": 1.1,
+   "max": 1.5,
+   "default": 1.3
+  }
+ },
+ "parts": [
+  "DeliCase_Kick",
+  "DeliCase_Base",
+  "DeliCase_Trim",
+  "DeliCase_Bumper",
+  "DeliCase_Glass",
+  "DeliCase_EndPane",
+  "DeliCase_Top",
+  "DeliCase_Rear",
+  "DeliCase_Rail",
+  "DeliCase_Glow"
+ ],
+ "params": {
+  "form": [
+   "auto"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "metal_painted",
+  "options": [
+   "metal_painted",
+   "glass"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.2
+  },
+  "delco": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.3
+  },
+  "1990s": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.3
+  },
+  "center_city": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.15,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.5,
+   "ambient": 0.4
+  },
+  "rockay": {
+   "material": "metal_painted",
+   "color": [
+    0.86,
+    0.86,
+    0.83
+   ],
+   "bevel": 0.0,
+   "wear": 0.35,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 2400
+ },
+ "attachments": [],
+ "collision": true,
+ "keywords": [
+  "deli case",
+  "deli counter case",
+  "service case",
+  "meat case",
+  "deli display case"
+ ],
+ "connectors": {
+  "anchor": {
+   "type": "floor"
+  }
+ }
+}

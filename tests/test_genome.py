@@ -73,7 +73,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # nine-tenths, both faces lit
                 "price_pylon",
                 # the front-load dumpster (1.58.0)
-                "dumpster"}
+                "dumpster",
+                # the corner deli's service case (1.81.0): curved glass, a
+                # lit deck of pans and cards, logs cut to the glass
+                "deli_case"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

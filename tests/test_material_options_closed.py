@@ -56,6 +56,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # a slush station's stand, machine, taps and pumps are enamelled
            # steel and plastic, their colours in the vertex (1.15.0)
            "slush_machine",
+           # a deli case's base, bumper, top and rail are enamelled and
+           # stainless steel, their colours in the vertex (1.81.0)
+           "deli_case",
            # a price pylon's cabinets and posts are painted steel, its
            # plinth a painted tint of the same (1.19.0)
            "price_pylon",

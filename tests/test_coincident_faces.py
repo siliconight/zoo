@@ -414,7 +414,13 @@ DID_NOT_BUILD = {"boots"}
 #: against the fabric card: its flat underside 0.6 mm over the card's
 #: (357 cm2 at 9 m) and its end caps flush with the card's ends. The wire
 #: now runs ON the fabric's edge and ends inside the terminal posts.
-CENSUS_BUILDS = 357
+#: 1.81.0: `deli_case`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (416 / 1,412 /
+#: 1,872 tris). The planner's check found four sets first -- the end panes
+#: 0.4-2.0 mm off the glass and 1 mm off the rail, the rail's ends 1 mm off
+#: the base's, the deck's bays meeting face to face, the logs' flat bottoms
+#: 1.6-2.1 mm under the deck -- each fixed at its source.
+CENSUS_BUILDS = 360
 
 
 def test_the_census_covers_every_species_there_is():
