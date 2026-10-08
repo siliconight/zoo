@@ -79,7 +79,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "deli_case",
                 # the crew's getaway van (1.82.0, roadmap 206): a P30-style
                 # step van, matte black gone chalky, parked at the spawn
-                "step_van"}
+                "step_van",
+                # the responders' cruiser (1.86.0, roadmap 212): a 1990s
+                # Crown Victoria lettered for the DELCO COUNTY POLICE
+                "cruiser"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

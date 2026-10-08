@@ -99,6 +99,10 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # painted atlas; its lids are plastic in the same image
            # (1.58.0)
            "dumpster",
+           # a cruiser is simple_car's painted body under its livery's
+           # image, its kit enamelled steel coloured in the vertex
+           # (1.86.0)
+           "cruiser",
            # a cover's metal is painted flashing, and a gutter and its
            # downspout are painted aluminium (1.67.0): `metal_painted` is
            # what METAL_COVERS ask for, and the two styles whose every cover

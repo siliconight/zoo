@@ -1,0 +1,99 @@
+{
+  "species": "cruiser",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction, Zoo 1.86.0 (roadmap 212). The responders' cruiser: a classic 1990s Ford Crown Victoria police sedan, lettered for the invented DELCO COUNTY POLICE DEPT., built on simple_car's sedan. From the walker's comps as described in docs/reference/CRUISER_COMPS.md at the factory root: six photographs read for format only, none stored, no real department's name, seal, number or plate reproduced. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.1,
+      "max": 2.3,
+      "default": 2.196
+    },
+    "depth": {
+      "min": 5.35,
+      "max": 5.75,
+      "default": 5.545
+    },
+    "height": {
+      "min": 1.5,
+      "max": 1.66,
+      "default": 1.578
+    }
+  },
+  "parts": [
+    "Car_Body",
+    "Car_Trim",
+    "Car_Tyres",
+    "Car_Chrome",
+    "Car_Lamp_Head",
+    "Car_Lamp_Tail",
+    "Car_Lamp_Amber",
+    "Car_Plate",
+    "Car_Interior",
+    "Car_Kit",
+    "Car_Lens_Red",
+    "Car_Lens_Blue",
+    "Car_Lens_Clear"
+  ],
+  "params": {
+    "wheel_segments": {
+      "min": 10,
+      "max": 24,
+      "default": 16
+    },
+    "form": [
+      "auto",
+      "black_white",
+      "white_blue"
+    ]
+  },
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.12,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.12,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 5000
+  },
+  "attachments": [
+    "ATT_roof",
+    "ATT_driver_seat",
+    "ATT_trunk",
+    "ATT_lightbar"
+  ],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "cruiser",
+    "police car",
+    "squad car",
+    "patrol car",
+    "crown victoria",
+    "crown vic"
+  ]
+}

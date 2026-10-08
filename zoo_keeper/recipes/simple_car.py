@@ -176,7 +176,11 @@ def _sub(p, n, d):
     return tuple(p[k] - n[k] * d for k in range(3))
 
 
-def build(plan, streams, collection):
+def build(plan, streams, collection, form=None):
+    # ``form`` (1.86.0): a `car_forms.resolve` result the caller has already
+    # drawn and pinned -- the cruiser's blue-grey interior, steel wheels and
+    # body bumpers. Without it the car is drawn here, as it always was, from
+    # the same streams in the same order.
     W = plan["dimensions"]["width"]
     L = plan["dimensions"]["depth"]
     H = plan["dimensions"]["height"]
@@ -188,7 +192,7 @@ def build(plan, streams, collection):
     # (measured on walk 9048's shipped car). Every part is built bevel 0.
     rng = streams.stream("wear")
     seg = int(plan["params"].get("wheel_segments", 12))
-    f = car_forms.resolve(plan, streams)
+    f = form if form is not None else car_forms.resolve(plan, streams)
     style = f["style"]
     trunk = f["trough"] == "backlight"
     width_k = W / 1.75
@@ -580,7 +584,7 @@ def build(plan, streams, collection):
     ytin = yt - 0.02
     t_z0, t_z1 = bz1 + 0.05, tail - 0.03
     for sx in (-1.0, 1.0):
-        if style in ("sedan", "coupe"):
+        if style in car_forms.SEDANS:
             xa, xb = 0.24, hwt - 0.045
             za, zb_ = max(t_z0, t_z1 - 0.13), t_z1
         elif style == "hatchback":
@@ -593,7 +597,7 @@ def build(plan, streams, collection):
              (max(sx * (xa - 0.012), sx * (xb + 0.010)), yt + DETAIL_PROUD, zb_ + 0.010))
         _box(groups["lamp_tail"], (min(sx * xa, sx * xb), ytin, za),
              (max(sx * xa, sx * xb), ytl, zb_))
-        if style in ("sedan", "coupe"):
+        if style in car_forms.SEDANS:
             ra, rb, rza, rzb = xa + 0.015, xa + 0.10, za + 0.015, zb_ - 0.015
         else:
             ra, rb, rza, rzb = xa + 0.015, xb - 0.015, za + 0.015, za + 0.10
@@ -604,7 +608,7 @@ def build(plan, streams, collection):
         # rounding at that Y put 2 mm inside its window (OPP, 144-315 cm2).
         _box(groups["lamp_head"], (min(sx * ra, sx * rb), yt - 0.006, rza),
              (max(sx * ra, sx * rb), yt + 0.014, rzb))
-    plate_zc = (t_z0 + t_z1) / 2.0 - (0.05 if style in ("sedan", "coupe") else 0.0)
+    plate_zc = (t_z0 + t_z1) / 2.0 - (0.05 if style in car_forms.SEDANS else 0.0)
     _box(groups["trim"], (-0.19, ytin, plate_zc - 0.10),
          (0.19, yt + DETAIL_PROUD, plate_zc + 0.10))
     _box(groups["plate"], (-0.1525, ytin + 0.005, plate_zc - 0.076),
@@ -624,6 +628,9 @@ def build(plan, streams, collection):
         x0, x1 = sign * (hw - depth), sign * (hw + proud)
         _box(bm, (min(x0, x1), ya_, za), (max(x0, x1), yb_, zb2))
 
+    # the side moulding's centre line, one number for the strip and for a
+    # recipe lettering the doors around it (1.86.0)
+    zm_moulding = _lerp(clear + ROCKER_H, z2_at, 0.42)
     for sign in (-1.0, 1.0):
         for ye in door_edges:
             z_lo = max(z_base(ye) + ROCKER_H, z_well(ye) + 0.012) + 0.02
@@ -633,7 +640,7 @@ def build(plan, streams, collection):
             on_skin(groups["trim"], sign, SKIN_DEPTH["handle"], 0.012, yh - 0.08, yh + 0.08,
                     z2_at - 0.075, z2_at - 0.04)
         if f["moulding"]:
-            zm = _lerp(clear + ROCKER_H, z2_at, 0.42)
+            zm = zm_moulding
 
             def clear_of_seams(yy):
                 # A moulding end that lands within a seam's reach ends in the
@@ -737,14 +744,16 @@ def build(plan, streams, collection):
     # max probe matrix never built; the exported GLB's probe found it.
     card_spans = [(max(y_ws + 0.06, ya_f + R + 0.02), min(y_te - 0.06, ya_r - R - 0.02)),
                   (ya_r + R + 0.02, y_te - 0.06)]
+    card_in = xi - 0.012                            # the door cards' inner face
     for sign in (-1.0, 1.0):
-        x0, x1 = sign * (xi - 0.012), sign * (xi + 0.006)
+        x0, x1 = sign * card_in, sign * (xi + 0.006)
         for ca, cb in card_spans:
             if cb - ca >= 0.15:
                 _box(groups["interior"], (min(x0, x1), ca, floor_z + 0.05),
                      (max(x0, x1), cb, belt - 0.012))
+    floor_top = floor_z + 0.012                     # the cabin floor's top face
     _box(groups["interior"], (-(xtub - 0.01), y_ws + 0.05, floor_z - 0.01),
-         (xtub - 0.01, y_te - 0.05, floor_z + 0.012))
+         (xtub - 0.01, y_te - 0.05, floor_top))
     # dashboard: its top edge stays behind the windshield's inner face
     dash_back = y_ws + 0.42
     _hexa(groups["trim"], [
@@ -772,6 +781,7 @@ def build(plan, streams, collection):
     # met the ledge wall 1.66 mm apart, back to back, on 1.85 m hatchbacks
     # (OPP, 96 cm2; 3 of 250 random slot sizes)
     seat_w = min(0.48, xi * 0.9, 2.0 * (xtub - 0.015 - xd))
+    back_rear = y_fs + 0.39                         # the seat back's and headrest's rear face
     for sx in (-1.0, 1.0):
         xc = sx * xd
         _box(groups["interior"], (xc - seat_w / 2.0, y_fs - 0.24, floor_z + 0.02),
@@ -780,13 +790,14 @@ def build(plan, streams, collection):
             (xc - seat_w / 2.0, y_fs + 0.16, seat_z - 0.06), (xc + seat_w / 2.0, y_fs + 0.16, seat_z - 0.06),
             (xc + seat_w / 2.0, y_fs + 0.28, seat_z - 0.06), (xc - seat_w / 2.0, y_fs + 0.28, seat_z - 0.06),
             (xc - seat_w / 2.0 + 0.02, y_fs + 0.29, back_top), (xc + seat_w / 2.0 - 0.02, y_fs + 0.29, back_top),
-            (xc + seat_w / 2.0 - 0.02, y_fs + 0.39, back_top), (xc - seat_w / 2.0 + 0.02, y_fs + 0.39, back_top)])
+            (xc + seat_w / 2.0 - 0.02, back_rear, back_top), (xc - seat_w / 2.0 + 0.02, back_rear, back_top)])
         _box(groups["interior"], (xc - 0.13, y_fs + 0.31, back_top - 0.03),
-             (xc + 0.13, y_fs + 0.39, back_top + 0.15))
+             (xc + 0.13, back_rear, back_top + 0.15))
     # the rear seat: behind the front seat backs, in front of the tub's end
     # (a coupe's short greenhouse put it past `y_te` at a fixed 0.95 m)
     y_rs = min(y_fs + 0.95, y_te - 0.42)
-    if y_rs - 0.24 > y_fs + 0.40:
+    rear_front = y_rs - 0.24 if y_rs - 0.24 > y_fs + 0.40 else None
+    if rear_front is not None:
         xb_ = xtub - 0.02                          # between the wheel tubs
         _box(groups["interior"], (-xb_, y_rs - 0.24, floor_z + 0.02),
              (xb_, y_rs + 0.24, seat_z - 0.02))
@@ -873,4 +884,16 @@ def build(plan, streams, collection):
             "form": {k: v for k, v in f.items() if not isinstance(v, tuple)},
             "attachments": {"ATT_roof": (0.0, (y_rf + y_rr) / 2.0, zr),
                             "ATT_driver_seat": (xd, y_fs, seat_z),
-                            "ATT_trunk": (0.0, (y_bl + yt) / 2.0 if trunk else yt, deck)}}
+                            "ATT_trunk": (0.0, (y_bl + yt) / 2.0 if trunk else yt, deck)},
+            # where the door seams stand and the door skin runs (1.86.0): a
+            # recipe that paints the doors (the cruiser's livery) paints
+            # them where this car cut them, not where it guesses
+            "door_edges": list(door_edges),
+            "door_skin_z": (clear + ROCKER_H, z2_at),
+            "moulding_z": zm_moulding if f["moulding"] else None,
+            # the cabin floor's top, the front seat backs' rear face, the
+            # rear seat's front (None without one) and the door cards' inner
+            # face (1.86.0): what a recipe that fits a part inside stands it
+            # on and keeps it between
+            "interior": {"floor_top": floor_top, "back_rear": back_rear,
+                         "rear_front": rear_front, "card_in": card_in}}

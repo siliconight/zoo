@@ -142,9 +142,46 @@ FORMS = {
     },
 }
 
+#: THE CRUISER (Zoo 1.86.0, roadmap 212): the responders' 1990s Ford Crown
+#: Victoria police sedan, `species/cruiser.json` and `recipes/cruiser.py`. Read
+#: off the 1998-2002 car's published sizes -- 5.385 m long, 1.986 m wide at
+#: the body, 1.443 m tall, a 2.913 m wheelbase (0.541), about 0.99 m of front
+#: overhang (0.184), P225/60R16 tyres (r 0.338 m, 0.234 of the height) -- and
+#: off the walker's comps for the rest: a long hood, a near-vertical C-pillar
+#: with a quarter glass, a long trunk (backlight base 0.785). Only reachable by
+#: name: `auto` never parks a police car.
+CRUISER = {
+    "natural": {"depth": (5.2, 5.6), "height": (1.38, 1.50)},
+    "doors": ((4, 1.0),),
+    "wheel_r": 0.234, "clearance": 0.11, "belt": 0.67,
+    "fascia": 0.53, "hood": 0.58, "deck": 0.685, "tail": 0.62,
+    "wheelbase": 0.541, "front_overhang": 0.184,
+    "ws_base": 0.345, "roof_front": 0.475, "roof_rear": 0.68,
+    "bl_base": 0.785, "roof_w": 0.80,
+    "tyre_w": 0.18, "mirror_out": 0.105,
+    "pinch_front": 0.05, "pinch_rear": 0.03, "trough": "backlight",
+    "quarter_glass": 1.0, "rack": 0.0, "two_tone": 0.0,
+    "wheels": (("steel", 1.0),),
+    "bumpers": (("body", 1.0),),
+    "moulding": 1.0,
+    "palette": (("black", 1),),
+}
+FORMS["cruiser"] = CRUISER
+
 #: What `auto` chooses between, and how often, before the slot's
 #: proportions narrow it. The coupe is reachable by asking for it.
 AUTO_POOL = (("sedan", 0.50), ("hatchback", 0.25), ("suv", 0.25))
+
+#: THE THREE-BOX STYLES (1.86.0): built as a sedan wherever a style decides a
+#: detail -- a small quarter glass, wide tail lamps, the plate low on the
+#: tail. The cruiser is one; drawn as an SUV here, its first build carried a
+#: hatchback's quarter glass (doors 1.45 m long on a Crown Victoria) and an
+#: SUV's tall corner lamps.
+SEDANS = ("sedan", "coupe", "cruiser")
+#: THE STREET'S STYLES: what `simple_car`'s genome offers by name and its
+#: prompt rules reach. The cruiser is not one -- it is the `cruiser`
+#: species' alone, built with its kit and livery (1.86.0).
+STREET_STYLES = ("sedan", "coupe", "hatchback", "suv")
 
 #: Seeded variation WITHIN a style, as an absolute +/- on each fraction.
 #: Small on purpose: two sedans on a block differ the way a Corsica differs
@@ -401,7 +438,7 @@ def door_split(form: dict) -> list:
     if form["doors"] >= 4:
         out.append(("door_r", 0.92))
     if form["quarter_glass"]:
-        out.append(("quarter", 0.42 if form["style"] in ("sedan", "coupe")
+        out.append(("quarter", 0.42 if form["style"] in SEDANS
                     else 0.80))
     return out
 

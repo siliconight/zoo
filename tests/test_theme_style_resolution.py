@@ -125,7 +125,9 @@ def test_delco_1997_reaches_every_species():
     # 1.81.0: 93, + deli_case, its rows copied from the cooler wall's.
     # 1.82.0: 94, + step_van, its `delco` row a copy of its `default`: the
     # crew's van is the same van in every theme.
-    assert len(_genomes()) == 94 + len(_minted), len(_genomes())
+    # 1.86.0: 95, + cruiser, its `delco` row a copy of its `default`: the
+    # department's livery is in its image, not in a theme.
+    assert len(_genomes()) == 95 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

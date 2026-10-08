@@ -437,7 +437,20 @@ DID_NOT_BUILD = {"boots"}
 #: markers, caps, hinges, flaps -- the same three builds, same tool,
 #: Blender 5.1.1: "3 builds, 0 with coincident pairs, 0 that did not
 #: build" (13,572 / 13,792 / 14,012 tris), first build.
-CENSUS_BUILDS = 363
+#: 1.86.0: `cruiser`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (3,476 tris at
+#: each corner), third run. The first found 8-9 pairs a build, all in the
+#: kit, and the lowest corner refusing its livery; each fixed at its source.
+#: The partition's posts stood 1-2 mm inside its rails' faces, the rails'
+#: ends flush with its posts, its bottom rail in the cabin floor's bottom
+#: plane, its middle posts 1.37 mm off the headrests' sides; the push bar's
+#: lower brace touched its lower bar. Now `cruiser_forms.INSET` sets faces
+#: back 4 mm, and the partition stands from the cabin `simple_car` returns.
+#: The second run found the rail's underside 2 mm over the body's pan. The
+#: species' own test checks the kit's faces at all 27 corners without
+#: Blender, and a sweep of 51 sizes -- every centimetre of height at three
+#: widths, both liveries -- found 0.
+CENSUS_BUILDS = 366
 
 
 def test_the_census_covers_every_species_there_is():

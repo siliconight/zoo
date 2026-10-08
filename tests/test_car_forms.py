@@ -210,7 +210,9 @@ def test_the_genome_keeps_the_interface_lot_parks_by():
     d = g["dimensions"]
     assert (d["width"]["default"], d["depth"]["default"], d["height"]["default"]) == (1.75, 4.3, 1.45)
     assert g["params"]["body_style"][0] == "auto"
-    assert set(g["params"]["body_style"][1:]) == set(car_forms.FORMS)
+    assert set(g["params"]["body_style"][1:]) == set(car_forms.STREET_STYLES)
+    # every form is a street style or the cruiser's, which is its species' alone (1.86.0)
+    assert set(car_forms.FORMS) == set(car_forms.STREET_STYLES) | {"cruiser"}
     assert g["params"]["doors"]["default"] == 0
     assert g["materials"]["default"] == "metal_painted"
     assert set(g["attachments"]) == {"ATT_roof", "ATT_driver_seat", "ATT_trunk"}
@@ -219,7 +221,7 @@ def test_the_genome_keeps_the_interface_lot_parks_by():
 def test_prompt_rules_reach_every_style():
     g = genome.load_species("simple_car")
     reached = {r["set"]["params.body_style"] for r in g["prompt_rules"]}
-    assert reached == set(car_forms.FORMS)
+    assert reached == set(car_forms.STREET_STYLES)
 
 
 # --- coincident faces and budget -----------------------------------------------
@@ -255,7 +257,9 @@ def test_the_measured_matrix_was_clean_and_fits_the_budget():
     g = genome.load_species("simple_car")
     for style, tris in MEASURED["tris_max"].items():
         assert tris <= g["budgets"]["tris_lod0"], style
-    assert set(MEASURED["tris_max"]) == set(car_forms.FORMS)
+    # simple_car's own styles; the cruiser row is its species', measured in
+    # tests/test_cruiser.py against the cruiser genome's budget
+    assert set(MEASURED["tris_max"]) == set(car_forms.STREET_STYLES)
 
 
 # --- 1.59.0: a car's paint rides its vertices --------------------------------
