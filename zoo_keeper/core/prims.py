@@ -464,9 +464,15 @@ def poly_inside_poly(inner, outer, inset):
 # --- shapes the interior species share ---------------------------------------
 
 
-def rod(part, mat, p0, p1, r0, r1=None, segments=8, bevel=False):
+def rod(part, mat, p0, p1, r0, r1=None, segments=8, bevel=False, phase=0.0):
     """A faceted frustum from point ``p0`` (radius r0) to ``p1`` (r1), for a
-    cue, a pipe or a leg that is not vertical."""
+    cue, a pipe or a leg that is not vertical.
+
+    ``phase`` turns the rings in radians, as `cyl`'s does (Zoo 1.83.0). At 0
+    a vertex sits on the ring's first axis, and a rod of 6 or 10 sides laid
+    level then carries a facet flat on top and one flat underneath, which two
+    such pipes meeting at an elbow share; ``pi / (2 * segments)`` leaves no
+    facet square to any axis at 6, 8, 10 or 12 sides."""
     r1 = r0 if r1 is None else r1
     ax = _sub(p1, p0)
     ln = math.sqrt(_dot(ax, ax))
@@ -480,7 +486,7 @@ def rod(part, mat, p0, p1, r0, r1=None, segments=8, bevel=False):
     verts = []
     for base, r in ((p0, r0), (p1, r1)):
         for k in range(n):
-            t = 2.0 * math.pi * k / n
+            t = 2.0 * math.pi * k / n + phase
             c, s = math.cos(t) * r, math.sin(t) * r
             verts.append((base[0] + u[0] * c + v[0] * s,
                           base[1] + u[1] * c + v[1] * s,

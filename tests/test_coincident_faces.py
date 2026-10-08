@@ -428,6 +428,11 @@ DID_NOT_BUILD = {"boots"}
 #: off what they stood on (the window is <= 2.0 mm, so a 2 mm fix still
 #: read), the B-pillar 2 mm off the rear door seam, and the cab roof shifted
 #: along its own 45-degree facet (`van_forms.CAB_ROOF_INSET`).
+#: 1.83.0: `step_van` redrawn -- a deeper header, a chassis under the
+#: body -- the same three builds, same tool, Blender 5.1.1: "3 builds, 0
+#: with coincident pairs, 0 that did not build" (5,152 / 5,372 / 5,592
+#: tris). Corners alone missed three pairs BETWEEN them; the species'
+#: own test sweeps its chassis at every centimetre of height.
 CENSUS_BUILDS = 363
 
 

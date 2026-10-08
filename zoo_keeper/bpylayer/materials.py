@@ -518,6 +518,36 @@ def make_shutter_material(name, rgb=(0, 0, 0)):
     return mat
 
 
+def make_wear_textured_material(name, image, material_kind):
+    """A kind's flat material with ``image`` under its `Wear` colour (Zoo
+    1.83.0: the getaway van's ghost lettering). Base Color is the image
+    times the colour attribute, so a part painted per corner keeps every
+    corner's colour and the image only scales it -- white leaves the paint
+    as it was. Roughness and metallic are the kind's, as `make_material`'s
+    flat path sets them.
+
+    The multiply is `_wear_multiply`, the same node the skinned path uses,
+    and it is load-bearing for the export: a material that reads no vertex
+    colour ships COLOR_0 white (the module docstring). Linear filtering,
+    clamped: the art is one picture, and a face sent past its corner reads
+    its white margin."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(base_kind(material_kind), 0.6)
+    bsdf.inputs["Metallic"].default_value = METALLIC.get(base_kind(material_kind), 0.0)
+    tex = tree.nodes.new("ShaderNodeTexImage")
+    tex.image = image
+    tex.interpolation = "Linear"
+    tex.extension = "EXTEND"
+    tree.links.new(_wear_multiply(tree, tex.outputs["Color"], name), bsdf.inputs["Base Color"])
+    return mat
+
+
 def make_painted_material(name, image, roughness, tile=False, smooth=False):
     """A face whose artwork is PAINT on it, not light: ``image`` drives Base
     Color at full strength, nothing drives emission, roughness is the

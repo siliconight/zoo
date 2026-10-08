@@ -606,6 +606,30 @@ def tint_wear_by(obj, fn):
             n += 1
     return n
 
+
+def set_uv_by(obj, fn):
+    """Write every corner's UV from ``fn(co, normal)`` (Zoo 1.83.0): ``co``
+    the corner's vertex in the mesh's own space, ``normal`` its face's. The
+    getaway van's ghost lettering maps the box's sides by their (y, z) and
+    sends every other face past the art's clamped corner; the cube
+    projection `bm_to_object` wrote is replaced, not blended.
+
+    Returns the number of corners written; 0 when the object has no UV
+    layer, which a caller should treat as the art not landing."""
+    mesh = obj.data
+    layer = mesh.uv_layers.active
+    if layer is None:
+        return 0
+    verts, loops = mesh.vertices, mesh.loops
+    n = 0
+    for poly in mesh.polygons:
+        nrm = (poly.normal[0], poly.normal[1], poly.normal[2])
+        for li in poly.loop_indices:
+            v = verts[loops[li].vertex_index].co
+            layer.data[li].uv = fn((v[0], v[1], v[2]), nrm)
+            n += 1
+    return n
+
 # --- object plumbing ---------------------------------------------------------
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,

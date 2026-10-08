@@ -1,4 +1,4 @@
-"""step_van recipe: the crew's getaway van (Zoo 1.82.0, roadmap 206).
+"""step_van recipe: the crew's getaway van (Zoo 1.82.0 and 1.83.0, roadmap 206).
 
 The walker, 2026-10-07: "a Box Truck. Like a Chevrolet P30. Matte
 Black....faded, with patina, like a worn in truck...that's been on many
@@ -22,9 +22,11 @@ WHAT A STEP VAN IS HERE, in the order the parts are built:
     gap that keeps two solids off one plane. Its bottom rises over the front
     axle.
   * THE CAB'S UPPER is open, because a solid behind glass is a painted wall
-    behind glass (simple_car 0.79.0): a roof slab riding `CAB_INSET` over the
-    box roof and running into it, a windshield frame on a raked plane (two
-    A-pillars and a centre pillar), B-pillars, and glass in every opening.
+    behind glass (simple_car 0.79.0): a header `van_forms.HEADER` deep
+    riding over the box roof and running into it (1.83.0: the walker found
+    1.82.0's glass ran too near the roof), a windshield frame on a raked
+    plane (two A-pillars and a centre pillar), B-pillars, and glass in
+    every opening.
     Behind the glass: a dash, an engine cover, two seats, a steering wheel,
     and the bulkhead with its door into the box.
   * THE DETAILS a street reads a step van by: round headlamps in square
@@ -33,7 +35,14 @@ WHAT A STEP VAN IS HERE, in the order the parts are built:
     mirrors on tube arms, two ribs down the box, door seams, a louvred vent,
     rear doors, tail lamps and a Pennsylvania plate on the tail.
   * THE WHEELS: steel discs in tyres lathed like simple_car's, dual rears
-    (`dual_rear`).
+    (`dual_rear`), the axle at `van_forms.axle_height` so the tread meets
+    the ground at any segment count.
+  * UNDER THE BODY (1.83.0): the chassis `van_forms.chassis` plans as
+    prims -- frame rails, crossmembers, leaf springs, a front beam axle,
+    the rear axle with its differential, the engine's sump, the
+    transmission, the driveshaft, the exhaust and its muffler, the fuel
+    tank -- drawn here face for face and painted on the body's material
+    (`van_forms.chassis_rgb`: grime, and rust on the exhaust).
 
 THE FINISH IS THE TRUCK'S HISTORY. The body is one material of the plan's
 kind (`paint_matte`), white, with the colour carried per corner in `Wear` by
@@ -42,6 +51,13 @@ near-black low down, chalked toward charcoal on the roof and upper panels,
 rust at the arches and the rocker, road dust on the lower third, one grey
 primer patch on the kerb side. Deterministic from position alone: the same
 van in every level.
+
+THE GHOST (1.83.0, variant 1, the walker's to judge): the van's old life as
+SKEEVY'S WOODER ICE, its vinyl peeled off and the letters left as unfaded
+paint. One image (`van_forms.ghost_art`) under the same `Wear` colour on
+the same material (`materials.make_wear_textured_material`), the box's
+sides mapped into it by `van_forms.ghost_uv` and every other face sent to
+its white margin: no submission more than the plain van.
 
 NO TWO FACES SHARE A PLANE (tools/coplanar_probe.py, SAME and OPP): every
 detail stands proud of its face by a named distance, and every part that
@@ -129,6 +145,7 @@ def build(plan, streams, collection):
     rng = streams.stream("wear")
     seg = int(plan["params"].get("wheel_segments", 14))
     dual = int(plan["params"].get("dual_rear", 1)) > 0
+    ghost = int(plan["params"].get("variant", 0) or 0) == 1
     lay = van_forms.layout(W, L, H)
     hw, r, tw = lay["hw"], lay["r"], lay["tyre_w"]
     zr, zs, zb, zn = lay["z_roof"], lay["z_sill"], lay["z_belt"], lay["z_nose"]
@@ -136,11 +153,11 @@ def build(plan, streams, collection):
     y_ws, y_wt, y_cab = lay["y_ws"], lay["y_wt"], lay["y_cab"]
     ya_f, ya_r, A, za = lay["ya_f"], lay["ya_r"], lay["arch"], lay["z_arch"]
     ci = van_forms.CAB_INSET
-    z_head = zr - van_forms.CAB_ROOF_T                    # the cab's headliner
+    z_head = lay["z_head"]                               # the glass's top, under the header
 
     groups = {k: geometry.new_bm() for k in (
         "paint", "trim", "tyres", "bright", "lamp_head", "lamp_amber",
-        "lamp_tail", "plate", "steel", "interior")}
+        "lamp_tail", "plate", "steel", "interior", "chassis", "exhaust")}
     panes = []
 
     # --- the box: bulkhead to rear doors ------------------------------------
@@ -245,7 +262,7 @@ def build(plan, streams, collection):
     _torus(gi, c, (1.0, 0.0, 0.0), (0.0, math.cos(a), math.sin(a)),
            (0.0, -math.sin(a), math.cos(a)), 0.21, 0.02, seg=12, tube=4)
     _box(gi, (0.54, y_ws + 0.30, zb + 0.18), (0.58, y_ws + 0.52, zb + 0.44))
-    _box(gi, (-0.32, y_cab - PROUD, zb + 0.05), (0.32, y_cab + INTO, zr - 0.30))
+    _box(gi, (-0.32, y_cab - PROUD, zb + 0.05), (0.32, y_cab + INTO, z_head - 0.06))
 
     # --- the nose: grille, bezels, lamps, bumper -----------------------------
     _box(groups["trim"], (-0.40, y_n - 0.006, zs + 0.11), (0.40, y_n + INTO, zn - 0.10))
@@ -328,12 +345,21 @@ def build(plan, streams, collection):
             geometry.add_cylinder(groups["bright"], ((c_face + c_back) / 2.0, ya, za_x), 0.17 * r,
                                   abs(c_face - c_back), segments=8, axis="X")
 
+    # --- under the body: the chassis (`van_forms.chassis`) ---------------------
+    under = van_forms.chassis(lay, za_x)
+    for p in under:
+        bm = groups["chassis" if p["mat"] == "frame" else "exhaust"]
+        vs = [bm.verts.new(v) for v in p["verts"]]
+        for f in p["faces"]:
+            bm.faces.new([vs[i] for i in f])
+
     # --- objects, materials, the finish ----------------------------------------
     objs, by_group = [], {}
     names = {"paint": "StepVan_Body", "trim": "StepVan_Trim", "tyres": "StepVan_Tyres",
              "bright": "StepVan_Bright", "lamp_head": "StepVan_Headlamps",
              "lamp_amber": "StepVan_AmberLamps", "lamp_tail": "StepVan_TailLamps",
-             "plate": "StepVan_Plate", "steel": "StepVan_Wheels", "interior": "StepVan_Interior"}
+             "plate": "StepVan_Plate", "steel": "StepVan_Wheels", "interior": "StepVan_Interior",
+             "chassis": "StepVan_Chassis", "exhaust": "StepVan_Exhaust"}
     for key, bm in groups.items():
         if not bm.faces:
             bm.free()
@@ -353,15 +379,31 @@ def build(plan, streams, collection):
     # so editing the genome repaints the van; the trim's kinds are constants,
     # the way the display case's aluminium frame is.
     base = tuple(float(c) for c in plan["color"][:3])
-    paint = materials.make_material("M_Van_paint", [1.0, 1.0, 1.0], plan["material"])
+    art = None
+    if ghost:
+        art = van_forms.ghost_art()
+        paint = materials.make_wear_textured_material(
+            "M_Van_paint_ghost", materials.image_from_png(art["name"], art["png"]), plan["material"])
+    else:
+        paint = materials.make_material("M_Van_paint", [1.0, 1.0, 1.0], plan["material"])
     painted = materials.make_material("M_Van_painted", [1.0, 1.0, 1.0], "metal_painted")
     rubber = materials.make_material("M_Van_rubber", [0.030, 0.030, 0.032], "rubber")
     cloth = materials.make_material("M_Van_interior", [0.085, 0.080, 0.075], "canvas")
     for key, obj in by_group.items():
-        if key == "paint":
+        if key in ("paint", "chassis", "exhaust"):
             materials.assign([obj], paint)
-            if not geometry.tint_wear_by(obj, lambda co, n: van_forms.finish_rgb(co, n, lay, base)):
-                raise RuntimeError("step_van: the body has no Wear layer, so its paint would not land")
+            if key == "paint":
+                fn = (lambda co, n: van_forms.finish_rgb(co, n, lay, base))
+            else:
+                fn = (lambda co, n, part=("exhaust" if key == "exhaust" else "frame"):
+                      van_forms.chassis_rgb(co, n, part))
+            if not geometry.tint_wear_by(obj, fn):
+                raise RuntimeError(f"step_van: {obj.name} has no Wear layer, so its paint would not land")
+            if art is not None:
+                uv = ((lambda co, n: van_forms.ghost_uv(co, n, lay)) if key == "paint"
+                      else (lambda co, n: van_forms.GHOST_OUTSIDE))
+                if not geometry.set_uv_by(obj, uv):
+                    raise RuntimeError(f"step_van: {obj.name} has no UV layer, so the ghost would not land")
         elif key in TINTS:
             materials.assign([obj], painted)
             if not geometry.tint_wear(obj, TINTS[key]):
@@ -374,6 +416,8 @@ def build(plan, streams, collection):
         "M_Van_glass", list(GLASS_TINT), GLASS_OPACITY))
 
     print(f"[van] dual_rear={dual} wheel_segments={seg} panes={len(glass_objs)} "
+          f"chassis={len(under)} "
+          f"ghost={art['name'] if art else 'none'} "
           f"cab={van_forms.CAB_LEN:.2f} box={y_r - y_cab:.2f} axles=({ya_f:.2f}, {ya_r:.2f})")
     return {"objects": objs,
             "collision_boxes": [((-W / 2.0, y0, 0.0), (W / 2.0, yt, H))],

@@ -32,6 +32,8 @@
     "StepVan_TailLamps",
     "StepVan_Plate",
     "StepVan_Wheels",
+    "StepVan_Chassis",
+    "StepVan_Exhaust",
     "StepVan_Interior",
     "StepVan_Windshield",
     "StepVan_SideGlass"
@@ -48,6 +50,7 @@
       "default": 1
     }
   },
+  "module_variants": 2,
   "materials": {
     "default": "paint_matte",
     "options": [
@@ -77,7 +80,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 5500
+    "tris_lod0": 6000
   },
   "attachments": [
     "ATT_roof",
