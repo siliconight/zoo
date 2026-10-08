@@ -138,6 +138,51 @@ def axle_height(r, seg):
     return -r * min(math.sin(2.0 * math.pi * k / seg) for k in range(seg))
 
 
+#: THE WIPERS (1.85.0): each arm's pivot across from the middle, under the
+#: header, its length, and its tilt outward from hanging straight down --
+#: a step van's wipers hang from the top of its windshield, as the P30
+#: comp's do.
+WIPER_X = 0.50
+WIPER_ARM = 0.68
+WIPER_TILT = 22.0
+
+#: THE TYRES AND THE STEEL WHEELS (1.85.0, the hero pass). The walker,
+#: 2026-10-08: the van "is also going to be the foundation of a hero prop
+#: that get's reused in multiple missions, so we can afford to really make it
+#: look good". One van a level, its price its draw calls: a tyre with a bulged
+#: sidewall, a rounded shoulder and a grooved tread, lathed at 28 segments
+#: where 1.82.0's six-point section at 14 read as a cut log, costs triangles
+#: and no submission.
+TYRE_BEAD = 0.60          # the bead's radius over the tread's: the wheel sits in it
+TYRE_BULGE = 0.006        # the sidewall's bulge past the tyre's width, each side
+TYRE_GROOVE = 0.010       # a tread groove's depth
+#: The steel wheel, over the tread's radius: its disc runs into the tyre's
+#: bead, a hub stands proud of the disc, eight lug nuts on the hub's bolt
+#: circle, a cap in the middle.
+DISC_R = 0.63
+HUB_R = 0.30
+LUG_CIRCLE = 0.22
+LUG_R = 0.016
+CAP_R = 0.12
+
+
+def tyre_profile(r, tw):
+    """The tyre's closed cross-section as ``(radius, dx)`` pairs for
+    `simple_car._lathe_x`, from the bead on the outer side over a bulged
+    sidewall, a rounded shoulder and a tread with two grooves, and back down
+    the inner side; the closing edge is the bead's own face. Symmetric in dx."""
+    w2 = tw / 2.0
+    side = [(TYRE_BEAD * r, w2 - 0.010), (0.66 * r, w2 + 0.002), (0.76 * r, w2 + TYRE_BULGE),
+            (0.87 * r, w2 + 0.003), (0.95 * r, w2 - 0.012), (0.985 * r, w2 - 0.028)]
+    edge = w2 - 0.045
+    tread = [(r, edge)]
+    for c in (edge / 2.0, -edge / 2.0):
+        tread += [(r, c + 0.006), (r - TYRE_GROOVE, c + 0.005),
+                  (r - TYRE_GROOVE, c - 0.005), (r, c - 0.006)]
+    tread.append((r, -edge))
+    return side + tread + [(rad, -dx) for rad, dx in reversed(side)]
+
+
 def _hash(ix, iy, seed):
     h = (ix * 374761393 + iy * 668265263 + seed * 2246822519) & 0xFFFFFFFF
     h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF

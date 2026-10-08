@@ -41,8 +41,8 @@
   "params": {
     "wheel_segments": {
       "min": 10,
-      "max": 20,
-      "default": 14
+      "max": 32,
+      "default": 28
     },
     "dual_rear": {
       "min": 0,
@@ -79,7 +79,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 6000
+    "tris_lod0": 16000
   },
   "attachments": [
     "ATT_roof",

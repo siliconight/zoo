@@ -19,6 +19,12 @@ since 1.84.0 ("make the ghost the default, patchy version"). Built half
 (bpy, skipped without it): PASS and an exact fit, five submissions, the
 paint in the vertex, the chassis on the paint, the ghost's art under the
 `Wear` colour with both exported, the same file every build.
+
+1.85.0, the hero pass (the walker: "we can afford to really make it look
+good"): a tyre with a bulged sidewall, a rounded shoulder and two grooves,
+lathed at 28 segments; a steel wheel whose disc, hub, nuts and cap nest;
+wipers hung over their own panes; and the tyre clearance read against
+the bulge and the bead.
 """
 from __future__ import annotations
 
@@ -68,9 +74,13 @@ CORNERS = _corners()
 #:   more at sizes BETWEEN them -- a rail hung from the body's floor met the
 #:   front axle's top within 1.8 mm near a 3.0 m slot, where no corner looks.
 #:   `test_nothing_under_the_body_shares_a_plane` sweeps the heights for that.
-MEASURED = {(2.4, 6.0, 2.9): (5152, 0), (2.6, 6.8, 3.05): (5372, 0),
-            (2.8, 7.6, 3.3): (5592, 0), (2.5, 6.4, 3.0): (5174, 0),
-            (2.7, 7.2, 3.2): (5460, 0), (2.45, 7.5, 2.95): (5570, 0)}
+#:   1.85.0 (2026-10-08), the hero pass: 13,572 / 13,792 / 14,012 at the
+#:   corners, 13,594 / 13,880 / 13,990 between, 0 pairs, first build. Most of
+#:   the 8,420 more is the tyres: 22 points a section at 28 segments where
+#:   1.82.0 lathed 6 at 14. The submissions did not move.
+MEASURED = {(2.4, 6.0, 2.9): (13572, 0), (2.6, 6.8, 3.05): (13792, 0),
+            (2.8, 7.6, 3.3): (14012, 0), (2.5, 6.4, 3.0): (13594, 0),
+            (2.7, 7.2, 3.2): (13880, 0), (2.45, 7.5, 2.95): (13990, 0)}
 
 #: The crew's body radius, `characters.player.radius_m` in Deli Counter's
 #: agent_contract.json. Pinned as a literal: Zoo does not read that contract.
@@ -162,7 +172,7 @@ def test_the_wheels_sit_in_their_arches(dims):
     assert A - r >= 0.10 and lay["z_arch"] - 2.0 * r >= 0.05
 
 
-@pytest.mark.parametrize("seg", range(10, 21))
+@pytest.mark.parametrize("seg", range(10, 33))
 def test_the_tread_touches_the_ground_at_any_wheel_count(seg):
     """`_lathe_x` sets a vertex every 360/seg degrees from the axle's level.
     At the default 14 an axle at r floated the built van 10.3 mm."""
@@ -171,6 +181,61 @@ def test_the_tread_touches_the_ground_at_any_wheel_count(seg):
     lowest = min(za + r * math.sin(2.0 * math.pi * k / seg) for k in range(seg))
     assert abs(lowest) < 1e-12, (seg, lowest)
     assert (za == pytest.approx(r)) == (seg % 4 == 0), (seg, za)
+
+
+def test_the_wheels_the_van_ships_point_a_vertex_down():
+    """1.85.0's 28 segments, a multiple of 4: the axle sits at r and the
+    tread's lowest vertex on the ground, with nothing for `axle_height` to
+    make up."""
+    spec = _g()["params"]["wheel_segments"]
+    assert spec["default"] % 4 == 0 and spec["min"] <= spec["default"] <= spec["max"]
+    assert spec["default"] >= 24, "a hero's tyre is not a cut log"
+
+
+@pytest.mark.parametrize("dims", CORNERS)
+def test_the_tyre_is_a_tyre(dims):
+    """The section `tyre_profile` lathes: closed and symmetric, from the bead
+    to the tread and back, the sidewall bulging `TYRE_BULGE` past the tyre's
+    width and two grooves `TYRE_GROOVE` deep in the tread."""
+    lay = V.layout(*dims)
+    r, tw = lay["r"], lay["tyre_w"]
+    prof = V.tyre_profile(r, tw)
+    pts = {(round(rad, 9), round(dx, 9)) for rad, dx in prof}
+    assert len(pts) == len(prof) == 22                # 6 a sidewall, 10 the tread
+    assert all((rad, round(-dx, 9)) in pts for rad, dx in pts)
+    rads = [rad for rad, _dx in prof]
+    assert min(rads) == pytest.approx(V.TYRE_BEAD * r) and max(rads) == pytest.approx(r)
+    assert max(abs(dx) for _rad, dx in prof) == pytest.approx(tw / 2.0 + V.TYRE_BULGE)
+    groove = [dx for rad, dx in prof if rad == pytest.approx(r - V.TYRE_GROOVE)]
+    assert len(groove) == 4 and min(groove) < 0.0 < max(groove)
+    # the closing edge is the bead's own face, square to the axle
+    assert prof[0][0] == prof[-1][0] and prof[0][1] == -prof[-1][1] > 0.0
+
+
+@pytest.mark.parametrize("dims", CORNERS)
+def test_the_steel_wheel_sits_in_the_tyre(dims):
+    """Its disc runs into the tyre's bead, its hub inside the disc, the
+    lug nuts on the hub's face, the cap inside the bolt circle."""
+    r = V.layout(*dims)["r"]
+    assert V.TYRE_BEAD < V.DISC_R < 0.66 and V.HUB_R < V.DISC_R
+    assert V.LUG_CIRCLE * r + V.LUG_R < V.HUB_R * r
+    assert V.CAP_R * r < V.LUG_CIRCLE * r - V.LUG_R
+
+
+@pytest.mark.parametrize("dims", CORNERS)
+def test_the_wipers_hang_on_their_panes(dims):
+    """Each arm, pivoted under the header, hangs over its own pane: clear of
+    the centre pillar at the pivot, short of the A-pillar at its tip (the
+    blade a hair wider), and inside the glass's height."""
+    lay = V.layout(*dims)
+    ln = math.hypot(lay["y_wt"] - lay["y_ws"], lay["z_head"] - lay["z_belt"])
+    # the recipe imports bmesh, so its PILLAR_IN is read off its source
+    pane_out = (lay["hw"] - _const(_RECIPE, "PILLAR_IN")) - 0.085   # the A-pillar's inner face
+    tilt = math.radians(V.WIPER_TILT)
+    tip_x = V.WIPER_X + (V.WIPER_ARM * 1.06) * math.sin(tilt) + 0.012
+    tip_s = ln + 0.03 - (V.WIPER_ARM * 1.06) * math.cos(tilt)
+    assert V.WIPER_X - 0.025 > 0.035 and tip_x < pane_out, (tip_x, pane_out)
+    assert 0.0 < tip_s < ln
 
 
 @pytest.mark.parametrize("dims", CORNERS)
@@ -251,17 +316,18 @@ def test_nothing_under_the_body_cuts_a_tyre(dims):
     rectangle in YZ, which can only overstate it."""
     lay = V.layout(*dims)
     r, tw = lay["r"], lay["tyre_w"]
-    za = V.axle_height(r, 14)
+    za = V.axle_height(r, int(_g()["params"]["wheel_segments"]["default"]))
+    half = tw / 2.0 + V.TYRE_BULGE                    # the bulged sidewall (1.85.0)
     for p in V.chassis(lay, za):
         xs = [v[0] for v in p["verts"]]
         ys = [v[1] for v in p["verts"]]
         zs = [v[2] for v in p["verts"]]
         for cx, ya in _tyres(lay):
-            if max(xs) <= cx - tw / 2.0 or min(xs) >= cx + tw / 2.0:
+            if max(xs) <= cx - half or min(xs) >= cx + half:
                 continue
             near = math.hypot(max(min(ys) - ya, 0.0, ya - max(ys)), max(min(zs) - za, 0.0, za - max(zs)))
             far = max(math.hypot(y - ya, z - za) for y in (min(ys), max(ys)) for z in (min(zs), max(zs)))
-            assert far < 0.62 * r or near > r, (p["part"], cx, ya, near, far)
+            assert far < V.TYRE_BEAD * r or near > r, (p["part"], cx, ya, near, far)
 
 
 def _part(prims, name):
@@ -399,6 +465,16 @@ def test_the_genome_colour_is_the_paint():
     lay = V.layout(2.6, 6.8, 3.05)
     red = V.finish_rgb((lay["hw"], 1.0, 1.6), (1.0, 0.0, 0.0), lay, (0.5, 0.05, 0.05))
     assert red[0] > 2.0 * red[1] and red[0] > 2.0 * red[2], red
+
+
+def _const(path, name):
+    """A module-level literal, read with `ast` (the module may import bpy)."""
+    tree = ast.parse(open(path, encoding="utf-8").read(), filename=path)
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == name for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise AssertionError("no module-level %s in %s" % (name, path))
 
 
 def _dict_value(path, name, key):

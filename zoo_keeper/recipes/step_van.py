@@ -60,6 +60,18 @@ the same material (`materials.make_wear_textured_material`), the box's
 sides mapped into it by `van_forms.ghost_uv` and every other face sent to
 its white margin: no submission more than the plain van.
 
+THE HERO PASS (1.85.0). The walker, 2026-10-08: the van "is also going to be
+the foundation of a hero prop that get's reused in multiple missions, so
+we can afford to really make it look good". One van a level, priced by
+its five draw calls, so detail goes where it shows and costs triangles
+only: tyres lathed from `van_forms.tyre_profile` at 28 segments, steel
+wheels with hubs, eight lug nuts and caps, wipers hung from the header
+(a step van's wipers hang from the top), West Coast mirrors with glass, the
+crew's step at the kerb-side door, side markers, drip rails, three red
+identification lamps and two clearance lamps over the rear doors, door
+hinges, aluminium caps on the box's rear corners, a step plate on the rear
+bumper, and mud flaps.
+
 NO TWO FACES SHARE A PLANE (tools/coplanar_probe.py, SAME and OPP): every
 detail stands proud of its face by a named distance, and every part that
 meets another runs into it.
@@ -224,6 +236,35 @@ def build(plan, streams, collection):
         raked_block(bm, xs[0], xs[1], -0.01, ln + 0.01, GLASS_INSET, GLASS_INSET + GLASS_T)
         panes.append(("StepVan_Windshield_" + ("R" if sgn < 0 else "L"), bm))
 
+    # --- the wipers (1.85.0): hung from the header, as the P30 comp's are ---
+    # A step van's wipers pivot at the TOP of its windshield and hang down
+    # across the glass. The pivot runs into the header; arm and blade stand
+    # in front of the glass (`d` < 0), the blade nearer it, and the blade
+    # runs past the arm's end so the two never share an end face.
+    def raked_bar(bm, p, q, half_w, d0, d1):
+        """A bar on the raked plane from (x, s) point `p` to `q`."""
+        if q[1] < p[1]:
+            p, q = q, p
+        ex, es = q[0] - p[0], q[1] - p[1]
+        m = math.hypot(ex, es)
+        nx, ns = -es / m * half_w, ex / m * half_w
+        _hexa(bm, [raked(c[0] + ox, c[1] + os_, dd) for c in (p, q)
+                   for (ox, os_), dd in (((nx, ns), d0), ((-nx, -ns), d0),
+                                         ((-nx, -ns), d1), ((nx, ns), d1))])
+
+    tilt = math.radians(van_forms.WIPER_TILT)
+    for sgn in (-1.0, 1.0):
+        xp = sgn * van_forms.WIPER_X
+        _box(groups["trim"], (xp - 0.025, y_wt - 0.025, z_head + 0.01), (xp + 0.025, y_wt + 0.02, z_head + 0.07))
+        top = (xp, ln + 0.03)
+        end = (xp + sgn * van_forms.WIPER_ARM * math.sin(tilt),
+               ln + 0.03 - van_forms.WIPER_ARM * math.cos(tilt))
+        raked_bar(groups["trim"], top, end, 0.009, -0.020, -0.010)
+
+        def along(t):
+            return (top[0] + (end[0] - top[0]) * t, top[1] + (end[1] - top[1]) * t)
+        raked_bar(groups["trim"], along(0.30), along(1.06), 0.012, -0.014, -0.006)
+
     # --- the cab's sides: B-pillars and glass --------------------------------
     for sgn in (-1.0, 1.0):
         # the B-pillar's face 14 mm in: at 10 mm it stood 2 mm off the rear door
@@ -280,12 +321,23 @@ def build(plan, streams, collection):
     _box(groups["trim"], (-(hw - 0.05), y0, 0.38), (hw - 0.05, y_n + 0.05, zs + 0.04))
 
     # --- mirrors on tube arms ----------------------------------------------------
+    # A WEST COAST MIRROR (1.85.0) faces back: a head wide across and thin
+    # along, clear of the body on two arms, with its glass on the back.
+    # 1.82.0's head was 7 cm across and 12 cm deep -- a mirror seen edge-on
+    # from behind. Heights from the belt, so a taller slot's mirrors rise
+    # with its windshield; the slot's width is still the heads' outer faces.
+    zm0, zm1 = zb - 0.04, zb + 0.54
     for sgn in (-1.0, 1.0):
-        for z_arm in (1.62, 2.08):
-            xs = sorted((sgn * (hw - 0.05), sgn * (W / 2.0 - 0.04)))
-            _box(groups["trim"], (xs[0], y_ws + 0.040, z_arm), (xs[1], y_ws + 0.064, z_arm + 0.025))
-        xs = sorted((sgn * (W / 2.0 - 0.07), sgn * W / 2.0))
-        _box(groups["trim"], (xs[0], y_ws - 0.01, 1.52), (xs[1], y_ws + 0.11, 2.16))
+        hx = sorted((sgn * (hw + 0.02), sgn * W / 2.0))
+        _box(groups["trim"], (hx[0], y_ws + 0.02, zm0), (hx[1], y_ws + 0.07, zm1))
+        _box(groups["bright"], (hx[0] + 0.008, y_ws + 0.066, zm0 + 0.02), (hx[1] - 0.008, y_ws + 0.076, zm1 - 0.02))
+        xs = sorted((sgn * (hw - 0.03), sgn * (hw + 0.05)))
+        # the lower arm into the cab's side under the belt, the upper one
+        # back into the A-pillar, which leans away up the windshield's rake
+        _box(groups["trim"], (xs[0], y_ws + 0.03, zb - 0.01), (xs[1], y_ws + 0.05, zb + 0.012))
+        z_up = zb + 0.47
+        xs = sorted((sgn * (hw - 0.04), sgn * (hw + 0.05)))
+        _box(groups["trim"], (xs[0], y_ws + 0.03, z_up), (xs[1], y_ws + (z_up - zb) * dy / dz + 0.03, z_up + 0.022))
 
     # --- the clearance lamps: the slot's height is their tops -------------------
     for xc in (-(hw - 0.12), -0.18, 0.0, 0.18, hw - 0.12):
@@ -303,6 +355,20 @@ def build(plan, streams, collection):
     for k in range(5):
         z0 = 1.05 + k * 0.045
         _box(groups["trim"], (xs[0], lay["y_door0"] + 0.08, z0), (xs[1], lay["y_door0"] + 0.30, z0 + 0.014))
+    # the crew's step at the kerb-side door: a plate standing 2 cm out of
+    # the sill, the first thing a foot finds (1.85.0)
+    xs = sorted((-(hw - ci) - 0.02, -(hw - ci) + 0.25))
+    _box(groups["bright"], (xs[0], lay["y_door0"] + 0.05, zs - 0.03), (xs[1], lay["y_door1"] - 0.05, zs + 0.03))
+    # side markers, amber ahead and red behind, high and low, 9 mm proud
+    # (the ribs stand 6), and a drip rail under each roof edge
+    for sgn in (-1.0, 1.0):
+        xs = sorted((sgn * (hw - INTO), sgn * (hw + 0.009)))
+        for zc in (zr - 0.35, zs + 0.28):
+            _box(groups["lamp_amber"], (xs[0], y_cab + 0.265, zc - 0.018), (xs[1], y_cab + 0.335, zc + 0.018))
+            _box(groups["lamp_tail"], (xs[0], y_r - 0.335, zc - 0.018), (xs[1], y_r - 0.265, zc + 0.018))
+        xs = sorted((sgn * (hw - 0.01), sgn * (hw + 0.012)))
+        _box(groups["paint"], (xs[0], y_cab + 0.08, zr - van_forms.ROOF_ROUND - 0.035),
+             (xs[1], y_r - 0.08, zr - van_forms.ROOF_ROUND - 0.015))
 
     # --- the tail: door seams, handle, lamps, plate, bumper ---------------------
     # The seams' backs stand 4 mm off the lamps' and the plate's and 3 mm off
@@ -322,6 +388,21 @@ def build(plan, streams, collection):
     _box(groups["bright"], (0.06, y_r - 0.01, 1.20), (0.18, y_r + 0.012, 1.235))
     _box(groups["plate"], (-0.152, y_r - 0.01, 0.69), (0.152, y_r + 0.006, 0.84))
     _box(groups["trim"], (-(hw - 0.05), y_r - 0.05, 0.40), (hw - 0.05, yt, zs + 0.04))
+    # THE TAIL'S HERO DETAILS (1.85.0): a diamond-plate step on the bumper,
+    # three red identification lamps over the doors and a clearance lamp
+    # either side of them, three hinges a door (their backs 4 mm behind the
+    # seams', which they enclose), and aluminium caps on the box's rear
+    # corners, wrapping both faces 10 mm proud
+    _box(groups["bright"], (-(hw - 0.15), y_r + 0.02, zs + 0.035), (hw - 0.15, yt - 0.01, zs + 0.048))
+    for xc in (-0.15, 0.0, 0.15):
+        _box(groups["lamp_tail"], (xc - 0.03, y_r - 0.01, zr - 0.101), (xc + 0.03, y_r + 0.011, zr - 0.069))
+    for sgn in (-1.0, 1.0):
+        xc = sgn * (hw - 0.09)
+        _box(groups["lamp_tail"], (xc - 0.03, y_r - 0.01, zr - 0.101), (xc + 0.03, y_r + 0.011, zr - 0.069))
+        for zh in (zs + 0.55, (zs + zr) / 2.0, zr - 0.40):
+            _box(groups["trim"], (xc - 0.035, y_r - 0.010, zh - 0.04), (xc + 0.035, y_r + 0.016, zh + 0.04))
+        xs = sorted((sgn * (hw - 0.04), sgn * (hw + 0.010)))
+        _box(groups["bright"], (xs[0], y_r - 0.04, zs + 0.02), (xs[1], y_r + 0.010, zr - 0.10))
 
     # --- wheels: steel discs, dual rears ------------------------------------------
     # THE AXLE HEIGHT IS DERIVED (`van_forms.axle_height`), so the tread
@@ -330,20 +411,37 @@ def build(plan, streams, collection):
     # its slot. simple_car's default 12 hides the same arithmetic.
     za_x = van_forms.axle_height(r, seg)
     xo = hw - 0.03                                     # an outer tyre's outer face
-    profile = [(0.62 * r, tw / 2.0), (0.86 * r, tw / 2.0), (r, tw / 2.0 - 0.03),
-               (r, -tw / 2.0 + 0.03), (0.86 * r, -tw / 2.0), (0.62 * r, -tw / 2.0)]
+    profile = van_forms.tyre_profile(r, tw)
     for ya, inner in ((ya_f, False), (ya_r, dual)):
         for sgn in (-1.0, 1.0):
             cx = sgn * (xo - tw / 2.0)
             _lathe_x(groups["tyres"], cx, ya, za_x, profile, seg, sgn)
             if inner:
                 _lathe_x(groups["tyres"], cx - sgn * (tw + 0.02), ya, za_x, profile, seg, sgn)
+            # the steel wheel (1.85.0): a disc into the tyre's bead, a hub
+            # proud of it, eight lug nuts on the hub, a cap in the middle;
+            # each starts inside the one before, and no two faces share a plane
             x_face, x_back = sgn * (xo - 0.022), sgn * (xo - tw + 0.03)
-            geometry.add_cylinder(groups["steel"], ((x_face + x_back) / 2.0, ya, za_x), 0.645 * r,
+            geometry.add_cylinder(groups["steel"], ((x_face + x_back) / 2.0, ya, za_x), van_forms.DISC_R * r,
                                   abs(x_face - x_back), segments=seg, axis="X")
-            c_face, c_back = sgn * (xo - 0.005), sgn * (xo - 0.032)
-            geometry.add_cylinder(groups["bright"], ((c_face + c_back) / 2.0, ya, za_x), 0.17 * r,
-                                  abs(c_face - c_back), segments=8, axis="X")
+            h_back, h_face = x_face - sgn * 0.01, x_face + sgn * 0.025
+            geometry.add_cylinder(groups["steel"], ((h_back + h_face) / 2.0, ya, za_x), van_forms.HUB_R * r,
+                                  abs(h_face - h_back), segments=seg, axis="X")
+            n_back, n_face = h_face - sgn * 0.005, h_face + sgn * 0.015
+            for k in range(8):
+                a = 2.0 * math.pi * (k + 0.5) / 8.0
+                geometry.add_cylinder(groups["bright"],
+                                      ((n_back + n_face) / 2.0, ya + van_forms.LUG_CIRCLE * r * math.cos(a),
+                                       za_x + van_forms.LUG_CIRCLE * r * math.sin(a)),
+                                      van_forms.LUG_R, abs(n_face - n_back), segments=6, axis="X")
+            c_face = h_face + sgn * 0.02
+            geometry.add_cylinder(groups["bright"], ((n_back + c_face) / 2.0, ya, za_x), van_forms.CAP_R * r,
+                                  abs(c_face - n_back), segments=12, axis="X")
+        # a mud flap behind each rear pair, past the arch, into the body
+        if ya == ya_r:
+            for sgn in (-1.0, 1.0):
+                xs = sorted((sgn * (xo - 2.0 * tw - 0.02 - van_forms.TYRE_BULGE), sgn * xo))
+                _box(groups["trim"], (xs[0], ya_r + A + 0.03, 0.14), (xs[1], ya_r + A + 0.042, zs + 0.02))
 
     # --- under the body: the chassis (`van_forms.chassis`) ---------------------
     under = van_forms.chassis(lay, za_x)

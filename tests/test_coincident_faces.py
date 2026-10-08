@@ -433,6 +433,10 @@ DID_NOT_BUILD = {"boots"}
 #: with coincident pairs, 0 that did not build" (5,152 / 5,372 / 5,592
 #: tris). Corners alone missed three pairs BETWEEN them; the species'
 #: own test sweeps its chassis at every centimetre of height.
+#: 1.85.0: `step_van`'s hero pass -- tyres, steel wheels, wipers, mirrors,
+#: markers, caps, hinges, flaps -- the same three builds, same tool,
+#: Blender 5.1.1: "3 builds, 0 with coincident pairs, 0 that did not
+#: build" (13,572 / 13,792 / 14,012 tris), first build.
 CENSUS_BUILDS = 363
 
 
