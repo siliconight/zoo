@@ -13,8 +13,9 @@ recipe read as source: one paint material, the plan's kind and colour.
 1.83.0, on the walker's first look (2026-10-08): the glass stops a header
 under the roof; a chassis hangs under the body, swept for shared planes at
 every centimetre of height the genome allows and clear of every tyre; and
-the ghost of SKEEVY'S WOODER ICE (variant 1) keeps a white margin, reads the
-right way round on both sides and stays off the primer patch. Built half
+the ghost of SKEEVY'S WOODER ICE keeps a white margin, reads the right way
+round on both sides and stays off the primer patch -- every step van's
+since 1.84.0 ("make the ghost the default, patchy version"). Built half
 (bpy, skipped without it): PASS and an exact fit, five submissions, the
 paint in the vertex, the chassis on the paint, the ghost's art under the
 `Wear` colour with both exported, the same file every build.
@@ -114,7 +115,7 @@ def test_the_genome_validates_and_names_every_part_the_recipe_builds():
     named = set(re.findall(r'"(StepVan_[A-Za-z]+)"', src))
     named |= {n.rstrip("_") for n in re.findall(r'"(StepVan_[A-Za-z]+_)"', src)}
     assert named and named <= parts, sorted(named - parts)
-    assert g["module_variants"] == 2      # 0 the plain van, 1 the ghost
+    assert g.get("module_variants", 1) == 1    # one van: the ghost is its own (1.84.0)
 
 
 @pytest.mark.parametrize("dims", CORNERS)
@@ -423,17 +424,17 @@ def test_the_recipe_paints_one_material_in_the_plans_kind_and_colour():
     """The draw-call rule: the van's colour varies per corner in `Wear`,
     never as a material per colour, and the genome's kind and colour are
     what the body is drawn in (a recipe that hard-codes them makes the
-    genome inert). The ghost swaps the paint for the same kind under one
-    image; it adds no material."""
+    genome inert). The paint carries the ghost's one image under the same
+    kind; it adds no material."""
     src = open(_RECIPE, encoding="utf-8").read()
     assert 'plan["material"]' in src and 'plan["color"]' in src
     assert "geometry.tint_wear_by(" in src and "van_forms.finish_rgb(" in src
     made = re.findall(r'make_material\(\s*(f?)"([^"]+)"', src)
-    assert sorted(n for _f, n in made) == ["M_Van_interior", "M_Van_paint",
-                                          "M_Van_painted", "M_Van_rubber"], made
+    assert sorted(n for _f, n in made) == ["M_Van_interior", "M_Van_painted",
+                                          "M_Van_rubber"], made
     assert not any(f for f, _n in made), "a material name built from a value"
     assert re.search(r'make_see_through_material\(\s*"M_Van_glass"', src)
-    assert re.search(r'make_wear_textured_material\(\s*"M_Van_paint_ghost"', src)
+    assert re.search(r'make_wear_textured_material\(\s*"M_Van_paint"', src)
     assert "van_forms.chassis(" in src and "van_forms.ghost_uv(" in src
 
 
@@ -537,15 +538,13 @@ def test_the_ghost_stays_on_the_box_and_off_the_primer(dims):
 # The built half
 # --------------------------------------------------------------------------- #
 
-def _build(tmp_path, dims, variant=None):
+def _build(tmp_path, dims):
     import bpy
     from zoo_keeper.bpylayer import build
     from zoo_keeper.bpylayer.export import _COL_SUFFIXES
     from zoo_keeper.core import kit
     slot = {"slot_id": "getaway_van", "role": "prop", "size_mod": "full", "style": 1,
             "species": "step_van", "fit": {"dims": list(dims), "pivot": "center"}}
-    if variant:
-        slot["variant"] = variant
     plan = kit.plan_kit({"building_id": "t", "slots": [slot]}, theme="delco_1997", style=1)
     assert plan["dressing_fallbacks"] == [], plan["dressing_fallbacks"]
     res = build.build_module(plan["modules"][0], str(tmp_path), theme="delco_1997",
@@ -610,7 +609,7 @@ def test_bpy_five_submissions_and_one_paint(tmp_path):
     assert mats["M_Van_glass"].get("alphaMode") == "BLEND"
     pbr = mats["M_Van_paint"]["pbrMetallicRoughness"]
     assert pbr["roughnessFactor"] == pytest.approx(0.86) and pbr.get("metallicFactor", 1.0) == 0
-    assert not doc.get("images")
+    assert "baseColorTexture" in pbr      # the ghost's art, every build (1.84.0)
 
 
 def test_bpy_the_chassis_is_built_on_the_paint(tmp_path):
@@ -628,24 +627,24 @@ def test_bpy_the_chassis_is_built_on_the_paint(tmp_path):
 
 
 def test_bpy_the_ghost_ships_its_art_under_the_paint(tmp_path):
-    """Variant 1: the same five submissions, the paint one image richer; the
+    """Every build (1.84.0): five submissions, the paint one image richer; the
     image AND the paint's per-corner colour both reach the GLB (a material
     that reads no vertex colour ships COLOR_0 white), and the box's sides
     sample the art while every other face samples its margin."""
     pytest.importorskip("bpy")
     from zoo_keeper.core import partnames
-    res, _objs = _build(tmp_path, (2.6, 6.8, 3.05), variant=1)
+    res, _objs = _build(tmp_path, (2.6, 6.8, 3.05))
     assert res["report"]["status"] == "pass", res["report"]["checks"]
     doc, binc = _glb(os.path.join(str(tmp_path), res["files"]["glb"]))
     mats = {m["name"]: m for m in doc["materials"]}
-    assert sorted(mats) == ["M_Van_glass", "M_Van_interior", "M_Van_paint_ghost",
+    assert sorted(mats) == ["M_Van_glass", "M_Van_interior", "M_Van_paint",
                             "M_Van_painted", "M_Van_rubber"], sorted(mats)
-    assert "baseColorTexture" in mats["M_Van_paint_ghost"]["pbrMetallicRoughness"]
+    assert "baseColorTexture" in mats["M_Van_paint"]["pbrMetallicRoughness"]
     assert [im["name"] for im in doc["images"]] == [V.ghost_art()["name"]]
     visual = [m for m in doc["meshes"] if not m["name"].endswith(tuple(partnames.COL_SUFFIXES))]
     assert sum(len(m["primitives"]) for m in visual) == 5
     names = [m["name"] for m in doc["materials"]]
-    prim = [p for m in visual for p in m["primitives"] if names[p["material"]] == "M_Van_paint_ghost"]
+    prim = [p for m in visual for p in m["primitives"] if names[p["material"]] == "M_Van_paint"]
     assert len(prim) == 1
     cols = _accessor(doc, binc, prim[0]["attributes"]["COLOR_0"])
     assert max(c[0] for c in cols) < 0.5, "COLOR_0 went out white"
@@ -654,13 +653,12 @@ def test_bpy_the_ghost_ships_its_art_under_the_paint(tmp_path):
     assert 0 < inside < len(uvs)
 
 
-@pytest.mark.parametrize("variant", (None, 1))
-def test_bpy_the_same_file_every_build(tmp_path, variant):
+def test_bpy_the_same_file_every_build(tmp_path):
     pytest.importorskip("bpy")
     files = []
     for k in range(2):
         out = tmp_path / ("a%d" % k)
-        res, _o = _build(out, (2.6, 6.8, 3.05), variant=variant)
+        res, _o = _build(out, (2.6, 6.8, 3.05))
         files.append(open(os.path.join(str(out), res["files"]["glb"]), "rb").read())
     assert files[0] == files[1]
 

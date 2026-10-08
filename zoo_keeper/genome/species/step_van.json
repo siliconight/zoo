@@ -50,7 +50,6 @@
       "default": 1
     }
   },
-  "module_variants": 2,
   "materials": {
     "default": "paint_matte",
     "options": [

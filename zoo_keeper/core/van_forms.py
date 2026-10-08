@@ -359,10 +359,12 @@ def chassis_rgb(co, normal, part):
     return _lerp3(CHASSIS, GRIME, 0.30 + 0.50 * n)
 
 
-# --- the ghost (1.83.0, variant 1) --------------------------------------------------
+# --- the ghost (1.83.0; every step van's since 1.84.0) ------------------------------
 
-#: THE GHOST, variant 1 -- the walker's to judge (2026-10-08: "show me
-#: this"). The van ran as a water-ice truck, SKEEVY'S WOODER ICE, its name in
+#: THE GHOST. The walker, 2026-10-08: "show me this" (1.83.0, variant 1),
+#: then "make the ghost the default, patchy version" (1.84.0) -- so every
+#: step van carries it. The van ran as a water-ice truck, SKEEVY'S WOODER
+#: ICE, its name in
 #: vinyl. The crew peeled the vinyl off when they bought it, and the paint
 #: under the letters never saw the sun: the old name stands in the chalked
 #: side as deeper black, the way a removed decal ghosts on every faded van.
@@ -378,7 +380,8 @@ GHOST_INK = 0.55                        # the linear factor under a letter, at i
 #: How much of a letter's darkening survives, between this and 1, by a
 #: noise about `GHOST_PATCH_M` across: vinyl never fades evenly, and the
 #: first frame's even letters read as lettering somebody painted, not as
-#: one somebody peeled off (2026-10-08).
+#: one somebody peeled off (2026-10-08). The walker chose these over the
+#: even ones: "patchy version".
 GHOST_PATCH = 0.30
 GHOST_PATCH_M = 0.45
 GHOST_TOP = 0.22                        # the art's top edge under the roof

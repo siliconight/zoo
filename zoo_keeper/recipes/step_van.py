@@ -52,7 +52,8 @@ rust at the arches and the rocker, road dust on the lower third, one grey
 primer patch on the kerb side. Deterministic from position alone: the same
 van in every level.
 
-THE GHOST (1.83.0, variant 1, the walker's to judge): the van's old life as
+THE GHOST (1.83.0; every step van's since 1.84.0 -- the walker: "make the
+ghost the default, patchy version"): the van's old life as
 SKEEVY'S WOODER ICE, its vinyl peeled off and the letters left as unfaded
 paint. One image (`van_forms.ghost_art`) under the same `Wear` colour on
 the same material (`materials.make_wear_textured_material`), the box's
@@ -145,7 +146,6 @@ def build(plan, streams, collection):
     rng = streams.stream("wear")
     seg = int(plan["params"].get("wheel_segments", 14))
     dual = int(plan["params"].get("dual_rear", 1)) > 0
-    ghost = int(plan["params"].get("variant", 0) or 0) == 1
     lay = van_forms.layout(W, L, H)
     hw, r, tw = lay["hw"], lay["r"], lay["tyre_w"]
     zr, zs, zb, zn = lay["z_roof"], lay["z_sill"], lay["z_belt"], lay["z_nose"]
@@ -379,13 +379,9 @@ def build(plan, streams, collection):
     # so editing the genome repaints the van; the trim's kinds are constants,
     # the way the display case's aluminium frame is.
     base = tuple(float(c) for c in plan["color"][:3])
-    art = None
-    if ghost:
-        art = van_forms.ghost_art()
-        paint = materials.make_wear_textured_material(
-            "M_Van_paint_ghost", materials.image_from_png(art["name"], art["png"]), plan["material"])
-    else:
-        paint = materials.make_material("M_Van_paint", [1.0, 1.0, 1.0], plan["material"])
+    art = van_forms.ghost_art()
+    paint = materials.make_wear_textured_material(
+        "M_Van_paint", materials.image_from_png(art["name"], art["png"]), plan["material"])
     painted = materials.make_material("M_Van_painted", [1.0, 1.0, 1.0], "metal_painted")
     rubber = materials.make_material("M_Van_rubber", [0.030, 0.030, 0.032], "rubber")
     cloth = materials.make_material("M_Van_interior", [0.085, 0.080, 0.075], "canvas")
@@ -399,11 +395,10 @@ def build(plan, streams, collection):
                       van_forms.chassis_rgb(co, n, part))
             if not geometry.tint_wear_by(obj, fn):
                 raise RuntimeError(f"step_van: {obj.name} has no Wear layer, so its paint would not land")
-            if art is not None:
-                uv = ((lambda co, n: van_forms.ghost_uv(co, n, lay)) if key == "paint"
-                      else (lambda co, n: van_forms.GHOST_OUTSIDE))
-                if not geometry.set_uv_by(obj, uv):
-                    raise RuntimeError(f"step_van: {obj.name} has no UV layer, so the ghost would not land")
+            uv = ((lambda co, n: van_forms.ghost_uv(co, n, lay)) if key == "paint"
+                  else (lambda co, n: van_forms.GHOST_OUTSIDE))
+            if not geometry.set_uv_by(obj, uv):
+                raise RuntimeError(f"step_van: {obj.name} has no UV layer, so the ghost would not land")
         elif key in TINTS:
             materials.assign([obj], painted)
             if not geometry.tint_wear(obj, TINTS[key]):
@@ -417,7 +412,7 @@ def build(plan, streams, collection):
 
     print(f"[van] dual_rear={dual} wheel_segments={seg} panes={len(glass_objs)} "
           f"chassis={len(under)} "
-          f"ghost={art['name'] if art else 'none'} "
+          f"ghost={art['name']} "
           f"cab={van_forms.CAB_LEN:.2f} box={y_r - y_cab:.2f} axles=({ya_f:.2f}, {ya_r:.2f})")
     return {"objects": objs,
             "collision_boxes": [((-W / 2.0, y0, 0.0), (W / 2.0, yt, H))],
