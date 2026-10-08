@@ -1,0 +1,96 @@
+{
+  "species": "step_van",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Original procedural construction, Zoo 1.82.0 (roadmap 206). The crew's getaway van: a Chevrolet P30-style step van, matte black, faded, with patina -- 'a worn in truck...that's been on many jobs', the walker's own 'millenial falcon', parked at the mission's spawn. Built from the walker's comps as described in docs/reference/GETAWAY_VAN_COMPS.md at the factory root: four photographs read for format only, none stored, no maker's mark or real lettering reproduced. No source meshes, no scraped data."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.4,
+      "max": 2.8,
+      "default": 2.6
+    },
+    "depth": {
+      "min": 6.0,
+      "max": 7.6,
+      "default": 6.8
+    },
+    "height": {
+      "min": 2.9,
+      "max": 3.3,
+      "default": 3.05
+    }
+  },
+  "parts": [
+    "StepVan_Body",
+    "StepVan_Trim",
+    "StepVan_Tyres",
+    "StepVan_Bright",
+    "StepVan_Headlamps",
+    "StepVan_AmberLamps",
+    "StepVan_TailLamps",
+    "StepVan_Plate",
+    "StepVan_Wheels",
+    "StepVan_Interior",
+    "StepVan_Windshield",
+    "StepVan_SideGlass"
+  ],
+  "params": {
+    "wheel_segments": {
+      "min": 10,
+      "max": 20,
+      "default": 14
+    },
+    "dual_rear": {
+      "min": 0,
+      "max": 1,
+      "default": 1
+    }
+  },
+  "materials": {
+    "default": "paint_matte",
+    "options": [
+      "paint_matte"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "paint_matte",
+      "color": [
+        0.03,
+        0.03,
+        0.033
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "paint_matte",
+      "color": [
+        0.03,
+        0.03,
+        0.033
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 5500
+  },
+  "attachments": [
+    "ATT_roof",
+    "ATT_driver_seat",
+    "ATT_side_door"
+  ],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "step van",
+    "step_van",
+    "getaway van",
+    "getaway",
+    "p30"
+  ]
+}

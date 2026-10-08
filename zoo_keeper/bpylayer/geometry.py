@@ -575,6 +575,37 @@ def tint_wear(obj, rgb):
         d.color = (c[0] * r, c[1] * g, c[2] * b, c[3])
     return len(attr.data)
 
+
+def tint_wear_by(obj, fn):
+    """`tint_wear` with a colour that varies over the part (Zoo 1.82.0).
+
+    ``fn(co, normal)`` returns the RGB for one corner: ``co`` its vertex's
+    position in the mesh's own space, ``normal`` its face's normal. The
+    getaway van's paint -- sun-chalked up high, dusty low down, rust at the
+    arches -- rides ONE material this way rather than one material a colour,
+    the cargo container's pattern the draw-call rule forbids. Multiplied into
+    `Wear` like `tint_wear`, so the crease darkening `wear_colors` wrote
+    stays under it.
+
+    Returns the number of corners tinted; 0 when the object carries no
+    `Wear` layer, which a caller should treat as the tint not landing."""
+    mesh = obj.data
+    try:
+        attr = mesh.color_attributes[WEAR_LAYER]
+    except (KeyError, AttributeError):
+        return 0
+    verts, loops = mesh.vertices, mesh.loops
+    n = 0
+    for poly in mesh.polygons:
+        nrm = (poly.normal[0], poly.normal[1], poly.normal[2])
+        for li in poly.loop_indices:
+            v = verts[loops[li].vertex_index].co
+            r, g, b = fn((v[0], v[1], v[2]), nrm)
+            c = attr.data[li].color
+            attr.data[li].color = (c[0] * r, c[1] * g, c[2] * b, c[3])
+            n += 1
+    return n
+
 # --- object plumbing ---------------------------------------------------------
 
 def bm_to_object(bm, name, collection, finish=True, bevel=0.0,

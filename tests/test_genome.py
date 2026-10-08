@@ -76,7 +76,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "dumpster",
                 # the corner deli's service case (1.81.0): curved glass, a
                 # lit deck of pans and cards, logs cut to the glass
-                "deli_case"}
+                "deli_case",
+                # the crew's getaway van (1.82.0, roadmap 206): a P30-style
+                # step van, matte black gone chalky, parked at the spawn
+                "step_van"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

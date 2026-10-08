@@ -123,7 +123,9 @@ def test_delco_1997_reaches_every_species():
     # 1.43.0: 91, + video_rack, styled from the snack gondola's rows.
     # 1.58.0: 92, + dumpster, with its own `delco` row.
     # 1.81.0: 93, + deli_case, its rows copied from the cooler wall's.
-    assert len(_genomes()) == 93 + len(_minted), len(_genomes())
+    # 1.82.0: 94, + step_van, its `delco` row a copy of its `default`: the
+    # crew's van is the same van in every theme.
+    assert len(_genomes()) == 94 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

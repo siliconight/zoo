@@ -420,7 +420,15 @@ DID_NOT_BUILD = {"boots"}
 #: 0.4-2.0 mm off the glass and 1 mm off the rail, the rail's ends 1 mm off
 #: the base's, the deck's bays meeting face to face, the logs' flat bottoms
 #: 1.6-2.1 mm under the deck -- each fixed at its source.
-CENSUS_BUILDS = 360
+#: 1.82.0: `step_van`, three builds more, same tool, Blender 5.1.1: "3
+#: builds, 0 with coincident pairs, 0 that did not build" (4,640 / 4,860 /
+#: 5,080 tris). The probe found 10-12 pairs a build first, every one fixed
+#: at its source: seat backs flush with their bases, the engine cover's and
+#: the dash's bottoms on one plane, the grille bars and the rear seams 2 mm
+#: off what they stood on (the window is <= 2.0 mm, so a 2 mm fix still
+#: read), the B-pillar 2 mm off the rear door seam, and the cab roof shifted
+#: along its own 45-degree facet (`van_forms.CAB_ROOF_INSET`).
+CENSUS_BUILDS = 363
 
 
 def test_the_census_covers_every_species_there_is():

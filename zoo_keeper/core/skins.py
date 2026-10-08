@@ -116,7 +116,12 @@ KNOWN_KINDS = ("laminate", "wood", "metal", "plastic", "leather", "rubber",
                # `carpet_tournament` came with them and needs NO kind: a pack
                # directory is `<kind>_<theme>`, so it is the `carpet` kind under
                # a `tournament` theme and `carpet` has been here since Layer 3.
-               "wood_panel", "slatwall")
+               "wood_panel", "slatwall",
+               # THE GETAWAY VAN'S PAINT (1.82.0, roadmap 206): flat black,
+               # object-owned, and deliberately without a pack in any theme --
+               # the van carries its own colour per corner, so a theme pack
+               # would only repaint it.
+               "paint_matte")
 
 # THE KINDS A PERSON SEES THROUGH. Every enterable window pane, a broken
 # window's remnants, a teller line's screen, a bus shelter's panes and a

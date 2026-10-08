@@ -105,12 +105,21 @@ ROUGHNESS = {"laminate": 0.55, "wood": 0.65, "metal": 0.35, "plastic": 0.45,
              # `laminate`'s 0.55 exactly -- it is a separate KIND so it can
              # resolve its own pack (the grooves are in the texture), not
              # because it reflects differently from a laminate counter.
-             "wood_panel": 0.52, "slatwall": 0.55}
+             "wood_panel": 0.52, "slatwall": 0.55,
+             # THE GETAWAY VAN'S PAINT (1.82.0, roadmap 206): flat black gone
+             # chalky. Object-owned like the prop metals, and with no skin
+             # pack in any theme on purpose -- the colour is the van's own,
+             # painted per corner (`geometry.tint_wear_by`). Between `cloth`
+             # (0.85) and sun-faded block paint (0.88): matte, never gloss,
+             # where `metal_painted` is semi-gloss enamel at 0.45.
+             "paint_matte": 0.86}
 # `metal_painted` is listed at 0.0 rather than left to the .get() default:
 # the whole reason it is a separate kind from `metal_bare` is this number, and
 # a value that matters should not be inferred from an omission.
 METALLIC = {"metal": 0.85, "carbon": 0.30,
             "metal_painted": 0.0, "metal_bare": 0.90,
+            # paint is a dielectric however flat it dries (1.82.0)
+            "paint_matte": 0.0,
             # the fence's wire is galvanised steel, a conductor (1.77.0)
             "chain_link": 0.90}
 
