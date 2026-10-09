@@ -121,7 +121,10 @@ def ingest(src_file, out_dir, name=None, target_height=None, species=None,
 
     os.makedirs(out_dir, exist_ok=True)
     glb_path = os.path.join(out_dir, f"{name}.glb")
-    _export.export_glb(glb_path, coll)
+    # AN AUTHOR'S NORMALS STAY (1.87.0): the glTF importer sets a file's
+    # normals as custom normals, and weighing them by area would overwrite
+    # that work. The merge carries them through.
+    _export.export_glb(glb_path, coll, weighted_normals=False)
 
     meta = _ingest.ingest_meta(name, src_file, tool_version, dimensions=dims,
                                species=species, license_note=license_note)

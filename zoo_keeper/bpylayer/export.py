@@ -19,7 +19,8 @@ def _select_only(objs):
         bpy.context.view_layer.objects.active = objs[0]
 
 
-def export_glb(filepath, collection, merge_parts=True, share_textures=True):
+def export_glb(filepath, collection, merge_parts=True, share_textures=True,
+               weighted_normals=True):
     """Write ``collection`` to a GLB.
 
     ``merge_parts`` packs the module's visual parts into one mesh per
@@ -38,9 +39,25 @@ def export_glb(filepath, collection, merge_parts=True, share_textures=True):
     an export option. A keyword for the same reason as `merge_parts`: the two
     states have to be measurable against each other from one build.
 
+    ``weighted_normals`` weighs every visual part's corner normals by face
+    area first (`geometry.weight_normals`, 1.87.0): a big face keeps its own
+    normal and a chamfer rolls between its neighbours, where the default
+    normal shaded a bevelled box as a dome. Done HERE, after everything that
+    moves a vertex, so the normals are computed from the geometry that ships;
+    the merge then carries them. Same vertices, triangles and draw calls.
+    A keyword for the same reason as the two above: `tools/zoo_cli.py
+    --no-weighted-normals` is the one-build control. Ingest passes False,
+    because an imported mesh carries the normals its author made.
+
     The merged objects are torn down before this returns, so the scene
-    `save_blend` writes is the one the recipe built either way.
+    `save_blend` writes is the one the recipe built either way, its parts'
+    normals weighted when they were.
     """
+    if weighted_normals:
+        for obj in collection.objects:
+            if (obj.type == "MESH"
+                    and not obj.name.endswith(partnames.COL_SUFFIXES)):
+                geometry.weight_normals(obj.data)
     packed = merge.pack_by_material(collection) if merge_parts else None
     objs = packed.objects if packed is not None else list(collection.objects)
     turned = pivots_to_engine(objs)

@@ -46,6 +46,12 @@ keeps its own emission instead of being averaged into a wall and
 and the triangle count, which is ASSERTED against the pre-merge total rather
 than assumed.
 
+CORNER NORMALS, when any part carries custom ones (1.87.0). `export_glb`
+weighs every part's normals by face area before this runs. A new mesh's
+normals are recomputed from its edges, which reproduces each part's DEFAULT
+normals exactly -- nothing welds -- and cannot reproduce custom ones, so the
+merged mesh is given each part's corner normals, copied with its faces.
+
 VERTICES ARE NOT WELDED, and that is the whole of why the picture does not
 move. `geometry.shade_by_angle` decides an edge's sharpness from the two
 faces meeting at it WITHIN one part. Welding coincident vertices from two
@@ -145,8 +151,11 @@ def _slot_material(me, slot):
     return None
 
 
-def _copy_faces(dst, me, slot, dst_layers):
+def _copy_faces(dst, me, slot, dst_layers, corner=None):
     """Append the faces of ``me`` with material_index ``slot`` into ``dst``.
+
+    ``corner``, when a list, gets the copied faces' corner normals appended
+    in the order the new faces' corners are made (1.87.0).
 
     Vertices are created per source, never looked up in what is already
     there, so nothing welds across parts.
@@ -162,7 +171,10 @@ def _copy_faces(dst, me, slot, dst_layers):
                 for name in dst_layers["fcol"]
                 if name in src.loops.layers.float_color}
     vmap = {}
-    for face in src.faces:
+    # from_mesh keeps the mesh's face order and each face's corner order, so
+    # face `fi`'s corner k is the mesh's corner loop_start + k
+    src_normals = me.corner_normals if corner is not None else None
+    for fi, face in enumerate(src.faces):
         if face.material_index != slot:
             continue
         verts = []
@@ -190,6 +202,10 @@ def _copy_faces(dst, me, slot, dst_layers):
                 dl[dst_layers["col"][name]] = sl[layer]
             for name, layer in src_fcol.items():
                 dl[dst_layers["fcol"][name]] = sl[layer]
+        if corner is not None:
+            start = me.polygons[fi].loop_start
+            corner.extend(tuple(src_normals[start + k].vector)
+                          for k in range(len(face.loops)))
     # Edge sharpness AFTER the faces exist: `shade_by_angle` wrote the
     # shading into `e.smooth`, and an edge that came back smooth by default
     # would round a corner the recipe meant to keep hard.
@@ -214,11 +230,16 @@ def _build_mesh(name, sources, dst_layers):
         "fcol": {n: dst.loops.layers.float_color.new(n)
                  for n in dst_layers["fcol"]},
     }
+    # each part's corner normals, when any part has custom ones (1.87.0)
+    corner = ([] if any(obj.data.has_custom_normals for obj, _ in sources)
+              else None)
     for obj, slot in sources:
-        _copy_faces(dst, obj.data, slot, layers)
+        _copy_faces(dst, obj.data, slot, layers, corner)
     me = bpy.data.meshes.new(name)
     dst.to_mesh(me)
     dst.free()
+    if corner is not None:
+        me.normals_split_custom_set(corner)
     # Same reason `geometry.bm_to_object` does it: the exporter writes the
     # ACTIVE colour attribute, and a Wear layer that is not the active one is
     # in the mesh and not in the file.

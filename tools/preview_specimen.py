@@ -167,6 +167,9 @@ def main():
     patch_n = int(_arg("--patch", "45"))
     patch_extent = float(_arg("--patch-extent", "1.15"))
     no_ground = _flag("--no-ground")
+    # The control for Zoo 1.87.0's weighted normals: the same build with the
+    # default corner normals, so a before/after is two renders of one piece.
+    weighted = not _flag("--no-weighted-normals")
     species = _arg("--species", None)
     # A CAMERA THAT CAN WALK AROUND THE PIECE. The auto camera stands at one
     # front-right three-quarter, at an eye height scaled from the piece's
@@ -230,7 +233,9 @@ def main():
                      + plan.get("dressing_fallbacks", [])):
             print(f"[preview] FALLBACK {line}")
         res = build.build_module(plan["modules"][0], out, theme=theme,
-                                 style=style, options={"save_blend": False})
+                                 style=style,
+                                 options={"save_blend": False,
+                                          "weighted_normals": weighted})
         res["specimen_id"] = res["stem"]
         # a module is centre-pivot; stand it on the ground plane
         import bpy as _bpy
@@ -255,7 +260,8 @@ def main():
             return
         res = build.build_module(pick[0], out, theme=theme,
                                  style=int(slot.get("style") or 1),
-                                 options={"save_blend": False})
+                                 options={"save_blend": False,
+                                          "weighted_normals": weighted})
         print(f"[preview] slot={os.path.basename(slot_path)} "
               f"state={state_arg!r} -> module={res['stem']} "
               f"species={pick[0]['species']} "
@@ -268,7 +274,8 @@ def main():
         res = build.build_specimen(
             prompt, out, seed=seed, species=species,
             options={"collision": None, "lods": False,
-                     "save_blend": False, "clear_scene": True})
+                     "save_blend": False, "clear_scene": True,
+                     "weighted_normals": weighted})
         asked = f"species={species!r}" if species else f"prompt={prompt!r}"
         print(f"[preview] {asked} -> specimen={res['specimen_id']} "
               f"status={res['report']['status'].upper()}")

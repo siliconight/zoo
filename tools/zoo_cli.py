@@ -69,6 +69,13 @@ def parse_args():
                          "material -- the pre-1.1.0 packing, kept as the "
                          "measurement control for the merge (see "
                          "bpylayer/merge.py). Costs ~5.8x the draw calls.")
+    ap.add_argument("--no-weighted-normals", dest="no_weighted_normals",
+                    action="store_true",
+                    help="export the default corner normals instead of "
+                         "weighing them by face area -- the pre-1.87.0 "
+                         "shading, kept as the control for the look (see "
+                         "core/normals.py). Same vertices, triangles and "
+                         "draw calls either way.")
     ap.add_argument("--species-list", action="store_true")
     # --- ingest: adopt external assets (zip of itch.io assets, etc.) --------
     ap.add_argument("--ingest",
@@ -206,7 +213,8 @@ def habitat_build(args):
         seed=args.seed,
         options={"collision": _collision_opt(args), "lods": args.lods,
                  "save_blend": not args.no_blend, "clear_scene": True,
-                 "merge_parts": not args.no_merge_parts})
+                 "merge_parts": not args.no_merge_parts,
+                 "weighted_normals": not args.no_weighted_normals})
     print(f"[zoo] habitat:  {fam['habitat_id']} "
           f"({len(fam['species'])} species)")
     print(f"[zoo] out:      {fam['out_dir']}")
@@ -259,7 +267,8 @@ def full_build(args):
 
     opts = {"collision": _collision_opt(args), "lods": args.lods,
             "save_blend": not args.no_blend, "clear_scene": True,
-            "merge_parts": not args.no_merge_parts}
+            "merge_parts": not args.no_merge_parts,
+            "weighted_normals": not args.no_weighted_normals}
 
     if args.count > 1:
         fam = build.build_family(args.prompt, os.path.abspath(args.out),
@@ -447,7 +456,8 @@ def build_kit_run(args):
         style=args.style,
         options={"collision": _collision_opt(args),
                  "save_blend": not args.no_blend, "clear_scene": True,
-                 "merge_parts": not args.no_merge_parts})
+                 "merge_parts": not args.no_merge_parts,
+                 "weighted_normals": not args.no_weighted_normals})
 
     print(f"[zoo] kit built for '{res['building_id']}' "
           f"(theme={res['theme']}, style={res['style']:02d}) -> "
@@ -501,7 +511,8 @@ def dress_run(args):
     res = build.build_dressing(
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True,
-                 "merge_parts": not args.no_merge_parts})
+                 "merge_parts": not args.no_merge_parts,
+                 "weighted_normals": not args.no_weighted_normals})
 
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
     print(f"[zoo] dressing built for '{res['building_id']}' "

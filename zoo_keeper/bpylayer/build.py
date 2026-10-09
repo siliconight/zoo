@@ -28,6 +28,10 @@ DEFAULT_OPTIONS = {
     # (`bpylayer.merge`). Off is the measurement control, not a supported
     # shipping mode -- see `export.export_glb`.
     "merge_parts": True,
+    # Weigh every part's corner normals by face area at export
+    # (`core.normals`, 1.87.0). Off is the control for the look, as
+    # `merge_parts` is for the draw calls.
+    "weighted_normals": True,
 }
 
 
@@ -96,7 +100,8 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, specimen_id)
     files = {"glb": f"{specimen_id}.glb", "meta": f"{specimen_id}.meta.json"}
-    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
+    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"],
+                      weighted_normals=opts["weighted_normals"])
     if opts["save_blend"]:
         files["blend"] = f"{specimen_id}.blend"
 
@@ -241,7 +246,8 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, stem)
     files = {"glb": f"{stem}.glb", "meta": f"{stem}.meta.json"}
-    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
+    export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"],
+                      weighted_normals=opts["weighted_normals"])
     if opts["save_blend"]:
         export.save_blend(base + ".blend")
         files["blend"] = f"{stem}.blend"
@@ -510,7 +516,8 @@ def build_dressing(manifest: dict, out_dir: str, theme: str = "delco",
     # `core.dressing.cover_side`), so the family `merge.pack_by_material`
     # groups by IS the side, and the merge's own guarantees -- triangle count
     # asserted, vertices unwelded, one surface per material -- come with it.
-    stats = export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"])
+    stats = export.export_glb(base + ".glb", coll, merge_parts=opts["merge_parts"],
+                      weighted_normals=opts["weighted_normals"])
     files = {"glb": f"{stem}.glb"}
     if opts["save_blend"]:
         export.save_blend(base + ".blend")
@@ -661,7 +668,8 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
     files = {"glb": f"{building_id}_roofprops.glb"}
     # A whole roof's props, each placed at its own anchor: a layer, not a
     # module. See the note in `build_dressing`.
-    export.export_glb(base + ".glb", coll, merge_parts=False)
+    export.export_glb(base + ".glb", coll, merge_parts=False,
+                      weighted_normals=opts["weighted_normals"])
     if opts.get("save_blend"):
         files["blend"] = f"{building_id}_roofprops.blend"
         export.save_blend(base + ".blend")
@@ -852,7 +860,8 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     # A whole scope's fixtures, each placed at its own anchor, and each
     # paired with a LuxEmit_* marker empty that must stay beside its own
     # hardware. A layer, not a module. See the note in `build_dressing`.
-    export.export_glb(base + ".glb", coll, merge_parts=False)
+    export.export_glb(base + ".glb", coll, merge_parts=False,
+                      weighted_normals=opts["weighted_normals"])
     if opts.get("save_blend"):
         files["blend"] = f"{scope}_fixtures.blend"
         export.save_blend(base + ".blend")

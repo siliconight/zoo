@@ -16,6 +16,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 from ..core import arch
+from ..core import normals as core_normals
 
 WEAR_LAYER = "Wear"
 
@@ -162,6 +163,28 @@ def shade_by_angle(bm, angle_deg=SMOOTH_ANGLE_DEG):
             e.smooth = False
             continue
         e.smooth = faces[0].normal.dot(faces[1].normal) >= limit
+
+
+def weight_normals(me):
+    """Set ``me``'s custom normals by face area (1.87.0, roadmap 214).
+
+    `core.normals.weighted_corner_normals` computes them from the faces, their
+    smoothing and the sharp edges -- the fans `shade_by_angle` decided -- in
+    the order the mesh stores its corners. A big face keeps its own normal
+    and a chamfer rolls between its neighbours, where the default normal
+    shades a bevelled box as a dome (see `core/normals.py`). Called by
+    `export.export_glb`, after everything that moves a vertex. Returns the
+    corners written; a mesh with no faces is left alone.
+    """
+    polys = me.polygons
+    if not len(polys):
+        return 0
+    sharp = {frozenset(e.vertices) for e in me.edges if e.use_edge_sharp}
+    out = core_normals.weighted_corner_normals(
+        [list(p.vertices) for p in polys], [tuple(p.normal) for p in polys],
+        [p.area for p in polys], [p.use_smooth for p in polys], sharp)
+    me.normals_split_custom_set(out)
+    return len(out)
 
 
 def taper_z(verts, top_scale, bottom_scale=1.0):
