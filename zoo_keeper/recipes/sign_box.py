@@ -115,13 +115,18 @@ def build(plan, streams, collection):
         rim["faces"] = [f for k, f in enumerate(rim["faces"]) if k in (0, 1, 2, 4)]
         rim["tile"] = "edge"
         rim["uvs"] = [((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))] * len(rim["faces"])
+        # IN ITS OWNER'S HAND, PAINTED SMOOTH (1.90.0): the name is coverage
+        # at three times the texel, in the face of the voice the kind speaks
+        # in, so the art is built `smooth` -- a bled gutter and a filtered
+        # sample -- where Closest would step every edge of it
         tiles = {"face": {"kind": "storefront_sign", "w_m": w, "h_m": h,
-                          "text": said["text"], "colours": said["colours"]},
+                          "text": said["text"], "colours": said["colours"],
+                          "voice": SN.voice_for(said["kind"])},
                  "edge": {"kind": "storefront_sign", "w_m": 0.1, "h_m": 0.1, "edge": True,
                           "text": "", "colours": said["colours"]}}
         got, _atlas = build_art([front, rim], collection, dict(plan, _tiles=tiles), streams,
                                 "SignBox_Face", roughness=SIGN_ROUGHNESS,
-                                lit=(PY.GLOW_EMISSION, SIGN_ALBEDO))
+                                lit=(PY.GLOW_EMISSION, SIGN_ALBEDO), smooth=True)
         objs += got
         print(f"[sign_box] {w:.2f} x {h:.2f} {said['kind']}: {said['text']}")
 

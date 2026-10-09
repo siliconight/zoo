@@ -26,6 +26,7 @@ from zoo_keeper.core import fixtures
 from zoo_keeper.core import genome
 from zoo_keeper.core import poster_copy as PC
 from zoo_keeper.core import price_pylon_forms as PY
+from zoo_keeper.core import smooth_type as ST
 from zoo_keeper.core import storefront_names as SN
 
 #: Every width Deli Counter derived a sign at, measured on the library
@@ -108,11 +109,82 @@ def test_no_kind_is_a_street_number_never_blank():
 
 
 def test_every_name_sets_on_every_sign_the_library_derives():
+    """1.90.0: each name in the voice it is painted in -- a civic building's
+    in the institution's face, every other in the shop's (`voice_for`)."""
+    civic = {t for kind, _m, names in SN.KINDS if kind in SN.CIVIC for t in names}
     texts = SN.all_strings() + list(CN.NAMES) + [str(SN.NUMBERS[1])]
     for w in WIDTHS:
         for t in texts:
-            c = SN.paint({"w_m": w, "h_m": 0.6, "text": t, "colours": PY.COLOURWAYS[0]})
-            assert not c.unset, (w, t)
+            voice = "civic" if t in civic else "shop"
+            c = SN.paint({"w_m": w, "h_m": 0.6, "text": t, "colours": PY.COLOURWAYS[0],
+                          "voice": voice})
+            assert not c.unset, (w, t, voice)
+
+
+def test_a_sign_is_in_its_owner_s_hand():
+    """1.90.0. The walker, 2026-10-09: "use Blue Highway for the shop signs".
+    The face is the owner's (`smooth_type.OWNERS`, the walker's font
+    catalog): a shop's sign is the shop's own hand, Blue Highway in its
+    condensed weight, and a civic building's fascia is the institution's."""
+    for kind, _m, _names in SN.KINDS:
+        assert SN.voice_for(kind) == ("civic" if kind in SN.CIVIC else "shop"), kind
+    assert SN.voice_for("number") == "shop"
+    assert ST.owned(SN.VOICES["shop"]) == "highway_cond"
+    assert ST.owned(SN.VOICES["civic"]) == "aileron_bold"
+    face, cap, _lines = SN.layout("JAWN'S HOAGIES", 700, 100, "shop")
+    assert face == "highway_cond" and cap >= SN.MIN_CAP, (face, cap)
+    face, cap, _lines = SN.layout("POLICE", 700, 100, "civic")
+    assert face == "aileron_bold" and cap >= SN.MIN_CAP, (face, cap)
+    with pytest.raises(ValueError):
+        SN.layout("POLICE", 700, 100, "law")
+
+
+def test_a_sign_is_painted_smooth_at_three_times_its_texel():
+    """1.90.0: 240 px a metre, and a letter's edge is coverage, not a step.
+    1.89.0 painted 80 px a metre in three colours -- the field, the rule and
+    the ink -- which a Closest sample shows from the street as a CRT's
+    letter."""
+    c = SN.paint({"w_m": 2.4, "h_m": 0.6, "text": "JAWN'S HOAGIES", "colours": PY.COLOURWAYS[0]})
+    assert (c.w, c.h) == (576, 144), (c.w, c.h)
+    colours = {bytes(c.buf[i:i + 3]) for i in range(0, len(c.buf), 3)}
+    assert len(colours) > 12, len(colours)
+
+
+def test_a_name_too_long_for_its_sign_is_reported_not_cropped():
+    """Not even 5 cm caps on two lines fit a 0.3 m face: nothing is lettered,
+    and the name is listed, where a crop would ship half a name."""
+    c = SN.paint({"w_m": 0.3, "h_m": 0.6, "text": "STIFF & SONS FUNERAL HOME",
+                  "colours": PY.COLOURWAYS[0]})
+    assert c.unset == ["STIFF & SONS FUNERAL HOME"]
+    assert len({bytes(c.buf[i:i + 3]) for i in range(0, len(c.buf), 3)}) == 2
+
+
+def test_a_long_name_takes_two_lines_when_that_sets_it_bigger():
+    """The 2.0 m sign's box, 450 x 102 px: on one line the name's width
+    bounds its cap; split at the even word break, both lines set bigger, and
+    the composed block -- baselines `LINE_STEP` caps apart -- still sits in
+    the box."""
+    face, cap, lines = SN.layout("STIFF & SONS FUNERAL HOME", 450, 102, "shop")
+    assert lines == ["STIFF & SONS", "FUNERAL HOME"], (cap, lines)
+    one = ST.fit_cap("STIFF & SONS FUNERAL HOME", 450, 102, face, SN.MIN_CAP)
+    assert one is not None and cap > one, (cap, one)
+    block = SN._block(lines, cap, face)
+    assert block.shape[0] <= 102 and block.shape[1] <= 450, block.shape
+    assert block.shape[0] > (1.0 + SN.LINE_STEP) * cap * 0.95, (block.shape, cap)
+
+
+def test_the_sign_box_builds_its_face_smooth_in_its_voice():
+    """1.90.0: the face's art is built `smooth` -- a bled gutter and a
+    material sampled with filtering -- or the coverage above is shown
+    Closest; and the face's tile carries its voice. Read as source: the
+    recipe imports `bpy` at module scope."""
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(os.path.join(here, "zoo_keeper", "recipes", "sign_box.py"), encoding="utf-8") as fh:
+        src = fh.read()
+    assert src.count("build_art(") == 1
+    call = src[src.index("build_art("):src.index("objs += got")]
+    assert "smooth=True" in call, call
+    assert '"voice": SN.voice_for(said["kind"])' in src
 
 
 def test_the_names_are_invented():
@@ -169,3 +241,10 @@ def test_bpy_a_sign_is_named_art_in_one_face_material(tmp_path):
     pbr = face.get("pbrMetallicRoughness", {})
     assert max(pbr.get("baseColorFactor", [1.0, 1.0, 1.0])[:3]) <= 0.15 + 1e-6, pbr
     assert pbr.get("roughnessFactor", 1.0) == pytest.approx(1.0), pbr
+    # 1.90.0: the face is sampled with filtering (glTF magFilter 9729): its
+    # letter is coverage, which Closest would step -- and a texture every
+    # sampler filters ships VRAM-compressed (Level Factory 0.128.0)
+    used = [t["index"] for t in (pbr.get("baseColorTexture"), face.get("emissiveTexture")) if t]
+    assert used, face
+    for ti in used:
+        assert doc["samplers"][doc["textures"][ti]["sampler"]]["magFilter"] == 9729, face["name"]

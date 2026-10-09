@@ -28,6 +28,8 @@ from __future__ import annotations
 import re
 import zlib
 
+import numpy as np
+
 from . import club_names as CN
 from . import price_pylon_forms as PY
 
@@ -115,59 +117,136 @@ def all_strings():
 
 
 TEXEL = 80                 # px a metre: the pylon's, read from the street
+#: THE SIGN IS PAINTED SMOOTH (1.90.0), at this many times `TEXEL`. The walker,
+#: 2026-10-09, walking club_block_014: "need better looking fonts on these
+#: signs", then "use Blue Highway for the shop signs". Until 1.89.0 the name
+#: was `pixel_type`'s Pixel Operator at a whole scale, 80 px a metre, sampled
+#: Closest: a CRT's letter on a lit acrylic panel. The realism trial paints a
+#: machine's art at three times its texel and samples it filtered (1.46.0),
+#: and so does this: a 3.2 x 0.6 m face is 768 x 144 px.
+DENSITY = 3
+#: WHOSE HAND A SIGN IS IN: a voice's owner in `smooth_type.OWNERS`, the
+#: walker's font catalog ("Assign a typeface to an owner"). A shop's sign is
+#: the shop's own hand, Blue Highway, in its condensed weight: a sign is a
+#: strip, and the narrow face sets a long name biggest (the mock-up of
+#: 2026-10-09, sent to the walker with that recommendation; `"shop"` is the
+#: bold and `"shop_copy"` the regular, one word away). A civic building's
+#: fascia is the institution's, Aileron Bold.
+VOICES = {"shop": "shop_small", "civic": "maker"}
+#: Two lines' baselines apart, in caps: room for a cap and a third of one.
+LINE_STEP = 1.32
+#: The least cap height a name is set at, in painted px: 5 cm on the sign.
+MIN_CAP = 12
+#: The outline in the rule's colour, in painted px: the pixel sign's one-texel
+#: `grow`, at this density.
+OUTLINE = DENSITY
 
 
-def layout(text, w, h, face):
-    """``(scale, lines)``: the largest scale ``text`` sets at in ``w`` x
-    ``h`` px, one line or wrapped, stacked on the face's OWN line height --
-    `fit_text` stacks on the trimmed glyphs plus 1-2 px, which blurred two
-    lines into one on a 0.6 m sign from the street (the first render). One
-    line wins a tie."""
-    from . import pixel_type as pt
-    best = (0, [text])
-    for s in range(6, 0, -1):
-        for lines in ([text], pt.wrap(text, w, s, face) or []):
-            if not lines:
-                continue
-            tall = pt.line(face) * s * (len(lines) - 1) + len(pt.trim(pt.render(lines[-1], s, face)))
-            wide = max(pt.ink_width(ln, s, face) for ln in lines)
-            if wide <= w and tall <= h and s > best[0]:
-                best = (s, lines)
-        if best[0]:
-            return best
-    return best
+def voice_for(kind):
+    """The voice the sign over a ``kind`` building's door speaks in: a civic
+    building's is the institution's, every other the shop's own."""
+    return "civic" if kind in CIVIC else "shop"
+
+
+def _splits(text):
+    """The name on one line, and on two at the word break nearest even."""
+    words = str(text).split()
+    out = [[str(text)]]
+    if len(words) > 1:
+        i = min(range(1, len(words)),
+                key=lambda k: abs(len(" ".join(words[:k])) - len(" ".join(words[k:]))))
+        out.append([" ".join(words[:i]), " ".join(words[i:])])
+    return out
+
+
+def _block(lines, cap, face):
+    """``lines`` set at ``cap`` in ``face``, each centred on the widest, their
+    baselines `LINE_STEP` caps apart: uint8 coverage trimmed to the ink.
+    Untrimmed, every line of one face at one cap is one line box tall, so a
+    line's offset is its baseline's."""
+    from . import smooth_type as ST
+    covs = [ST.coverage(ln, cap, face, trim=False) for ln in lines]
+    step = int(round(cap * LINE_STEP))
+    wide = max(c.shape[1] for c in covs)
+    tall = max(i * step + c.shape[0] for i, c in enumerate(covs))
+    out = np.zeros((tall, wide), dtype=np.uint8)
+    for i, c in enumerate(covs):
+        x = (wide - c.shape[1]) // 2
+        view = out[i * step:i * step + c.shape[0], x:x + c.shape[1]]
+        np.maximum(view, c, out=view)
+    ys = np.where(out.max(axis=1) > 0)[0]
+    xs = np.where(out.max(axis=0) > 0)[0]
+    if not len(ys):
+        return np.zeros((1, 1), dtype=np.uint8)
+    return out[ys[0]:ys[-1] + 1, xs[0]:xs[-1] + 1]
+
+
+def layout(text, w, h, voice="shop", min_cap=MIN_CAP):
+    """``(face, cap, lines)``: ``text`` in ``voice``'s face at the largest cap
+    height that sets inside ``w`` x ``h`` px, on one line or two; one line
+    wins a tie. The cap is 0 when not even ``min_cap`` sets: a name that does
+    not fit is reported, never cropped. An unknown voice is refused by name."""
+    from . import smooth_type as ST
+    if voice not in VOICES:
+        raise ValueError(f"no sign voice {voice!r}; the voices are {', '.join(sorted(VOICES))}")
+    face = ST.owned(VOICES[voice])
+    best = (0, [str(text)])
+    for lines in _splits(text):
+        most = int(h // (1.0 + LINE_STEP * (len(lines) - 1)))
+        if most <= best[0]:
+            continue                # two lines cannot beat what one has set
+        caps = [ST.fit_cap(ln, w, most, face, min_cap) for ln in lines]
+        if None in caps or min(caps) <= best[0]:
+            continue
+        cap = min(caps)
+        # `fit_cap` asks the width alone; the composed block, descenders and
+        # all, must sit in the box: scale to it, then step past the rounding
+        while cap >= min_cap:
+            b = _block(lines, cap, face)
+            if b.shape[0] <= h and b.shape[1] <= w:
+                break
+            cap = min(cap - 1, int(cap * min(h / b.shape[0], w / b.shape[1])))
+        if cap >= min_cap and cap > best[0]:
+            best = (cap, lines)
+    return face, best[0], best[1]
+
+
+def _grow(cov, r):
+    """``cov`` dilated by a disc of ``r`` px, padded by ``r`` on every side."""
+    h, w = cov.shape
+    out = np.zeros((h + 2 * r, w + 2 * r), dtype=np.uint8)
+    for dy in range(-r, r + 1):
+        for dx in range(-r, r + 1):
+            if dx * dx + dy * dy <= r * r:
+                view = out[r + dy:r + dy + h, r + dx:r + dx + w]
+                np.maximum(view, cov, out=view)
+    return out
 
 
 def paint(spec):
     """The sign's face as a Canvas: its field, a rule top and bottom, and the
-    name as large as it sets, outlined in the rule. ``c.unset`` lists the
-    name if it did not set."""
-    from . import pixel_type as pt
-    from .vending_forms import Canvas
-    w = max(8, int(round(spec["w_m"] * TEXEL)))
-    h = max(8, int(round(spec["h_m"] * TEXEL)))
+    name as large as it sets, smooth, outlined in the rule. ``spec["voice"]``
+    is `voice_for`'s, the shop's when absent. ``c.unset`` lists the name if
+    it did not set."""
+    from . import paint as PT
+    tx = TEXEL * DENSITY
+    w = max(8, int(round(spec["w_m"] * tx)))
+    h = max(8, int(round(spec["h_m"] * tx)))
     field, rule, ink = (tuple(x) for x in spec["colours"])
-    c = Canvas(w, h, field)
-    c.rect(0, 2, w, 4, rule)
-    c.rect(0, h - 4, w, h - 2, rule)
-    c.unset = []
+    img = PT.Img(w, h, field)
+    img.rect((0, 2 * DENSITY, w, 4 * DENSITY), rule)
+    img.rect((0, h - 4 * DENSITY, w, h - 2 * DENSITY), rule)
     if spec.get("edge"):
-        return c
-    face = PY.HEAD_FACE
-    s, lines = layout(spec["text"], w - 10, h - 14, face)
-    if not s:
-        face = "m5x7"
-        s, lines = layout(spec["text"], w - 10, h - 14, face)
-    if not s:
-        c.unset = [spec["text"]]
-        return c
-    masks = [pt.trim(pt.render(ln, s, face)) for ln in lines]
-    step = pt.line(face) * s
-    tall = step * (len(masks) - 1) + len(masks[-1])
-    y = (h - tall) // 2
-    for m in masks:
-        x = (w - len(m[0])) // 2
-        c.mask(m, x, y, rule, grow=1)
-        c.mask(m, x, y, ink)
-        y += step
-    return c
+        return img.to_canvas()
+    # the outline is inside the box, as the mock-up's stroke was
+    face, cap, lines = layout(spec["text"], w - 10 * DENSITY - 2 * OUTLINE,
+                              h - 14 * DENSITY - 2 * OUTLINE, spec.get("voice", "shop"))
+    if not cap:
+        img.unset.append(spec["text"])
+        return img.to_canvas()
+    cov = _block(lines, cap, face)
+    x = (w - cov.shape[1]) // 2
+    y = (h - cov.shape[0]) // 2
+    img.mask(_grow(cov, OUTLINE), x - OUTLINE, y - OUTLINE, rule)
+    img.mask(cov, x, y, ink)
+    return img.to_canvas()
