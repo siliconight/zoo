@@ -264,6 +264,15 @@ at the factory root, the original `.docx` beside it.
   measured, the measurement wins: draw calls are the budget, and every look
   is priced before it ships (the factory's `CLAUDE.md`).
 - Roadmap 214 carries what minting has yet to adopt.
+- **Normals are weighted at export** (1.87.0, `core/normals.py`). So keep
+  `shade_by_angle`'s 50-degree default for a bevelled part: its big faces
+  read flat and its chamfers catch the light, at no vertex or draw-call
+  cost.
+  - Pass 1.0 only for a part meant to read faceted.
+  - A part meant to read soft, a cushion, needs rounded geometry. The old
+    default normals domed every bevelled face, so they made it look soft by
+    accident.
+  - `--no-weighted-normals` is the control.
 
 A species is self-describing — adding one needs **no edits to the engine**:
 
