@@ -39,6 +39,10 @@ CC0-derived and every specimen carries its license metadata in its
 
 ## Low-poly heroes (PS1/N64)
 
+*The house target has since moved.* It is the walker's "modernized low
+poly": small selected bevels, controlled normals, restrained materials (see
+"Adding a species"). The primitives below still serve organic pieces.
+
 Beyond hard-surface props, Zoo builds simple *low-poly* heroes — chunky,
 faceted, deliberately retro. The organic look comes from three primitives,
 not sculpting:
@@ -247,6 +251,19 @@ Zoo records provenance but grants no rights — confirming the asset's license
 is on you. The output GLB drops into Godot exactly like a generated one.
 
 ## Adding a species (Knowledge Packs)
+
+**Start from the brief.** The walker's production standard for Delco
+Dangerous assets is the brief for a new species, "for a human artist or
+procedural asset tool": `docs/reference/MODERN_LOW_POLY_ASSET_STANDARD.md`
+at the factory root, the original `.docx` beside it.
+- `docs/reference/MODERN_LOW_POLY_IN_ZOO.md` maps it onto what Zoo already
+  does. Its last section, "Minting a species against the standard", is the
+  checklist.
+- Read it with `docs/reference/HUMAN_AUTHORSHIP_GUIDE.md`'s brief per prop.
+- The standard's numbers are starting points. Where a rule here was
+  measured, the measurement wins: draw calls are the budget, and every look
+  is priced before it ships (the factory's `CLAUDE.md`).
+- Roadmap 214 carries what minting has yet to adopt.
 
 A species is self-describing — adding one needs **no edits to the engine**:
 
