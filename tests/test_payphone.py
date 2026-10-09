@@ -1,11 +1,15 @@
-"""The 1990s coin payphone (Zoo 1.88.0, roadmap 210): three enclosures, one
-atlas, one draw, an invented phone company, a real coin-return recess, and no
-two faces on one plane at any size.
+"""The 1990s coin payphone (Zoo 1.88.0, roadmap 210): three enclosures, an
+invented phone company, a real coin-return recess, and no two faces on one
+plane at any size. Since 1.89.0, two atlases and two draws: the header's face
+and a hood lamp's diffuser are lit, and the lamp's marker hangs under the
+diffuser in free air, carrying its height above the ground.
 
 1.87.0's payphone was a half-booth of boxes in three materials -- no keypad,
 no coin slot, no cord, nothing printed -- and the coincident-face census
 pinned it at 2 pairs (`test_coincident_faces.RESIDUE`). On 1.87.0 this file
-fails at its import: there is no `core.payphone_forms`.
+fails at its import: there is no `core.payphone_forms`. On 1.88.0 the lit
+atlas, the lamp and the built GLB's second material fail: there is no
+`PF.GLOW_TILES` and no layout `lamp`.
 """
 from __future__ import annotations
 
@@ -44,7 +48,7 @@ def _slot(form=None):
 def test_the_genome_names_the_forms_and_the_stem_carries_one():
     g = genome_mod.load_species("payphone")
     assert genome_mod.validate_genome(g) == []
-    assert g["parts"] == ["Payphone_Art"]
+    assert g["parts"] == ["Payphone_Art", "PayphoneGlow_Art"]
     assert g["params"]["form"] == ["auto"] + list(PF.FORMS)
     for form, tail in ((None, "_h230"), ("pedestal", "_h230_fpedestal"), ("wall", "_h230_fwall")):
         plan = kit.plan_kit({"building_id": "t", "slots": [_slot(form)]}, theme="delco_1997", style=1)
@@ -119,13 +123,21 @@ def test_every_flat_face_points_out_of_what_it_closes(form):
         assert _normal(p)[axis] * sign > 0.5, (name, _normal(p))
 
 
-def test_one_atlas_one_material_and_every_tile_exists():
+def test_two_atlases_and_the_lit_one_holds_the_header_and_the_diffuser():
+    """The header's face and the diffuser are lit (1.89.0); everything else is
+    paint. A tile on the wrong atlas is a sign that does not glow, or a shroud
+    that does."""
     for form in PF.FORMS:
         g = PF.plan(0.75, 0.5, 2.3, form)
-        assert {p["mat"] for p in g["prims"]} == {"paint"}
-        assert {a for a, _s in g["tiles"].values()} == {"paint"}
+        assert {p["mat"] for p in g["prims"]} == {"paint", "glow"}
+        for p in g["prims"]:
+            assert (p["mat"] == "glow") == (p["tile"] in PF.GLOW_TILES), p["part"]
+        for name, (atlas, _spec) in g["tiles"].items():
+            assert atlas == ("glow" if name in PF.GLOW_TILES else "paint"), name
         assert {p["tile"] for p in g["prims"]} <= set(g["tiles"])
-        assert g["facts"]["materials"] == 1
+        lit = {p["tile"] for p in g["prims"] if p["mat"] == "glow"}
+        assert lit == ({"lens"} if form == "pedestal" else {"header", "lens"}), (form, lit)
+        assert g["facts"]["materials"] == 2
 
 
 def test_every_line_of_every_tile_sets_in_every_form_at_every_size():
@@ -233,8 +245,66 @@ def test_the_instrument_stands_at_a_callers_height():
         assert 1.15 < z0 + PF.KEYPAD_Z < 1.45
 
 
+def _part_boxes(prims):
+    """Each part's bounds, a part being its prims' name up to a box face's
+    suffix; a part that is one prim is its own."""
+    boxes = {}
+    for p in prims:
+        key = p["part"]
+        if key.endswith(("_front", "_back", "_left", "_right", "_top", "_under")):
+            key = key.rsplit("_", 1)[0]
+        lo, hi = boxes.get(key, ((1e9,) * 3, (-1e9,) * 3))
+        boxes[key] = (tuple(min(lo[k], min(v[k] for v in p["verts"])) for k in range(3)),
+                      tuple(max(hi[k], max(v[k] for v in p["verts"])) for k in range(3)))
+    return boxes
+
+
+def test_the_hood_lamp_hangs_in_free_air_under_its_diffuser():
+    """A lamp inside closed hardware bakes to nothing (Lux 0.65.0's pole,
+    0.67.0's bulbs). The marker hangs LAMP_EMIT under the diffuser's face,
+    behind the header, in front of the instrument and above it, inside no
+    part, and carries its own height above the ground for Lux to solve
+    from."""
+    for form in PF.FORMS:
+        for w, d, h in CORNERS:
+            g = PF.plan(w, d, h, form)
+            L = g["layout"]
+            x0, x1, y0, y1, z0, z1 = L["lens"]
+            lx, ly, lz = L["lamp"]
+            assert x0 < lx < x1 and y0 < ly < y1, (form, w, d, h)
+            assert lz == pytest.approx(z0 - PF.LAMP_EMIT)
+            assert z1 == pytest.approx(h - PF.T_ROOF)
+            assert lz > L["inst"][5], (form, w, d, h)
+            assert ly < L["y_face"], (form, w, d, h)
+            if form != "pedestal":
+                hdr = next(p for p in g["prims"] if p["part"] == "Payphone_Header_front")
+                assert y0 - max(v[1] for v in hdr["verts"]) > PF.T_HEADER, (form, w, d, h)
+            for part, (lo, hi) in _part_boxes(g["prims"]).items():
+                assert not all(lo[k] < c < hi[k] for k, c in enumerate((lx, ly, lz))), (form, w, d, h, part)
+            assert g["lamp"]["name"] == "LuxEmit_payphone_hood"
+            assert g["lamp"]["at"] == L["lamp"]
+            assert g["lamp"]["props"] == {"lux_type": "payphone_hood", "lux_drop": lz}
+
+
+def test_the_recipe_hands_the_lamp_and_its_payload_to_the_marker():
+    """The marker is an attachment and its payload rides `marker_props`, which
+    `bpylayer.build` passes to `markers.add_marker` at both call sites."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    recipe = open(os.path.join(root, "zoo_keeper", "recipes", "payphone.py"), encoding="utf-8").read()
+    assert 'lamp["name"]: lamp["at"]' in recipe
+    assert '"marker_props": {lamp["name"]: dict(lamp["props"])}' in recipe
+    build_src = open(os.path.join(root, "zoo_keeper", "bpylayer", "build.py"), encoding="utf-8").read()
+    call = 'markers.add_marker(name, loc, coll, props=result.get("marker_props", {}).get(name))'
+    assert build_src.count(call) == 2
+    assert "markers.add_marker(name, loc, coll)\n" not in build_src
+
+
 @pytest.mark.parametrize("form", PF.FORMS)
-def test_bpy_a_payphone_is_one_object_one_material_and_fits(tmp_path, form):
+def test_bpy_a_payphone_is_two_objects_two_materials_and_its_lamp(tmp_path, form):
+    """Built as a kit builds it and read back out of the GLB: the paint and the
+    lit art, the lit material named `_Face` for Lux's power cut, and the lamp's
+    marker with its payload in the node's extras, re-centred with the geometry
+    (1.89.0)."""
     bpy = pytest.importorskip("bpy")
     from zoo_keeper.bpylayer import build
     from zoo_keeper.bpylayer.export import _COL_SUFFIXES
@@ -242,9 +312,18 @@ def test_bpy_a_payphone_is_one_object_one_material_and_fits(tmp_path, form):
     res = build.build_module(plan["modules"][0], str(tmp_path), theme="delco_1997", style=1,
                              options={"save_blend": False})
     assert res["report"]["status"] == "pass", res["report"]["checks"]
-    objs = [o for o in bpy.context.scene.objects if o.type == "MESH" and not o.name.endswith(_COL_SUFFIXES)]
-    assert len(objs) == 1
+    objs = sorted(o.name for o in bpy.context.scene.objects
+                  if o.type == "MESH" and not o.name.endswith(_COL_SUFFIXES))
+    assert objs == ["PayphoneGlow_Art", "Payphone_Art"], objs
     raw = open(os.path.join(str(tmp_path), res["files"]["glb"]), "rb").read()
     ln, _kind = struct.unpack_from("<I4s", raw, 12)
     doc = json.loads(raw[20:20 + ln])
-    assert len(doc["materials"]) == 1
+    assert len(doc["materials"]) == 2
+    assert [m["name"].endswith("_Face") for m in doc["materials"]].count(True) == 1, doc["materials"]
+    lamps = [n for n in doc["nodes"] if n["name"].startswith("LuxEmit_payphone_hood")]
+    assert len(lamps) == 1, [n["name"] for n in doc["nodes"]]
+    want = PF.layout(form, 0.75, 0.5, 2.3)["lamp"]
+    assert lamps[0]["extras"]["lux_type"] == "payphone_hood"
+    assert lamps[0]["extras"]["lux_drop"] == pytest.approx(want[2])
+    # glTF is Y up with the caller at +Z, and the module is re-centred on its slot
+    assert lamps[0]["translation"] == pytest.approx([want[0], want[2] - 2.3 / 2.0, -want[1]], abs=1e-4)

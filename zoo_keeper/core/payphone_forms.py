@@ -35,10 +35,28 @@ And in every form, at its real size whatever the slot:
                   handset's foot, down below the instrument and back up into
                   its side.
 
-ONE ATLAS, ONE MATERIAL, ONE DRAW. Every prim names a tile; the paint, the
-steel, the black plastic and every word are pixels in one image
+TWO ATLASES, TWO DRAWS (1.89.0; 1.88.0 drew one). Every prim names a tile;
+the paint, the steel, the black plastic and every word are pixels in one image
 (`recipes/_card_atlas.build_art`). 1.87.0's payphone was three materials and
-three draws of boxes.
+three draws of boxes. The second atlas is the LIT one -- the header's face and
+the hood's diffuser, their art their own light as well as paint -- and its
+material is named `_Face`, so Lux's power cut takes it: the ATM's topper
+(`atm_forms`).
+
+THE HOOD LAMP (1.89.0). Cold run 9212 stood a booth at a bus stop, and at
+midnight it was a silhouette: no light reached the card, the keys or the
+stickers. A real booth's tube sits in its canopy right behind the header,
+backlighting the sign and lighting the instrument below it. So the diffuser
+hangs under the roof just behind the header (in a pedestal, which has none,
+just behind the roof's front edge), and `LAMP` hangs LAMP_EMIT under its
+face, in free air -- a lamp inside closed hardware bakes to nothing (Lux
+0.65.0's pole, 0.67.0's bulbs) -- carrying `lux_drop`, its height above the
+ground, from which Lux's `payphone_hood` row (Lux >= 0.70.0) solves the
+lamp's range and energy. Where it hangs was measured, not chosen: with a lamp
+stood live in cold run 9212's package (`docs/findings/payphone_light/`),
+behind the header the card takes 0.42 per unit of the lamp's energy and the
+back panel's top 5.9, against 0.27 and 11.4 with the lamp mid-hood -- the
+hot spot halved and the card lit half again.
 
 NO TWO FACES ON ONE PLANE. Every part that rests on another goes into it by
 `INSET`, and every face that would lie in a neighbour's plane steps back by
@@ -110,6 +128,22 @@ BINDER = (0.20, 0.045, 0.27)     # w, d, h
 BINDER_HANG = 0.02        # the binder's top below the shelf's foot
 BINDER_RING = 0.008       # its rings' radius
 
+# --- the hood lamp (1.89.0) ------------------------------------------------------------
+LENS_D = 0.070            # the diffuser, front to back
+LENS_T = 0.014            # how far it hangs under the roof
+LENS_GAP = 0.010          # its front behind the header's back face (a pedestal's roof edge)
+LENS_END = 0.030          # each end in from a side panel's inner face
+LAMP_EMIT = 0.030         # the lamp's marker under the diffuser's face
+#: The marker `LuxFixtureSpawner` stands the lamp at; it reads the type from
+#: `lux_type`, and from the name when that is absent.
+LAMP = "LuxEmit_payphone_hood"
+LAMP_TYPE = "payphone_hood"
+#: The lit atlas's tiles, and its emission and diffuse copy (the ATM's,
+#: `atm_forms.GLOW_EMISSION` and `GLOW_ALBEDO`).
+GLOW_TILES = ("header", "lens")
+GLOW_EMISSION = 1.0
+GLOW_ALBEDO = 0.6
+
 # --- the instrument, at its real size ------------------------------------------------------
 INST = (0.19, 0.11, 0.50)        # w, d, h
 INST_FOOT = 1.00                 # its foot above the ground, where the slot allows
@@ -166,6 +200,8 @@ HEADER_INK = (250, 250, 246)
 CARD_PAPER = (232, 230, 220)
 CARD_INK = (24, 26, 30)
 RED = (176, 32, 30)
+LENS_WHITE = (232, 240, 234)     # a lit diffuser, with the tube's faint green
+LENS_TUBE = (252, 253, 248)      # the tube's line through it
 
 
 def _h(*k):
@@ -401,11 +437,21 @@ def layout(form, w, d, h):
                      (ix0 - 0.022, cord_b[1], cord_b[2] - 0.02),
                      cord_b], CORD_SAMPLES)
     shelf_x0 = max(x for x, _y, _z in path) + CORD_R + SHELF_CLEAR
+    # the hood lamp (1.89.0): the diffuser just behind the header's back face
+    # (a pedestal has no header: just behind the roof's front edge), between
+    # the side panels, its top INSET into the roof; the lamp's marker
+    # LAMP_EMIT under its face, in free air
+    sxi = w / 2.0 - INSET - T_SIDE
+    ly0 = -d / 2.0 + 2.0 * INSET + (T_HEADER if form != "pedestal" else 0.0) + LENS_GAP
+    lz1 = top - T_ROOF
+    lens = (-(sxi - LENS_END), sxi - LENS_END, ly0, ly0 + LENS_D, lz1 - LENS_T, lz1)
+    lamp = (0.0, ly0 + LENS_D / 2.0, lz1 - LENS_T - LAMP_EMIT)
     return {"form": form, "w": w, "d": d, "h": h, "y_back": y_back, "y_bp0": y_bp0, "y_bp1": y_bp1,
             "y_face": y_face, "top": top, "z_enc0": z_enc0, "inst": (ix0, ix1, y_face, y_bp0 + INSET,
                                                                        inst_z0, inst_z0 + ih),
             "cradle_z": (cradle_z0, cradle_z1), "grip": (gx, gy, grip_z0, grip_z1),
-            "ear_z": ear_z, "mouth_z": mouth_z, "cord": path, "shelf_x0": shelf_x0}
+            "ear_z": ear_z, "mouth_z": mouth_z, "cord": path, "shelf_x0": shelf_x0,
+            "lens": lens, "lamp": lamp}
 
 
 def _enclosure(L, prims):
@@ -443,6 +489,11 @@ def _enclosure(L, prims):
         prims += _box("Payphone_Shelf", "shelf",
                       (L["shelf_x0"], L["y_bp0"] - SHELF_D, sz1 - T_SHELF), (sxi + INSET, L["y_bp0"] + INSET, sz1),
                       skip=("back", "right"))
+    # the hood lamp's diffuser (1.89.0): a lit face under a painted rim, its
+    # top INSET into the roof
+    lx0, lx1, ly0, ly1, lz0, lz1 = L["lens"]
+    prims += _box("Payphone_Lens", {"*": "lens_rim", "under": "lens"},
+                  (lx0, ly0, lz0), (lx1, ly1, lz1 + INSET), skip=("top",))
     if form != "wall":
         # the post, under the back panel and into it, its back face set in from the panel's
         py1 = L["y_bp1"] - INSET
@@ -532,20 +583,26 @@ def _instrument(L, prims):
 
 
 def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
-    """``{"prims", "tiles", "collision", "facts"}``: every prim on the one
-    atlas, ``paint``. ``rgb`` is the shroud's linear paint (the genome's
+    """``{"prims", "tiles", "collision", "layout", "lamp", "facts"}``: every
+    prim on one of two atlases, ``paint`` or ``glow`` (`GLOW_TILES`, 1.89.0),
+    and ``lamp`` the hood lamp's marker -- its name, where it hangs, and the
+    payload it carries. ``rgb`` is the shroud's linear paint (the genome's
     style colour), lettered and worn in the tiles."""
     L = layout(form, w, d, h)
     prims = []
     _enclosure(L, prims)
     _instrument(L, prims)
+    # the lit atlas (1.89.0): the header's face and the diffuser's
+    for p in prims:
+        if p.get("tile") in GLOW_TILES:
+            p["mat"] = "glow"
     paint = tuple(_srgb8(c) for c in rgb[:3])
     ix0, ix1, _yf, _yb, z0, z1 = L["inst"]
     zr = L["top"] - T_ROOF
     enc_h = zr - L["z_enc0"]
 
-    def spec(kind, w_m, h_m, **more):
-        return ("paint", dict({"kind": kind, "w_m": w_m, "h_m": h_m, "paint": paint, "form": L["form"]}, **more))
+    def spec(kind, w_m, h_m, atlas="paint", **more):
+        return (atlas, dict({"kind": kind, "w_m": w_m, "h_m": h_m, "paint": paint, "form": L["form"]}, **more))
 
     tiles = {
         "shroud": spec("payphone_shroud", 0.40, 0.80),
@@ -562,10 +619,12 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
         "dark": spec("payphone_dark", 0.05, 0.05),
         "black": spec("payphone_black", 0.06, 0.06),
         "cord": spec("payphone_cord", 0.02, 0.16),
+        "lens_rim": spec("payphone_lens_rim", 0.10, 0.03),
+        "lens": spec("payphone_lens", L["lens"][1] - L["lens"][0], LENS_D, atlas="glow"),
     }
     if L["form"] != "pedestal":
         hw = 2.0 * (w / 2.0 - INSET - T_SIDE + INSET)
-        tiles["header"] = spec("payphone_header", hw, HEADER_H, line=hw >= HEADER_LINE_W)
+        tiles["header"] = spec("payphone_header", hw, HEADER_H, atlas="glow", line=hw >= HEADER_LINE_W)
         tiles["shelf"] = spec("payphone_shelf", 0.30, 0.20)
     else:
         tiles["pictogram"] = spec("payphone_pictogram", d, enc_h)
@@ -585,7 +644,9 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
         collision.append(((-POST / 2.0, L["y_bp1"] - INSET - POST, 0.0),
                           (POST / 2.0, L["y_bp1"] - INSET, L["z_enc0"] - BACK_BELOW)))
     return {"prims": prims, "tiles": tiles, "collision": collision, "layout": L,
-            "facts": {"form": L["form"], "company": COMPANY, "tris": P.tri_count(prims), "materials": 1}}
+            "lamp": {"name": LAMP, "at": L["lamp"],
+                     "props": {"lux_type": LAMP_TYPE, "lux_drop": L["lamp"][2]}},
+            "facts": {"form": L["form"], "company": COMPANY, "tris": P.tri_count(prims), "materials": 2}}
 
 
 # --- the paint -------------------------------------------------------------------------
@@ -761,6 +822,23 @@ def paint(spec):
     if kind == "payphone_binder_edge":
         w, h = _px(spec["w_m"], 200), _px(spec["h_m"], 200)
         im = PT.Img(w, h, (26, 26, 30))
+        return im.to_canvas()
+    if kind == "payphone_lens":
+        # the diffuser a tube shines through (1.89.0), on the lit atlas: its
+        # art is its own light. The tube's line runs its length, a little
+        # brighter; the prismatic panel's ribs cross it, faint
+        w, h = _px(spec["w_m"], 400), _px(spec["h_m"], 400)
+        im = PT.Img(w, h, LENS_WHITE)
+        im.rect((0, int(h * 0.36), w, int(h * 0.64)), LENS_TUBE, 0.8)
+        for k in range(0, w, 4):
+            im.rect((k, 0, k + 1, h), _lift(LENS_WHITE, -14), 0.35)
+        im.edge_dark((0, 0, w, h), max(2, h * 0.08), 0.20)
+        return im.to_canvas()
+    if kind == "payphone_lens_rim":
+        # the diffuser's frame, the canopy's own metal, darker
+        w, h = _px(spec["w_m"], 400), _px(spec["h_m"], 400)
+        im = PT.Img(w, h, _lift(body, -40))
+        im.grain((0, 0, w, h), 2.0, 47)
         return im.to_canvas()
     raise ValueError(f"no payphone tile {kind!r}")
 

@@ -1,9 +1,9 @@
 {
   "species": "payphone",
-  "version": 2,
+  "version": 3,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "The 1990s American street kit (roadmap 153), redrawn in Zoo 1.88.0 (roadmap 210). REFERENCE: the walker's three photographs, format only (docs/reference/PAYPHONE_COMPS.md), and the modern low-poly standard's payphone example. A stainless coin phone -- twelve keys, the coin slot in a raised bezel, the coin-return recess, the vault door, the instruction card, the hook-switch cradle with the handset hung in it on an armoured steel cord -- in one of three enclosures: a booth on a post with a PHONE header (the default), a pedestal shroud with handset pictograms, or a wall unit with a phone-book binder. The phone company, YOUSETEL, is invented. BUILT: one atlas, one material, 980 to 1,098 tris over its forms and the genome's corners, 1,046 as a booth at the default slot (2026-10-09); 308 tris and three materials before."
+    "notes": "The 1990s American street kit (roadmap 153), redrawn in Zoo 1.88.0 (roadmap 210). REFERENCE: the walker's three photographs, format only (docs/reference/PAYPHONE_COMPS.md), and the modern low-poly standard's payphone example. A stainless coin phone -- twelve keys, the coin slot in a raised bezel, the coin-return recess, the vault door, the instruction card, the hook-switch cradle with the handset hung in it on an armoured steel cord -- in one of three enclosures: a booth on a post with a PHONE header (the default), a pedestal shroud with handset pictograms, or a wall unit with a phone-book binder. The phone company, YOUSETEL, is invented. BUILT: one atlas, one material, 980 to 1,098 tris over its forms and the genome's corners, 1,046 as a booth at the default slot (2026-10-09); 308 tris and three materials before. LIT (Zoo 1.89.0): the header's face and a hood lamp's diffuser on a second, backlit atlas, two materials and two draws, and the lamp's marker LuxEmit_payphone_hood carrying lux_type and lux_drop -- 990 to 1,108 tris over its forms and the genome's corners, 1,056 as a booth at the default slot, 4 of them lit (2026-10-09)."
   },
   "dimensions": {
     "width": {
@@ -23,7 +23,8 @@
     }
   },
   "parts": [
-    "Payphone_Art"
+    "Payphone_Art",
+    "PayphoneGlow_Art"
   ],
   "params": {
     "form": [

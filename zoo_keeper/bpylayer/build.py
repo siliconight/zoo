@@ -89,7 +89,7 @@ def build_specimen(prompt: str, out_dir: str, seed: int = 0,
         collision.collision_from_boxes(root_name, result["collision_boxes"],
                                        coll)
     for name, loc in result.get("attachments", {}).items():
-        markers.add_marker(name, loc, coll)
+        markers.add_marker(name, loc, coll, props=result.get("marker_props", {}).get(name))
     if opts["lods"]:
         for obj in list(result["objects"]):
             lods.make_lods(obj, coll)
@@ -235,7 +235,7 @@ def build_module(module: dict, out_dir: str, theme: str = "delco",
         collision.collision_from_boxes(root_name, result["collision_boxes"],
                                        coll)
     for name, loc in result.get("attachments", {}).items():
-        markers.add_marker(name, loc, coll)
+        markers.add_marker(name, loc, coll, props=result.get("marker_props", {}).get(name))
 
     fit_names = ([o.name for o in result["fit_objects"]]
                  if result.get("fit_objects") else None)
