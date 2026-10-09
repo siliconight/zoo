@@ -281,7 +281,6 @@ RESIDUE = {
     "club_fixture": (7, 3, 4, 3, 16.8, 1323.6),
     "water_barrel": (6, 6, 0, 6, None, 4652.1),
     "rubble_frag": (3, 2, 1, 3, None, 53.4),
-    "payphone": (2, 2, 0, 2, None, 2.4),
     "weed_tuft": (2, 2, 0, 2, None, 2.4),
     "security_camera": (2, 1, 1, 1, 59.9, 55.9),
     "desk": (182, 0, 182, 0, 15.75, 10180.2),
@@ -471,12 +470,13 @@ def test_the_residue_is_the_count_the_entry_claims():
     """0.96.0 shipped 3027 pairs over 61 species; that release removed 18 of
     them (stop_sign's 9, mailbox's 9 of 15) and left 3009. 1.35.0 redrew the
     ATM, whose 6 (none exposed) were in the table: 3003. 1.37.0 painted the
-    sign over a door, and `sign_box`'s 6 went with its blank face: 2997."""
+    sign over a door, and `sign_box`'s 6 went with its blank face: 2997.
+    1.88.0 redrew the payphone, and its 2 (both exposed) went: 2995."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 2997, total
+    assert total == 2995, total
     exposed = sum(v[3] for v in RESIDUE.values())
-    assert exposed == 973, exposed
-    assert total + 18 + 6 + 6 == 3027      # 0.96.0's, the ATM's, sign_box's
+    assert exposed == 971, exposed
+    assert total + 18 + 6 + 6 + 2 == 3027      # 0.96.0's, the ATM's, sign_box's, the payphone's
 
 
 def test_every_residue_row_is_self_consistent():
@@ -579,8 +579,8 @@ def test_bpy_the_residue_is_exactly_the_count_the_table_says(species):
     assert got == RESIDUE[species][0], (species, got, RESIDUE[species][0])
 
 
-@pytest.mark.xfail(strict=True, reason="59 species still ship coincident "
-                                       "faces -- the RESIDUE table above")
+@pytest.mark.xfail(strict=True, reason="%d species still ship coincident "
+                                       "faces -- the RESIDUE table above" % len(RESIDUE))
 def test_every_species_in_the_library_keeps_the_rule():
     """The rule Zoo states for an interior species, asked of the whole
     library. IT FAILS, and it is a test so that it fails on the board rather

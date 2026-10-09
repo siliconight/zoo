@@ -508,6 +508,11 @@ def paint(spec):
     if kind.startswith("dumpster_"):
         from . import dumpster_forms as DF
         return DF.paint(spec)
+    # THE PAYPHONE (1.88.0): its shroud, header, printed face, stickers and
+    # cord are `payphone_forms`' tiles
+    if kind.startswith("payphone_"):
+        from . import payphone_forms as PPF
+        return PPF.paint(spec)
     # THE PUMP (1.36.0): its panels, price wheels and header are
     # `pump_forms`' tiles
     if kind.startswith("pump_"):
