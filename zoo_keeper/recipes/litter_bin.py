@@ -1,38 +1,28 @@
-"""litter_bin recipe: PLACEHOLDER SILHOUETTE, minted 2026-09-12 by tools/new_species.py.
+"""litter_bin recipe: a 1990s municipal street bin (Zoo 1.92.0, roadmap 219 note 5).
 
-A solid center-pivot box built to the plan's exact dims, one named part,
-collision and a top attachment -- so the species validates, ships and is
-counted as itself in every kit report. It is NOT yet a litter_bin: this file
-is where the drawing goes. Shape it the way `desk.py` or `counter.py` shape
-theirs -- boxes from `geometry.add_box` per part, `part(bm, name)` to turn
-each into an object, a collision box per solid, and keep the overall
-extents equal to (w, d, h): Deli Counter places this module on a slot of
-exactly that size and `validate` fails a module that is not.
+Until 1.92.0 this was the PLACEHOLDER SILHOUETTE `tools/new_species.py` minted on 2026-09-12: one
+grey box at each crossing. Every prim and tile is `core.litter_bin_forms`, which is pure and
+tested: a square body of vertical slats in the township's green, a lid with a square mouth and
+the bag showing in it, four short feet, and a placard on two faces. One atlas and one material,
+so one draw a bin, as the dumpster's.
 """
 from __future__ import annotations
 
-from ..bpylayer import geometry, materials
+from ..core import litter_bin_forms as LB
+
+#: Painted steel outdoors: neither card nor gloss, as the dumpster's.
+ROUGHNESS = 0.62
 
 
 def build(plan, streams, collection):
     w = plan["dimensions"]["width"]
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
-    bevel, wear = plan["bevel"], plan["wear"]
-    rng = streams.stream("wear")
-    objs, cboxes = [], []
-
-    def part(bm, name):
-        objs.append(geometry.bm_to_object(
-            bm, name, collection, bevel=bevel, texel=1.2, rng=rng, wear=wear))
-
-    bm = geometry.new_bm()
-    geometry.add_box(bm, (0.0, 0.0, 0.0), (w, d, h))   # centre pivot, like every module
-    part(bm, "LitterBin_Body")
-    cboxes.append(((-w / 2, -d / 2, -h / 2), (w / 2, d / 2, h / 2)))
-
-    surface = materials.make_material(
-        f"M_LitterBin_{plan['material']}", plan["color"], plan["material"])
-    materials.assign(objs, surface)
-    return {"objects": objs, "collision_boxes": cboxes,
-            "attachments": {"ATT_top": (0.0, 0.0, h / 2)}}
+    got = LB.plan(w, d, h)
+    from ._card_atlas import build_art
+    tiles = {k: spec for k, (_a, spec) in got["tiles"].items()}
+    objs, _atlas = build_art(got["prims"], collection, dict(plan, _tiles=tiles), streams,
+                             "LitterBin", roughness=ROUGHNESS, smooth=True)
+    f = got["facts"]
+    print(f"[litter_bin] {w:.2f} x {d:.2f} x {h:.2f} {f['tris']} tris, 1 material")
+    return {"objects": objs, "collision_boxes": [got["collision"]], "attachments": {}}

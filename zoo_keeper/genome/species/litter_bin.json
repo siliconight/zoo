@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-09-12 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: A street litter bin: a 0.6 m square or round painted-steel body a metre tall, an open top or a domed lid with a side opening, standing at a corner where people wait to cross. Roadmap 153: kerb-line furniture, collision the full body."
+    "notes": "Minted 2026-09-12 by tools/new_species.py as a solid box at the authored dims; DRAWN in 1.92.0 (roadmap 219 note 5) as a 1990s municipal street bin: vertical steel slats in the township's green, a lid with a square mouth and the bag showing in it, four short feet, and the placard LITTER / KEEP DELCO CLASSY-ISH on two faces. REFERENCE: A street litter bin: a 0.6 m square or round painted-steel body a metre tall, an open top or a domed lid with a side opening, standing at a corner where people wait to cross. Roadmap 153: kerb-line furniture, collision the full body."
   },
   "dimensions": {
     "width": {
@@ -23,14 +23,13 @@
     }
   },
   "parts": [
-    "LitterBin_Body"
+    "LitterBin_Art"
   ],
   "params": {},
   "materials": {
     "default": "metal_painted",
     "options": [
-      "metal_painted",
-      "plastic"
+      "metal_painted"
     ]
   },
   "styles": {
@@ -101,5 +100,6 @@
     "garbage can",
     "litter_bin",
     "bin"
-  ]
+  ],
+  "notes": "1.92.0: ONE atlas and one material, so one draw, as the dumpster's (core/litter_bin_forms.py). The style's `color` is not read: the paint is the township's green."
 }
