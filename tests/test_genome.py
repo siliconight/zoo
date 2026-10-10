@@ -90,7 +90,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # roadmap 219 note 11)
                 "trash_bags",
                 # the backdrop beyond the plate's edge (1.95.0, roadmap 228)
-                "backdrop_rowhome", "water_tower"}
+                "backdrop_rowhome", "water_tower",
+                # its tree and its warehouse (1.96.0)
+                "backdrop_tree", "backdrop_warehouse"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

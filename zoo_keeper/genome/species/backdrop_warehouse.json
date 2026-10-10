@@ -1,0 +1,99 @@
+{
+  "species": "backdrop_warehouse",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.96.0, roadmap 228. The yards backdrop recipe's far bands: a long low box with three roof monitors, its front painted as siding with a roll-up door and a strip of high windows, one in three of them lit cool white by the module's stem. One material and one surface (core/backdrop_forms.py plans and paints it), so a band of warehouses is one MultiMesh and one draw a side. Every part stands exactly the slot's dims, the monitors INSET into the roof. Backdrop: no collision, never inside the playable extent."
+  },
+  "dimensions": {
+    "width": {
+      "min": 16.0,
+      "max": 48.0,
+      "default": 30.0
+    },
+    "depth": {
+      "min": 10.0,
+      "max": 24.0,
+      "default": 16.0
+    },
+    "height": {
+      "min": 5.0,
+      "max": 12.0,
+      "default": 8.0
+    }
+  },
+  "parts": [
+    "BackdropWarehouse_Face"
+  ],
+  "params": {},
+  "materials": {
+    "default": "concrete",
+    "options": [
+      "concrete"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "concrete",
+      "color": [
+        0.56,
+        0.56,
+        0.52
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "concrete",
+      "color": [
+        0.54,
+        0.53,
+        0.49
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "concrete",
+      "color": [
+        0.6,
+        0.6,
+        0.58
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "concrete",
+      "color": [
+        0.5,
+        0.49,
+        0.45
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "concrete",
+      "color": [
+        0.55,
+        0.55,
+        0.51
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 120
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "backdrop warehouse",
+    "backdrop_warehouse",
+    "distant warehouse",
+    "industrial backdrop"
+  ]
+}

@@ -469,7 +469,12 @@ DID_NOT_BUILD = {"boots"}
 #: the one that fix made: the stoop's foot, now inside the body over the
 #: inset, lay in the body's bottom plane (56 cm2, its width by the inset);
 #: it stands INSET above it.
-CENSUS_BUILDS = 378
+#: 1.96.0: `backdrop_tree` and `backdrop_warehouse`, six builds more, same
+#: tool, Blender 5.1.1: "6 builds, 0 with coincident pairs, 0 that did not
+#: build" (132 / 132 / 132 and 48 / 48 / 48 tris), first run: the tree's
+#: trunk ends inside its crown and the warehouse's monitors stand INSET into
+#: its roof from the start.
+CENSUS_BUILDS = 384
 
 
 def test_the_census_covers_every_species_there_is():

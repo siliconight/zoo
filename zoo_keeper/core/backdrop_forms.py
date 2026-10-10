@@ -279,3 +279,147 @@ def tower_tris_estimate(segments: int = TANK_SEGMENTS) -> int:
     """What the tower costs in triangles, for the genome's budget: boxes at 12,
     two cylinders at 4 a segment, a 10 x 6 sphere at about 100."""
     return 12 * (4 + 8) + 2 * 4 * segments + int(math.ceil(10 * 6 * 2 * 0.9))
+
+
+# --- the backdrop tree (1.96.0) ------------------------------------------------------------------
+#
+# The parkland and roadside recipes' belt: a trunk and a faceted crown, the
+# menu's mockup's shape, cheap enough that a belt of six hundred is a few
+# MultiMeshes. Not a street tree: those are grown branch by branch at two
+# thousand triangles for a kerb the player walks past; a backdrop tree stands
+# behind the fence, twenty to forty metres off.
+
+#: the trunk's share of the height, and its width
+TREE_STEM = 0.35
+TREE_TRUNK = 0.4
+#: the crown's facets: twelve around (a vertex on both axes, so the extents
+#: are the slot's, as `water_tank` learned at fourteen) and six up
+TREE_U_SEG = 12
+TREE_V_SEG = 6
+#: a dark green a backdrop crown reads as at night and by day, before the
+#: style's own leaf; the trunk's bark
+TREE_LEAF = (0.16, 0.26, 0.14)
+TREE_BARK = (0.24, 0.19, 0.15)
+
+
+def tree_parts(w: float, h: float) -> dict:
+    """The tree in the module frame: a trunk box from the foot to the crown's
+    centre and a crown ellipsoid whose top is the slot's top and whose width
+    and depth are the slot's width."""
+    z0 = -h / 2.0
+    stem = h * TREE_STEM
+    rz = (h - stem) / 2.0
+    return {
+        "trunk": ((0.0, 0.0, z0 + (stem + rz) / 2.0), (TREE_TRUNK, TREE_TRUNK, stem + rz)),
+        "crown": ((0.0, 0.0, z0 + stem + rz), (w / 2.0, w / 2.0, rz)),
+    }
+
+
+def tree_tris_estimate() -> int:
+    return 12 + TREE_U_SEG * TREE_V_SEG * 2
+
+
+# --- the backdrop warehouse (1.96.0) -------------------------------------------------------------
+#
+# The yards recipe's far bands: a long low box with roof monitors, its front
+# painted as siding with a roll-up door and a strip of high windows, a few of
+# them lit. One material, one surface, as the rowhome.
+
+MONITOR_H = 1.2
+MONITORS = 3
+DOOR_W_WH = 4.0
+DOOR_H_WH = 4.0
+WINDOW_STRIP_H = 0.8
+WINDOW_PITCH = 3.0
+WH_LIT_SHARE = 0.33
+COOL = (200, 215, 235)
+#: a lit industrial pane by day: the cool white's own tint, not the rowhome's warm one
+COOL_PANE = (168, 178, 192)
+WH_SIDING = (0.56, 0.56, 0.52)
+
+
+def warehouse_parts(w: float, d: float, h: float) -> list:
+    """The boxes the recipe adds, standing exactly (w, d, h): the body under
+    the monitors' height, and MONITORS roof monitors along the roof's centre,
+    each INSET into it so no foot lies in the roof's plane."""
+    z0 = -h / 2.0
+    bh = h - MONITOR_H
+    body_top = z0 + bh
+    out = [("body", (0.0, 0.0, z0 + bh / 2.0), (w, d, bh))]
+    mw = w / (2 * MONITORS + 1)
+    for i in range(MONITORS):
+        cx = -w / 2.0 + mw * (2 * i + 1.5)
+        out.append((f"monitor_{i}", (cx, 0.0, body_top - INSET + (MONITOR_H + INSET) / 2.0),
+                    (mw, d * 0.6, MONITOR_H + INSET)))
+    return out
+
+
+def warehouse_openings(bw: float, bh: float) -> list:
+    """The front's openings in facade metres from the bottom-left: a roll-up
+    door in the left third and a strip of high windows along the top."""
+    out = [("door", bw / 6.0 - DOOR_W_WH / 2.0, 0.0, bw / 6.0 + DOOR_W_WH / 2.0, DOOR_H_WH)]
+    top = bh - 0.6
+    x = bw / 3.0 + 1.0
+    while x + WINDOW_PITCH * 0.6 <= bw - 1.0:
+        out.append(("window", x, top - WINDOW_STRIP_H, x + WINDOW_PITCH * 0.6, top))
+        x += WINDOW_PITCH
+    return out
+
+
+def warehouse_lit(key: str, n: int) -> list:
+    """Which high windows are lit: about one in three, cool white, deterministic
+    for the module's stem."""
+    rng = random.Random("backdrop_warehouse|" + key)
+    return ["cool" if rng.random() < WH_LIT_SHARE else None for _ in range(n)]
+
+
+def paint_warehouse(bw: float, bh: float, siding, key: str):
+    """The albedo and emission images for a warehouse's front: siding with its
+    vertical seams, a dark roll-up door, the high windows (the lit ones cool
+    white in the emission). Returns (albedo, emission, lit)."""
+    from . import paint as P
+    base = tuple(int(round(c * 255)) for c in siding)
+    seam = tuple(max(0, int(c * 0.86)) for c in base)
+    dark = tuple(max(0, int(c * 0.55)) for c in base)
+    img = P.Img(IMG_W, IMG_H, base)
+    emi = P.Img(IMG_W, IMG_H, (0, 0, 0))
+    for x in range(0, FACADE_PX + STRIP_PX, 3):
+        img.rect((x, 0, x + 1, IMG_H), seam)
+    img.rect((FACADE_PX + STRIP_PX, 0, IMG_W, IMG_H), TAR)
+    img.rect((0, 0, FACADE_PX, 4), dark)
+    boxes = []
+    for kind, x0, z0, x1, z1 in warehouse_openings(bw, bh):
+        boxes.append((kind, int(round(x0 / bw * FACADE_PX)), int(round(IMG_H - z1 / bh * IMG_H)),
+                      int(round(x1 / bw * FACADE_PX)), int(round(IMG_H - z0 / bh * IMG_H))))
+    lit = warehouse_lit(key, sum(1 for b in boxes if b[0] == "window"))
+    k = 0
+    for kind, x0, y0, x1, y1 in boxes:
+        if kind == "door":
+            img.rect((x0, y0, x1, y1), dark)
+            for y in range(y0, y1, 3):
+                img.rect((x0, y, x1, y + 1), seam)
+            continue
+        state = lit[k]
+        k += 1
+        img.rect((x0, y0, x1, y1), COOL_PANE if state else UNLIT)
+        if state:
+            emi.rect((x0, y0, x1, y1), COOL)
+    return img, emi, lit
+
+
+def warehouse_uv_for(co, normal, w: float, d: float, h: float):
+    """Where a corner of the warehouse lands in its painted image: the body's
+    front (normal toward -Y at the body's front plane) takes the facade, the
+    roof and the monitors the tar strip, the sides and back the siding strip."""
+    x, y, z = co
+    nx, ny, nz = normal
+    z0 = -h / 2.0
+    bh = h - MONITOR_H
+    v = min(1.0, max(0.0, (z - z0) / bh))
+    if ny < -0.5 and abs(y + d / 2.0) < 1e-3:
+        return (min(1.0, max(0.0, (x + w / 2.0) / w)) * FACADE_PX / IMG_W, v)
+    if nz > 0.5 or z > z0 + bh + 1e-4:
+        u0 = (FACADE_PX + STRIP_PX) / IMG_W
+        return (u0 + ((x + y) % 1.0) * (STRIP_PX - 2) / IMG_W + 1.0 / IMG_W, v)
+    u0 = FACADE_PX / IMG_W
+    return (u0 + ((x + y) % 1.0) * (STRIP_PX - 2) / IMG_W + 1.0 / IMG_W, v)

@@ -131,7 +131,9 @@ def test_delco_1997_reaches_every_species():
     # 1.93.0: 97, + trash_bags, with its own `delco` row.
     # 1.95.0: 99, + backdrop_rowhome and water_tower, the backdrop beyond
     # the plate's edge (roadmap 228), each with its own `delco` row.
-    assert len(_genomes()) == 99 + len(_minted), len(_genomes())
+    # 1.96.0: 101, + backdrop_tree and backdrop_warehouse, each with its own
+    # `delco` row.
+    assert len(_genomes()) == 101 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

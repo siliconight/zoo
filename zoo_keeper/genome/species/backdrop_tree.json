@@ -1,0 +1,100 @@
+{
+  "species": "backdrop_tree",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.96.0, roadmap 228. The tree of the parkland and roadside backdrop recipes: a trunk and one faceted crown, the edge menu's mockup's shape (docs/findings/edge_menu/ at the factory root), standing behind the fence twenty to forty metres off where a belt of six hundred has to be a few MultiMeshes. Not a street tree: those are grown branch by branch at two thousand triangles for a kerb the player walks past. The crown's twelve facets put a vertex on both axes so the extents are the slot's; its top is the slot's top. Bark and foliage are its two materials. Backdrop: no collision."
+  },
+  "dimensions": {
+    "width": {
+      "min": 3.0,
+      "max": 12.0,
+      "default": 7.0
+    },
+    "depth": {
+      "min": 3.0,
+      "max": 12.0,
+      "default": 7.0
+    },
+    "height": {
+      "min": 5.0,
+      "max": 16.0,
+      "default": 10.0
+    }
+  },
+  "parts": [
+    "BackdropTree_Trunk",
+    "BackdropTree_Crown"
+  ],
+  "params": {},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "wood"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.24,
+        0.19,
+        0.15
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.24,
+        0.19,
+        0.15
+      ],
+      "wear": 0.35,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.26,
+        0.21,
+        0.17
+      ],
+      "wear": 0.25,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.22,
+        0.18,
+        0.14
+      ],
+      "wear": 0.4,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.24,
+        0.19,
+        0.15
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 180
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "backdrop tree",
+    "backdrop_tree",
+    "distant tree",
+    "tree belt"
+  ]
+}
