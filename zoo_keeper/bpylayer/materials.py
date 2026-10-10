@@ -386,10 +386,16 @@ def make_emissive_textured_material(name, pack, strength=2.2):
     bsdf.inputs["Roughness"].default_value = 0.35
     maps = pack["maps"]
 
+    # AS THE PACK ASKS (1.94.0, roadmap 223): Pixelcoat 0.62.0 letters a
+    # business smooth and asks for `linear`; every sign here was Closest,
+    # which stepped each anti-aliased edge into stairs. A pack that does not
+    # say keeps Closest, its pixel lettering's.
+    filt = "Linear" if pack.get("interpolation") == "linear" else "Closest"
+
     def tex_node(path, non_color=False):
         node = tree.nodes.new("ShaderNodeTexImage")
         node.image = _load_image(path, non_color)
-        node.interpolation = "Closest"
+        node.interpolation = filt
         node.extension = "EXTEND"          # a sign face never tiles
         return node
 

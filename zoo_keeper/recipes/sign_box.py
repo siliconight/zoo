@@ -87,7 +87,7 @@ def build(plan, streams, collection):
     # emissive binder keys on it, so the power cut kills branded and named
     # signs alike.
     if pack:
-        _planar_uv_fit(face, w, h)
+        _planar_uv_fit(face, w, h, pack.get("art_aspect"))
         lit = materials.make_emissive_textured_material(
             f"M_SignBox_{pack['id']}_Face", pack,
             style.get("emissive_strength", 2.2))
@@ -134,18 +134,19 @@ def build(plan, streams, collection):
     return {"objects": objs, "collision_boxes": [], "attachments": {}}
 
 
-def _planar_uv_fit(obj, width, height):
-    """Fit the face's UVs 0..1 across its panel: cube-projected UVs are
+def _planar_uv_fit(obj, width, height, art_aspect=None):
+    """Fit the face's UVs across its panel: cube-projected UVs are
     meters*texel (tiling — right for brick, wrong for a sign, which would
     repeat across any face wider than a meter). Local +X is outward, so the
     panel spans local Y (width) and Z (height); side slivers of the thin box
-    smear edge pixels, which reads as the cabinet lip."""
+    smear edge pixels, which reads as the cabinet lip. The art keeps its own
+    shape (1.94.0, `skins.fit_uv`): a 6:1 band's art on a door box of another
+    shape is centred, not stretched."""
+    from ..core.skins import fit_uv
     mesh = obj.data
     uv = mesh.uv_layers.active
     if uv is None:
         uv = mesh.uv_layers.new(name="UVMap")
     for loop in mesh.loops:
         co = mesh.vertices[loop.vertex_index].co
-        uv.data[loop.index].uv = (
-            (co.y + width / 2.0) / width if width else 0.5,
-            (co.z + height / 2.0) / height if height else 0.5)
+        uv.data[loop.index].uv = fit_uv(co.y, co.z, width, height, art_aspect)

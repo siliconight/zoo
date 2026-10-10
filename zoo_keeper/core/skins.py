@@ -184,6 +184,50 @@ def find_pack(skins_dir: str, material_kind: str,
     return None
 
 
+#: The eight bytes every PNG opens with.
+PNG_MAGIC = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+
+
+def png_aspect(path: str) -> float | None:
+    """A PNG's width over its height, read from its IHDR without decoding it; None for a file
+    that is not a PNG."""
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(24)
+    except OSError:
+        return None
+    if len(head) < 24 or head[:8] != PNG_MAGIC or head[12:16] != b"IHDR":
+        return None
+    w = int.from_bytes(head[16:20], "big")
+    h = int.from_bytes(head[20:24], "big")
+    return (w / h) if w and h else None
+
+
+#: Within this fraction of each other, a face and its art are one shape and the art fills it.
+SAME_SHAPE = 0.02
+
+
+def fit_uv(y: float, z: float, w: float, h: float, art_aspect: float | None) -> tuple:
+    """The UV for the point (y, z) of a sign face ``w`` wide and ``h`` tall, centred on the
+    origin, showing art of ``art_aspect`` (width over height) AT ITS OWN SHAPE (1.94.0).
+
+    A face of the art's shape takes it whole, 0..1 both ways, as every face always did. A face
+    taller than the art for its width shows the art across its full width and centred, and one
+    wider shows it at its full height and centred; past the art the UV runs outside 0..1, where
+    a sign's EXTEND sampling repeats the art's edge -- its panel, or its border. Stretching it
+    instead stood a 6:1 band's letters half again too tall on a 4:1 door box."""
+    u = (y + w / 2.0) / w if w else 0.5
+    v = (z + h / 2.0) / h if h else 0.5
+    if not art_aspect or not w or not h:
+        return (u, v)
+    face = w / h
+    if abs(face - art_aspect) <= SAME_SHAPE * art_aspect:
+        return (u, v)
+    if face < art_aspect:
+        return (u, 0.5 + z / (w / art_aspect))
+    return (0.5 + y / (h * art_aspect), v)
+
+
 def load_pack(pack_dir: str, wet: bool = False) -> dict | None:
     """Read one pack directory.
 
@@ -195,7 +239,7 @@ def load_pack(pack_dir: str, wet: bool = False) -> dict | None:
     files by stem; no albedo -> None.
 
     Returns ``{"id", "dir", "maps": {key: abs_path}, "meters_per_tile",
-    "tileable"}``.
+    "tileable", ..., "interpolation", "art_aspect"}`` for a manifest pack.
     """
     manifests = sorted(glob.glob(os.path.join(pack_dir, "*.pack.json")))
     if manifests:
@@ -227,7 +271,15 @@ def load_pack(pack_dir: str, wet: bool = False) -> dict | None:
                 # expected to supply the hue. Absent key -> False: every pack
                 # written before 0.13 keeps today's behaviour exactly.
                 "tintable": bool(raw.get("tintable")),
-                "transparency": raw.get("import_hints", {}).get("transparency")}
+                "transparency": raw.get("import_hints", {}).get("transparency"),
+                # HOW THE PACK ASKS TO BE SAMPLED, and THE SHAPE OF ITS ART (1.94.0,
+                # roadmap 223). Pixelcoat 0.62.0 letters a business's band smooth
+                # and asks for `linear`; this dropped the hint, so the door box
+                # that wears the pack sampled it Closest. And a 6:1 band's art on
+                # a door box of another shape stretched to it.
+                "interpolation": (raw.get("import_hints") or {}).get("interpolation",
+                                                                     "nearest"),
+                "art_aspect": png_aspect(maps["albedo"])}
 
     albedos = sorted(glob.glob(os.path.join(pack_dir, "*_albedo.png")))
     if not albedos:
