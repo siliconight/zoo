@@ -82,7 +82,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "step_van",
                 # the responders' cruiser (1.86.0, roadmap 212): a 1990s
                 # Crown Victoria lettered for the DELCO COUNTY POLICE
-                "cruiser"}
+                "cruiser",
+                # a den's window drawn shut (1.91.0, roadmap 219 note 2):
+                # two velvet panels under a pelmet, the room side of the glass
+                "window_drape"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

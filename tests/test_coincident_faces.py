@@ -449,7 +449,10 @@ DID_NOT_BUILD = {"boots"}
 #: species' own test checks the kit's faces at all 27 corners without
 #: Blender, and a sweep of 51 sizes -- every centimetre of height at three
 #: widths, both liveries -- found 0.
-CENSUS_BUILDS = 366
+#: 1.91.0: `window_drape`, three builds more, same tool, Blender 5.1.1:
+#: "3 builds, 0 with coincident pairs, 0 that did not build" (404 / 944
+#: / 1,844 tris), first run.
+CENSUS_BUILDS = 369
 
 
 def test_the_census_covers_every_species_there_is():

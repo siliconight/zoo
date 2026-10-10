@@ -1,0 +1,86 @@
+{
+  "species": "window_drape",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.91.0, roadmap 219 note 2. The walker, 2026-10-09: \"the windows in any 'den of sin' building should have curtains or drapes or blinds So people outside can't see in, and you keep the streetlight light out of the club\", with a red drape as the comp. Two heavy velvet panels drawn shut across a window under a box pelmet, hung on the ROOM side of the glass, the front (the room) at -Y: oxblood, the club chairs' velvet (core/club_forms.VELVETS), the pleats geometry -- 12 facets a 12 cm pitch, a 3 cm swing at the hem, 0.6 of it under the pelmet -- so every crest stays under the 50-degree smoothing angle (43.8). Both sides are cloth: the street sees the back through the glass. No tie-backs, no rod showing, nothing translucent. No collision: the window's own pane seals the opening. 944 tris at a 1.5 m window, 1,844 at the genome's widest corner. Geometry planned purely in core/window_drape_forms.py (core/drape_forms.py is dust_sheet's)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.6,
+      "max": 3.0,
+      "default": 1.5
+    },
+    "depth": {
+      "min": 0.12,
+      "max": 0.25,
+      "default": 0.16
+    },
+    "height": {
+      "min": 0.8,
+      "max": 3.2,
+      "default": 1.7
+    }
+  },
+  "parts": [
+    "Drape_Pelmet",
+    "Drape_Panel"
+  ],
+  "params": {},
+  "materials": {
+    "default": "velvet",
+    "options": [
+      "velvet"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "velvet",
+      "color": [
+        0.22,
+        0.025,
+        0.04
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "velvet",
+      "color": [
+        0.22,
+        0.025,
+        0.04
+      ],
+      "wear": 0.45,
+      "bevel": 0.0,
+      "ambient": 0.3
+    },
+    "1990s": {
+      "material": "velvet",
+      "color": [
+        0.22,
+        0.025,
+        0.04
+      ],
+      "wear": 0.4,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 2000
+  },
+  "collision": false,
+  "keywords": [
+    "window drape",
+    "window_drape",
+    "window drapes",
+    "velvet drapes",
+    "drawn curtains"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    },
+    "sockets": {}
+  }
+}
