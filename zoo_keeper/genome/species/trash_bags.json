@@ -1,0 +1,72 @@
+{
+  "species": "trash_bags",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.93.0, roadmap 219 note 11. The walker, 2026-10-09: 'need filled black garbage bags stacked near the garbage bins'. A heap of filled bags: a row of two to five on the ground across the slot's width and one or two thrown on top, each slumped -- pressed flat where it sits, spread at the belly, lumpy, gathered at the top into a neck with a knot and two ears of its own plastic. Mostly black; the odd white kitchen bag or green contractor bag. One object and one material (glossy plastic, each bag's colour in Wear), so one draw a heap. Fitted to the slot's box, collision the slot's box. Lot stands one beside each building's dumpster. Planned purely in core/trash_bag_forms.py. REFERENCE: Garbage bags put out by a commercial building's dumpster on a 1990s Delaware County street: 30- to 40-gallon polyethylene bags, black or white, knotted at the neck, piled against the bin and each other."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.8,
+      "max": 2.0,
+      "default": 1.4
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 1.2,
+      "default": 0.8
+    },
+    "height": {
+      "min": 0.5,
+      "max": 1.0,
+      "default": 0.75
+    }
+  },
+  "parts": [
+    "TrashBags_Heap"
+  ],
+  "params": {},
+  "materials": {
+    "default": "plastic",
+    "options": [
+      "plastic"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "plastic",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "plastic",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.0,
+      "bevel": 0.0,
+      "ambient": 0.2
+    }
+  },
+  "budgets": {
+    "tris_lod0": 2800
+  },
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "trash bags",
+    "trash_bags",
+    "garbage bags",
+    "bin bags",
+    "bags of trash"
+  ],
+  "module_variants": 4,
+  "notes": "1.93.0: each bag's colour is its own (core/trash_bag_forms.py COLOURS), carried in Wear; the style's `color` multiplies the whole heap, so it stays white. `variant` picks one of four heaps."
+}

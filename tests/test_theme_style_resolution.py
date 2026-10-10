@@ -128,7 +128,8 @@ def test_delco_1997_reaches_every_species():
     # 1.86.0: 95, + cruiser, its `delco` row a copy of its `default`: the
     # department's livery is in its image, not in a theme.
     # 1.91.0: 96, + window_drape, with its own `delco` row.
-    assert len(_genomes()) == 96 + len(_minted), len(_genomes())
+    # 1.93.0: 97, + trash_bags, with its own `delco` row.
+    assert len(_genomes()) == 97 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

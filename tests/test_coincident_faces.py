@@ -452,7 +452,12 @@ DID_NOT_BUILD = {"boots"}
 #: 1.91.0: `window_drape`, three builds more, same tool, Blender 5.1.1:
 #: "3 builds, 0 with coincident pairs, 0 that did not build" (404 / 944
 #: / 1,844 tris), first run.
-CENSUS_BUILDS = 369
+#: 1.93.0: `trash_bags`, three builds more, same tool, Blender 5.1.1:
+#: "3 builds, 0 with coincident pairs, 0 that did not build" (1,536 /
+#: 1,536 / 2,304 tris). The probe's first heap found one pair: a bag's
+#: bottom clamped onto one plane folded two triangles back to back, and
+#: `trash_bag_forms.shape` squeezes it now rather than clamping it.
+CENSUS_BUILDS = 372
 
 
 def test_the_census_covers_every_species_there_is():

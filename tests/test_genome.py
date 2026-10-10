@@ -85,7 +85,10 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "cruiser",
                 # a den's window drawn shut (1.91.0, roadmap 219 note 2):
                 # two velvet panels under a pelmet, the room side of the glass
-                "window_drape"}
+                "window_drape",
+                # a heap of filled garbage bags beside a dumpster (1.93.0,
+                # roadmap 219 note 11)
+                "trash_bags"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",
