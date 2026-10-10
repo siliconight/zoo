@@ -1,9 +1,9 @@
 {
   "species": "backdrop_tree",
-  "version": 1,
+  "version": 2,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Zoo 1.96.0, roadmap 228. The tree of the parkland and roadside backdrop recipes: a trunk and one faceted crown, the edge menu's mockup's shape (docs/findings/edge_menu/ at the factory root), standing behind the fence twenty to forty metres off where a belt of six hundred has to be a few MultiMeshes. Not a street tree: those are grown branch by branch at two thousand triangles for a kerb the player walks past. The crown's twelve facets put a vertex on both axes so the extents are the slot's; its top is the slot's top. Bark and foliage are its two materials. Backdrop: no collision."
+    "notes": "Zoo 1.96.0, roadmap 228; redrawn in 1.97.0 (step F) after the walker called 1.96.0's trunk box under one faceted sphere 'giant lolipops vs. trees' on cold run 9227's parkland. The tree of the parkland and roadside backdrop recipes: a trunk that flares at the foot and forks into three limbs under a crown of seven overlapping lobes at different heights, the form (a broad oak, a round maple, a tall elm) chosen by the slot's proportions, the sum fitted to the slot exactly. Stands behind the fence twenty to ninety metres off where a belt of six hundred has to be a few MultiMeshes. Not a street tree: those are grown branch by branch at two thousand triangles for a kerb the player walks past. Bark and foliage are its two materials. Backdrop: no collision."
   },
   "dimensions": {
     "width": {
@@ -86,7 +86,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 180
+    "tris_lod0": 800
   },
   "attachments": [],
   "collision": false,

@@ -303,9 +303,9 @@ TREE_BARK = (0.24, 0.19, 0.15)
 
 
 def tree_parts(w: float, h: float) -> dict:
-    """The tree in the module frame: a trunk box from the foot to the crown's
-    centre and a crown ellipsoid whose top is the slot's top and whose width
-    and depth are the slot's width."""
+    """1.96.0's tree in the module frame: a trunk box from the foot to the
+    crown's centre and one crown ellipsoid. Kept for the record and the
+    estimate; `tree_plan` (1.97.0) is what the recipe builds."""
     z0 = -h / 2.0
     stem = h * TREE_STEM
     rz = (h - stem) / 2.0
@@ -315,8 +315,124 @@ def tree_parts(w: float, h: float) -> dict:
     }
 
 
+# THE TREE WITH A SILHOUETTE (1.97.0, roadmap 228 step F). The walker, on cold
+# run 9227's parkland: "those trees in the distance are a little lazy imo
+# (giant lolipops vs. trees)". A sphere on a stick is not a tree's outline at
+# twenty to ninety metres; a trunk that flares at the foot and forks into
+# limbs, under a crown of overlapping lobes at different heights with daylight
+# under it, is. The FORM follows the slot's proportions, so Lot's dims choose
+# it: a squat slot (h / w under 1.25) grows a broad oak-like crown on wide
+# limbs, a tall one (over 1.6) a vase-shaped elm with steep limbs and a high
+# crown, the rest a round maple. Each form is a row of shares below; the
+# recipe builds the cones and lobes the plan lists and fits the sum to the
+# slot, so the extents are exact whatever the lobes do.
+#
+#: (form, fork height as a share of h, limb tilt from vertical in degrees,
+#:  limb length as a share of the height above the fork, lobe radius as a
+#:  share of w, a lobe's height as a share of its radius: squat on the oak
+#:  and the maple, tall on the elm, whose crown is a narrow mass)
+TREE_FORM_ROWS = {
+    "oak": (0.26, 52.0, 0.50, 0.32, 0.9),
+    "maple": (0.32, 38.0, 0.52, 0.30, 0.9),
+    "elm": (0.40, 22.0, 0.58, 0.26, 1.3),
+}
+#: the h / w bound under which a slot is an oak, and under which a maple; above, an elm
+TREE_FORM_BOUNDS = (("oak", 1.25), ("maple", 1.6))
+#: the trunk's radius at the foot and at the fork, and a limb's at its root
+#: and its tip, as shares of the width
+TREE_FOOT_R = 0.075
+TREE_FORK_R = 0.045
+TREE_LIMB_R = 0.032
+TREE_TIP_R = 0.012
+#: three limbs, a third of a turn apart, the first turned by the seed
+TREE_LIMBS = 3
+#: a lobe's facets around and up: seven by four is 56 triangles a lobe, and
+#: ten lobes overlapping into one mass read as a crown where four balls read
+#: as balloons (the first render)
+TREE_LOBE_U = 7
+TREE_LOBE_V = 4
+#: the lobes' irregularity, as a share of a lobe's radius (`displace_lobes`)
+TREE_LOBE_WOBBLE = 0.16
+
+
+def tree_form(w: float, h: float) -> str:
+    """The form a slot's proportions ask for."""
+    ratio = h / max(w, 1e-9)
+    for name, bound in TREE_FORM_BOUNDS:
+        if ratio < bound:
+            return name
+    return "elm"
+
+
+def tree_plan(w: float, h: float, seed: int = 0) -> dict:
+    """The tree in the module frame, as the cones and lobes the recipe builds:
+    `trunk` (foot centre, top centre, foot radius, top radius), `limbs`
+    (root, tip, root radius, tip radius) and `lobes` (centre, radii). The
+    foot stands at -h / 2 and the top lobe's top at h / 2; the lobes reach
+    about the slot's width and the recipe fits the sum to the slot exactly.
+    Pure, so a test can hold every proportion without Blender."""
+    import math
+    form = tree_form(w, h)
+    fork_share, tilt_deg, limb_share, lobe_share, lobe_tall = TREE_FORM_ROWS[form]
+    z0 = -h / 2.0
+    fork_z = z0 + h * fork_share
+    above = h - h * fork_share
+    r_lobe = w * lobe_share
+    rz = r_lobe * lobe_tall
+    trunk = ((0.0, 0.0, z0), (0.0, 0.0, fork_z), w * TREE_FOOT_R, w * TREE_FORK_R)
+    limbs, lobes = [], []
+    tilt = math.radians(tilt_deg)
+    length = above * limb_share
+    reach = math.sin(tilt) * length
+    top_z = fork_z + math.cos(tilt) * length
+    turn = (seed % 360) * math.pi / 180.0
+    for i in range(TREE_LIMBS):
+        az = turn + i * 2.0 * math.pi / TREE_LIMBS
+        tip = (reach * math.cos(az), reach * math.sin(az), top_z)
+        limbs.append(((0.0, 0.0, fork_z), tip, w * TREE_LIMB_R, w * TREE_TIP_R))
+        # the lobe sits over its limb's tip, pulled a tenth toward the axis, so
+        # the lobes overlap into one mass and the limb ends inside it
+        lobes.append(((tip[0] * 0.9, tip[1] * 0.9, top_z + 0.3 * r_lobe), (r_lobe, r_lobe, rz)))
+    # the top lobe on the axis, its top the slot's top
+    r_top = r_lobe * 0.9
+    lobes.append(((0.0, 0.0, h / 2.0 - r_top * lobe_tall), (r_top, r_top, r_top * lobe_tall)))
+    # fillers between the limb lobes at their height, and a lower ring under
+    # them, so the outline has no gaps and the limbs vanish into the crown; the
+    # lower ring's foot stays above the fork, which is the daylight under it
+    r_fill = r_lobe * 0.9
+    r_low = r_lobe * 0.8
+    for i in range(TREE_LIMBS):
+        az = turn + (i + 0.5) * 2.0 * math.pi / TREE_LIMBS
+        lobes.append(((reach * 0.7 * math.cos(az), reach * 0.7 * math.sin(az), top_z + 0.1 * r_lobe),
+                      (r_fill, r_fill, r_fill * lobe_tall)))
+        az2 = turn + i * 2.0 * math.pi / TREE_LIMBS
+        lobes.append(((reach * 0.55 * math.cos(az2), reach * 0.55 * math.sin(az2),
+                       fork_z + above * 0.36 + r_low * lobe_tall), (r_low, r_low, r_low * lobe_tall)))
+    return {"form": form, "trunk": trunk, "limbs": limbs, "lobes": lobes}
+
+
+def tree_plan_bounds(plan: dict) -> tuple:
+    """The plan's extents ((x0, y0, z0), (x1, y1, z1)) before the recipe fits
+    them to the slot: the lobes' and the trunk's."""
+    lo = [1e9, 1e9, 1e9]
+    hi = [-1e9, -1e9, -1e9]
+    for c, r in plan["lobes"]:
+        for k in range(3):
+            lo[k] = min(lo[k], c[k] - r[k])
+            hi[k] = max(hi[k], c[k] + r[k])
+    foot, top, rf, rt = plan["trunk"]
+    lo[2] = min(lo[2], foot[2])
+    for k in range(2):
+        lo[k] = min(lo[k], -rf)
+        hi[k] = max(hi[k], rf)
+    return tuple(lo), tuple(hi)
+
+
 def tree_tris_estimate() -> int:
-    return 12 + TREE_U_SEG * TREE_V_SEG * 2
+    """1.97.0: the trunk and three limb cones at eight segments, and
+    TREE_LIMBS * 3 + 1 lobes at seven by four."""
+    cones = 4 * (8 * 2 + 2 * 6)
+    return cones + (TREE_LIMBS * 3 + 1) * TREE_LOBE_U * TREE_LOBE_V * 2
 
 
 # --- the backdrop warehouse (1.96.0) -------------------------------------------------------------
