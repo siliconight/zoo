@@ -129,7 +129,9 @@ def test_delco_1997_reaches_every_species():
     # department's livery is in its image, not in a theme.
     # 1.91.0: 96, + window_drape, with its own `delco` row.
     # 1.93.0: 97, + trash_bags, with its own `delco` row.
-    assert len(_genomes()) == 97 + len(_minted), len(_genomes())
+    # 1.95.0: 99, + backdrop_rowhome and water_tower, the backdrop beyond
+    # the plate's edge (roadmap 228), each with its own `delco` row.
+    assert len(_genomes()) == 99 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

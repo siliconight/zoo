@@ -457,7 +457,19 @@ DID_NOT_BUILD = {"boots"}
 #: 1,536 / 2,304 tris). The probe's first heap found one pair: a bag's
 #: bottom clamped onto one plane folded two triangles back to back, and
 #: `trash_bag_forms.shape` squeezes it now rather than clamping it.
-CENSUS_BUILDS = 372
+#: 1.95.0: `backdrop_rowhome` and `water_tower`, six builds more, same
+#: tool, Blender 5.1.1: "6 builds, 0 with coincident pairs, 0 that did not
+#: build" (48 / 48 / 48 and 372 / 372 / 372 tris), third run. The first
+#: found 3 pairs a rowhome and 4 a tower: the cornice's and the stoop's
+#: backs on the body's front, the chimney's foot on the roof, the
+#: cornice's top in the roof's plane; the legs' tops on the tank's foot,
+#: the cap's foot on the tank's top, and a ring's two braces crossing in
+#: one plane. `backdrop_forms.INSET` pushes each part 4 mm into the one it
+#: stands on and the braces stand a thickness apart. The second run found
+#: the one that fix made: the stoop's foot, now inside the body over the
+#: inset, lay in the body's bottom plane (56 cm2, its width by the inset);
+#: it stands INSET above it.
+CENSUS_BUILDS = 378
 
 
 def test_the_census_covers_every_species_there_is():

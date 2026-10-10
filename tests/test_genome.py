@@ -88,7 +88,9 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 "window_drape",
                 # a heap of filled garbage bags beside a dumpster (1.93.0,
                 # roadmap 219 note 11)
-                "trash_bags"}
+                "trash_bags",
+                # the backdrop beyond the plate's edge (1.95.0, roadmap 228)
+                "backdrop_rowhome", "water_tower"}
 
 # architectural modules — Deli Counter art/zoo wall-slot dressing
 ARCH_SPECIES = {"wall", "wallEnd", "doorway", "window", "breach", "vault_door",

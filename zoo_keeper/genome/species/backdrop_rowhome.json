@@ -1,0 +1,100 @@
+{
+  "species": "backdrop_rowhome",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.95.0, roadmap 228 step C. A rowhome for the bands beyond the plate's edge: the walker picked E from the edge menu (docs/findings/edge_menu/ at the factory root), a chain-link fence with rows of rowhomes behind it and a water tower, under a sodium glow. The mockup's boxes read as buildings by their lit windows alone, so this one carries the roofline a Philadelphia rowhome shows from the street: a cornice, a flat roof with a chimney, a stoop at the door. ONE painted box, ONE material, ONE surface (core/backdrop_forms.py plans it; the facade, its windows and door are paint, the lit windows emission), so a band of houses is one MultiMesh and one draw a side. Which windows are lit is deterministic for the module's stem; a few widths and heights are a few patterns. Backdrop: no collision, never inside the playable extent."
+  },
+  "dimensions": {
+    "width": {
+      "min": 4.5,
+      "max": 8.0,
+      "default": 6.0
+    },
+    "depth": {
+      "min": 8.0,
+      "max": 16.0,
+      "default": 12.0
+    },
+    "height": {
+      "min": 6.0,
+      "max": 11.0,
+      "default": 9.5
+    }
+  },
+  "parts": [
+    "BackdropRowhome_Face"
+  ],
+  "params": {},
+  "materials": {
+    "default": "brick",
+    "options": [
+      "brick"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "brick",
+      "color": [
+        0.42,
+        0.22,
+        0.17
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "brick",
+      "color": [
+        0.4,
+        0.2,
+        0.16
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "brick",
+      "color": [
+        0.36,
+        0.3,
+        0.27
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "brick",
+      "color": [
+        0.32,
+        0.2,
+        0.17
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "brick",
+      "color": [
+        0.4,
+        0.23,
+        0.19
+      ],
+      "wear": 0.0,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 120
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "backdrop rowhome",
+    "backdrop_rowhome",
+    "rowhome backdrop",
+    "row house backdrop",
+    "distant rowhome"
+  ]
+}

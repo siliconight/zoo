@@ -32,6 +32,8 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # the 1990s street kit (roadmap 153): painted steel, every one
            "traffic_signal", "mailbox", "newspaper_box", "parking_meter",
            "payphone",
+           # the landmark beyond the plate's edge (1.95.0): painted steel
+           "water_tower",
            # the forecourt clutter (roadmap 153): a bollard is painted steel
            "bollard",
            # a furnace cabinet and a water heater's jacket are enamelled

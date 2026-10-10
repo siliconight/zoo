@@ -1,0 +1,101 @@
+{
+  "species": "water_tower",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Zoo 1.95.0, roadmap 228 step C. The landmark beyond the plate's edge: a municipal water tower, a tank on four braced legs with a cap and a red beacon, the one cue the edge menu's frames read as a landmark over the rowhome rows (docs/findings/edge_menu/ at the factory root). Proportions in core/backdrop_forms.py: legs to 0.70 of the height with two rings of braces, the tank to 0.90, the cap to 0.98, the beacon above. The beacon is an emissive _Lens so Lux's binder owns it. Backdrop: no collision, it stands past the fence where nobody reaches it. Not the rooftop water_tank, which is a prop a building wears."
+  },
+  "dimensions": {
+    "width": {
+      "min": 10.0,
+      "max": 18.0,
+      "default": 14.0
+    },
+    "depth": {
+      "min": 10.0,
+      "max": 18.0,
+      "default": 14.0
+    },
+    "height": {
+      "min": 28.0,
+      "max": 48.0,
+      "default": 40.0
+    }
+  },
+  "parts": [
+    "WaterTower_Legs",
+    "WaterTower_Tank",
+    "WaterTower_Beacon"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.2,
+        0.24,
+        0.24
+      ],
+      "wear": 0.4,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.2,
+        0.24,
+        0.24
+      ],
+      "wear": 0.45,
+      "bevel": 0.0
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.24,
+        0.26,
+        0.28
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.18,
+        0.2,
+        0.2
+      ],
+      "wear": 0.55,
+      "bevel": 0.0
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.22,
+        0.25,
+        0.24
+      ],
+      "wear": 0.4,
+      "bevel": 0.0
+    }
+  },
+  "budgets": {
+    "tris_lod0": 400
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "water tower",
+    "water_tower",
+    "municipal water tower",
+    "landmark water tower"
+  ]
+}
