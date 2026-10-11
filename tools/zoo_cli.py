@@ -587,6 +587,8 @@ def fixtures_run(args):
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True,
                  "seed": args.seed, "types": types,
+                 # 1.100.0: a fixture's parts merge inside it; this is the control
+                 "merge_parts": not args.no_merge_parts,
                  "sign_pack": (os.path.abspath(args.sign_pack)
                                if getattr(args, "sign_pack", None) else None)})
 

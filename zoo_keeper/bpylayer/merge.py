@@ -19,6 +19,19 @@ and leaves view together, so merging inside a module costs no culling
 granularity. Merging ACROSS modules would cost exactly that, and is
 deliberately not done here.
 
+A LAYER MERGES BY ITS UNITS (1.100.0). A building's fixtures ship as one
+GLB of many placements -- a layer, not a module -- and merging across them
+would cost exactly that culling. ``units`` names each part's placement and
+the merge groups by it: one placement's parts that share a material become
+one mesh, and no two placements ever share one. A placement's parts are
+moved together (`build.build_fixtures` sets one matrix on them all), so
+inside a unit the identity rule becomes ONE TRANSFORM: the parts merge in
+the frame they share and the merged object takes it. Measured on 1.99.0's
+fixture species at their default corner: a streetlight is a pole, a base
+and a head in one metal, three meshes where one carries them; a pendant a
+cord and a socket; a wall pack an arm and a body; a sign box its arms and
+its cabinet (`docs/findings/fixture_merge/` in the factory).
+
 WHAT IS NEVER MERGED, each because something downstream reads its name or
 its extent: a storefront-lit room's floor and ceiling tiles (1.24.0,
 `partnames.LIGHT_BUDGET_MARK` -- each tile is its own per-mesh light budget,
@@ -133,6 +146,13 @@ def _identity(obj):
             if abs(m[r][c] - (1.0 if r == c else 0.0)) > 1e-6:
                 return False
     return True
+
+
+def _same_matrix(a, b):
+    """Two transforms equal to 1e-6 in every element (1.100.0): the parts of
+    one placement, which `build.build_fixtures` moves with one matrix."""
+    return all(abs(a[r][c] - b[r][c]) <= 1e-6
+               for r in range(4) for c in range(4))
 
 
 def _slots_used(me):
@@ -295,24 +315,39 @@ def _tri_count(me):
     return len(me.loop_triangles)
 
 
-def pack_by_material(collection):
+def pack_by_material(collection, units=None):
     """Build the merged export set for ``collection``. Never mutates it.
 
     Returns a `Packed`, or None when there is nothing worth merging (every
     group of size one would just rename parts for no gain).
+
+    ``units`` (1.100.0): ``{object name: unit key}`` for a layer of many
+    placements, the keys sortable. Given, a part merges only with parts of
+    its own unit, a part with no unit is kept as itself, and a unit's parts
+    must share one transform, which the merged mesh takes. None is a
+    module: one unit, every part at identity.
     """
     keep = []      # exported as-is: colliders, LODs, empties, refusals
     pooled = []    # the objects whose faces are going into a merged mesh
     refused = []   # (name, why) -- reported, not swallowed
     #: (part name, material name or "", layer signature) -> [(object, slot)]
     by_desc = {}
+    #: unit key -> the transform every part of that unit carries (1.100.0)
+    frames = {}
     for obj in collection.objects:
         if obj.type != "MESH" or not partnames.is_mergeable(obj.name):
             keep.append(obj)
             continue
+        if units is not None and obj.name not in units:
+            keep.append(obj)
+            continue
         why = _unsupported(obj.data)
-        if why is None and not _identity(obj):
+        if why is None and units is None and not _identity(obj):
             why = "unapplied transform"
+        if why is None and units is not None:
+            frame = frames.setdefault(units[obj.name], obj.matrix_world.copy())
+            if not _same_matrix(obj.matrix_world, frame):
+                why = "transform differs from its unit's"
         slots = _slots_used(obj.data)
         if why is None and not slots:
             why = "no faces"
@@ -338,9 +373,21 @@ def pack_by_material(collection):
     # The module's own object names are spoken for. `wall_pack` names a part
     # `WallPack_Lens` and paints it `M_WallPack_Lens`, so the merged name
     # collides with the part it came from -- see `partnames.group_parts`.
-    groups = partnames.group_parts(
-        ((name, mat or None, sig) for (name, mat, sig) in by_desc),
-        taken={o.name for o in collection.objects})
+    if units is None:
+        groups = partnames.group_parts(
+            ((name, mat or None, sig) for (name, mat, sig) in by_desc),
+            taken={o.name for o in collection.objects})
+    else:
+        # One plan a unit, in unit order, each naming around every name
+        # taken before it, so the same layer builds the same names.
+        groups = []
+        used = {o.name for o in collection.objects}
+        for unit in sorted({units[name] for (name, _m, _s) in by_desc}):
+            planned = partnames.group_parts(
+                ((name, mat or None, sig) for (name, mat, sig) in by_desc
+                 if units[name] == unit), taken=used)
+            used.update(merged for merged, _k, _s in planned)
+            groups.extend(planned)
     if not any(len(srcs) > 1 for _n, _k, srcs in groups):
         return None       # every group is a single part; renaming buys nothing
 
@@ -388,6 +435,8 @@ def pack_by_material(collection):
             src_obj, src_slot = sources[0]
             me.materials.append(src_obj.data.materials[src_slot])
         obj = bpy.data.objects.new(name, me)
+        if units is not None:
+            obj.matrix_world = frames[units[sources[0][0].name]]
         # Blender makes a name unique by appending `.001`, which would land
         # in the glTF node name and make the export non-reproducible. Catch
         # it here rather than discover it in a diff.
@@ -431,5 +480,6 @@ def pack_by_material(collection):
         "kept": len(keep),
         "refused": refused,
         "triangles": before_tris,
+        "units": len(frames) if units is not None else None,
     }
     return packed

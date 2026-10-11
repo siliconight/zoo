@@ -20,7 +20,7 @@ def _select_only(objs):
 
 
 def export_glb(filepath, collection, merge_parts=True, share_textures=True,
-               weighted_normals=True):
+               weighted_normals=True, units=None):
     """Write ``collection`` to a GLB.
 
     ``merge_parts`` packs the module's visual parts into one mesh per
@@ -49,6 +49,10 @@ def export_glb(filepath, collection, merge_parts=True, share_textures=True,
     --no-weighted-normals` is the one-build control. Ingest passes False,
     because an imported mesh carries the normals its author made.
 
+    ``units`` (1.100.0) goes to the merge: a layer of many placements names
+    each part's placement, and a part merges only inside its own
+    (`merge.pack_by_material`). None merges the collection as one module.
+
     The merged objects are torn down before this returns, so the scene
     `save_blend` writes is the one the recipe built either way, its parts'
     normals weighted when they were.
@@ -58,7 +62,8 @@ def export_glb(filepath, collection, merge_parts=True, share_textures=True,
             if (obj.type == "MESH"
                     and not obj.name.endswith(partnames.COL_SUFFIXES)):
                 geometry.weight_normals(obj.data)
-    packed = merge.pack_by_material(collection) if merge_parts else None
+    packed = (merge.pack_by_material(collection, units=units)
+              if merge_parts else None)
     objs = packed.objects if packed is not None else list(collection.objects)
     turned = pivots_to_engine(objs)
     try:

@@ -731,6 +731,9 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
 
     built = 0
     markerless = 0
+    #: each visual part's placement (1.100.0), so the export merges a
+    #: fixture's same-material parts inside it and never across two
+    units = {}
     for i, p in enumerate(plan["placements"]):
         species = p["species"]
         genome = genome_mod.load_species(species)
@@ -789,6 +792,9 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
                 species.title().replace("_", "") + str(i),
                 result["collision_boxes"], coll)
         new_objs = [o for o in coll.objects if o not in before]
+        for obj in new_objs:
+            if obj.type == "MESH":
+                units[obj.name] = i
 
         # Recipes build centered. Mount 'above': bottom (-h/2) at the anchor
         # -> lift +h/2. Mount 'below': top (+h/2) at the anchor -> drop -h/2.
@@ -860,8 +866,15 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
     # A whole scope's fixtures, each placed at its own anchor, and each
     # paired with a LuxEmit_* marker empty that must stay beside its own
     # hardware. A layer, not a module. See the note in `build_dressing`.
-    export.export_glb(base + ".glb", coll, merge_parts=False,
-                      weighted_normals=opts["weighted_normals"])
+    # 1.100.0: MERGED BY PLACEMENT. A fixture's parts that share a material
+    # become one mesh and no two fixtures share one, so each stays its own
+    # culling unit and sheds the submissions its extra parts cost (roadmap
+    # 233); a streetlight's pole, base and head were three. `merge_parts`
+    # False is the one-build control, as it is for a module.
+    merge_stats = export.export_glb(base + ".glb", coll,
+                                    merge_parts=opts["merge_parts"],
+                                    weighted_normals=opts["weighted_normals"],
+                                    units=units)
     if opts.get("save_blend"):
         files["blend"] = f"{scope}_fixtures.blend"
         export.save_blend(base + ".blend")
@@ -878,6 +891,8 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
              "marker_prefix": fixtures_mod.MARKER_PREFIX,
              "skipped": plan["skipped"], "placements": plan["placements"],
              "files": files}
+    if merge_stats is not None:
+        index["merge"] = merge_stats
     index_file = base + ".built.json"
     with open(index_file, "w", encoding="utf-8") as fh:
         json.dump(index, fh, indent=2, sort_keys=True)
