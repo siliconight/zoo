@@ -550,12 +550,18 @@ def roofprops_run(args):
     res = build.build_roof_props(
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True,
-                 "seed": args.seed, "density": args.density})
+                 "seed": args.seed, "density": args.density,
+                 # the merge's one-build control, as on every other route
+                 "merge_parts": not args.no_merge_parts})
 
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(res["counts"].items()))
     print(f"[zoo] roof props built for '{res['building_id']}' "
           f"(theme={res['theme']}) -> {res['out_dir']}")
     print(f"[zoo]   {res['props_built']} props ({summary})")
+    if res.get("merge"):
+        m = res["merge"]
+        print(f"[zoo]   merged: {m.get('parts_in')} parts -> "
+              f"{m.get('meshes_out')} meshes, {m.get('triangles')} triangles")
     print(f"[zoo]   glb: {res['files']['glb']}   index: {res['index_file']}")
     return 0
 

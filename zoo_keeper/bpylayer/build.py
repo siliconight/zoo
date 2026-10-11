@@ -650,7 +650,18 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
             (p["pos"][0], p["pos"][1], p["pos"][2] + half_h)))
         m = trans @ rot
         for obj in new_objs:
-            obj.matrix_world = m @ obj.matrix_world
+            # BUILT IN PLACE (1.101.0), as the dressing's covers are since
+            # 1.68.0: the placement goes into the vertices and the object
+            # stays at identity, so the merge below can take it -- it reads
+            # raw coordinates and leaves an object carrying a transform as
+            # it is (`merge._identity`). A collider proxy moves the same way.
+            if obj.type != "MESH":
+                obj.matrix_world = m @ obj.matrix_world
+                continue
+            if obj.data.users != 1:
+                obj.data = obj.data.copy()
+            obj.data.transform(m @ obj.matrix_world)
+            obj.matrix_world = mathutils.Matrix.Identity(4)
         built += 1
         # No LuxEmit marker here, deliberately. A v0.30 copy of
         # build_fixtures' marker block sat in this loop and could never
@@ -666,10 +677,22 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, f"{building_id}_roofprops")
     files = {"glb": f"{building_id}_roofprops.glb"}
-    # A whole roof's props, each placed at its own anchor: a layer, not a
-    # module. See the note in `build_dressing`.
-    export.export_glb(base + ".glb", coll, merge_parts=False,
-                      weighted_normals=opts["weighted_normals"])
+    # MERGED ACROSS THE ROOF (1.101.0, roadmap 181). Until this version the
+    # props were exported unmerged as "a layer, not a module", every part
+    # its own draw: 8 to 18 props a roof over the library, each of three to
+    # five parts. The unit a merge keeps is the chunk that enters and leaves
+    # view as one thing -- the dressing's is a side, a fixture's its
+    # placement -- and a roof's props stand within one footprint and are
+    # seen together or not at all, so the roof is the unit. With the
+    # placements baked into the vertices above, `pack_by_material`'s module
+    # rule applies (every part at identity), and it groups by part FAMILY
+    # and material: every `Hvac_*` part on the roof in `M_Hvac_<material>`
+    # becomes one mesh, every `VentStack_*` another -- about one mesh a
+    # species a roof, since each recipe paints one material. `merge_parts`
+    # False is the one-build control, as everywhere.
+    merge_stats = export.export_glb(base + ".glb", coll,
+                                    merge_parts=opts["merge_parts"],
+                                    weighted_normals=opts["weighted_normals"])
     if opts.get("save_blend"):
         files["blend"] = f"{building_id}_roofprops.blend"
         export.save_blend(base + ".blend")
@@ -677,14 +700,18 @@ def build_roof_props(slots_manifest: dict, out_dir: str, theme: str = "delco",
     index = {"tool_version": TOOL_VERSION, "building_id": building_id,
              "theme": theme, "seed": seed, "space": plan["space"],
              "counts": plan["counts"], "props_built": built,
-             "placements": plan["placements"], "files": files}
+             "placements": plan["placements"], "files": files,
+             # the rects each roof kept its props off (1.101.0)
+             "forbidden": plan.get("forbidden", {})}
+    if merge_stats is not None:
+        index["merge"] = merge_stats
     index_file = base + ".built.json"
     with open(index_file, "w", encoding="utf-8") as fh:
         json.dump(index, fh, indent=2, sort_keys=True)
         fh.write("\n")
     return {"building_id": building_id, "theme": theme, "counts": plan["counts"],
             "props_built": built, "out_dir": out_dir, "files": files,
-            "index_file": index_file}
+            "index_file": index_file, "merge": merge_stats}
 
 
 def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
