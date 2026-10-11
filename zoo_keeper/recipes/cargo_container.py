@@ -117,6 +117,9 @@ TOP_RAIL_TOP = 0.008
 HEADER_TOP = 0.012
 FRONT_TOP_RAIL_TOP = 0.016
 ROOF_CREST = 0.030            # ROOF_PROFILE depth 0.020 -> valley at 0.050
+#: Every roof face's shade (1.99.0): the walls' valley, so the roof is the
+#: darkest face of the box from above and adds no surface to it.
+ROOF_SHADE = cf.FORM_SHADE["valley"]
 TOP_RAIL_H = 0.100
 HEADER_H = 0.178              # header bottom 0.190 below the top
 FRONT_TOP_RAIL_H = 0.120
@@ -174,7 +177,10 @@ class _Wall:
     def at(self, u, v, lift=0.0):
         return self.base(u, v) + self.n * (cf.profile_at(self.pts, u) + lift)
 
-    def sheet(self, bm, v0, v1):
+    def sheet(self, bm, v0, v1, shade=None):
+        """The sheet between ``v0`` and ``v1``, each face on its profile
+        segment's FORM_SHADE -- or on ``shade`` for every face when given
+        (1.99.0: the roof, see ROOF_SHADE)."""
         rows = [[bm.verts.new(self.base(u, v) + self.n * off)
                  for (u, off) in self.pts] for v in (v0, v1)]
         form = _form_layer(bm)
@@ -182,7 +188,8 @@ class _Wall:
             f = _face(bm, [rows[0][k], rows[0][k + 1], rows[1][k + 1], rows[1][k]],
                       self.n)
             um = (self.pts[k][0] + self.pts[k + 1][0]) / 2.0
-            f[form] = cf.FORM_SHADE[cf.segment_kind(self.pts, um)]
+            f[form] = (shade if shade is not None
+                       else cf.FORM_SHADE[cf.segment_kind(self.pts, um)])
 
     def paint(self, bm, poly, lift=DETAIL_PROUD):
         """A flat ``(u, v)`` polygon painted onto the corrugation."""
@@ -410,9 +417,17 @@ def build(plan, streams, collection):
     roof_pts = cf.corrugation(-D2 + REAR_POST_D + 0.06 - SHEET_BURY,
                               D2 - FRONT_RAIL_D + SHEET_BURY, cf.ROOF_PROFILE)
     zc = Z1 - ROOF_CREST
+    # THE ROOF IS THE DIRTY FACE (1.99.0). Cold run 9226 saw a container's top
+    # from the elevated west camera as a bright flat slab, (191, 191, 202) at
+    # 180 x 40 px, floating over a storefront: the roof took the walls' paint
+    # at full strength on its crests, and it is the one face square to the
+    # sky. A box that has sat in a yard wears its weather and its grime on
+    # top, so every roof face takes ROOF_SHADE -- the walls' own VALLEY shade,
+    # so it joins a surface the box already has and costs no draw; the ribs
+    # stop reading from above, where nobody stands close enough to see them.
     _Wall(lambda u, v: _v(v, u, zc), (0, 0, 1), roof_pts).sheet(
         B["walls"], -(W2 - TOP_RAIL_SIDE - TOP_RAIL_T + SHEET_BURY),
-        W2 - TOP_RAIL_SIDE - TOP_RAIL_T + SHEET_BURY)
+        W2 - TOP_RAIL_SIDE - TOP_RAIL_T + SHEET_BURY, shade=ROOF_SHADE)
 
     # --- the doors -------------------------------------------------------------
     lz0, lz1 = Z0 + LEAF_BOTTOM, Z1 - LEAF_TOP

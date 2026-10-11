@@ -339,3 +339,21 @@ def test_bpy_no_two_faces_share_a_plane(tmp_path, label, w, d, h):
         objs = probe["_visual_meshes"](bpy, bpy.context.scene)
         rows, _n = probe["probe"](bpy, mathutils, objs, 0.002, 1e-6, 1e-3)
         assert [r for r in rows if r["facing"] == "SAME"] == [], (label, style, rows[:4])
+
+
+def test_the_roof_takes_the_valley_shade_and_adds_no_surface():
+    """1.99.0, cold run 9226's pale slab from above: every roof face takes the
+    walls' own valley shade -- the darkest the box has -- so the roof reads as
+    the grimy top it is and joins a surface the box already carries."""
+    src = open(_RECIPE, encoding="utf-8").read()
+    tree = ast.parse(src)
+    consts = {t.id: n.value for n in tree.body if isinstance(n, ast.Assign)
+              for t in n.targets if isinstance(t, ast.Name)}
+    assert "ROOF_SHADE" in consts
+    assert ast.unparse(consts["ROOF_SHADE"]) == "cf.FORM_SHADE['valley']"
+    assert cf.FORM_SHADE["valley"] == min(cf.FORM_SHADE.values())
+    roof = src[src.index("roof_pts).sheet("):]
+    roof = roof[:roof.index(")\n") + 2]
+    assert "shade=ROOF_SHADE" in roof, roof
+    # the side walls and the end keep their per-rib shades
+    assert src.count(".sheet(") == src.count("shade=ROOF_SHADE") + 3, src.count(".sheet(")
