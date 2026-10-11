@@ -29,11 +29,22 @@ parapet, and a 1.6 m tank yawed 149 degrees stood 9 cm past the margin. A
 WATER TANK NEEDS HEIGHT: a gravity tank serves floors below it and a
 one-storey roof is on street pressure, so one is planned only on a roof
 ``TANK_MIN_ROOF_M`` or more above the plan.
+
+WHAT A ROOF CARRIES FOLLOWS THE BUILDING (1.102.0). The walker, on cold run
+9245's roofs -- every one carrying the same 17 props, because the area
+formula saturated every cap on any roof over about 300 m2 -- chose "by
+building, fewer": a deli or a shop gets a unit or two, a vent and a fan,
+warehouses and markets get more and the skylights, seeded so no two roofs
+match. `ROOF_PROFILES` reads the building's use off its id's words (first
+row whose word is a TOKEN of the id wins -- `barber` is not `bar`), and
+`PROFILE_COUNTS` draws each species' count per roof inside its range. The
+water tank keeps its formula and its height rule, which the walker kept.
 """
 
 from __future__ import annotations
 
 import math
+import re
 
 from . import genome as genome_mod
 from . import seeding
@@ -53,6 +64,53 @@ _RULES = (
 )
 _CLEARANCE = 0.35     # metres between prop AABBs
 _ATTEMPTS = 24        # rejection-sampling tries per prop
+
+#: A building's use, read off its id's words (1.102.0): the first row with a
+#: word that is a TOKEN of the id wins, so the specific stands before the
+#: general and `barber` never reads as `bar`; a name no row claims is a shop.
+#: Checked against every id in Deli Counter's library on 2026-10-11: 12
+#: kitchens, 35 shops, 28 offices, 43 big boxes, 21 homes, 6 with nothing.
+ROOF_PROFILES = (
+    # a parking deck is parked on, and a construction site is not finished
+    (("parking", "construction"), "none"),
+    (("warehouse", "market", "supermarket", "depot", "freight", "factory",
+      "foundry", "storage", "terminal", "yard", "brewery", "arena",
+      "stadium", "airport", "rail", "hall"), "big_box"),
+    (("deli", "diner", "pizza", "restaurant", "tavern", "bar", "club",
+      "cafe"), "kitchen"),
+    (("office", "bank", "credit", "courthouse", "clinic", "hospital",
+      "museum", "police", "funeral", "casino", "hotel", "school"), "office"),
+    (("rowhouse", "rowhome", "twin", "apartment", "walkup", "home",
+      "house", "mansion"), "home"),
+)
+DEFAULT_PROFILE = "shop"
+
+#: Per profile, each species' count is drawn per roof in [lo, hi] -- seeded
+#: by the building, so no two roofs match -- then placed as before; a species
+#: the roof is too small for is still skipped. A kitchen's fan is its hood's.
+#: About a third of 1.101.0's 17 on a small commercial roof.
+PROFILE_COUNTS = {
+    "kitchen": {"hvac_unit": (1, 2), "vent_stack": (1, 1),
+                "exhaust_fan": (1, 2), "satellite_dish": (0, 1)},
+    "shop":    {"hvac_unit": (1, 2), "vent_stack": (1, 1),
+                "exhaust_fan": (0, 1), "satellite_dish": (0, 1)},
+    "office":  {"hvac_unit": (2, 3), "vent_stack": (1, 2),
+                "exhaust_fan": (0, 1), "satellite_dish": (0, 1)},
+    "big_box": {"hvac_unit": (2, 4), "vent_stack": (2, 4),
+                "exhaust_fan": (1, 2), "skylight": (2, 4),
+                "satellite_dish": (0, 1)},
+    "home":    {"vent_stack": (1, 2), "satellite_dish": (0, 1)},
+    "none":    {},
+}
+
+
+def profile_of(building_id) -> str:
+    """The roof profile of a building, by its id's words (`ROOF_PROFILES`)."""
+    tokens = {t for t in re.split(r"[^a-z]+", str(building_id or "").lower()) if t}
+    for words, profile in ROOF_PROFILES:
+        if tokens & set(words):
+            return profile
+    return DEFAULT_PROFILE
 
 
 #: A hole's edge is where a body climbs out; this is the stride it takes
@@ -131,10 +189,13 @@ def scatter(manifest: dict, seed: int, *, density: float = 1.0,
     (spec space), ``rot_z`` degrees, ``footprint`` [w, d], ``local`` [lx, ly]
     and ``extents`` [ex, ey] -- the box it occupies in the slot's own centred
     coords (1.101.0) -- and ``seed_offset``. ``forbidden`` counts the rects
-    each roof kept its props off.
+    each roof kept its props off; ``profile`` is the building's
+    (`profile_of`, 1.102.0), which decides each species' count.
     """
     building = manifest.get("building_id", "building")
     allowed = set(species) if species else {r[0] for r in _RULES}
+    profile = profile_of(building)
+    ranges = PROFILE_COUNTS[profile]
     placements: list[dict] = []
     counts: dict[str, int] = {}
     forbidden_by_slot: dict[str, int] = {}
@@ -156,7 +217,18 @@ def scatter(manifest: dict, seed: int, *, density: float = 1.0,
                 continue
             if name == "water_tank" and tz_top < TANK_MIN_ROOF_M:
                 continue   # a low roof is on street pressure
-            want = min(cap, int(round((base + area * per_m2) * density)))
+            if profile == "none":
+                continue   # a deck or a site: nothing stands on it
+            if name == "water_tank":
+                # the tank keeps its formula and its height rule above
+                want = min(cap, int(round((base + area * per_m2) * density)))
+            else:
+                lo, hi = ranges.get(name, (0, 0))
+                if hi < 1:
+                    continue
+                count_rng = seeding.RNGStreams(seeding.root_key(
+                    building, name, seed, slot["slot_id"])).stream("count")
+                want = int(round(count_rng.randint(lo, hi) * density))
             fw, fd, fh = _footprint(name)
             if want < 1:
                 continue
@@ -219,4 +291,6 @@ def scatter(manifest: dict, seed: int, *, density: float = 1.0,
             "space": manifest.get("space", ""),
             "placements": placements, "counts": dict(sorted(counts.items())),
             # how many rects each roof kept its props off (1.101.0)
-            "forbidden": forbidden_by_slot}
+            "forbidden": forbidden_by_slot,
+            # what the building is, which decided the counts (1.102.0)
+            "profile": profile}
