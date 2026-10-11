@@ -15,6 +15,8 @@ from ..bpylayer import geometry, materials
 
 FOOT_H = 0.05
 BAND_H = 0.12
+#: The domed cap's rise, as a share of the foot's radius.
+CAP_RISE = 0.42
 
 
 def build(plan, streams, collection):
@@ -38,17 +40,23 @@ def build(plan, streams, collection):
     bm = geometry.new_bm()
     geometry.add_cylinder(bm, (0.0, 0.0, z0 + FOOT_H / 2.0), r, FOOT_H,
                           segments=10)
-    pipe_h = h - FOOT_H
+    # THE CAP STANDS INSIDE THE HEIGHT (1.99.1). Until then the cap hung inside
+    # the pipe -- `add_hemisphere` kept its lower half -- and the bollard was
+    # flat-topped. The pipe stops short by the cap's rise, so the crown lands
+    # at h/2 and `fit_to` has nothing to scale; the bands keep their heights.
+    run = h - FOOT_H
+    cap_h = r * CAP_RISE
+    pipe_h = run - cap_h
     geometry.add_cylinder(bm, (0.0, 0.0, z0 + FOOT_H + pipe_h / 2.0),
                           r * 0.72, pipe_h, segments=10)
-    geometry.add_hemisphere(bm, (0.0, 0.0, h / 2.0), r * 0.72, r * 0.72,
-                            r * 0.42, segments=10)
+    geometry.add_hemisphere(bm, (0.0, 0.0, h / 2.0 - cap_h), r * 0.72,
+                            r * 0.72, cap_h, segments=10)
     part(bm, "Bollard_Pipe", pipe)
 
     # the bands: rings a hair proud, so the stripe survives no skin at all
     bm = geometry.new_bm()
     for frac in (0.30, 0.62):
-        geometry.add_cylinder(bm, (0.0, 0.0, z0 + FOOT_H + pipe_h * frac),
+        geometry.add_cylinder(bm, (0.0, 0.0, z0 + FOOT_H + run * frac),
                               r * 0.76, BAND_H, segments=10)
     part(bm, "Bollard_Bands", bands)
 

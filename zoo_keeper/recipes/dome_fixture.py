@@ -30,10 +30,12 @@ mirrored it downward; the helper keeps the LOWER half (measured in Blender
 the mirror turned the bowl UP into the ceiling, where cold run 9239's frames
 showed a dark canopy and a finial hanging alone. Each vertex is laid at
 `rim - |z|` now, so the bowl hangs below the rim whichever half the helper
-keeps. Its rim rises `BOWL_BURY` into the canopy and is closed there, so the
-glass is a closed shell -- the finisher recalculates every part's normals,
-and an open bowl leaves it no inside to face away from -- and the cap lies
-4 mm from the canopy's underside, clear of the coplanar probe's 2 mm.
+keeps; 1.99.1 made the helper keep the upper half it names, and the bowl
+builds the same either way. Its rim rises `BOWL_BURY` into the canopy and
+is closed there, so the glass is a closed shell -- the finisher
+recalculates every part's normals, and an open bowl leaves it no inside to
+face away from -- and the cap lies 4 mm from the canopy's underside, clear
+of the coplanar probe's 2 mm.
 
 The glass carries the `M_*_Lens` name Lux's emissive binder keys on, as the
 pendant's bulb and the troffer's diffuser do. Lux hangs the lamp under the

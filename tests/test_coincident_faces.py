@@ -298,7 +298,10 @@ RESIDUE = {
     "pallet_stack": (8, 0, 8, 0, 25.0, 14017.1),
     "condiment_bottle": (7, 0, 7, 0, 13.21, 10.0),
     "newspaper_box": (7, 1, 6, 0, 10.77, 958.7),
-    "soda_cup": (7, 3, 4, 0, 0.21, 84.0),
+    # "soda_cup" covered 0.21 mm until 1.99.1, and the cover was its lid dome:
+    # hanging inside the cup, the bowl passed 0.21 mm from the body and lip's
+    # pair. On its lid since, the nearest surface is the lid's underside.
+    "soda_cup": (7, 3, 4, 0, 2.0, 84.0),
     # "atm": (6, 0, 6, 0, 30.0, 2726.5) until 1.35.0 redrew it; its census
     # since: 3 builds, 0 pairs.
     "breach": (6, 0, 6, 0, 80.0, 572.2),
@@ -313,8 +316,12 @@ RESIDUE = {
     "wall_pack": (6, 0, 6, 0, 20.0, 918.0),
     "bollard": (5, 0, 5, 0, 50.0, 395.5),
     "streetlight": (4, 0, 4, 0, 60.0, 87.7),
+    # "exhaust_fan": (3, 0, 3, 0, 50.92, 3567.1) until 1.99.1 stood its hood on
+    # its drum. The census counts the one buried coincidence it had at the
+    # default corner -- the drum's foot on the curb, 1725.46 cm2 -- as two
+    # pairs since, 1150.31 and 575.15 cm2: the same parts and the same area.
+    "exhaust_fan": (4, 0, 4, 0, 120.0, 3567.1),
     "drop_safe": (3, 0, 3, 0, 30.0, 11298.4),
-    "exhaust_fan": (3, 0, 3, 0, 50.92, 3567.1),
     "fluorescent_fixture": (3, 0, 3, 0, 28.0, 10828.8),
     "pendant_fixture": (3, 0, 3, 0, 35.62, 2.2),
     "skylight": (3, 0, 3, 0, 75.0, 23449.6),
@@ -508,12 +515,16 @@ def test_the_residue_is_the_count_the_entry_claims():
     them (stop_sign's 9, mailbox's 9 of 15) and left 3009. 1.35.0 redrew the
     ATM, whose 6 (none exposed) were in the table: 3003. 1.37.0 painted the
     sign over a door, and `sign_box`'s 6 went with its blank face: 2997.
-    1.88.0 redrew the payphone, and its 2 (both exposed) went: 2995."""
+    1.88.0 redrew the payphone, and its 2 (both exposed) went: 2995. 1.99.1
+    stood the exhaust fan's hood on its drum, and the census counts the
+    fan's one buried pair at the default corner as two: 2996, and no
+    coincidence more."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 2995, total
+    assert total == 2996, total
     exposed = sum(v[3] for v in RESIDUE.values())
     assert exposed == 971, exposed
-    assert total + 18 + 6 + 6 + 2 == 3027      # 0.96.0's, the ATM's, sign_box's, the payphone's
+    # 0.96.0's, the ATM's, sign_box's and the payphone's went; the fan's split
+    assert total + 18 + 6 + 6 + 2 - 1 == 3027
 
 
 def test_every_residue_row_is_self_consistent():

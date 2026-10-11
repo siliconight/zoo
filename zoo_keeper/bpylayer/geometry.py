@@ -57,18 +57,37 @@ def add_cylinder(bm, center, radius, depth, segments=14, axis="Z",
 
 
 def add_hemisphere(bm, center, radius_x, radius_y, radius_z, segments=20):
-    """Upper hemisphere shell (open bottom), squashed to per-axis radii."""
+    """Upper hemisphere shell (open bottom), squashed to per-axis radii: the
+    rim at ``center``, the crown ``radius_z`` above it. Returns every vertex
+    it leaves, each one transformed.
+
+    1.99.1. Until then the bisect's normal pointed down, and ``clear_inner``
+    clears the side behind the normal, so it kept the LOWER half and every
+    caller's cap hung inside its own body: the bollard's under its pipe's flat
+    top, the exhaust fan's around its drum, the soda cup's under its lid, the
+    helmet's whole shell below its rim. And at an odd ring count --
+    ``segments`` 14, 18, 22 ... -- no ring lies on the cut, the bisect makes
+    the rim's vertices new, and only the sphere's own were transformed: 14
+    vertices left at radius 0.975 on a hemisphere asked for at 0.5. Measured
+    in Blender 5.1.1, ``docs/findings/hemisphere_half/`` in the factory. The
+    cut's vertices are transformed with the rest now, and a bisect that left
+    nothing raises rather than falling back to every vertex in the bmesh,
+    which other parts share.
+    """
     ret = bmesh.ops.create_uvsphere(
         bm, u_segments=segments, v_segments=max(6, segments // 2),
         radius=1.0)
     verts = ret["verts"]
-    geom = verts + [e for v in verts for e in v.link_edges] + \
-        [f for v in verts for f in v.link_faces]
+    geom = (verts + [e for v in verts for e in v.link_edges]
+            + [f for v in verts for f in v.link_faces])
     cut = bmesh.ops.bisect_plane(
         bm, geom=list(set(geom)), dist=1e-5,
-        plane_co=(0, 0, 0), plane_no=(0, 0, -1), clear_inner=True)
-    keep = [v for v in bm.verts if v.is_valid and v in set(verts)] or \
-        [v for v in bm.verts if v.is_valid]
+        plane_co=(0, 0, 0), plane_no=(0, 0, 1), clear_inner=True)
+    mine = set(verts)
+    mine.update(g for g in cut["geom_cut"] if isinstance(g, bmesh.types.BMVert))
+    keep = [v for v in bm.verts if v.is_valid and v in mine]
+    if not keep:
+        raise ValueError("add_hemisphere: the bisect left no vertex")
     mat = Matrix.Translation(Vector(center)) @ Matrix.Diagonal(
         Vector((radius_x, radius_y, radius_z)).to_4d())
     bmesh.ops.transform(bm, matrix=mat, verts=keep)
