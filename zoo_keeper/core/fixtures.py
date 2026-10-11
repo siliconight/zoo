@@ -64,6 +64,12 @@ FIXTURES = {
     # hardware, and like it the BULB point is the anchor; Lux lights it warm
     # and scales it with the room's wash.
     "counter_accent": {"species": "pendant_fixture", "mount": "above"},
+    # 1.98.0, A HOME'S DOME (Deli Counter 0.208.0, roadmap 229): a home's room
+    # took the office troffer until its fixture had a species. Deli Counter
+    # writes the anchor at the ceiling plane, so the dome HANGS -- its top at
+    # the emitter, the glass below -- the way the club's cans do; Lux hangs
+    # the lamp under the glass (its DOME_LAMP_DROP_M).
+    "dome": {"species": "dome_fixture", "mount": "hang"},
     # v0.94 the club set (Lux 0.37.0's anchors, walked 2026-09-16 as
     # "it doesn't look like that light is coming out of any viewable light
     # fixtures"). Both mount 'above', so the LIT LENS sits on the emitter

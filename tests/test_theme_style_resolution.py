@@ -133,7 +133,8 @@ def test_delco_1997_reaches_every_species():
     # the plate's edge (roadmap 228), each with its own `delco` row.
     # 1.96.0: 101, + backdrop_tree and backdrop_warehouse, each with its own
     # `delco` row.
-    assert len(_genomes()) == 101 + len(_minted), len(_genomes())
+    # 1.98.0: 102, + dome_fixture, a home's dome, with its own `delco` row.
+    assert len(_genomes()) == 102 + len(_minted), len(_genomes())
 
 
 def test_every_shipped_style_name_still_resolves_to_itself():

@@ -534,3 +534,21 @@ def test_an_anchor_that_already_has_hardware_gets_none_built():
     # one anchor, not a rule about streetlights
     plain = fixtures.plan(_manifest([_street()], scope=("site", "rockay")))
     assert plain["placements"] and plain["skipped"] == []
+
+
+# --------------------------------------------------------------------------- #
+# 1.98.0: a home's room hangs a dome (roadmap 229's species step)
+# --------------------------------------------------------------------------- #
+
+def test_a_dome_anchor_gets_its_hardware_hung_from_the_ceiling():
+    """Deli Counter 0.208.0 writes a home's room as `dome` anchors at the
+    ceiling plane; a type with no row here is skipped, and a skipped anchor
+    emits no marker -- a dark room. The dome hangs: top at the emitter."""
+    p = fixtures.plan(_manifest([
+        {"id": "bedroom_ceiling", "type": "dome", "pos": [0, 0, 2.9],
+         "row": {"count": 2, "spacing": 7.0}, "drop": 2.9}]))
+    assert not p["skipped"]
+    assert len(p["placements"]) == 2
+    for pl in p["placements"]:
+        assert pl["species"] == "dome_fixture" and pl["mount"] == "hang"
+        assert pl["drop"] == 2.9

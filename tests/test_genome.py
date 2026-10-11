@@ -16,6 +16,8 @@ PROP_SPECIES = {"desk", "chair", "helmet", "boots", "simple_car",
                 # the below-grade bare bulb (DC >= 0.98 `pendant` anchors --
                 # basements and objective rooms; roadmap 57's 90s palette)
                 "pendant_fixture",
+                # a home's flush-mount dome (1.98.0, roadmap 229's species)
+                "dome_fixture",
                 # the club set's own hardware (0.94.0): the can a wash
                 # comes out of and the par can a stage light does
                 "club_fixture",

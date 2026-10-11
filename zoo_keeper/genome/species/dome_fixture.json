@@ -1,0 +1,140 @@
+{
+ "species": "dome_fixture",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction. A flush-mount dome: a round canopy against the ceiling and a frosted glass bowl under it, the fixture a 1990s home hangs from the middle of a room. Built for the light-anchor pipeline (Deli Counter's `dome` anchors in a home's rooms)."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.22,
+   "max": 0.4,
+   "default": 0.3
+  },
+  "depth": {
+   "min": 0.22,
+   "max": 0.4,
+   "default": 0.3
+  },
+  "height": {
+   "min": 0.08,
+   "max": 0.16,
+   "default": 0.11
+  }
+ },
+ "parts": [
+  "Dome_Canopy",
+  "Dome_Glass",
+  "Dome_Finial"
+ ],
+ "params": {},
+ "materials": {
+  "default": "metal",
+  "options": [
+   "metal",
+   "plastic"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "metal",
+   "color": [
+    0.78,
+    0.76,
+    0.72
+   ],
+   "wear": 0.15,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.86,
+    0.66
+   ],
+   "emissive_strength": 1.8
+  },
+  "delco": {
+   "material": "metal",
+   "color": [
+    0.62,
+    0.52,
+    0.3
+   ],
+   "wear": 0.3,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.84,
+    0.62
+   ],
+   "emissive_strength": 1.8
+  },
+  "center_city": {
+   "material": "metal",
+   "color": [
+    0.8,
+    0.79,
+    0.76
+   ],
+   "wear": 0.12,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.87,
+    0.68
+   ],
+   "emissive_strength": 1.7
+  },
+  "industrial_flats": {
+   "material": "metal",
+   "color": [
+    0.7,
+    0.68,
+    0.64
+   ],
+   "wear": 0.4,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.83,
+    0.6
+   ],
+   "emissive_strength": 1.9,
+   "ambient": 0.1
+  },
+  "rockay": {
+   "material": "metal",
+   "color": [
+    0.6,
+    0.5,
+    0.3
+   ],
+   "wear": 0.25,
+   "bevel": 0.0,
+   "emissive_color": [
+    1.0,
+    0.85,
+    0.63
+   ],
+   "emissive_strength": 1.8,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 292
+ },
+ "attachments": [],
+ "collision": false,
+ "connectors": {
+  "anchor": {
+   "type": "ceiling"
+  }
+ },
+ "keywords": [
+  "dome fixture",
+  "dome_fixture",
+  "flush mount",
+  "ceiling dome",
+  "home ceiling light",
+  "bedroom light"
+ ]
+}

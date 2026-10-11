@@ -474,7 +474,15 @@ DID_NOT_BUILD = {"boots"}
 #: build" (132 / 132 / 132 and 48 / 48 / 48 tris), first run: the tree's
 #: trunk ends inside its crown and the warehouse's monitors stand INSET into
 #: its roof from the start.
-CENSUS_BUILDS = 384
+#: 1.98.0: `dome_fixture`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species dome_fixture
+#: pendant_fixture`, the pendant run beside it as the control that the census
+#: can see a pair (its known one, cover 35.62 / 52.62 / 49.62 mm, as the
+#: RESIDUE row says) -- reported the dome's three corners at 292 / 292 / 292
+#: tris, 0 pairs, first run: the glass's rim is closed by the canopy's
+#: underside rather than laid on it, and the finial sinks half into the glass.
+#: 292 is where its genome budget came from.
+CENSUS_BUILDS = 387
 
 
 def test_the_census_covers_every_species_there_is():
