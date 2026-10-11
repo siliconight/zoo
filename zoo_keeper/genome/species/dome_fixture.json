@@ -24,8 +24,7 @@
  },
  "parts": [
   "Dome_Canopy",
-  "Dome_Glass",
-  "Dome_Finial"
+  "Dome_Glass"
  ],
  "params": {},
  "materials": {
@@ -120,7 +119,7 @@
   }
  },
  "budgets": {
-  "tris_lod0": 292
+  "tris_lod0": 310
  },
  "attachments": [],
  "collision": false,

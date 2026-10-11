@@ -482,6 +482,10 @@ DID_NOT_BUILD = {"boots"}
 #: tris, 0 pairs, first run: the glass's rim is closed by the canopy's
 #: underside rather than laid on it, and the finial sinks half into the glass.
 #: 292 is where its genome budget came from.
+#: 1.98.1: the same three builds after the dome's fix (the bowl laid by its
+#: depth below the rim and closed 4 mm inside the canopy; the canopy and the
+#: finial one mesh): 310 / 310 / 310 tris -- the closed rim's 18 -- and 0
+#: pairs, so the budget is 310 and the clean count does not move.
 CENSUS_BUILDS = 387
 
 

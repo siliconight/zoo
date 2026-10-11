@@ -1,7 +1,7 @@
 """dome_fixture recipe: the flush-mount dome a 1990s home hangs from the middle of a room.
 
 Roadmap 229's species step (1.98.0). Deli Counter lays a home's rooms with its
-own row rule, a fixture a bay (0.207.1), and until now each was a 2 x 4
+own row rule, a fixture a bay (0.207.1), and until then each was a 2 x 4
 office troffer -- a fluorescent in a bedroom. A home's room takes a `dome`
 anchor now, and this is its hardware: a round canopy against the ceiling and
 a frosted glass bowl under it, with a small finial at the bottom of the bowl
@@ -12,15 +12,28 @@ spans -h/2 .. +h/2. Zoo's fixture table mounts the species 'hang' -- its TOP
 at the emitter, the body below -- and Deli Counter writes a home's anchor at
 the ceiling plane, so the canopy's top lands on the ceiling.
 
-  * THE CANOPY: a short drum, `CANOPY_H` deep, a hand wider than the glass
-    (`CANOPY_LIP`), so the glass meets its underside inside its rim.
+  * THE CANOPY AND THE FINIAL, ONE MESH: a short drum, `CANOPY_H` deep and a
+    hand wider than the glass (`CANOPY_LIP`), and a small knob at the bowl's
+    lowest point, sunk into the glass by half its depth (`FINIAL_SINK`). They
+    share one material, so they are one object: a fixture's parts are
+    exported unmerged (the fixtures GLB is a layer, not a module), and 1.98.0
+    built them as two -- three meshes a dome where a troffer is two, one more
+    draw a dome in view, measured as +6 draws at 24 of 53 headings on cold run
+    9239's six domes (1.98.1).
   * THE GLASS: the lower half of an ellipsoid, as wide as the species and as
-    deep as the rest of the height, its rim on the canopy's underside. Built
-    as Zoo's upper hemisphere mirrored downward with its faces turned back
-    outward, so the open rim is closed by the canopy and no face of the glass
-    lies on the canopy's plane.
-  * THE FINIAL: a small knob at the bowl's lowest point, sunk into the glass
-    by half its depth (`FINIAL_SINK`) so no face of it lies on the glass.
+    deep as the rest of the height, hanging from the canopy's underside.
+
+THE BOWL HANGS BY ITS DEPTH, NOT BY THE HELPER'S WORD (1.98.1). 1.98.0 took
+`geometry.add_hemisphere` at its docstring -- "upper hemisphere" -- and
+mirrored it downward; the helper keeps the LOWER half (measured in Blender
+5.1.1, 2026-10-11: z -1 .. 0 at unit radius, faces pointing down and out), so
+the mirror turned the bowl UP into the ceiling, where cold run 9239's frames
+showed a dark canopy and a finial hanging alone. Each vertex is laid at
+`rim - |z|` now, so the bowl hangs below the rim whichever half the helper
+keeps. Its rim rises `BOWL_BURY` into the canopy and is closed there, so the
+glass is a closed shell -- the finisher recalculates every part's normals,
+and an open bowl leaves it no inside to face away from -- and the cap lies
+4 mm from the canopy's underside, clear of the coplanar probe's 2 mm.
 
 The glass carries the `M_*_Lens` name Lux's emissive binder keys on, as the
 pendant's bulb and the troffer's diffuser do. Lux hangs the lamp under the
@@ -43,55 +56,53 @@ CANOPY_LIP = 0.012
 FINIAL_R = 0.012
 FINIAL_H = 0.02
 FINIAL_SINK = 0.5
+#: How far the bowl's closed rim rises into the canopy (1.98.1): twice the
+#: coplanar probe's 2 mm, as `backdrop_forms.INSET` stands a part in another.
+BOWL_BURY = 0.004
 
 
 def build(plan, streams, collection):
     w = plan["dimensions"]["width"]       # the glass's diameter
-    h = plan["dimensions"]["height"]      # canopy + glass, total
+    h = plan["dimensions"]["height"]      # canopy + glass + the finial's exposed half
     bevel, wear = plan["bevel"], plan["wear"]
     style = plan.get("style_block", {})
     rng = streams.stream("wear")
     top = h / 2.0
     r = w / 2.0
+    rim_z = top - CANOPY_H
+    # the finial's exposed half is inside the height, so the body ends at -h/2
+    depth = max(h - CANOPY_H - FINIAL_H * (1.0 - FINIAL_SINK), 0.02)
+    bottom = rim_z - depth
     objs = []
 
-    # Canopy: a short drum whose top is the body's top.
+    # The canopy and the finial: one material, one mesh.
     bm = geometry.new_bm()
     geometry.add_cylinder(bm, (0.0, 0.0, top - CANOPY_H / 2.0), r + CANOPY_LIP,
                           CANOPY_H, segments=20)
+    geometry.add_cylinder(bm, (0.0, 0.0, bottom - FINIAL_H * (0.5 - FINIAL_SINK)),
+                          FINIAL_R, FINIAL_H, segments=8)
     canopy = geometry.bm_to_object(
         bm, "Dome_Canopy", collection, bevel=bevel, texel=1.5,
         rng=rng, wear=wear)
     objs.append(canopy)
 
-    # Glass: the lower half of an ellipsoid hanging from the canopy's
-    # underside -- the upper hemisphere helper, mirrored and turned outward.
-    rim_z = top - CANOPY_H
-    # the finial's exposed half is inside the height, so the body ends at -h/2
-    depth = max(h - CANOPY_H - FINIAL_H * (1.0 - FINIAL_SINK), 0.02)
+    # The glass: a bowl laid by its depth below the rim, its rim closed inside
+    # the canopy.
     bm = geometry.new_bm()
-    verts = geometry.add_hemisphere(bm, (0.0, 0.0, 0.0), r, r, depth, segments=20)
+    verts = geometry.add_hemisphere(bm, (0.0, 0.0, 0.0), r, r, depth + BOWL_BURY,
+                                    segments=20)
     for v in verts:
-        v.co.z = rim_z - v.co.z
-    bmesh.ops.reverse_faces(bm, faces=list(bm.faces))
+        v.co.z = rim_z + BOWL_BURY - abs(v.co.z)
+    rim = [e for e in bm.edges if e.is_boundary]
+    bmesh.ops.holes_fill(bm, edges=rim, sides=0)
     glass = geometry.bm_to_object(
         bm, "Dome_Glass", collection, bevel=0.0, texel=1.0,
         rng=rng, wear=0.0)
     objs.append(glass)
 
-    # Finial: a small knob at the bowl's lowest point, half sunk into it.
-    bottom = rim_z - depth
-    bm = geometry.new_bm()
-    geometry.add_cylinder(bm, (0.0, 0.0, bottom - FINIAL_H * (0.5 - FINIAL_SINK)),
-                          FINIAL_R, FINIAL_H, segments=8)
-    finial = geometry.bm_to_object(
-        bm, "Dome_Finial", collection, bevel=0.0, texel=1.5,
-        rng=rng, wear=wear * 0.5)
-    objs.append(finial)
-
     mat = materials.make_material(
         f"M_Dome_{plan['material']}", plan["color"], plan["material"])
-    materials.assign([canopy, finial], mat)
+    materials.assign([canopy], mat)
     lit = materials.make_emissive_material(
         "M_Dome_Lens",
         style.get("emissive_color", [1.0, 0.86, 0.66]),

@@ -552,3 +552,23 @@ def test_a_dome_anchor_gets_its_hardware_hung_from_the_ceiling():
     for pl in p["placements"]:
         assert pl["species"] == "dome_fixture" and pl["mount"] == "hang"
         assert pl["drop"] == 2.9
+
+
+def test_the_domes_glass_hangs_closed_and_the_dome_is_two_meshes():
+    """1.98.1, cold run 9239: `geometry.add_hemisphere` keeps the LOWER half
+    (Blender 5.1.1: z -1 .. 0 at unit radius) though its docstring says upper,
+    so 1.98.0's mirror turned the bowl up into the ceiling; and the canopy and
+    finial, one material, were two meshes -- three a dome where a troffer is
+    two, +6 draws at 24 of 53 headings. Held here by reading the recipe: the
+    built frame is measured in Blender, `docs/cold_runs/cold_9239/` in the
+    factory."""
+    import ast
+    import os as _os
+    src = open(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                             "zoo_keeper", "recipes", "dome_fixture.py"), encoding="utf-8").read()
+    assert "rim_z + BOWL_BURY - abs(v.co.z)" in src            # hangs whichever half
+    assert "holes_fill" in src                                  # a closed shell
+    assert "reverse_faces" not in src
+    names = [n.value for n in ast.walk(ast.parse(src))
+             if isinstance(n, ast.Constant) and isinstance(n.value, str) and n.value.startswith("Dome_")]
+    assert sorted(set(names)) == ["Dome_Canopy", "Dome_Glass"], names
