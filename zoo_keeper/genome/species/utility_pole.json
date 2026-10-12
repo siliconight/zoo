@@ -1,0 +1,142 @@
+{
+ "species": "utility_pole",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Roadmap 240, the walker's Philly comps: the wooden distribution pole that carries a street's cobra-head and its wires. REFERENCE: US distribution practice -- a 40 ft wood pole set about 6 ft deep (about 10.4 m standing, 0.30 m across at grade, 0.19 m at the top, ANSI O5.1 class 4), an 8 ft crossarm a foot under the top with steel braces and three pin insulators for the primaries, the neutral and the secondary on spools behind the pole, two communication cables lowest, a cobra-head about 25 ft up on a 6 ft mast arm facing the road, and on the `transformer` form a pole-mount can under the neutral; the comps and the walker decide, these fill blanks. Laid out in `core/utility_pole_forms.py`, which also holds the numbers Lot mirrors. BUILT: 496 tris (`auto`) and 592 (`transformer`) at their module dims, four materials, 0 coincident face pairs (2026-10-12)."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.28,
+   "max": 0.5,
+   "default": 0.3
+  },
+  "depth": {
+   "min": 3.4,
+   "max": 4.0,
+   "default": 3.67
+  },
+  "height": {
+   "min": 9.5,
+   "max": 11.5,
+   "default": 10.4
+  }
+ },
+ "parts": [
+  "UtilityPole_Pole",
+  "UtilityPole_Pole_steel",
+  "UtilityPole_Pole_porcelain",
+  "UtilityPole_Lens"
+ ],
+ "params": {
+  "form": [
+   "auto",
+   "transformer"
+  ]
+ },
+ "materials": {
+  "default": "wood",
+  "options": [
+   "wood"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "wood",
+   "color": [
+    0.24,
+    0.17,
+    0.11
+   ],
+   "wear": 0.25,
+   "bevel": 0.003,
+   "emissive_color": [
+    1.0,
+    0.62,
+    0.24
+   ],
+   "emissive_strength": 2.5
+  },
+  "delco": {
+   "material": "wood",
+   "color": [
+    0.3,
+    0.25,
+    0.2
+   ],
+   "wear": 0.4,
+   "bevel": 0.003,
+   "emissive_color": [
+    1.0,
+    0.62,
+    0.24
+   ],
+   "emissive_strength": 2.5
+  },
+  "center_city": {
+   "material": "wood",
+   "color": [
+    0.26,
+    0.2,
+    0.15
+   ],
+   "wear": 0.2,
+   "bevel": 0.003,
+   "emissive_color": [
+    1.0,
+    0.62,
+    0.24
+   ],
+   "emissive_strength": 2.5,
+   "ambient": 0
+  },
+  "industrial_flats": {
+   "material": "wood",
+   "color": [
+    0.22,
+    0.17,
+    0.13
+   ],
+   "wear": 0.55,
+   "bevel": 0.003,
+   "emissive_color": [
+    1.0,
+    0.62,
+    0.24
+   ],
+   "emissive_strength": 2.5,
+   "ambient": 0.1
+  },
+  "rockay": {
+   "material": "wood",
+   "color": [
+    0.25,
+    0.19,
+    0.14
+   ],
+   "wear": 0.36,
+   "bevel": 0.003,
+   "emissive_color": [
+    1.0,
+    0.62,
+    0.24
+   ],
+   "emissive_strength": 3.25,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 650
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": 0,
+ "keywords": [
+  "utility pole",
+  "telephone pole",
+  "power pole",
+  "wooden pole",
+  "electric pole",
+  "utility_pole"
+ ]
+}

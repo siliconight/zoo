@@ -493,7 +493,13 @@ DID_NOT_BUILD = {"boots"}
 #: depth below the rim and closed 4 mm inside the canopy; the canopy and the
 #: finial one mesh): 310 / 310 / 310 tris -- the closed rim's 18 -- and 0
 #: pairs, so the budget is 310 and the clean count does not move.
-CENSUS_BUILDS = 387
+#: 1.104.0: `utility_pole`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species utility_pole`:
+#: "3 builds, 0 with coincident pairs, 0 that did not build", 496 / 496 /
+#: 496 tris. Every part that meets another is sunk 10 mm into it
+#: (`utility_pole_forms.SINK`) and the lens hangs 4 mm under its head, so
+#: `prims.coincident_pairs` reads 0 on both forms before Blender does.
+CENSUS_BUILDS = 390
 
 
 def test_the_census_covers_every_species_there_is():
