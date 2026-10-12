@@ -95,8 +95,12 @@ def build(plan, streams, collection):
                                     segments=20)
     for v in verts:
         v.co.z = rim_z + BOWL_BURY - abs(v.co.z)
-    rim = [e for e in bm.edges if e.is_boundary]
-    bmesh.ops.holes_fill(bm, edges=rim, sides=0)
+    # the cap started at its lowest vertex: `holes_fill` starts it at a corner
+    # each build picks for itself, and the GLB triangulates it from there --
+    # two starts, two lightmap charts (1.103.0, `geometry.start_at_lowest`)
+    rim = geometry.in_one_order(bm, [e for e in bm.edges if e.is_boundary])
+    cap = bmesh.ops.holes_fill(bm, edges=rim, sides=0)
+    geometry.start_at_lowest(bm, cap["faces"])
     glass = geometry.bm_to_object(
         bm, "Dome_Glass", collection, bevel=0.0, texel=1.0,
         rng=rng, wear=0.0)

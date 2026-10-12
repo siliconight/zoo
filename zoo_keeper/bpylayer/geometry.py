@@ -56,6 +56,60 @@ def add_cylinder(bm, center, radius, depth, segments=14, axis="Z",
     return verts
 
 
+def in_one_order(bm, elems):
+    """``elems`` -- BMesh vertices, edges or faces, mixed -- as a list in one
+    order, the same in every process (1.103.0): by kind, vertices first, then
+    by their vertices' indices.
+
+    A list of BMesh elements built from a set comes in the order of their
+    addresses, and an operator handed it works through it in that order; no
+    two processes share the addresses (the factory's
+    docs/findings/grader_speed/uvsphere_order_probe.py).
+    """
+    bm.verts.index_update()
+
+    def key(e):
+        if isinstance(e, bmesh.types.BMVert):
+            return (0, (e.index,))
+        if isinstance(e, bmesh.types.BMEdge):
+            return (1, tuple(sorted(v.index for v in e.verts)))
+        return (2, tuple(v.index for v in e.verts))
+    return sorted(elems, key=key)
+
+
+def start_at_lowest(bm, faces):
+    """Each of ``faces`` remade to start at its lowest-index vertex, its
+    winding and its material kept (1.103.0). Returns the faces as they stand.
+
+    An operator that makes a face (`holes_fill`, `contextual_create`) starts
+    it at a corner of its own choosing, and the choice changes from one
+    process to the next even with its input in one order: across four builds
+    of the deli's fixtures, each dome's 20-cornered cap started at one of two
+    neighbouring corners, dome by dome. A GLB triangulates a face from its
+    first corner, so the two starts are two sets of triangles and two
+    lightmap charts. Remade before the face carries corner data -- refused if
+    the bmesh has any, rather than losing it.
+    """
+    layers = bm.loops.layers
+    for kind in ("uv", "color", "float_color", "float", "int"):
+        if len(getattr(layers, kind, ())):
+            raise ValueError("start_at_lowest: the bmesh carries %s corner data" % kind)
+    bm.verts.index_update()
+    out = []
+    for f in faces:
+        vs = list(f.verts)
+        k = min(range(len(vs)), key=lambda i: vs[i].index)
+        if k == 0:
+            out.append(f)
+            continue
+        mat, smooth = f.material_index, f.smooth
+        bm.faces.remove(f)
+        nf = bm.faces.new(vs[k:] + vs[:k])
+        nf.material_index, nf.smooth = mat, smooth
+        out.append(nf)
+    return out
+
+
 def add_hemisphere(bm, center, radius_x, radius_y, radius_z, segments=20):
     """Upper hemisphere shell (open bottom), squashed to per-axis radii: the
     rim at ``center``, the crown ``radius_z`` above it. Returns every vertex
@@ -78,10 +132,15 @@ def add_hemisphere(bm, center, radius_x, radius_y, radius_z, segments=20):
         bm, u_segments=segments, v_segments=max(6, segments // 2),
         radius=1.0)
     verts = ret["verts"]
-    geom = (verts + [e for v in verts for e in v.link_edges]
-            + [f for v in verts for f in v.link_faces])
+    # The sphere's geometry in one order (1.103.0, `in_one_order`). It was a
+    # set of BMesh elements, which iterates in the order of their addresses,
+    # and no two processes share those.
+    own = set(verts)
+    geom = in_one_order(bm, list(own)
+                        + [e for e in bm.edges if e.verts[0] in own and e.verts[1] in own]
+                        + [f for f in bm.faces if all(v in own for v in f.verts)])
     cut = bmesh.ops.bisect_plane(
-        bm, geom=list(set(geom)), dist=1e-5,
+        bm, geom=geom, dist=1e-5,
         plane_co=(0, 0, 0), plane_no=(0, 0, 1), clear_inner=True)
     mine = set(verts)
     mine.update(g for g in cut["geom_cut"] if isinstance(g, bmesh.types.BMVert))
@@ -91,6 +150,12 @@ def add_hemisphere(bm, center, radius_x, radius_y, radius_z, segments=20):
     mat = Matrix.Translation(Vector(center)) @ Matrix.Diagonal(
         Vector((radius_x, radius_y, radius_z)).to_4d())
     bmesh.ops.transform(bm, matrix=mat, verts=keep)
+    # The faces the bisect split start at a corner each process picks: the
+    # exhaust fan's hood, built twice, had 11 of its 48 faces start at another
+    # corner (1.103.0). A sphere's quads are flat, so starting each at its
+    # lowest vertex changes the hemisphere's triangles' order, not its shape.
+    own = set(keep)
+    start_at_lowest(bm, [f for f in bm.faces if all(v in own for v in f.verts)])
     return keep
 
 
@@ -401,7 +466,11 @@ def fracture(bm, verts, rng, cuts=3, near=0.30, far=0.85,
                                      clear_outer=True)
         cut = [g for g in res.get("geom_cut", []) if g.is_valid]
         if cut:
-            bmesh.ops.contextual_create(bm, geom=cut)
+            # the cut in one order, and the face it closes started at its
+            # lowest vertex: the operator's own start changes from one
+            # process to the next (1.103.0)
+            made = bmesh.ops.contextual_create(bm, geom=in_one_order(bm, cut))
+            start_at_lowest(bm, made.get("faces", []))
         verts = [g for g in res.get("geom", []) if g.is_valid
                  and isinstance(g, bmesh.types.BMVert)]
         verts += [g for g in cut if isinstance(g, bmesh.types.BMVert)]
@@ -712,6 +781,22 @@ def bm_to_object(bm, name, collection, finish=True, bevel=0.0,
         cube_project_uv(bm, texel, uv_offset)
         if rng is not None:
             wear_colors(bm, rng, wear, ambient=ambient)
+    # FACES IN ONE ORDER (1.103.0). Blender's own BMesh operators lay faces in
+    # an order that changes from one process to the next: in four fresh
+    # Blender 5.1 processes `create_uvsphere` kept its vertices' order and not
+    # its faces', and `bisect_plane` neither (the factory's
+    # docs/findings/grader_speed/uvsphere_order_probe.py). A GLB's triangles
+    # follow the faces and Godot's lightmap unwrap follows the triangles: cold
+    # runs 9256 to 9259 packed the deli's lightmap three ways because one dome
+    # came out with a different chart. The vertices' order holds, so the faces
+    # sorted by their vertices (`in_one_order`) leave in one order every build;
+    # the faces, and each face's corners, are the ones the recipe made.
+    # (`BMElemSeq.sort` takes a number for its key: each face's rank.)
+    bm.faces.index_update()
+    rank = [0] * len(bm.faces)
+    for i, f in enumerate(in_one_order(bm, bm.faces)):
+        rank[f.index] = i
+    bm.faces.sort(key=lambda f: rank[f.index])
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()
