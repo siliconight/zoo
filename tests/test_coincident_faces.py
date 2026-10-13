@@ -499,7 +499,16 @@ DID_NOT_BUILD = {"boots"}
 #: 496 tris. Every part that meets another is sunk 10 mm into it
 #: (`utility_pole_forms.SINK`) and the lens hangs 4 mm under its head, so
 #: `prims.coincident_pairs` reads 0 on both forms before Blender does.
-CENSUS_BUILDS = 390
+#: 1.105.0: `stoop_railing`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species stoop_railing
+#: bollard`, the bollard the control that the census can see a pair (its known
+#: 2 / 2 / 1, as its RESIDUE row sums them): "6 builds, 3 with coincident pairs, 0
+#: that did not build", the railing's three corners 72 / 132 / 240 tris and 0
+#: pairs, first run. A rail's end stops `SINK` inside its post, a picket's ends
+#: lie on the rails' centre lines and each member nests `NEST` a side inside the
+#: one it runs into (`stoop_railing_forms`), so `prims.coincident_pairs` reads 0
+#: on both forms over 60 sizes before Blender does. 240 is the genome's budget.
+CENSUS_BUILDS = 393
 
 
 def test_the_census_covers_every_species_there_is():

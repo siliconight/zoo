@@ -1,0 +1,108 @@
+{
+  "species": "stoop_railing",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Factory roadmap 240, the walker's calls of 2026-10-13 ('3 risers, concrete, railings both sides -- build the railings') on the comps' rowhouse street: 'three or four steps up to each door, with iron railings'. REFERENCE: a black painted wrought-iron stoop railing -- square posts, a flat-bar top rail, a bottom rail, square pickets -- one a side, along the landing and down the steps. The residential code gives the numbers where a three-riser stoop does not require one (IRC R311.7.8: a handrail 34-38 in over the nosings, drawn at 36; R312.1.3: pickets at 4 in clear). Two forms drawn from the slot's box alone: level and flight (`core/stoop_railing_forms.py`). No collision: Deli Counter writes it with the stoop's."
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.3,
+      "max": 2.0,
+      "default": 0.9
+    },
+    "depth": {
+      "min": 0.03,
+      "max": 0.06,
+      "default": 0.038
+    },
+    "height": {
+      "min": 0.85,
+      "max": 1.6,
+      "default": 0.9144
+    }
+  },
+  "parts": [
+    "StoopRailing_Iron"
+  ],
+  "params": {
+    "form": [
+      "level",
+      "flight"
+    ]
+  },
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.06,
+        0.06,
+        0.065
+      ],
+      "wear": 0.3,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.06,
+        0.06,
+        0.065
+      ],
+      "wear": 0.45,
+      "bevel": 0.0,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.06,
+        0.06,
+        0.065
+      ],
+      "wear": 0.3,
+      "bevel": 0.0,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.06,
+        0.06,
+        0.065
+      ],
+      "wear": 0.6,
+      "bevel": 0.0,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.06,
+        0.06,
+        0.065
+      ],
+      "wear": 0.4,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 240
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "stoop railing",
+    "stoop rail",
+    "iron railing",
+    "stoop_railing"
+  ]
+}
