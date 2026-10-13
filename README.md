@@ -210,8 +210,8 @@ socket.
 *Filed 2026-10-11 from the walker's reference: a short Blender tutorial (its
 node set-up credited to the YouTube channel Penfinity) and the polycount thread
 "Low poly hard surface modelling - Floaters" (polycount.com/discussion/86536,
-2011). Roadmap 234. The concept is written down first; the helper below is not
-built yet.*
+2011). Roadmap 234. The concept was written down first; the helper below was
+built in 1.106.0, and no species uses it yet.*
 
 A **floater** is a piece of detail -- a knob, a bezel, a ring, a grille, a
 label, a bolt -- made as its own small mesh and laid ON a host surface instead
@@ -275,15 +275,20 @@ Prefer the host's material shaded (`FORM_SHADE`) or tinted by vertex colour to a
 new material: colour-only variation is never a new material. A floater on a
 moving part rides with that part's pivot.
 
-**The helper (to build, roadmap 234).**
+**The helper (1.106.0, roadmap 234).** The arithmetic is `core.floaters`, pure
+Python: `FLOATER_SKIRT` 4 mm, `FLOATER_PROUD` 3 mm, and the frame that carries
+a floater onto its host.
 `geometry.add_floater(bm, point, normal, build, spin=0.0, skirt=FLOATER_SKIRT)`:
 `build(bm)` makes the floater in its own frame (Z up, its base at z = 0, open at
-the bottom); the helper turns +Z onto the host's normal, spins it about that
-normal, and lowers it into the host by the skirt.
-`geometry.add_flat_floater(bm, point, normal, w, h, proud=FLOATER_PROUD)` lays
-a one-sided quad. A recipe takes `point` and `normal` from its own construction
--- it knows where its faces are -- rather than by ray-casting, so placement
-stays deterministic, and the coplanar census stays the judge of every result.
+the bottom) and returns its verts; the helper turns +Z onto the host's normal,
+spins it about that normal, and lowers it into the host by the skirt.
+`geometry.add_flat_floater(bm, point, normal, w, h, spin=0.0, proud=FLOATER_PROUD)`
+lays a one-sided quad, its width along the spun axis. A recipe takes `point` and
+`normal` from its own construction -- it knows where its faces are -- rather
+than by ray-casting, so placement stays deterministic, and the coplanar census
+stays the judge of every result. No species uses them yet: each built its
+floaters before the rule had a name, and moving one is a change to that
+species' mesh, priced and censused as any other.
 
 **Baking (later, priced first).** The reference's other use -- floaters baked
 into the host's normal map, so the detail costs no geometry at all -- needs a

@@ -16,6 +16,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 from ..core import arch
+from ..core import floaters as core_floaters
 from ..core import normals as core_normals
 
 WEAR_LAYER = "Wear"
@@ -192,6 +193,38 @@ def place(verts, pos, rot_z=0.0, scale=1.0):
     for v in verts:
         v.co = m @ v.co
     return verts
+
+
+# --- floaters (1.106.0, roadmap 234; the README's "Floaters") -------------
+
+#: a solid floater's skirt below its host, and a flat one's stand off it
+#: (`core.floaters`, where each is derived)
+FLOATER_SKIRT = core_floaters.FLOATER_SKIRT
+FLOATER_PROUD = core_floaters.FLOATER_PROUD
+
+
+def add_floater(bm, point, normal, build, spin=0.0, skirt=FLOATER_SKIRT):
+    """A SOLID floater. `build(bm)` makes it in its own frame -- Z up, its
+    base at z = 0, open at the bottom -- and returns its verts; they are
+    carried onto the host so +Z lies along `normal`, turned `spin` radians
+    about it, the base on `point` lowered `skirt` into the host. Returns
+    the verts. A recipe gives `point` and `normal` from its own
+    construction -- it knows where its faces are -- so placement stays
+    deterministic, and the coplanar census stays the judge of the result."""
+    verts = build(bm)
+    m = Matrix(core_floaters.solid_frame(point, normal, spin, skirt))
+    for v in verts:
+        v.co = m @ v.co
+    return verts
+
+
+def add_flat_floater(bm, point, normal, w, h, spin=0.0, proud=FLOATER_PROUD):
+    """A FLAT floater: a one-sided `w` x `h` quad standing `proud` off its
+    host, centred on `point` and facing along `normal`, its width along the
+    axis turned `spin` radians about it. Returns its face."""
+    verts = [bm.verts.new(c) for c in core_floaters.flat_quad(
+        point, normal, w, h, spin, proud)]
+    return bm.faces.new(verts)
 
 
 def solidify(bm, thickness):
