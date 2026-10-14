@@ -157,3 +157,14 @@ def test_bpy_a_shop_pane_wears_the_shop_material(tmp_path):
                    options={"save_blend": False})
     glass = [o for o in bpy.data.objects if o.type == "MESH" and "Glass" in o.name]
     assert glass and glass[0].data.materials[0].name == "M_Shop_pane_Face"
+
+
+def test_a_lit_shop_s_room_glows_under_its_paint():
+    """1.111.0, the walker at the corner grocery's glass: "not sure what I'm looking at here in the window". The
+    room behind the goods glowed at its full colour while the goods glowed at 47 %, so at night the wall outshone
+    what stood on it and the grocery's fluorescent clipped to white. Each lit cell's emission now sums to under half
+    its paint. FAILS ON 1.110.0 for every lit room."""
+    a, e = S.atlas()
+    for state in S.ROOMS:
+        paint, glow = _cell_sum(a, state), _cell_sum(e, state)
+        assert paint > 0 and 0 < glow < paint / 2, (state, glow, paint)

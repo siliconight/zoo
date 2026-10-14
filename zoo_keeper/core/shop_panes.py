@@ -72,6 +72,10 @@ GATE_SHADOW = (88, 90, 94)
 #: Emission strength the material is built at; brighter than a home's window (`window_panes.EMISSION`, 1.6), so
 #: the shop is the light the eye goes to first. Lux scales it by energy and zeroes it in the power cut.
 EMISSION = 2.2
+#: How bright the room behind the goods glows, of its paint (1.111.0). At its full colour the wall outshone
+#: the goods (`_shelves` glows them at 120) and a cool room clipped to white at night: the walker, at the
+#: corner grocery's glass, "not sure what I'm looking at".
+ROOM_GLOW = 90
 ALBEDO = 0.6
 
 
@@ -122,7 +126,7 @@ def _room(c, e, x0, y0, x1, y1, light):
         rgb = (_lerp(top, mid, k, h * 2 // 5) if k < h * 2 // 5
                else _lerp(mid, low, k - h * 2 // 5, h - h * 2 // 5))
         c.rect(x0, y, x1, y + 1, rgb)
-        e.rect(x0, y, x1, y + 1, rgb)
+        e.rect(x0, y, x1, y + 1, _scale(rgb, ROOM_GLOW))
 
 
 def _shelves(c, e, x0, y0, x1, y1, rows, glow):

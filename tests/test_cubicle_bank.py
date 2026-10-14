@@ -159,6 +159,25 @@ def test_the_four_variants_are_four_different_banks():
     assert len(set(shapes.values())) == 4, sorted(shapes)
 
 
+def test_every_bay_s_stock_faces_the_sitter_its_drawers_face():
+    """1.111.0, the walker in urban_row_001's office: "computers facing the wrong way". A bay's stock is turned by its
+    region's `facing`, which `_surface_stock.plan_surface` reads as 0 when the person stands at -Y. The sitter is
+    where the bay's drawer fronts face. FAILS ON 1.110.0 at every bay: the facing turned the stock to the spine."""
+    for variant in range(4):
+        got = _library_plan(variant)
+        surfaces = {n[len("CubicleBank_Surface"):]: c for n, _k, c, _s, _o in got["boxes"]
+                    if n.startswith("CubicleBank_Surface")}
+        drawers = {n[len("CubicleBank_Drawer"):].rsplit("_", 1)[0]: c for n, _k, c, _s, _o in got["boxes"]
+                   if n.startswith("CubicleBank_Drawer")}
+        assert got["regions"] and len(got["regions"]) == len(surfaces), (variant, len(surfaces))
+        for x0, x1, y0, y1, _z0, facing, _clear, _keep in got["regions"]:
+            tag = [t for t, c in surfaces.items() if x0 <= c[0] <= x1 and y0 <= c[1] <= y1]
+            assert len(tag) == 1, (variant, x0, x1, y0, y1)
+            sitter_at_minus_y = drawers[tag[0]][1] < surfaces[tag[0]][1]
+            want = 0.0 if sitter_at_minus_y else 3.141592653589793
+            assert abs(facing - want) < 1e-9, (variant, tag[0], facing, want)
+
+
 ALL = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
 
 if __name__ == "__main__":

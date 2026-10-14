@@ -173,9 +173,13 @@ def plan(w, d, h, params, variant=0):
                                BIN_Z + BIN_H / 2.0),
                               (inner * 0.92, bin_d, BIN_H), True))
                 bins += 1
+            # The stock faces the sitter, who stands where the drawer fronts
+            # face: the `-out` side. `plan_surface` reads facing 0 as "they
+            # stand at -Y" (1.111.0; this was `pi if out > 0`, every
+            # computer turned to the spine).
             regions.append((bx - inner / 2.0, bx + inner / 2.0,
                             surf_y - sd / 2.0, surf_y + sd / 2.0, surf_h,
-                            3.141592653589793 if out > 0 else 0.0, 0.5, ()))
+                            0.0 if out > 0 else 3.141592653589793, 0.5, ()))
 
     return {"boxes": boxes, "regions": regions,
             "facts": {"bands": len(rows), "bays": len(runs),
