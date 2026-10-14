@@ -33,13 +33,15 @@ def build(plan, streams, collection):
     # business, built here and lit in the block after the cabinet.
     face_t = 0.02
     pack = None
-    if plan.get("sign_pack"):
-        # 1.79.0: the business Level Factory dealt this building -- the pack
-        # its street band wears -- so the door and the band are one name
-        from ..core import skins as skinlib
-        pack = skinlib.load_pack(str(plan["sign_pack"]))
+    # A BAND THAT NAMES THE SHOP LEAVES THE DOOR ITS TRADE (1.112.0). 1.79.0
+    # dressed the door in the pack Level Factory dealt the building's street
+    # band, so the two said one name, the walker's option A of 2026-10-06;
+    # on a one-storey front they stacked, and the walker chose the trade for
+    # the door: "double sign here looks...redundant". A pack handed in is
+    # the sign that a band names the shop; the door paints its trade below.
+    banded = bool(plan.get("sign_pack"))
     skins_dir, skin_theme = materials.get_skin_library()
-    if pack is None and skins_dir:
+    if not banded and skins_dir:
         from ..core import skins as skinlib
         pack = skinlib.pick_pack(
             skinlib.find_sign_packs(skins_dir, skin_theme),
@@ -103,7 +105,8 @@ def build(plan, streams, collection):
         from ..core import storefront_names as SN
         from ..core import price_pylon_forms as PY
         from ._card_atlas import build_art
-        said = SN.sign_for(plan.get("business") or plan.get("anchor_id", ""))
+        # under a band, its trade (1.112.0): `trade_for` keeps the name's colours
+        said = (SN.trade_for if banded else SN.sign_for)(plan.get("business") or plan.get("anchor_id", ""))
         front = P.mesh("SignBox_FaceFront", "glow",
                        [(0.0, -w / 2.0, -h / 2.0), (0.0, w / 2.0, -h / 2.0),
                         (0.0, w / 2.0, h / 2.0), (0.0, -w / 2.0, h / 2.0)], [(0, 1, 2, 3)])

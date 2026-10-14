@@ -248,3 +248,17 @@ def test_bpy_a_sign_is_named_art_in_one_face_material(tmp_path):
     assert used, face
     for ti in used:
         assert doc["samplers"][doc["textures"][ti]["sampler"]]["magFilter"] == 9729, face["name"]
+
+
+def test_a_door_under_a_band_says_its_trade():
+    """1.112.0: where a band names the shop, the door says what the shop is, in the name's own colours; a civic
+    building's words are its trade already, and a building of no kind says OPEN. FAILS ON 1.111.0: there is no
+    `trade_for`."""
+    for business, trade in (("pharmacy_a01", "PHARMACY"), ("deli_a03", "DELI"), ("grocery_market", "GROCERY"),
+                            ("funeral_home_a01", "FUNERAL HOME")):
+        named, said = SN.sign_for(business), SN.trade_for(business)
+        assert said["text"] == trade, business
+        assert said["kind"] == named["kind"] and said["colours"] == named["colours"], business
+    assert SN.trade_for("police_station_a01") == SN.sign_for("police_station_a01")
+    assert SN.trade_for("twin_a01")["text"] == "OPEN"
+    assert set(SN.TRADE.values()) | {"OPEN"} <= set(SN.all_strings())

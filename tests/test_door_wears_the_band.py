@@ -1,9 +1,10 @@
-"""A door box can wear its building's band (1.79.0): one name on both signs.
+"""A door box under its building's band says the trade (1.112.0); from 1.79.0 to 1.111.0 it wore the band.
 
-The walker, 2026-10-06, option A. Level Factory 0.148.0 deals each shell one
-business and passes its Pixelcoat pack to the shell's fixtures build; the
-door box wears it. The Blender-bound code is read as source, as
-`test_car_forms` does.
+The walker, 2026-10-06, option A: one name on both signs. Level Factory 0.148.0 deals each shell one business and
+passes its Pixelcoat pack to the shell's fixtures build, and 1.79.0 dressed the door box in it. The walker, walking
+cold run 9305's pharmacy, 2026-10-14: "double sign here looks...redundant", and chose the trade for the door. The
+pack still arrives -- it is how the door knows a band names the shop -- and the door paints its trade. The
+Blender-bound code is read as source, as `test_car_forms` does.
 """
 import importlib.util
 import os
@@ -33,9 +34,10 @@ def test_only_a_door_box_is_given_the_pack():
     assert 'if species == "sign_box" and opts.get("sign_pack"):' in src
 
 
-def test_the_door_box_wears_the_given_pack_before_it_would_pick_one():
+def test_a_door_box_given_the_band_s_pack_paints_its_trade():
+    """FAILS ON 1.111.0: the door wore the pack, so it said the band's name again."""
     src = _src("zoo_keeper", "recipes", "sign_box.py")
-    given = src.index('if plan.get("sign_pack"):')
-    picked = src.index("skinlib.pick_pack(")
-    assert given < picked
-    assert "if pack is None and skins_dir:" in src
+    assert 'banded = bool(plan.get("sign_pack"))' in src
+    assert "if not banded and skins_dir:" in src
+    assert "(SN.trade_for if banded else SN.sign_for)(" in src
+    assert "skinlib.load_pack(" not in src

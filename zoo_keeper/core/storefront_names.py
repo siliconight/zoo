@@ -109,11 +109,30 @@ def sign_for(business):
     return {"kind": "number", "text": str(lo + k % (hi - lo + 1)), "colours": NUMBER_COLOURS}
 
 
+#: WHAT A DOOR SAYS UNDER ITS BAND (1.112.0). Where Level Factory hangs a street band naming the shop, the door box
+#: said the same name again -- 1.79.0's one name on both signs, the walker's option A of 2026-10-06 -- and on a
+#: one-storey front the two stack. The walker, at cold run 9305's pharmacy: "double sign here looks...redundant",
+#: and chose the trade for the door. A civic building's words are its trade already; a kind with no word here, and a
+#: building of no kind, says OPEN.
+TRADE = {"club": "OPEN", "gas": "OPEN 24 HOURS", "pizza": "PIZZA", "deli": "DELI", "pawn": "PAWN", "bank": "BANK",
+         "pharmacy": "PHARMACY", "clinic": "CLINIC", "market": "GROCERY", "card": "CARDS", "video": "VIDEO",
+         "brewery": "BREWERY", "casino": "CASINO", "funeral": "FUNERAL HOME", "country": "CLUBHOUSE"}
+
+
+def trade_for(business):
+    """``{kind, text, colours}`` for the sign over a door whose building's band names it (1.112.0): the trade, in
+    the colours `sign_for` gives the name."""
+    said = sign_for(business)
+    if said["kind"] in CIVIC:
+        return said
+    return {"kind": said["kind"], "text": TRADE.get(said["kind"], "OPEN"), "colours": said["colours"]}
+
+
 def all_strings():
     out = []
     for _kind, _m, names in KINDS:
         out += list(names or ())
-    return out
+    return out + sorted(set(TRADE.values()) | {"OPEN"})
 
 
 TEXEL = 80                 # px a metre: the pylon's, read from the street
