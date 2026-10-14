@@ -111,7 +111,9 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # was raw `metal` moved with them
            "dress_cover",
            # a stoop's railing is wrought iron painted black (1.105.0)
-           "stoop_railing")
+           "stoop_railing",
+           # a fire escape is steel painted black (1.110.0)
+           "fire_escape")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)

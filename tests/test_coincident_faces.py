@@ -516,7 +516,19 @@ DID_NOT_BUILD = {"boots"}
 #: cheeks, the cheeks stand off the wall plane and over the valance
 #: (`shop_awning_forms`), so `prims.coincident_pairs` reads 0 over 54 sizes
 #: before Blender does. 48 is the genome's budget.
-CENSUS_BUILDS = 396
+#: 1.110.0: `fire_escape`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species fire_escape
+#: bollard`, the bollard the control (its known 2 / 2 / 1): "6 builds, 3 with
+#: coincident pairs, 0 that did not build", the fire escape's three corners
+#: 48 / 1092 / 1464 tris and 0 pairs -- the min corner a drop ladder, the
+#: others a flight bay, `auto` drawing the form each box can be. The first
+#: run drew the min corner as a flight and it did not build: a list's first
+#: option is a plan's default, so the genome lists `auto` first. The deck
+#: nests in levels, a rail sinks deeper into its post than its section nests
+#: and the treads stop a step short of the stringers (`fire_escape_forms`),
+#: so `prims.coincident_pairs` reads 0 over 1,968 sizes before Blender does.
+#: 1,500 is the genome's budget.
+CENSUS_BUILDS = 399
 
 
 def test_the_census_covers_every_species_there_is():
