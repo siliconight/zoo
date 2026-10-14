@@ -9,7 +9,7 @@ come from the pure ``core.arch`` module so they stay unit-testable.
 from __future__ import annotations
 
 from ..bpylayer import geometry, materials
-from ..core import arch, doors, partnames, window_panes
+from ..core import arch, doors, partnames, shop_panes, window_panes
 
 
 #: The flat colour a room face falls back to with no skin library: a warm
@@ -29,6 +29,15 @@ INNER_COLOR = (0.82, 0.80, 0.74)
 FACADE_DOOR_SETBACK = 0.08
 FACADE_DOOR_THICK = 0.045
 FACADE_DOOR_COLOR = (0.16, 0.20, 0.28)
+
+#: A PAINTED PANE'S ATLAS BY ITS STATE (1.107.0): the atlas, its material and
+#: its images' name. A home's window is `window_panes` (1.64.0); a corner
+#: shop's front is `shop_panes`, landscape cells on a material of its own.
+#: The two state sets never meet (`tests/test_shop_panes.py`).
+PANE_ATLASES = {
+    **{s: (window_panes, "M_Window_pane_Face", "window_pane") for s in window_panes.STATES},
+    **{s: (shop_panes, "M_Shop_pane_Face", "shop_pane") for s in shop_panes.STATES},
+}
 
 
 def build_slab(plan, streams, collection, species):
@@ -219,7 +228,9 @@ def build_slab(plan, streams, collection, species):
                          (pane_w * 0.98, d * 0.15, pane_h * 0.98))
         glazing_kind = plan.get("glazing_kind", "glass")
         state = plan.get("pane")
-        if glazing_kind == "glass_facade" and state in window_panes.STATES:
+        painted = PANE_ATLASES.get(state)
+        if glazing_kind == "glass_facade" and painted is not None:
+            panes, material_name, image = painted
             # A PAINTED PANE (1.64.0): both big faces show the state's cell
             # of the shared atlas, each unmirrored from its own side, and the
             # thin edges take frame paint (`window_panes.face_uv`, 1.66.0 --
@@ -233,17 +244,17 @@ def build_slab(plan, streams, collection, species):
             for face in bm.faces:
                 for loop in face.loops:
                     co = loop.vert.co
-                    loop[uv].uv = window_panes.face_uv(
+                    loop[uv].uv = panes.face_uv(
                         state, face.normal.y, co.x, co.z, cx, cz, hx, hz)
             geometry.wear_colors(bm, streams.stream("pane"), 0.0)
             pane = geometry.bm_to_object(bm, f"{root}_Glass", collection,
                                          finish=False, bevel=0.0)
-            albedo, emission = window_panes.atlas()
+            albedo, emission = panes.atlas()
             pane.data.materials.append(materials.make_pane_material(
-                "M_Window_pane_Face",
-                materials.image_from_png("window_pane_albedo", albedo.png()),
-                materials.image_from_png("window_pane_emission", emission.png()),
-                window_panes.EMISSION, window_panes.ALBEDO))
+                material_name,
+                materials.image_from_png(f"{image}_albedo", albedo.png()),
+                materials.image_from_png(f"{image}_emission", emission.png()),
+                panes.EMISSION, panes.ALBEDO))
             objs.append(pane)
         else:
             pane = geometry.bm_to_object(

@@ -712,10 +712,12 @@ def plan_kit(manifest: dict, theme: str = "delco", style: int = 1,
         # THE ROOM FACE (1.38.0): a known kind on a wall-family slot, else none
         inner = (str(s["material_in"]) if typ in INNER_FACE_ROLES and s.get("material_in")
                  in skins.KNOWN_KINDS else None)
-        # A FACADE WINDOW'S PAINTED STATE (1.64.0, Deli Counter >= 0.179.0)
-        from zoo_keeper.core import window_panes as _panes
+        # A FACADE WINDOW'S PAINTED STATE (1.64.0, Deli Counter >= 0.179.0):
+        # a home's sash, or a corner shop's front (1.107.0, `shop_panes`)
+        from zoo_keeper.core import shop_panes as _shop, window_panes as _panes
         pane = (str(s["pane"]) if typ == "window" and s.get("glazing") == "facade"
-                and s.get("pane") in _panes.STATES else None)
+                and (s.get("pane") in _panes.STATES
+                     or s.get("pane") in _shop.STATES) else None)
         # AN EMPTY FRONT DOOR'S FINISH (1.72.0, Deli Counter >= 0.182.0)
         from zoo_keeper.core import doors as _doors
         door = (str(s["door"]) if typ == "doorway" and s.get("glazing") == "facade"
