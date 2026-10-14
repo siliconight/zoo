@@ -508,7 +508,15 @@ DID_NOT_BUILD = {"boots"}
 #: lie on the rails' centre lines and each member nests `NEST` a side inside the
 #: one it runs into (`stoop_railing_forms`), so `prims.coincident_pairs` reads 0
 #: on both forms over 60 sizes before Blender does. 240 is the genome's budget.
-CENSUS_BUILDS = 393
+#: 1.108.0: `shop_awning`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species shop_awning
+#: bollard`, the bollard the control (its known 2 / 2 / 1): "6 builds, 3 with
+#: coincident pairs, 0 that did not build", the awning's three corners 40 / 40 /
+#: 40 tris and 0 pairs, first run. The slope stops inside the valance and the
+#: cheeks, the cheeks stand off the wall plane and over the valance
+#: (`shop_awning_forms`), so `prims.coincident_pairs` reads 0 over 54 sizes
+#: before Blender does. 48 is the genome's budget.
+CENSUS_BUILDS = 396
 
 
 def test_the_census_covers_every_species_there_is():

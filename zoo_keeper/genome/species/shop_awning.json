@@ -1,0 +1,110 @@
+{
+  "species": "shop_awning",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Factory roadmap 241, the corner shop. The urban comps (the factory root's docs/reference/URBAN_MIDRISE_COMPS.md): 'Corners carry the life. The corner building has the shop at grade (lit, awning), homes above'; the Empties comps (docs/reference/EMPTIES_COMPS.md) list the awning as Zoo's to build. REFERENCE: the common storefront shed awning -- a canvas slope from the wall down to a 10 in valance along its front, closed at each end by a triangular cheek. One shape, `shed`, in the canvas colours a 1990s Philadelphia corner shop wore; the colour is the form's (`core/shop_awning_forms.py`), so the style's colour is not read. No collision: it hangs over a frontage nobody walks at its height."
+  },
+  "dimensions": {
+    "width": {
+      "min": 2.0,
+      "max": 25.0,
+      "default": 6.0
+    },
+    "depth": {
+      "min": 0.6,
+      "max": 2.0,
+      "default": 1.2
+    },
+    "height": {
+      "min": 0.4,
+      "max": 1.5,
+      "default": 0.85
+    }
+  },
+  "parts": [
+    "ShopAwning_Canvas"
+  ],
+  "params": {
+    "form": [
+      "shed_red",
+      "shed_green",
+      "shed_navy",
+      "shed_black"
+    ]
+  },
+  "materials": {
+    "default": "canvas",
+    "options": [
+      "canvas"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "canvas",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.2,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "canvas",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.35,
+      "bevel": 0.0,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "canvas",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.2,
+      "bevel": 0.0,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "canvas",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.5,
+      "bevel": 0.0,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "canvas",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wear": 0.3,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 48
+  },
+  "attachments": [],
+  "collision": false,
+  "match_priority": 0,
+  "keywords": [
+    "shop awning",
+    "awning",
+    "storefront awning",
+    "shop_awning"
+  ]
+}
