@@ -78,23 +78,57 @@ def in_one_order(bm, elems):
     return sorted(elems, key=key)
 
 
+def _corner_layers(bm):
+    """``[(kind, layer)]``: every loop layer ``bm`` carries, of every kind
+    this Blender's BMesh has -- read off the API rather than listed (5.1:
+    bool, color, float, float_color, float_vector, int, string, uv), so a
+    kind added later is carried, or refused loudly, never dropped."""
+    acc = bm.loops.layers
+    out = []
+    for kind in sorted(dir(acc)):
+        coll = None if kind.startswith("_") else getattr(acc, kind, None)
+        if isinstance(coll, bmesh.types.BMLayerCollection):
+            out += [(kind, layer) for layer in coll.values()]
+    return out
+
+
+def _corner_value(loop, kind, layer):
+    """A corner's value on one layer, held apart from the corner: a UV by
+    its `uv` and its pin, a vector copied, anything else as read."""
+    value = loop[layer]
+    if kind == "uv":
+        return (value.uv.copy(), value.pin_uv)
+    return value.copy() if hasattr(value, "copy") else value
+
+
+def _set_corner_value(loop, kind, layer, value):
+    if kind == "uv":
+        loop[layer].uv, loop[layer].pin_uv = value
+    else:
+        loop[layer] = value
+
+
 def start_at_lowest(bm, faces):
     """Each of ``faces`` remade to start at its lowest-index vertex, its
-    winding and its material kept (1.103.0). Returns the faces as they stand.
+    winding, its material and its corner data kept (1.103.0; the corner data
+    since 1.109.0). Returns the faces as they stand.
 
-    An operator that makes a face (`holes_fill`, `contextual_create`) starts
-    it at a corner of its own choosing, and the choice changes from one
-    process to the next even with its input in one order: across four builds
-    of the deli's fixtures, each dome's 20-cornered cap started at one of two
-    neighbouring corners, dome by dome. A GLB triangulates a face from its
-    first corner, so the two starts are two sets of triangles and two
-    lightmap charts. Remade before the face carries corner data -- refused if
-    the bmesh has any, rather than losing it.
+    An operator that makes a face (`holes_fill`, `contextual_create`, the
+    bevel in `bevel_edges`) starts it at a corner of its own choosing, and the
+    choice changes from one process to the next even with its input in one
+    order: across four builds of the deli's fixtures, each dome's 20-cornered
+    cap started at one of two neighbouring corners, dome by dome. A GLB
+    triangulates a face from its first corner, so the two starts are two sets
+    of triangles and two lightmap charts.
+
+    THE CORNER DATA GOES ROUND WITH ITS CORNERS (1.109.0). Until then a bmesh
+    carrying any was refused, rather than have it lost; but `bevel_edges`
+    restarts every face it leaves, and a turning part reaches it carrying its
+    UVMap and Pivot layers (`prim_mesh`). Each corner's value on every layer
+    (`_corner_layers`) is read before the face is remade and written back to
+    the corner on the same vertex.
     """
-    layers = bm.loops.layers
-    for kind in ("uv", "color", "float_color", "float", "int"):
-        if len(getattr(layers, kind, ())):
-            raise ValueError("start_at_lowest: the bmesh carries %s corner data" % kind)
+    layers = _corner_layers(bm)
     bm.verts.index_update()
     out = []
     for f in faces:
@@ -103,10 +137,14 @@ def start_at_lowest(bm, faces):
         if k == 0:
             out.append(f)
             continue
+        held = [[_corner_value(lp, kind, layer) for lp in f.loops] for kind, layer in layers]
         mat, smooth = f.material_index, f.smooth
         bm.faces.remove(f)
         nf = bm.faces.new(vs[k:] + vs[:k])
         nf.material_index, nf.smooth = mat, smooth
+        for (kind, layer), values in zip(layers, held):
+            for lp, value in zip(nf.loops, values[k:] + values[:k]):
+                _set_corner_value(lp, kind, layer, value)
         out.append(nf)
     return out
 
@@ -351,6 +389,21 @@ def bevel_edges(bm, offset, segments=1, angle_min=0.6, butt_planes=()):
     if edges:
         bmesh.ops.bevel(bm, geom=edges, offset=offset, segments=segments,
                         profile=0.7, affect="EDGES", clamp_overlap=True)
+        # EVERY FACE FROM ITS LOWEST CORNER (1.109.0, factory roadmap 247).
+        # The bevel starts the faces it makes and remakes at corners of its
+        # own choosing, and the choice moves with the bmesh's face order and
+        # with the process. The satellite dish's bowl -- a `create_uvsphere`,
+        # whose faces come in an order that changes from process to process
+        # -- built six times in fresh processes from one command, left four
+        # ways, its triangles from other corners and in other orders. One
+        # process laying its faces in six orders bevelled them four to six
+        # ways, and six ways with the faces sorted back into one order first.
+        # Restarted at their lowest vertex just after the bevel, the six were
+        # one mesh, the same in two processes (the factory's
+        # docs/findings/roofprops_bytes/: stage_runs.py, shuffle_bevel.py).
+        # `bm_to_object` sorts the faces by their corners next, so where a
+        # face starts is its sort key.
+        start_at_lowest(bm, list(bm.faces))
 
 
 # --- shape helpers (Layer 3 surface dressing) -------------------------------

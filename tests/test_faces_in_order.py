@@ -130,19 +130,9 @@ def test_bpy_a_face_is_remade_to_start_at_its_lowest_vertex():
         bm.free()
 
 
-def test_bpy_it_refuses_a_face_that_carries_corner_data():
-    pytest.importorskip("bpy")
-    import bmesh
-    from zoo_keeper.bpylayer import geometry
-    bm = bmesh.new()
-    try:
-        vs = [bm.verts.new((x, y, 0.0)) for x, y in ((0, 0), (1, 0), (1, 1))]
-        f = bm.faces.new([vs[1], vs[2], vs[0]])
-        bm.loops.layers.uv.new("UVMap")
-        with pytest.raises(ValueError):
-            geometry.start_at_lowest(bm, [f])
-    finally:
-        bm.free()
+# `test_bpy_it_refuses_a_face_that_carries_corner_data` stood here until 1.109.0, when
+# `start_at_lowest` came to carry a face's corner data round with its corners rather than refuse
+# it: tests/test_bevelled_faces_in_order.py reads the data back, corner by corner.
 
 
 def test_bpy_in_one_order_is_one_order_whatever_it_is_given():
