@@ -29,5 +29,6 @@
  "street_tree",
  "traffic_signal",
  "utility_pole",
- "water_barrel"
+ "water_barrel",
+ "roof_hatch"
 ]

@@ -528,7 +528,17 @@ DID_NOT_BUILD = {"boots"}
 #: and the treads stop a step short of the stringers (`fire_escape_forms`),
 #: so `prims.coincident_pairs` reads 0 over 1,968 sizes before Blender does.
 #: 1,500 is the genome's budget.
-CENSUS_BUILDS = 399
+#: 1.113.0: `roof_hatch`, three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species roof_hatch
+#: bollard`, the bollard the control (its known 2 / 2 / 1): "6 builds, 3 with
+#: coincident pairs, 0 that did not build", the hatch's three corners 260 / 260
+#: / 260 tris and 0 pairs. Not first run: the first cut built the curb from
+#: four boxes and read 8 pairs a corner -- each end wall's outer face on the
+#: long walls' end faces, one plane facing one way -- so the curb became one
+#: ring of 16 shared vertices (`recipes/roof_hatch._ring`), and the closed lid
+#: rests sunk FLOATER_SKIRT into its top. 300 is the genome's budget. The
+#: record is the factory's `patches/roof_hatch/census.log`.
+CENSUS_BUILDS = 402
 
 
 def test_the_census_covers_every_species_there_is():

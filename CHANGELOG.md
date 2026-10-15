@@ -1,3 +1,31 @@
+## [1.113.0] - a roof hatch: the curb and lid around a ladder's opening
+
+**Factory roadmap 170, step 1.** The walker, 2026-09-23: a building does not have an open hole in its roof.
+Counted 2026-10-15 over Deli Counter's 446 specs (the factory's `docs/findings/roof_openings_170/`): 43 roof
+ladders climb out through a `hatch` link that cuts the slab, and nothing in any tool put a lid on it.
+
+### Added
+- **`roof_hatch`** (`genome/species/roof_hatch.json`, `recipes/roof_hatch.py`): a roof scuttle. Four curb walls
+  on the slot's edges, the slot's exact (w, d, h) -- Deli Counter sizes it to the hole plus 0.08 m a side, 0.2 m
+  tall -- and a lid plate the curb's own size, hinged on a rod along the back (local -Y) top edge.
+  - **The lid is the species' interactive.** Deli Counter's `hatch` machine maps `open` and `closed` to this
+    species; `state_art: ["closed"]` is what makes Zoo build the closed lid rather than defer it as identical
+    art (`kit.slot_variants`). `open`, the default, stands the lid on its hinge 100 degrees from flat -- past
+    vertical, leaning away from the opening the way a hold-open arm keeps a real scuttle -- and keeps a
+    collision box on it (a sheet of steel a body on the roof walks into; the walker's rule, "if I see
+    collision, I expect collision"). `closed` lays it flush in the curb's top with its own box over the hole.
+  - **`fit_objects` is the curb.** The raised lid is art above the slot, as a swung door leaf is beside its
+    frame; it must not drag the module's fit or pivot.
+  - Metal, in the skylight's five styles; `tris_lod0` 300.
+  - **The curb is one ring mesh, not four boxes.** The first cut's four boxes put each end wall's outer face
+    on the long walls' end faces -- one plane, facing the same way -- and the census read 8 coincident pairs
+    at every corner. A ring of 16 shared vertices has no two faces on a plane: `tools/coplanar_census.py`
+    (Blender 5.1.1, `--species roof_hatch bollard`, the bollard the control with its known 2 / 2 / 1) reads
+    the hatch's three corners at 260 / 260 / 260 tris and 0 pairs; `tests/test_coincident_faces.py` counts
+    three builds more. The closed lid rests sunk `FLOATER_SKIRT` into the curb's top, as a floater rests.
+- `tests/test_roof_hatch.py`: discovered and valid, `state_art` is `closed`, plans at Deli Counter's dims,
+  and an interactive hatch slot yields both the open base and the built closed variant.
+
 ## [1.112.0] - a door under its building's band says the trade
 
 **The walker's walk of cold runs 9305-9307, 2026-10-14, finding 4** (the factory's `docs/findings/walk_2026-10-14/`).
