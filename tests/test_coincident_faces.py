@@ -537,7 +537,11 @@ DID_NOT_BUILD = {"boots"}
 #: long walls' end faces, one plane facing one way -- so the curb became one
 #: ring of 16 shared vertices (`recipes/roof_hatch._ring`), and the closed lid
 #: rests sunk FLOATER_SKIRT into its top. 300 is the genome's budget. The
-#: record is the factory's `patches/roof_hatch/census.log`.
+#: record is the factory's `patches/roof_hatch/census.log`. 1.113.1 stood the
+#: lid vertical on a hinge 4 cm inside the back wall, its edges 5 mm inside the
+#: curb's planes (the placement gate's footprint): re-run the same way, the
+#: same 260 / 260 / 260 tris and 0 pairs, the bollard its 2 / 2 / 1
+#: (`patches/roof_hatch/census_1131.log`).
 CENSUS_BUILDS = 402
 
 

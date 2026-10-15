@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. A roof scuttle: a low steel curb around the ladder's opening and a hinged lid on it (factory roadmap 170 -- every roof opening was a bare hole). The lid is this species' interactive: `open` (the default) stands it up past vertical on its back hinge, clear of the climber, and `closed` lays it flush in the curb. The curb is the slot; the raised lid is art above it."
+    "notes": "Original procedural construction. A roof scuttle: a low steel curb around the ladder's opening and a hinged lid on it (factory roadmap 170 -- every roof opening was a bare hole). The lid is this species' interactive: `open` (the default) stands it up vertical on its back hinge, inside the curb's footprint and clear of the climber, and `closed` lays it flush in the curb. The curb is the slot; the raised lid is art above it."
   },
   "dimensions": {
     "width": {"min": 0.9, "max": 2.4, "default": 1.66},

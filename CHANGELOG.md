@@ -1,3 +1,18 @@
+## [1.113.1] - the lid stands vertical, inside the curb's footprint
+
+**Cold run 9315, the first with a roof hatch, stopped at the art pass** on Deli Counter's placement gate: it
+measures a module's whole visual footprint against its greybox slot (`verify_placement`, 0.25 m), and the lid
+at 100 degrees -- past vertical, leaning out over the curb's back -- read `placed [1.668, 1.835, 1.987]` against
+`greybox [1.66, 0.2, 1.66]` on courthouse_a02, 0.33 m outside.
+
+### Changed
+- **`roof_hatch`'s open lid stands at 90 degrees**, the way a hold-open arm holds a scuttle lid, on a hinge set
+  `HINGE_IN` 4 cm inside the back wall's outer face; the plate's edges stop `LIP` 5 mm inside the curb's outer
+  planes. So the open module's footprint is the curb's (the hinge rod's 1.8 cm radius is all that passes it,
+  inside the gate's tolerance), and no face of the lid, open or closed, lies on a plane of the curb: standing,
+  its faces sit 5 mm and 20 mm off the curb's back wall's; closed, its edges are 5 mm inside the curb's rim.
+  The census re-run is recorded in `tests/test_coincident_faces.py`.
+
 ## [1.113.0] - a roof hatch: the curb and lid around a ladder's opening
 
 **Factory roadmap 170, step 1.** The walker, 2026-09-23: a building does not have an open hole in its roof.

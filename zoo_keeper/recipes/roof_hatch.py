@@ -7,8 +7,10 @@ the thing that stands around that hole. The curb is four short walls on the slab
 THE LID IS THE STATE. Deli Counter's `hatch` machine (interactives.py) has two: `open`, the default,
 and `closed`. The state rides in on ``plan["module"]["state"]`` (None is open).
 
-- `open`: the lid stands on its hinge at OPEN_DEG, past vertical and leaning away from the opening,
-  the way a hold-open arm keeps a real scuttle lid. The climber comes up through the hole and steps
+- `open`: the lid stands vertical on its hinge (OPEN_DEG 90), the way a hold-open arm holds a real
+  scuttle lid, INSIDE the curb's footprint: Deli Counter's placement gate measures a module's whole
+  footprint against its slot (0.25 m), and a lid leaning 10 degrees past vertical stood 0.33 m
+  outside it on cold run 9315. The climber comes up through the hole and steps
   off toward local +Y -- Deli Counter turns the slot so that is the side the ladder's body occupies
   (`roof_hatch.rot_for`), so the raised lid is behind them. The lid keeps a collision box in this
   state: it is a sheet of steel a body on the roof walks into, and the walker's rule is "if I see
@@ -29,8 +31,10 @@ from ..bpylayer import geometry, materials
 STATES = ("open", "closed")
 CURB_T = 0.06        # m; the curb wall's thickness
 LID_T = 0.035        # m; the lid plate
-OPEN_DEG = 100.0     # the lid's angle from flat when open: past vertical, leaning out
+OPEN_DEG = 90.0      # the lid's angle from flat when open: vertical, inside the curb's footprint
 HINGE_R = 0.018      # m; the hinge rod
+HINGE_IN = 0.04      # m; the hinge line sits this far inside the back wall's outer face
+LIP = 0.005          # m; the lid's edges stop this short of the curb's outer planes
 SKIRT = 0.004        # m; the closed lid sinks this far into the curb's top (core.floaters' FLOATER_SKIRT)
 
 
@@ -86,18 +90,22 @@ def build(plan, streams, collection):
     cboxes.append(((-w / 2.0, -d / 2.0, z0), (-w / 2.0 + CURB_T, d / 2.0, h / 2.0)))
     cboxes.append(((w / 2.0 - CURB_T, -d / 2.0, z0), (w / 2.0, d / 2.0, h / 2.0)))
 
-    # THE LID: a plate the curb's own size, resting on the curb's top -- sunk SKIRT into it, the
-    # way a Zoo floater rests (core.floaters), so no face of it is coincident with the curb's --
-    # and hinged along the back top edge. Closed, it stands LID_T above the slot: art above the
-    # curb, which is the fit.
-    lid_w, lid_d = w, d
+    # THE LID: a plate across the curb's top, resting on it -- sunk SKIRT into it, the way a Zoo
+    # floater rests (core.floaters) -- hinged along a line HINGE_IN inside the back wall's outer
+    # face, its edges LIP inside the curb's outer planes. So no face of it lies on a plane of the
+    # curb, closed or standing, and standing it stays inside the curb's footprint, which is what
+    # Deli Counter's placement gate measures. Closed, it stands LID_T above the slot: art above
+    # the curb, which is the fit.
+    lid_w = w - 2 * LIP
+    y_back, y_front = -d / 2.0 + HINGE_IN, d / 2.0 - LIP
+    lid_d = y_front - y_back
     lid_z = h / 2.0 - SKIRT + LID_T / 2.0                     # the plate's centre, closed
-    hinge = (0.0, -d / 2.0, h / 2.0 - SKIRT)                 # the hinge line, along local X
+    hinge = (0.0, y_back, h / 2.0 - SKIRT)                   # the hinge line, along local X
     bm = geometry.new_bm()
-    verts = geometry.add_box(bm, (0.0, 0.0, lid_z), (lid_w, lid_d, LID_T))
+    verts = geometry.add_box(bm, (0.0, (y_back + y_front) / 2.0, lid_z), (lid_w, lid_d, LID_T))
     if state == "open":
-        # swing the plate about the hinge line by OPEN_DEG: its far (+Y) edge rises and, past
-        # 90 degrees, leans back over the curb's outside, clear of the opening
+        # swing the plate about the hinge line by OPEN_DEG: its far (+Y) edge rises until the
+        # plate stands on the hinge, its thickness over the back wall, clear of the opening
         ang = math.radians(OPEN_DEG)
         c, s = math.cos(ang), math.sin(ang)
         for v in verts:
@@ -109,8 +117,8 @@ def build(plan, streams, collection):
         zs = [v.co.z for v in verts]
         lid_box = ((-lid_w / 2.0, min(ys), min(zs)), (lid_w / 2.0, max(ys), max(zs)))
     else:
-        lid_box = ((-lid_w / 2.0, -lid_d / 2.0, lid_z - LID_T / 2.0),
-                   (lid_w / 2.0, lid_d / 2.0, lid_z + LID_T / 2.0))
+        lid_box = ((-lid_w / 2.0, y_back, lid_z - LID_T / 2.0),
+                   (lid_w / 2.0, y_front, lid_z + LID_T / 2.0))
     lid = part(bm, "RoofHatch_Lid")
     cboxes.append(lid_box)
 
