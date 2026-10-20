@@ -73,6 +73,8 @@ from __future__ import annotations
 import math
 import zlib
 
+import numpy as np
+
 from . import machine_parts as MP
 from . import paint as PT
 from . import prims as P
@@ -98,12 +100,56 @@ STICKERS = (("WE BUY HOUSES", "CASH", "610-555-0186"),
             ("CALL YA MOM", "SHE'S WORRIED", ""))
 #: SOMEBODY ELSE'S MARKS COME IN LOOKS (1.116.0, the factory's roadmap 210). The walker's look review, 2026-10-19:
 #: "the same same graffiti and drawing int he phone booth is too similar/uniform". A street of booths is not one
-#: booth again, so a payphone takes the kit's `variant` (genome `module_variants`, 4): which marker tags went up
-#: inside the enclosure, where, in which ink, and which stickers made it onto the back panel. Variant 0 is the
-#: 1.115.0 booth byte for byte -- its tiles carry no `marks` key at all.
+#: booth again, so a payphone takes the kit's `variant` (genome `module_variants`, 4): which marks went up inside
+#: the enclosure, where, in which ink, and which stickers made it onto the back panel.
 VARIANTS = 4
-#: The inks a tag goes up in: a black marker, the purple that stood since 1.88.0, a red, a blue, a silver paint pen.
+#: THE MARKS ARE SMALL, AND MOSTLY WEATHER (1.117.0). The walker's look review, 2026-10-20, on 1.116.0's booths:
+#: "more subtle graffiti/weathering....a large shapie squigle doesn't look like anything". 1.116.0 drew a tag as a
+#: sine wave of discs 3 px (19 mm) across, over as much as 74 % of a side panel. What the inside of a booth carries
+#: is what hands and weather leave there: a few small tags in a marker's line, initials keyed into the paint, rain
+#: run down from the roof's seam, scuffs where shoes and bags rub, the paper of a sticker somebody tore off, and,
+#: where the phone company got to a tag first, its patch of not-quite-matching paint. Every booth carries them, the
+#: plain look too, and each of its three inside panels its own (`_marks`); the variant picks which and where.
+#: The inks a tag goes up in: a black marker, a purple, a red, a blue, a silver paint pen.
 TAG_INKS = ((24, 24, 26), (150, 30, 140), (168, 34, 30), (34, 58, 150), (172, 174, 178))
+#: What the tags say: Delco words, never letters drawn at random -- three of those can spell anything. Held against
+#: the denylists with every other painted word (`all_strings`).
+TAG_WORDS = ("JAWN", "JEET", "ARDY", "YOUSE", "WOODER", "DRAWL", "JABRONI", "WIT")
+#: Whose initials were keyed into the paint, two pairs at a time.
+INITIALS = ("JD", "AR", "BT", "NS", "RW", "TO", "LB", "DE")
+#: A hand's letters, as strokes: each a polyline in a box one capital high (x across from the left, y down from the
+#: top), drawn as a hand draws it and leaned by `_word`.
+GLYPHS = {
+    "A": (((0.0, 1.0), (0.5, 0.0), (1.0, 1.0)), ((0.22, 0.62), (0.78, 0.62))),
+    "B": (((0.0, 1.0), (0.0, 0.0), (0.65, 0.0), (0.85, 0.22), (0.6, 0.47), (0.0, 0.5), (0.75, 0.53), (1.0, 0.76),
+           (0.75, 1.0), (0.0, 1.0)),),
+    "D": (((0.0, 0.0), (0.0, 1.0), (0.6, 1.0), (1.0, 0.65), (1.0, 0.35), (0.6, 0.0), (0.0, 0.0)),),
+    "E": (((1.0, 0.0), (0.0, 0.0), (0.0, 1.0), (1.0, 1.0)), ((0.0, 0.5), (0.75, 0.5))),
+    "I": (((0.5, 0.0), (0.5, 1.0)),),
+    "J": (((0.25, 0.0), (1.0, 0.0)), ((0.75, 0.0), (0.75, 0.78), (0.5, 1.0), (0.15, 0.95), (0.0, 0.72))),
+    "L": (((0.0, 0.0), (0.0, 1.0), (0.9, 1.0)),),
+    "N": (((0.0, 1.0), (0.0, 0.0), (1.0, 1.0), (1.0, 0.0)),),
+    "O": (((0.5, 0.0), (0.92, 0.18), (1.0, 0.55), (0.75, 0.95), (0.35, 1.0), (0.05, 0.75), (0.0, 0.35), (0.25, 0.05),
+           (0.5, 0.0)),),
+    "R": (((0.0, 1.0), (0.0, 0.0), (0.7, 0.02), (0.95, 0.22), (0.72, 0.45), (0.0, 0.5), (1.0, 1.0)),),
+    "S": (((1.0, 0.12), (0.55, 0.0), (0.1, 0.12), (0.1, 0.38), (0.9, 0.6), (0.92, 0.88), (0.45, 1.0), (0.0, 0.88)),),
+    "T": (((0.0, 0.0), (1.0, 0.0)), ((0.5, 0.0), (0.5, 1.0))),
+    "U": (((0.0, 0.0), (0.0, 0.75), (0.3, 1.0), (0.7, 1.0), (1.0, 0.75), (1.0, 0.0)),),
+    "W": (((0.0, 0.0), (0.22, 1.0), (0.5, 0.35), (0.78, 1.0), (1.0, 0.0)),),
+    "Y": (((0.0, 0.0), (0.5, 0.5), (1.0, 0.0)), ((0.5, 0.5), (0.5, 1.0))),
+    "+": (((0.5, 0.2), (0.5, 0.8)), ((0.2, 0.5), (0.8, 0.5))),
+}
+#: A letter's width as a share of its capital, and the few that are not.
+GLYPH_W = 0.56
+GLYPH_WIDTHS = {"I": 0.12, "W": 0.8, "+": 0.45}
+#: A marker's line, in pixels either side of its middle: 1.1 px across, 7 mm at the paint's 160 px a metre.
+TAG_LINE = 0.55
+#: A keyed scratch's line: half that.
+SCRATCH_LINE = 0.35
+#: A tag's capitals, in pixels: (least, most) on a side panel and on the back panel (5 to 8 cm and 4 to 6 cm).
+TAG_CAP = {"side": (8.0, 12.0), "back": (7.0, 10.0)}
+#: The widest a tag may run, as a share of its panel's width; a longer word is written smaller, never shortened.
+TAG_REACH = {"side": 0.55, "back": 0.32}
 #: Which bill each sticker window got, by variant: 1.115.0's order first, and no two variants alike.
 STICKER_ORDER = ((0, 1, 2), (1, 2, 0), (2, 0, 1), (1, 0, 2))
 BINDER_LINES = ("YOUSETEL", "DIRECTORY", "DELCO 1997")
@@ -472,14 +518,15 @@ def _enclosure(L, prims):
     sx = w / 2.0 - INSET                                   # a side panel's outer face
     sxi = sx - T_SIDE                                      # ...its inner face
     zr = top - T_ROOF
-    paint = {"*": "shroud", "right": "side_in", "left": "side_in"}
     # the roof: the slot's footprint at its top
     prims += _box("Payphone_Roof", {"*": "shroud", "top": "roof", "under": "inside"},
                   (-w / 2.0, y_front, zr), (w / 2.0, d / 2.0, top))
     y_side1 = L["y_back"] - INSET
-    for name, a, b, out_face in (("SideL", -sx, -sxi, "left"), ("SideR", sxi, sx, "right")):
+    # each side panel's inside its own tile (1.117.0): one tile on both showed the same marks facing each other
+    for name, a, b, out_face, inside in (("SideL", -sx, -sxi, "left", "side_in_l"),
+                                         ("SideR", sxi, sx, "right", "side_in_r")):
         tiles = {"*": "shroud", out_face: "pictogram" if form == "pedestal" else "shroud",
-                 ("right" if out_face == "left" else "left"): "side_in"}
+                 ("right" if out_face == "left" else "left"): inside}
         prims += _box(f"Payphone_{name}", tiles, (a, y_front + INSET, z0), (b, y_side1, zr + INSET),
                       skip=("top",))
     # the back panel, between the sides and into them, running below them;
@@ -598,7 +645,7 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32), variant=0):
     and ``lamp`` the hood lamp's marker -- its name, where it hangs, and the
     payload it carries. ``rgb`` is the shroud's linear paint (the genome's
     style colour), lettered and worn in the tiles. ``variant`` (1.116.0) picks
-    the booth's marks (`VARIANTS`); 0 is the 1.115.0 booth."""
+    the booth's marks (`VARIANTS`), which every booth carries (1.117.0)."""
     variant = int(variant or 0) % VARIANTS
     L = layout(form, w, d, h)
     prims = []
@@ -618,8 +665,9 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32), variant=0):
 
     tiles = {
         "shroud": spec("payphone_shroud", 0.40, 0.80),
-        "side_in": spec("payphone_side_in", d, enc_h, **({"marks": variant} if variant else {})),
-        "back_in": spec("payphone_back_in", w, enc_h + BACK_BELOW, **({"marks": variant} if variant else {})),
+        "side_in_l": spec("payphone_side_in", d, enc_h, marks=variant, panel="left"),
+        "side_in_r": spec("payphone_side_in", d, enc_h, marks=variant, panel="right"),
+        "back_in": spec("payphone_back_in", w, enc_h + BACK_BELOW, marks=variant, keep_out=behind_phone(L)),
         "inside": spec("payphone_inside", 0.30, 0.30),
         "roof": spec("payphone_roof", 0.30, 0.20),
         "post": spec("payphone_post", 0.10, 0.60),
@@ -666,6 +714,20 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32), variant=0):
 # --- the paint -------------------------------------------------------------------------
 
 
+def behind_phone(L):
+    """Where the instrument and its handset hang in front of the back panel's
+    face, as fractions of that face's tile from its top left -- (u0, v0, u1,
+    v1) -- with a centimetre round them: nobody writes behind the phone
+    (1.117.0)."""
+    sxi = L["w"] / 2.0 - INSET - T_SIDE
+    x0, x1 = -sxi - INSET, sxi + INSET
+    z0, z1 = L["z_enc0"] - BACK_BELOW, L["top"] - T_ROOF + INSET
+    ix0, ix1, _yf, _yb, iz0, iz1 = L["inst"]
+    hx0 = L["grip"][0] - CUP_HALF                       # the handset's far end, left of the cradle
+    return (round((hx0 - 0.01 - x0) / (x1 - x0), 4), round((z1 - iz1 - 0.01) / (z1 - z0), 4),
+            round((ix1 + 0.01 - x0) / (x1 - x0), 4), round((z1 - iz0 + 0.01) / (z1 - z0), 4))
+
+
 def _px(m, texel=TEXEL):
     return max(8, int(round(m * texel)))
 
@@ -684,38 +746,218 @@ def _outdoor(im, w, h, body, seed, grime=0.5):
     im.edge_dark((0, 0, w, h), max(2, w * 0.04), 0.18)
 
 
-def _tag(im, box, seed, rgb):
-    """A marker tag: a looping stroke of discs, the shape of a name nobody can
-    read, scrawled across ``box``."""
-    x0, y0, x1, y1 = box
-    r = max(1.5, (y1 - y0) * 0.06)
-    steps = 90
-    for s in range(steps):
-        t = s / float(steps)
-        x = x0 + (x1 - x0) * t
-        wob = math.sin(t * 19.0 + (seed % 7)) * 0.32 + math.sin(t * 7.0 + (seed % 5)) * 0.18
-        y = (y0 + y1) / 2.0 + (y1 - y0) * wob
-        im.disc(x, y, r, rgb, 0.85)
+def _u(*k):
+    """A number in [0, 1), the same for the same key."""
+    return (_h(*k) % 100003) / 100003.0
 
 
-def _marks(im, w, h, variant, panel, lo, hi):
-    """Variant ``variant``'s tags on one panel (1.116.0): ``lo`` to ``hi`` of them, each a band of the panel at its
-    own height and reach, in one of `TAG_INKS`, drawn from a hash of the variant and the panel -- the same booth
-    every build, a different booth per variant. On the back panel they stay in its top band, as 1.115.0's one tag
-    did: the instrument hangs over the middle of that panel."""
-    n = lo + _h("marks", panel, variant) % (hi - lo + 1)
-    for k in range(n):
-        r = _h("mark", panel, variant, k)
-        if panel == "side":
-            bw = 0.30 + (r % 45) / 100.0                   # 30 to 74 % of the panel's width
-            y0 = 0.12 + (r >> 17) % 1000 / 1000.0 * 0.68   # anywhere from 12 to 80 % down it
-        else:
-            bw = 0.20 + (r % 17) / 100.0                   # 20 to 36 %, either side of the instrument
-            y0 = 0.05 + (r >> 17) % 1000 / 1000.0 * 0.12   # in the top band, 5 to 17 % down
-        x0 = (r >> 7) % 1000 / 1000.0 * (1.0 - bw)
-        bh = 0.06 + (r >> 3) % 7 / 100.0                   # a band 6 to 12 % of the panel's height
-        box = (w * x0, h * y0, w * (x0 + bw), h * min(0.95, y0 + bh))
-        _tag(im, box, (r >> 11) % 97, TAG_INKS[(r >> 23) % len(TAG_INKS)])
+def _ink(im, strokes, r, rgb, alpha):
+    """``strokes`` -- polylines, in pixels -- inked in one pass at ``alpha``:
+    a line ``2 * r`` px across, its edges anti-aliased. Returns the box it
+    touched, or None. One pass, so a faded line stays faded where it crosses
+    itself: 1.116.0 laid discs a third of a pixel apart along its stroke, each
+    mixed over the last, and its 0.85 inked all but opaque."""
+    segs = [(a, b) for pts in strokes for a, b in zip(pts, pts[1:])]
+    if not segs:
+        return None
+    xs = [v for (ax, _ay), (bx, _by) in segs for v in (ax, bx)]
+    ys = [v for (_ax, ay), (_bx, by) in segs for v in (ay, by)]
+    x0, y0 = int(math.floor(min(xs) - r - 1.0)), int(math.floor(min(ys) - r - 1.0))
+    x1, y1 = int(math.ceil(max(xs) + r + 1.0)), int(math.ceil(max(ys) + r + 1.0))
+    gy, gx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+    px, py = gx + 0.5, gy + 0.5
+    near = np.full(px.shape, 1e9, dtype=np.float32)
+    for (ax, ay), (bx, by) in segs:
+        dx, dy = bx - ax, by - ay
+        ll = dx * dx + dy * dy
+        t = np.clip(((px - ax) * dx + (py - ay) * dy) / ll, 0.0, 1.0) if ll > 1e-9 else 0.0
+        near = np.minimum(near, np.hypot(px - (ax + t * dx), py - (ay + t * dy)))
+    cov = np.clip(r + 0.5 - near, 0.0, 1.0)
+    im.mask(np.rint(cov * 255.0).astype(np.uint8), x0, y0, rgb, alpha)
+    return (x0, y0, x1, y1)
+
+
+def _patch(im, rects, rgb, alpha):
+    """The union of ``rects`` laid at ``alpha`` in one pass, so where they
+    overlap it is no thicker than where they do not."""
+    x0, y0 = int(math.floor(min(r[0] for r in rects))), int(math.floor(min(r[1] for r in rects)))
+    x1, y1 = int(math.ceil(max(r[2] for r in rects))), int(math.ceil(max(r[3] for r in rects)))
+    cov = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    for a, b, c, d in rects:
+        cov[int(round(b)) - y0:int(round(d)) - y0, int(round(a)) - x0:int(round(c)) - x0] = 255
+    im.mask(cov, x0, y0, rgb, alpha)
+
+
+def _word(text, cap, seed):
+    """``text`` as one hand writes it, its foot on y = 0 from x = 0 and its
+    capitals ``cap`` px tall: `GLYPHS`' strokes in that hand's lean, width,
+    spacing and shake, the line tipped a few degrees, the first letter big and
+    every letter its own size and height, all from ``seed`` -- no two tags in
+    one hand. Returns ``(strokes, box)``."""
+    slant = 0.05 + 0.40 * _u("slant", seed)            # the lean, a share of a letter's height
+    wide = 0.75 + 0.50 * _u("wide", seed)              # letters narrow to broad
+    gap = 0.04 + 0.16 * _u("gap", seed)                # crammed to spaced, a share of the capital
+    shake = 0.06 + 0.10 * _u("shake", seed)
+    tilt = (_u("tilt", seed) - 0.5) * 0.24             # radians: up to 7 degrees either way
+    strokes, cx = [], 0.0
+    for k, ch in enumerate(text):
+        s = cap * (0.9 + 0.2 * _u("size", seed, k)) * (1.25 if k == 0 else 1.0)
+        bob = (_u("bob", seed, k) - 0.5) * 0.16 * cap
+        gw = s * GLYPH_WIDTHS.get(ch, GLYPH_W) * wide
+        for j, stroke in enumerate(GLYPHS[ch]):
+            pts = []
+            for i, (u, v) in enumerate(stroke):
+                jx = (_u("jx", seed, k, j, i) - 0.5) * shake * s
+                jy = (_u("jy", seed, k, j, i) - 0.5) * shake * s
+                pts.append((cx + u * gw + (1.0 - v) * slant * s + jx, -(1.0 - v) * s + bob + jy))
+            strokes.append(pts)
+        cx += gw + cap * gap
+    if _u("under", seed) < 0.35:
+        # the swoosh a writer finishes a tag with
+        strokes.append([(-0.1 * cap, 0.28 * cap), (cx * 0.5, 0.40 * cap), (cx + 0.1 * cap, 0.12 * cap)])
+    ct, st = math.cos(tilt), math.sin(tilt)
+    strokes = [[(x * ct - y * st, x * st + y * ct) for x, y in pts] for pts in strokes]
+    xs = [x for pts in strokes for x, _y in pts]
+    ys = [y for pts in strokes for _x, y in pts]
+    return strokes, (min(xs), min(ys), max(xs), max(ys))
+
+
+def _fit(text, cap, seed, reach, least=6.0):
+    """`_word` at ``cap``, or smaller until it runs no wider than ``reach``;
+    None when even ``least`` px will not do. A word is never shortened: two
+    letters of a word can spell another."""
+    while cap >= least:
+        strokes, box = _word(text, cap, seed)
+        if box[2] - box[0] <= reach:
+            return strokes, box
+        cap *= 0.85
+    return None
+
+
+def _place(box, region, avoid, seed, tries=16):
+    """Where a mark drawn round the origin with ``box`` goes: an offset that
+    puts the box inside ``region`` and 2 px clear of every box in ``avoid``,
+    from ``seed``; None when ``tries`` find none."""
+    bw, bh = box[2] - box[0], box[3] - box[1]
+    rx0, ry0, rx1, ry1 = region
+    if rx1 - rx0 < bw or ry1 - ry0 < bh:
+        return None
+    for t in range(tries):
+        ox = rx0 + _u("px", seed, t) * (rx1 - rx0 - bw) - box[0]
+        oy = ry0 + _u("py", seed, t) * (ry1 - ry0 - bh) - box[1]
+        b = (box[0] + ox, box[1] + oy, box[2] + ox, box[3] + oy)
+        if all(b[2] + 2 <= a[0] or b[0] - 2 >= a[2] or b[3] + 2 <= a[1] or b[1] - 2 >= a[3] for a in avoid):
+            return ox, oy
+    return None
+
+
+def _shift(strokes, ox, oy):
+    return [[(x + ox, y + oy) for x, y in pts] for pts in strokes]
+
+
+def _marks(im, w, h, variant, panel, body, keep_out=None):
+    """One booth's marks on one inside panel ``w`` x ``h`` px, over its
+    weathered paint ``body``; returns ``[(kind, text, box)]`` of what went up.
+    ``panel`` is "left", "right" or "back"; ``keep_out`` (u0, v0, u1, v1), as
+    fractions of the panel from its top left, is where the instrument hangs in
+    front of the back panel. The same booth every build; another variant or
+    another panel, other marks (1.117.0)."""
+    body = tuple(int(c) for c in body)
+    where = "back" if panel == "back" else "side"
+    seed = _h("marks", panel, variant)
+    # a booth's words and initials, each once in it: the variant shuffles them, and each panel takes its own pair
+    words = sorted(TAG_WORDS, key=lambda t: _h("word", variant, t))
+    initials = sorted(INITIALS, key=lambda t: _h("initials", variant, t))
+    slot = {"left": 0, "right": 2, "back": 4}[panel]
+    drawn, avoid = [], []
+    if keep_out:
+        avoid.append((keep_out[0] * w, keep_out[1] * h, keep_out[2] * w, keep_out[3] * h))
+
+    def u(*k):
+        return _u(seed, *k)
+
+    # rain off the roof's seam: thin runs down from the top edge, fading as they go, one in three of them rust
+    for k in range(2 + _h(seed, "runs") % 4):
+        x, run = 2.0 + u("rx", k) * (w - 5), h * (0.08 + 0.30 * u("rl", k))
+        rgb = (98, 72, 54) if u("rust", k) < 0.33 else _lift(body, -34)
+        wide = 1 + _h(seed, "rw", k) % 2
+        for y in range(0, int(run), 2):
+            wob = math.sin(y * 0.11 + k) * 0.6
+            im.rect((x + wob, y, x + wob + wide, y + 2), rgb, 0.20 * (1.0 - y / run) ** 1.5)
+        drawn.append(("run", "", (x, 0.0, x + wide, run)))
+    # scuffs low down, where knees and bags rub
+    for k in range(2 + _h(seed, "scuffs") % 4):
+        cx, cy = u("sx", k) * w, h * (0.86 + 0.11 * u("sy", k))
+        ln, a = 2.0 + 6.0 * u("sl", k), (u("sa", k) - 0.5) * 0.6
+        b = _ink(im, [[(cx, cy), (cx + math.cos(a) * ln, cy + math.sin(a) * ln)]], 0.7 + 0.9 * u("sr", k),
+                 (40, 40, 42), 0.14 + 0.12 * u("so", k))
+        drawn.append(("scuff", "", b))
+    # the paper of a sticker somebody tore off: a pale ragged patch, a few scraps still white
+    if u("paper") < (0.6 if where == "side" else 0.35):
+        pw, ph = 9.0 + 5.0 * u("pw"), 6.0 + 4.0 * u("ph")
+        spot = _place((0.0, 0.0, pw, ph), (0.08 * w, 0.25 * h, 0.92 * w, 0.75 * h), avoid, _h(seed, "paper"))
+        if spot is not None:
+            ox, oy = spot
+            rags = []
+            for j in range(3 + _h(seed, "rag") % 3):
+                jx, jy = (u("rx0", j) - 0.5) * 3.0, (u("ry0", j) - 0.5) * 2.0
+                rags.append((ox + jx, oy + jy, ox + pw * (0.6 + 0.4 * u("rx1", j)) + jx,
+                             oy + ph * (0.6 + 0.4 * u("ry1", j)) + jy))
+            _patch(im, rags, (206, 202, 190), 0.30)
+            scraps = []
+            for j in range(2 + _h(seed, "scrap") % 3):
+                sx, sy = ox + pw * u("sx0", j), oy + ph * u("sy0", j)
+                scraps.append((sx, sy, sx + 2.0 + u("sw0", j), sy + 1.0))
+            _patch(im, scraps, (228, 226, 216), 0.5)
+            b = (ox - 2.0, oy - 1.0, ox + pw + 2.0, oy + ph + 1.0)
+            avoid.append(b)
+            drawn.append(("paper", "", b))
+    # scratches: thin bright lines where the paint was keyed down to the metal
+    for k in range(3 + _h(seed, "keys") % 5):
+        x0, y0 = u("kx", k) * w, h * (0.15 + 0.65 * u("ky", k))
+        a, ln = math.pi * u("ka", k), 3.0 + 10.0 * u("kl", k)
+        b = _ink(im, [[(x0, y0), (x0 + math.cos(a) * ln, y0 + math.sin(a) * ln)]], SCRATCH_LINE,
+                 _lift(body, 58), 0.40)
+        drawn.append(("scratch", "", b))
+    # two pairs of initials keyed in, as somebody waiting on a call does
+    if u("initials") < (0.55 if where == "side" else 0.3):
+        text = initials[slot] + "+" + initials[slot + 1]
+        got = _fit(text, 6.0, _h(seed, "initials"), w * 0.5, least=5.0)
+        spot = got and _place(got[1], (0.06 * w, 0.30 * h, 0.94 * w, 0.80 * h), avoid, _h(seed, "ip"))
+        if spot:
+            b = _ink(im, _shift(got[0], *spot), SCRATCH_LINE + 0.05, _lift(body, 58), 0.45)
+            avoid.append(b)
+            drawn.append(("initials", text, b))
+    lo, hi = TAG_CAP[where]
+    region = ((0.05 * w, 0.14 * h, 0.95 * w, 0.76 * h) if where == "side" else (0.04 * w, 0.06 * h, 0.96 * w, 0.62 * h))
+    # where the phone company got to a tag first: its ghost under a patch of paint that does not quite match
+    if where == "side" and u("buff") < 0.35:
+        text = words[6 if panel == "left" else 7]
+        got = _fit(text, lo + (hi - lo) * u("oc"), _h(seed, "old"), w * TAG_REACH[where])
+        spot = got and _place(got[1], region, avoid, _h(seed, "op"))
+        if spot:
+            b = _ink(im, _shift(got[0], *spot), TAG_LINE, TAG_INKS[0], 0.6)
+            patch = (b[0] - 1.0 - 2.0 * u("b0"), b[1] - 1.0 - 2.0 * u("b1"), b[2] + 1.0 + 2.0 * u("b2"),
+                     b[3] + 1.0 + 2.0 * u("b3"))
+            fresh = tuple(int(round(c * 0.7 + g * 0.3)) + 5 for c, g in zip(body, (118, 122, 116)))
+            im.rect(patch, fresh, 0.88)
+            im.rect((patch[0] + 1, patch[1] + 1, patch[2] - 1, patch[3] - 1), _lift(fresh, 3), 0.5)
+            avoid.append(patch)
+            drawn.append(("buff", text, patch))
+    # the tags: a word or two in a marker's line, mostly black, faded
+    for k in range((1 + _h(seed, "tags") % 2) if where == "side" else (1 + (u("tags2") < 0.3))):
+        text = words[slot + k]
+        got = _fit(text, lo + (hi - lo) * u("cap", k), _h(seed, "tag", k), w * TAG_REACH[where])
+        spot = got and _place(got[1], region, avoid, _h(seed, "at", k))
+        if not spot:
+            continue
+        black = u("ink", k) < 0.6
+        rgb = TAG_INKS[0] if black else TAG_INKS[1 + _h(seed, "hue", k) % (len(TAG_INKS) - 1)]
+        b = _ink(im, _shift(got[0], *spot), TAG_LINE, rgb, (0.55 + 0.2 * u("fade", k)) if black else
+                 (0.45 + 0.2 * u("fade", k)))
+        avoid.append(b)
+        drawn.append(("tag", text, b))
+    return drawn
 
 
 def _sticker(im, box, lines, seed):
@@ -779,21 +1021,18 @@ def paint(spec):
         w, h = _px(spec["w_m"]), _px(spec["h_m"])
         im = PT.Img(w, h, _lift(body, -10))
         _outdoor(im, w, h, _lift(body, -10), 23, grime=0.8)
-        if spec.get("marks"):
-            _marks(im, w, h, spec["marks"], "side", 1, 3)
-        else:
-            _tag(im, (w * 0.10, h * 0.55, w * 0.90, h * 0.70), 3, (24, 24, 26))
-            _tag(im, (w * 0.20, h * 0.25, w * 0.75, h * 0.33), 8, (150, 30, 140))
-        return im.to_canvas()
+        drawn = _marks(im, w, h, int(spec.get("marks", 0)), spec.get("panel", "left"), _lift(body, -10))
+        c = im.to_canvas()
+        c.marks = drawn          # what went up (1.117.0), as ``unset`` is what did not set
+        return c
     if kind == "payphone_back_in":
         w, h = _px(spec["w_m"]), _px(spec["h_m"])
         im = PT.Img(w, h, _lift(body, -12))
         _outdoor(im, w, h, _lift(body, -12), 29, grime=0.7)
-        if spec.get("marks"):
-            _marks(im, w, h, spec["marks"], "back", 1, 2)
-        else:
-            _tag(im, (w * 0.06, h * 0.12, w * 0.40, h * 0.20), 11, (24, 24, 26))
-        return im.to_canvas()
+        drawn = _marks(im, w, h, int(spec.get("marks", 0)), "back", _lift(body, -12), spec.get("keep_out"))
+        c = im.to_canvas()
+        c.marks = drawn
+        return c
     if kind == "payphone_sticker":
         # its own tile at sticker density, so its lines set; the panel's
         # grime round it is the base tile's
@@ -946,6 +1185,7 @@ def _face(spec):
 def all_strings():
     """Every word painted on a payphone, for the invented-names test."""
     out = [COMPANY, COMPANY_LINE, "PHONE", "COIN BOX"] + list(CARD_LINES) + list(FACE_WORDS) + list(BINDER_LINES)
+    out += list(TAG_WORDS) + list(INITIALS)
     for sticker in STICKERS:
         out += [t for t in sticker if t]
     return out

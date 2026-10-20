@@ -1,3 +1,59 @@
+## [1.117.0] - the booth's marks are small, and mostly weather
+
+**The factory's roadmap 210.** The walker's look review, 2026-10-20, on 1.116.0's booths: "more subtle
+graffiti/weathering....a large shapie squigle doesn't look like anything". 1.116.0 drew each tag as a sine wave of
+discs 3 px (19 mm) across, over as much as 74 % of a side panel, laid at 0.85 disc over disc so that it inked all but
+opaque. One tile showed on both side panels, so a booth's two sides carried the same marks facing each other.
+
+### Changed
+- `core/payphone_forms.py`: `_marks` paints what hands and weather leave inside a booth, on every booth -- the plain
+  look too, since the walker's note was on all of them:
+  - rain run down from the roof's seam (one run in three rust), scuffs low down where knees and bags rub, scratches
+    keyed down to the metal;
+  - the paper of a sticker somebody tore off, a pale ragged patch with a few scraps still white;
+  - a pair of initials keyed into the paint, "JD+AR";
+  - one or two tags a panel in a marker's line 1.1 px (7 mm) across: Delco words (`TAG_WORDS`: JAWN, JEET, ARDY,
+    YOUSE, WOODER, DRAWL, JABRONI, WIT) in `GLYPHS`' strokes, each tag in its own hand -- its lean, width, spacing,
+    shake and a few degrees of tilt -- 5 to 8 cm tall on a side panel, faded to between 0.45 and 0.75;
+  - where the phone company got to a tag first, its ghost under a patch of paint that does not quite match.
+  A booth uses each word and each pair of initials once across its three panels; the variant shuffles them. A word
+  too long for its panel is written smaller and never shortened: two letters of a word can spell another.
+- `_ink` lays a stroke's coverage in one pass, so a faded line stays faded where it crosses itself.
+- Each side panel's inside is its own tile, `side_in_l` and `side_in_r`. `_enclosure`'s `paint` table, which named the
+  one tile and which nothing read, is gone.
+- `behind_phone(layout)`: where the instrument and its handset hang in front of the back panel, read in that panel's
+  tile. The back panel's marks keep out of it.
+- `paint` reports what went up on an inside panel as the canvas's `marks`, as `unset` reports what did not set.
+- `all_strings` carries the tags and the initials, so the invented-names test holds them.
+- `_tag`, the sine wave, is gone.
+
+### Cost
+- Each look's paint atlas grows from 256 x 1182 to 256 x 1360 at the default booth (the pedestal's 1362 -> 1430, the
+  wall unit's 1326 -> 1504): the second side tile starts a new shelf of the atlas. That is about 0.18 MB more a look
+  as an uncompressed texture, and a level uses four looks at most. Built in Blender with cold run 9351's skins (the
+  factory's `patches/zoo_booth_marks/kit_ab/`): every module's meshes, triangles (1,052 and 4) and vertex positions
+  are 1.116.0's to a hash, still two materials, the lit atlas shared and unchanged, the paint atlas's PNG 127 KB ->
+  146 KB. Draws do not change.
+
+### Tests
+- `tests/test_payphone.py`, 8 new and 4 changed; 11 of the 12 fail on 1.116.0, and the twelfth,
+  `test_every_inside_panel_is_marked` (the floor under the pixel tests), passes on both:
+  - no mark is a band of paint: of the pixels the marks darkened by more than 40, at most 4 a panel sit in a 3 x 3
+    block of them (1.117.0 measures 1 at most; 1.116.0 92 on the default booth's back panel, 230 on its side panel
+    and 987 at the genome's corners). Every form and variant, at the default slot and the genome's extreme corners,
+    against the unmarked paint rebuilt with the module's own helpers -- refused unless seven tenths of the panel
+    matches it to the bit (1.117.0 0.81 at the least, a rebuild with the wrong weather seed 0.26);
+  - the marks are faded: on a booth painted white, nothing inks more than 85 % of the way to the black marker
+    (1.117.0 0.75, 1.116.0 1.0);
+  - every inside panel is marked, at least 0.3 % of it moved by more than 8;
+  - the tags are words of `TAG_WORDS`, at least three a booth and each once in it, and so are the initials;
+  - each side panel is marked on its own, in every form;
+  - nobody writes behind the phone: `behind_phone` holds the instrument, the cradle, the grip and both cups at every
+    corner of the genome, and no tag, initials, ghost or paper on the back panel touches it in any variant;
+  - variant 0 is the plan without one and is marked like the rest (it was the 1.115.0 booth), in every form;
+  - the invented-names test holds the tags and the initials, and none is a real writer's (`REAL_WRITERS`,
+    Philadelphia's first among them).
+
 ## [1.116.0] - a payphone comes in four booths' worth of somebody else's marks
 
 **The factory's roadmap 210.** The walker's look review, 2026-10-19, on the street payphone: "the same same graffiti
