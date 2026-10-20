@@ -144,10 +144,13 @@ def build_stock(plan, streams, collection, regions, host_rgb):
     of this path as the reason a mat shipped as a flat colour.
 
     A FLAVOUR WITH NO TILES TAKES EXACTLY THE OLD ROAD, and that matters
-    more than the new one: `tiles` is empty for office, bar, kitchen,
-    vault, storage and bar_dense, the atlas is never built, the "card_art"
+    more than the new one: `tiles` is empty for bar, kitchen, vault,
+    storage and bar_dense, the atlas is never built, the "card_art"
     stream is never drawn from, and every one of those hosts ships the
-    geometry and the wear it shipped before.
+    geometry and the wear it shipped before. An office top has tiles
+    since 1.115.0, its monitors' screens; its solid prims and their
+    "stock_wear" stream are what they were, and the screens draw from
+    "card_art" alone.
     """
     from ..recipes import _surface_stock
     flavour = (plan.get("params") or {}).get("stock") or "none"
@@ -172,8 +175,21 @@ def build_stock(plan, streams, collection, regions, host_rgb):
     if tiles:
         from ..core import flat_art as FA
         from ..recipes._card_atlas import build_art
-        art, _atlas = build_art(prims, collection,
-                                dict(plan, _tiles=tiles), streams, "Stock",
-                                roughness=FA.MAT_ROUGHNESS)
-        objs += art
+        # A DESK'S SCREEN IS LIT (1.115.0): its tiles go into an atlas of their own on a backlit `_Face`
+        # material -- Lux's power cut turns it off with the lights -- at the bar TV's measured glow
+        # (`core.crt_forms.SCREEN_EMISSION`, `SCREEN_ALBEDO`); every other tile is paint, as before.
+        from ..core import crt_forms as CRT
+        from ..recipes._surface_stock import SCREEN_TILE
+        lit = {k: v for k, v in tiles.items() if v.get("kind") == SCREEN_TILE}
+        paint = {k: v for k, v in tiles.items() if k not in lit}
+        if paint:
+            art, _atlas = build_art([p for p in prims if p.get("tile") in paint], collection,
+                                    dict(plan, _tiles=paint), streams, "Stock",
+                                    roughness=FA.MAT_ROUGHNESS)
+            objs += art
+        if lit:
+            art, _atlas = build_art([p for p in prims if p.get("tile") in lit], collection,
+                                    dict(plan, _tiles=lit), streams, "StockScreen",
+                                    lit=(CRT.SCREEN_EMISSION, CRT.SCREEN_ALBEDO))
+            objs += art
     return objs

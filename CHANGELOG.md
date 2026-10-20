@@ -1,3 +1,58 @@
+## [1.115.0] - a desk's computer is on
+
+**The factory's roadmap 148.** The walker's look review, 2026-10-19, on the factory's interiors: "computer screens
+hsould be on...bring life to this dead world". Every monitor `_surface_stock._monitor` built showed the dark
+``screen`` finish -- a machine that is off -- on every desk and every cubicle bank's work surface, in every office of
+every level.
+
+### Added
+- `core/desk_screens.py`: what a 1997 office machine is showing, painted in pure Python as the bar TV's ballgame is.
+  Six invented apps: a word processor (`JAWN.DOC`), a spreadsheet (`WOODERCALC`), a desktop (`HOAGIE SHELL`), a
+  terminal (`C:\YO>`), an amber bulletin board (`SCRAPPLE BBS`) and a screensaver. Each is painted crisp, blurred once
+  and given the bar TV's tube (`crt_screens._tube`); its text is bars of ink with a title or a prompt, never legible
+  at a desk's distance. `pick_app` names the app from where the monitor stands on its top, a hash, so the stock's
+  stream is not drawn from. The copies of one module show its one app: cold run 9349's office stood 9 desks on 7
+  modules.
+- `recipes/_surface_stock.py`: `_monitor` carries an art quad `SCREEN_PROUD` (2.5 mm) in front of its glass and
+  `SCREEN_INSET` (6 mm) inside its edges. `plan_surface` names its tile and asks the atlas for every app, so every
+  monitor in a kit shares one image and one lit material.
+- `core/card_art.py`: `paint` dispatches a `desk_screen` tile.
+- `bpylayer/prim_mesh.py`: `build_stock` builds the screens into an atlas of their own on a backlit `_Face`
+  material, `M_StockScreen_<atlas>_Face`, at the bar TV's glow (`crt_forms.SCREEN_EMISSION` 1.5, `SCREEN_ALBEDO`
+  0.35). Lux's power cut finds it by name and turns it off with the lights. Every other tile is paint, as before.
+
+### Fixed before it shipped, and kept
+- The art quad was first counted in the monitor's footprint (`_local_rect`). That made the footprint 2.5 mm deeper,
+  and every anchor and jitter drawn after it landed elsewhere. In a kit A/B against 1.114.1 (one office desk and one
+  cubicle bank, built in Blender with cold run 9349's skins) the cubicle bank's top lost a workstation, six monitors
+  to five. The footprint now ignores the art. The A/B reads every 1.114.1 mesh unchanged, to a hash of its
+  positions, and adds one material, one image and one mesh: 2 triangles on the desk, 12 on the bank.
+
+### Changed
+- `build_stock`'s docstring said an office top has no tiles; it has its screens since this release. Its solid prims
+  and their `stock_wear` stream are what they were, and the screens draw from `card_art` alone.
+
+### Cost
+- One draw for each module with a monitor, since its screens are one mesh, and one atlas for each kit. Level Factory
+  0.224.0 keeps each screen mesh where it stood and merges the rest of the desk into its room cell. The atlas
+  packer stacks the six apps in one column and leaves half of its 256 x 602 image empty.
+
+### Tests
+- `tests/test_desk_screens.py`, 74 in all, failing on 1.114.1, where there is no `desk_screens`:
+  - every app paints the same bytes every time;
+  - the six apps differ and read as on;
+  - an unknown app refuses by name;
+  - no real product is painted (a denylist, matched on whole words);
+  - the card atlas paints a desk screen;
+  - where a monitor stands decides its app, and spreads them;
+  - a monitor carries its quad in front of its glass;
+  - naming the screen draws nothing from the stock stream;
+  - an office top lights its screens from one atlas;
+  - the screens move nothing else on a top: 60 cases, 45 of which failed before the footprint fix.
+- `tests/test_flat_art.py`: finding 5's test held that only the card table plans art tiles. It is renamed
+  `test_the_cards_and_office_flavours_plan_tiles_and_no_other_flavour_does`, and holds the office to exactly the
+  six screen tiles and every other flavour to none.
+
 ## [1.114.1] - the floor hatch's yellow frame paints on a tintable pack, so it reads yellow
 
 **Found by the factory's cold run 9343** (precinct_yard_001, the first package with a floor hatch in it; roadmap 265).

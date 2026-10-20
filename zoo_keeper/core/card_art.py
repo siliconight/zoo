@@ -532,6 +532,10 @@ def paint(spec):
     if kind.startswith("vp_"):
         from . import video_poker_forms as VF
         return VF.paint(spec)
+    # A DESK'S COMPUTER (1.115.0, the factory's roadmap 148): what it is showing is `desk_screens`' tile
+    if kind == "desk_screen":
+        from . import desk_screens as DS
+        return DS.paint(spec)
     if kind == "wallposter":
         from . import poster_art as PA
         c = PA.paint(spec["family"], w, hgt, spec["row"], key, spec.get("stock"))[0]

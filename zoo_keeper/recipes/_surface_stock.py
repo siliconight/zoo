@@ -235,6 +235,27 @@ def _turn(rng):
     return math.radians(rng.uniform(MIN_TURN_DEG, 3.0)) * rng.choice((-1.0, 1.0))
 
 
+#: THE SCREEN IS ON (1.115.0, the factory's roadmap 148). The walker's look review, 2026-10-19: "computer screens
+#: hsould be on...bring life to this dead world". An art quad this far in front of the dark glass -- clear of the 2 mm
+#: a face may come to another's plane where they overlap -- and this far inside its edges, so the glass's rim reads as
+#: the tube's border. Its tile is `plan_surface`'s to name, from where the monitor stands (`desk_screens.pick_app`):
+#: chosen here, the app would be a draw from `rng`, and every item placed after a monitor would move.
+SCREEN_PROUD = 0.0025
+SCREEN_INSET = 0.006
+SCREEN_TILE = "desk_screen"
+
+
+def _screen_art():
+    x0, x1, z0, z1 = -0.135 + SCREEN_INSET, 0.135 - SCREEN_INSET, 0.10 + SCREEN_INSET, 0.31 - SCREEN_INSET
+    y = -0.19 - DETAIL - SCREEN_PROUD
+    # ascending X along the bottom: a -Y normal, toward the person at the desk
+    q = P.mesh("Stock_ScreenArt", "screen", [(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], [(0, 1, 2, 3)])
+    q["tile"] = SCREEN_TILE
+    q["uvs"] = [((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))]
+    q["screen_m"] = (round(x1 - x0, 4), round(z1 - z0, 4))
+    return q
+
+
 def _monitor(rng):
     out = [P.box("Stock_Monitor", "beige_plastic", (-0.11, -0.11, 0.0), (0.11, 0.11, 0.025)),
            P.box("Stock_Monitor", "beige_plastic", (-0.06, -0.06, 0.02), (0.06, 0.06, 0.05)),
@@ -243,7 +264,8 @@ def _monitor(rng):
            P.box("Stock_Screen", "screen", (-0.135, -0.19 - DETAIL, 0.10),
                  (0.135, -0.19 + DETAIL, 0.31)),
            P.box("Stock_Screen", "led", (0.145, -0.19 - DETAIL, 0.06),
-                 (0.16, -0.19 + DETAIL, 0.075))]
+                 (0.16, -0.19 + DETAIL, 0.075)),
+           _screen_art()]
     return out
 
 
@@ -908,7 +930,10 @@ GROUPS = {
 
 
 def _local_rect(prims):
-    lo, hi = P.bounds(prims)
+    # A screen's art (1.115.0) is painted on its glass and claims no footprint of its own. Counted, it stood
+    # SCREEN_PROUD past the glass, grew the monitor's rect by 2.5 mm, and every anchor and jitter drawn after it
+    # landed elsewhere: in a kit A/B against 1.114.1 a cubicle bank's top lost a workstation.
+    lo, hi = P.bounds([p for p in prims if p.get("tile") != SCREEN_TILE])
     return ((lo[0] + hi[0]) / 2.0, (lo[1] + hi[1]) / 2.0,
             hi[0] - lo[0], hi[1] - lo[1], hi[2])
 
@@ -1058,5 +1083,15 @@ def plan_surface(rng, flavour, x0, x1, y0, y1, z0, host_rgb=None, facing=None,
                 # game land on the same key and share one rect.
                 if q.get("tile") and q.get("tile_spec"):
                     out["tiles"][q["tile"]] = q["tile_spec"]
+                # A DESK'S SCREEN (1.115.0) is named here, where the monitor's place is known, and the atlas
+                # takes EVERY app whatever this top shows: one image, so every desk in a level shares one lit
+                # material and the screens add no material of their own to a level that has several desks.
+                if q.get("tile") == SCREEN_TILE:
+                    from ..core import desk_screens as DS
+                    q["tile"] = f"{SCREEN_TILE}_{DS.pick_app(wx, wy)}"
+                    sw, sh = q["screen_m"]
+                    for app in DS.APPS:
+                        out["tiles"][f"{SCREEN_TILE}_{app}"] = {"kind": SCREEN_TILE, "app": app,
+                                                                 "w_m": sw, "h_m": sh, "key": app}
                 out["prims"].append(P.recolour(q, mat=key))
     return out

@@ -494,14 +494,19 @@ def test_an_aisle_sign_at_ship_size_is_actually_legible():
 # --- the textured playmat (finding 5) -----------------------------------------
 
 
-def test_the_cards_flavour_now_plans_a_tile_and_no_other_flavour_does():
+def test_the_cards_and_office_flavours_plan_tiles_and_no_other_flavour_does():
     """FINDING 5. `_surface_stock`'s own 0.95.0 docstring records the gap --
     'NOT TEXTURED, and that is a limit rather than a choice:
     `prim_mesh.build_stock` has no textured path'. This is that path, and
     the thing worth holding is that it changed NOTHING for the other six
     flavours: an empty `tiles` means the atlas is never built and the
-    "card_art" stream is never drawn from."""
+    "card_art" stream is never drawn from.
+
+    Since 1.115.0 the office plans tiles as well: its monitors' screens,
+    exactly the six apps of `core.desk_screens` (`test_desk_screens.py`
+    holds the rest). Every other flavour still plans none."""
     import random
+    from zoo_keeper.core import desk_screens as DS
     seen = {}
     for flavour in SS.FLAVOURS:
         tiles = {}
@@ -512,8 +517,9 @@ def test_the_cards_flavour_now_plans_a_tile_and_no_other_flavour_does():
             tiles.update(got.get("tiles") or {})
         seen[flavour] = tiles
     assert seen["cards"], "no playmat tile in twelve seeds of the card table"
+    assert sorted(seen["office"]) == sorted(f"{SS.SCREEN_TILE}_{a}" for a in DS.APPS)
     for flavour in SS.FLAVOURS:
-        if flavour != "cards":
+        if flavour not in ("cards", "office"):
             assert seen[flavour] == {}, flavour
     for key, spec in seen["cards"].items():
         assert spec["kind"] == "playmat" and spec["game"] in CB.IDS
