@@ -96,6 +96,16 @@ FACE_WORDS = ("25 CENTS", "COIN RETURN", "PHONE")
 STICKERS = (("WE BUY HOUSES", "CASH", "610-555-0186"),
             ("BEEPER BROKE?", "PAGE ME", "610-555-0131"),
             ("CALL YA MOM", "SHE'S WORRIED", ""))
+#: SOMEBODY ELSE'S MARKS COME IN LOOKS (1.116.0, the factory's roadmap 210). The walker's look review, 2026-10-19:
+#: "the same same graffiti and drawing int he phone booth is too similar/uniform". A street of booths is not one
+#: booth again, so a payphone takes the kit's `variant` (genome `module_variants`, 4): which marker tags went up
+#: inside the enclosure, where, in which ink, and which stickers made it onto the back panel. Variant 0 is the
+#: 1.115.0 booth byte for byte -- its tiles carry no `marks` key at all.
+VARIANTS = 4
+#: The inks a tag goes up in: a black marker, the purple that stood since 1.88.0, a red, a blue, a silver paint pen.
+TAG_INKS = ((24, 24, 26), (150, 30, 140), (168, 34, 30), (34, 58, 150), (172, 174, 178))
+#: Which bill each sticker window got, by variant: 1.115.0's order first, and no two variants alike.
+STICKER_ORDER = ((0, 1, 2), (1, 2, 0), (2, 0, 1), (1, 0, 2))
 BINDER_LINES = ("YOUSETEL", "DIRECTORY", "DELCO 1997")
 KEYS = ("1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#")
 
@@ -582,12 +592,14 @@ def _instrument(L, prims):
     return prims
 
 
-def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
+def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32), variant=0):
     """``{"prims", "tiles", "collision", "layout", "lamp", "facts"}``: every
     prim on one of two atlases, ``paint`` or ``glow`` (`GLOW_TILES`, 1.89.0),
     and ``lamp`` the hood lamp's marker -- its name, where it hangs, and the
     payload it carries. ``rgb`` is the shroud's linear paint (the genome's
-    style colour), lettered and worn in the tiles."""
+    style colour), lettered and worn in the tiles. ``variant`` (1.116.0) picks
+    the booth's marks (`VARIANTS`); 0 is the 1.115.0 booth."""
+    variant = int(variant or 0) % VARIANTS
     L = layout(form, w, d, h)
     prims = []
     _enclosure(L, prims)
@@ -606,8 +618,8 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
 
     tiles = {
         "shroud": spec("payphone_shroud", 0.40, 0.80),
-        "side_in": spec("payphone_side_in", d, enc_h),
-        "back_in": spec("payphone_back_in", w, enc_h + BACK_BELOW),
+        "side_in": spec("payphone_side_in", d, enc_h, **({"marks": variant} if variant else {})),
+        "back_in": spec("payphone_back_in", w, enc_h + BACK_BELOW, **({"marks": variant} if variant else {})),
         "inside": spec("payphone_inside", 0.30, 0.30),
         "roof": spec("payphone_roof", 0.30, 0.20),
         "post": spec("payphone_post", 0.10, 0.60),
@@ -632,7 +644,9 @@ def plan(w, d, h, form="auto", rgb=(0.22, 0.26, 0.32)):
         tiles["binder"] = spec("payphone_binder", BINDER[0], BINDER[2])
         tiles["binder_edge"] = spec("payphone_binder_edge", 0.10, 0.10)
     for _r, name in stickers(L):
-        tiles[name] = spec("payphone_sticker", STICKER[0], STICKER[1], row=int(name.split("_")[1]))
+        # which bill went up where: the 1.115.0 order at variant 0 (`STICKER_ORDER`)
+        tiles[name] = spec("payphone_sticker", STICKER[0], STICKER[1],
+                           row=STICKER_ORDER[variant][int(name.split("_")[1])])
     # collision: the instrument and the back panel as one column, the post
     # under it; a body walks into the booth's mouth, not through its back
     ix0, ix1, yf, _yb, z0, _z1 = L["inst"]
@@ -682,6 +696,26 @@ def _tag(im, box, seed, rgb):
         wob = math.sin(t * 19.0 + (seed % 7)) * 0.32 + math.sin(t * 7.0 + (seed % 5)) * 0.18
         y = (y0 + y1) / 2.0 + (y1 - y0) * wob
         im.disc(x, y, r, rgb, 0.85)
+
+
+def _marks(im, w, h, variant, panel, lo, hi):
+    """Variant ``variant``'s tags on one panel (1.116.0): ``lo`` to ``hi`` of them, each a band of the panel at its
+    own height and reach, in one of `TAG_INKS`, drawn from a hash of the variant and the panel -- the same booth
+    every build, a different booth per variant. On the back panel they stay in its top band, as 1.115.0's one tag
+    did: the instrument hangs over the middle of that panel."""
+    n = lo + _h("marks", panel, variant) % (hi - lo + 1)
+    for k in range(n):
+        r = _h("mark", panel, variant, k)
+        if panel == "side":
+            bw = 0.30 + (r % 45) / 100.0                   # 30 to 74 % of the panel's width
+            y0 = 0.12 + (r >> 17) % 1000 / 1000.0 * 0.68   # anywhere from 12 to 80 % down it
+        else:
+            bw = 0.20 + (r % 17) / 100.0                   # 20 to 36 %, either side of the instrument
+            y0 = 0.05 + (r >> 17) % 1000 / 1000.0 * 0.12   # in the top band, 5 to 17 % down
+        x0 = (r >> 7) % 1000 / 1000.0 * (1.0 - bw)
+        bh = 0.06 + (r >> 3) % 7 / 100.0                   # a band 6 to 12 % of the panel's height
+        box = (w * x0, h * y0, w * (x0 + bw), h * min(0.95, y0 + bh))
+        _tag(im, box, (r >> 11) % 97, TAG_INKS[(r >> 23) % len(TAG_INKS)])
 
 
 def _sticker(im, box, lines, seed):
@@ -745,14 +779,20 @@ def paint(spec):
         w, h = _px(spec["w_m"]), _px(spec["h_m"])
         im = PT.Img(w, h, _lift(body, -10))
         _outdoor(im, w, h, _lift(body, -10), 23, grime=0.8)
-        _tag(im, (w * 0.10, h * 0.55, w * 0.90, h * 0.70), 3, (24, 24, 26))
-        _tag(im, (w * 0.20, h * 0.25, w * 0.75, h * 0.33), 8, (150, 30, 140))
+        if spec.get("marks"):
+            _marks(im, w, h, spec["marks"], "side", 1, 3)
+        else:
+            _tag(im, (w * 0.10, h * 0.55, w * 0.90, h * 0.70), 3, (24, 24, 26))
+            _tag(im, (w * 0.20, h * 0.25, w * 0.75, h * 0.33), 8, (150, 30, 140))
         return im.to_canvas()
     if kind == "payphone_back_in":
         w, h = _px(spec["w_m"]), _px(spec["h_m"])
         im = PT.Img(w, h, _lift(body, -12))
         _outdoor(im, w, h, _lift(body, -12), 29, grime=0.7)
-        _tag(im, (w * 0.06, h * 0.12, w * 0.40, h * 0.20), 11, (24, 24, 26))
+        if spec.get("marks"):
+            _marks(im, w, h, spec["marks"], "back", 1, 2)
+        else:
+            _tag(im, (w * 0.06, h * 0.12, w * 0.40, h * 0.20), 11, (24, 24, 26))
         return im.to_canvas()
     if kind == "payphone_sticker":
         # its own tile at sticker density, so its lines set; the panel's

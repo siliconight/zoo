@@ -185,7 +185,8 @@ def test_the_shroud_is_painted_the_genome_s_colour():
     assert CA.paint(mine).png() != CA.paint(other).png()
     src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "zoo_keeper", "recipes", "payphone.py"), encoding="utf-8").read()
-    assert 'PF.plan(w, d, h, params.get("form"), plan["color"])' in src
+    # 1.116.0 passes the kit's variant after the colour (`test_the_recipe_hands_the_variant_to_the_plan`)
+    assert 'PF.plan(w, d, h, params.get("form"), plan["color"], variant=' in src
 
 
 def test_the_coin_return_is_a_real_recess():
@@ -327,3 +328,52 @@ def test_bpy_a_payphone_is_two_objects_two_materials_and_its_lamp(tmp_path, form
     assert lamps[0]["extras"]["lux_drop"] == pytest.approx(want[2])
     # glTF is Y up with the caller at +Z, and the module is re-centred on its slot
     assert lamps[0]["translation"] == pytest.approx([want[0], want[2] - 2.3 / 2.0, -want[1]], abs=1e-4)
+
+
+# --- the booth's marks come in looks (1.116.0) ------------------------------------------------------------------------
+
+
+def _marked(form, variant):
+    """Every tile of the booth that somebody else marks, painted: the enclosure's insides and the stickers."""
+    got = PF.plan(0.75, 0.5, 2.3, form, variant=variant)
+    return {k: CA.paint(spec).png() for k, (_a, spec) in got["tiles"].items()
+            if spec["kind"] in ("payphone_side_in", "payphone_back_in", "payphone_sticker")}
+
+
+@pytest.mark.parametrize("form", PF.FORMS)
+def test_variant_zero_is_the_1_115_0_booth(form):
+    """No tile carries `marks` and the stickers keep their rows: the plan is the plan without a variant, so a
+    payphone built before 1.116.0 rebuilds byte for byte."""
+    plain = PF.plan(0.75, 0.5, 2.3, form)
+    assert plain == PF.plan(0.75, 0.5, 2.3, form, variant=0)
+    assert not any("marks" in spec for _a, spec in plain["tiles"].values())
+
+
+@pytest.mark.parametrize("form", PF.FORMS)
+def test_each_variant_marks_its_booth_differently_and_the_same_every_build(form):
+    """The walker's look review, 2026-10-19: the booth's graffiti "too similar/uniform". Each of the four looks paints
+    the enclosure's insides its own way, and the same way every build. FAILS ON 1.115.0: `plan` takes no variant."""
+    seen = set()
+    for v in range(PF.VARIANTS):
+        a = _marked(form, v)
+        assert a == _marked(form, v)
+        seen.add(tuple(sorted(a.items())))
+    assert len(seen) == PF.VARIANTS
+
+
+def test_the_genome_takes_four_variants_and_the_stem_carries_one():
+    g = genome_mod.load_species("payphone")
+    assert genome_mod.validate_genome(g) == []
+    assert g["module_variants"] == PF.VARIANTS == 4
+    for v, tail in ((1, "_h230_n1"), (3, "_h230_n3")):
+        plan = kit.plan_kit({"building_id": "t", "slots": [dict(_slot(), variant=v)]}, theme="delco_1997", style=1)
+        assert plan["dressing_fallbacks"] == [], plan["dressing_fallbacks"]
+        assert plan["modules"][0]["stem"].endswith(tail), plan["modules"][0]["stem"]
+    plan = kit.plan_kit({"building_id": "t", "slots": [dict(_slot(), variant=4)]}, theme="delco_1997", style=1)
+    assert plan["dressing_fallbacks"], "a variant past module_variants is dropped, and said"
+
+
+def test_the_recipe_hands_the_variant_to_the_plan():
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    recipe = open(os.path.join(root, "zoo_keeper", "recipes", "payphone.py"), encoding="utf-8").read()
+    assert 'variant=int(params.get("variant") or 0)' in recipe

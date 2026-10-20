@@ -39,7 +39,7 @@ def build(plan, streams, collection):
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
     params = plan.get("params") or {}
-    got = PF.plan(w, d, h, params.get("form"), plan["color"])
+    got = PF.plan(w, d, h, params.get("form"), plan["color"], variant=int(params.get("variant") or 0))
     from ._card_atlas import build_art
     objs = []
     for atlas_name, lit, name in (("paint", None, "Payphone"),

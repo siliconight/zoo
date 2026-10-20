@@ -1,3 +1,37 @@
+## [1.116.0] - a payphone comes in four booths' worth of somebody else's marks
+
+**The factory's roadmap 210.** The walker's look review, 2026-10-19, on the street payphone: "the same same graffiti
+and drawing int he phone booth is too similar/uniform". Every booth carried the same three tags inside its enclosure
+(fixed seeds 3, 8 and 11) and the same stickers in the same windows, so a street of phones was one phone again.
+
+### Added
+- `genome/species/payphone.json`: `module_variants` 4. A slot's `variant` is the stem's `_n<variant>`
+  (`kit.module_stem`), and a module is seeded by its stem.
+- `core/payphone_forms.py`: `plan(..., variant=0)`. Variants 1 to 3 mark the enclosure's insides with `_marks`: one to
+  three tags on a side panel and one or two in the back panel's top band, clear of the instrument, each a band of its
+  own height, reach and ink (`TAG_INKS`: a black marker, the purple that stood since 1.88.0, a red, a blue, a silver
+  paint pen), all drawn from a hash of the variant and the panel. `STICKER_ORDER` gives each variant its own bill in
+  each sticker window.
+- **Variant 0 is the 1.115.0 booth byte for byte**: its tiles carry no `marks` key and its stickers keep their rows.
+  Built in Blender with cold run 9350's skins, the plain module's GLB and its paint atlas are identical to 1.115.0's.
+- `recipes/payphone.py` passes the kit's variant to the plan.
+
+### Cost
+- Each look a level uses beyond the plain one is one more paint atlas, 256 x 1182, about 1.2 MB as an uncompressed
+  texture: the whole booth's atlas is repainted when two of its tiles change. The lit atlas (the header and the
+  diffuser) is shared. Draws do not change: every phone was already a mesh of its own. A cheaper form would put the
+  marked tiles in an atlas of their own at one more draw a phone; draws are the budget, so this one spends memory.
+
+### Tests
+- `tests/test_payphone.py`, 8 more, all failing on 1.115.0, where `plan` takes no variant:
+  - variant 0 is the plan without a variant, in every form, and no tile carries `marks`;
+  - each of the four variants paints the enclosure's insides and stickers differently, the same every build, in
+    every form;
+  - the genome takes four variants: `_n1` and `_n3` are built with no dressing fallback, and `_n4` is dropped, and
+    said;
+  - the recipe hands the variant to the plan.
+- `test_the_shroud_is_painted_the_genome_s_colour` pins the recipe's call with the variant after the colour.
+
 ## [1.115.0] - a desk's computer is on
 
 **The factory's roadmap 148.** The walker's look review, 2026-10-19, on the factory's interiors: "computer screens

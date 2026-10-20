@@ -108,5 +108,7 @@
     "pay phone",
     "phone booth",
     "telephone"
-  ]
+  ],
+  "module_variants": 4,
+  "notes": "1.116.0: `variant` picks one of four booths' worth of somebody else's marks -- the tags inside the enclosure, their count, place and marker, and which stickers went up on the back panel. Variant 0 is the 1.115.0 booth."
 }
