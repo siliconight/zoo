@@ -36,6 +36,9 @@ HINGE_R = 0.018      # m; the hinge rod
 HINGE_IN = 0.04      # m; the hinge line sits this far inside the back wall's outer face
 LIP = 0.005          # m; the lid's edges stop this short of the curb's outer planes
 SKIRT = 0.004        # m; the closed lid sinks this far into the curb's top (core.floaters' FLOATER_SKIRT)
+#: The floor form's frame, linear RGB: safety yellow, the colour a person reads as "opening here"
+#: across a room (1.114.0, the factory's roadmap 265).
+SAFETY_YELLOW = (0.86, 0.64, 0.04)
 
 
 def _ring(bm, w, d, t, z0, z1):
@@ -127,8 +130,19 @@ def build(plan, streams, collection):
     geometry.add_cylinder(bm, (0.0, hinge[1], hinge[2]), HINGE_R, lid_w * 0.9, segments=10, axis="X")
     rod = part(bm, "RoofHatch_Hinge", texel=2.0, wear_amount=0.05)
 
-    paint = materials.make_material(
-        f"M_RoofHatch_{plan['material']}", plan["color"], plan["material"])
+    # THE FLOOR FORM (1.114.0): the same hatch let into a floor over a drop, its frame Deli
+    # Counter's 3 cm, painted safety yellow so the opening reads from across a room; the lid keeps
+    # the style's grey. One material either way: in the floor form it is white and each part's
+    # colour rides in `Wear` (`geometry.tint_wear`), the draw-call rule for colour-only variation.
+    floor = (plan.get("params") or {}).get("form") == "floor"
+    if floor:
+        geometry.tint_wear(curb, SAFETY_YELLOW)
+        geometry.tint_wear(lid, plan["color"])
+        paint = materials.make_material(
+            f"M_RoofHatch_{plan['material']}_floor", [1.0, 1.0, 1.0], plan["material"])
+    else:
+        paint = materials.make_material(
+            f"M_RoofHatch_{plan['material']}", plan["color"], plan["material"])
     dark = materials.make_material("M_RoofHatch_hinge", [0.16, 0.16, 0.17], "metal_bare")
     materials.assign([curb, lid], paint)
     materials.assign([rod], dark)

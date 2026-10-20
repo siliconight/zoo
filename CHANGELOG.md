@@ -1,3 +1,86 @@
+## [1.114.0] - a hole in a floor that says why it is there
+
+**The factory's roadmap 265.** The walker, 2026-10-19, asked why the levels have holes in their floors -- Deli
+Counter's drop routes, cut square through a slab -- and chose to keep the routes and give each a reason to exist:
+"if we have holes it should be clear to the player that they are there, but also some reason other than a
+perfectly cut square (what is diegetic but a signal to the human playing the game)". Three species and a form
+carry it. Every decision is `core.hole_forms`, pure and tested; the recipes only build what it plans.
+
+A FORM NAMES THREE THINGS, eight forms in all: the CAUSE -- `cut`, a crew broke through, or `broken`, the floor
+gave way; the floor's CONSTRUCTION -- framed, or `_slab`, Deli Counter's `concrete` floor; and the CEILING under
+it -- a drop ceiling's tiles, or `_plaster`. `auto` is `cut`, framed, under tiles (`parse_form`). Deli Counter
+0.236.0 picks the form from the rooms above and below the hole.
+
+### Added
+- **`hole_edge`** (`genome/species/hole_edge.json`, `recipes/hole_edge.py`): the torn edge round a hole, the thing
+  that stops it being a square. On the floor, a collar torn back irregularly from the cut and jutting past it in
+  teeth that sag where they jut -- one ring of shared vertices, its inner end never short of the cut (6 mm past it
+  at least) and never closing `CLEAR` (1.1 m) of the opening: the floor's underlayer over a frame, fresh concrete
+  spalled back over a slab. In the cut's walls, a frame's joist ends, its dark cavity between them and the rim
+  joist's face on the other two sides; a slab's reinforcing bars standing out of the cut face into the opening
+  (the top mat; in a `broken` slab half the bottom mat's too), short where a saw went through and long and bent
+  down where it tore. Under the ceiling, a jagged one-sided ring where it is broken back and shards hanging into
+  the opening -- tile and a bent grid tee, or plaster and lath -- the lowest exactly to the slot's bottom and none
+  past it (`hang_limit`). Visual only: the slab's rectangle stays the collider and the drop's route. The slot's
+  contract with Deli Counter: `BAND` (0.30 m) past the hole a side, `TOP` + 2 `SKIN` + the slab + `HANG` tall.
+- **`hole_spoil`** (`genome/species/hole_spoil.json`, `recipes/hole_spoil.py`): what came down, on the floor below
+  the hole -- the cut-out floor in sawn panels or splintered floorboards, each with the floor's finish on it (the
+  slot's `stock`: `carpet`, `tile`, `none`), a joist offcut; a slab's broken chunks and bent bars; the ceiling's
+  tile shards and grid tee, or its plaster and lath; fragments in the slab's concrete or the ceiling's own
+  material. One piece of each kind is placed before the rest, so a slot the size of a walk-up's (2.29 x 1.83 m)
+  shows the ceiling the drop came through as well as the floor that came down. Everything lies flat, none on
+  another, the tallest fragment the slot's height (at most 0.10 m, under the unassisted step), and nothing
+  collides: the drop lands on it.
+- **`hole_kit`** (`genome/species/hole_kit.json`, `recipes/hole_kit.py`): who broke through -- a blue drop cloth
+  the slot's size, a cut-off saw, a toolbag with an extension cord coiled flat in front of it, a pry bar, and a work
+  light on a stand aimed down into the opening, drawn and not lit (a lamp would be one more light on every client
+  for a prop). Local +Y faces the hole; the saw, the bag and the light are solid. 1.3-2.2 x 0.55-1.0 x 0.55-0.95 m;
+  Deli Counter asks 1.4 x 0.7 x 0.7.
+- **`core.hole_forms`**: `edge_plan`, `spoil_plan`, `kit_plan`, `parse_form`, `spoil_rows`, `perimeter`,
+  `hang_limit`, `hanger_drop` and the contract's numbers. `tests/test_hole_forms.py` (601).
+
+### Changed
+- **`roof_hatch` has forms** -- `auto`, `roof`, `floor` -- and its frame may be 3 cm (the genome's height minimum
+  was 0.12 m). The `floor` form is the same hatch let into a floor over a drop: its frame safety yellow, so the
+  opening reads from across a room, its lid the style's grey, one material with the colours in `Wear`. A slot that
+  names no form plans and builds exactly as before.
+
+### Found before it shipped, kept
+- A hanging shard's thickness was offset along (+sin a, -cos a), which is not perpendicular to the plate, so every
+  shard was a sliver |cos 2a| of its thickness -- 1.4 mm of a 16 mm tile at 42 degrees -- read by the census as a
+  plate's two faces 1.43 mm apart over its whole area. Now along (-sin a, -cos a).
+- A spoil's bar was "bent" by moving the far end of an eight-vertex box: no vertex stood at the third, so the bar
+  was set askew, not bent, and past its plan's width -- the per-form census read a fragment lying on a bar at
+  `cut_slab_plaster`'s 0.8 m minimum. The plan now draws the bend's throw into the bar's width (`REBAR_THROW`) and
+  the recipe builds a two-segment bar inside it.
+- Placed row by row, a small slot filled with the floor's pieces before the ceiling's rows were reached: the
+  walk-ups' 1.7 x 1.83 m spoil carried no ceiling tile in three variants of four, `broken_slab`'s 2.7 m variant 0
+  no ceiling piece at all. On row-order placement 23 of the 64 cases of
+  `test_a_spoil_carries_every_kind_its_form_names` fail.
+- The floor's finish rode only the sawn panels, so a `broken` floor's boards came down bare whatever the slot's
+  `stock` said, and Deli Counter's walk-ups asked for `_stile` modules no different from `_snone` ones. A board
+  now carries the finish as a panel does, tapered with its splintered end and stopping 4 cm short of either end.
+
+### Draws
+- Measured off the built modules (glTF primitives, the `-colonly` meshes not counted): the edge 2 framed, 3 over a
+  slab, 4 over a slab under plaster; the spoil 2, 3 or 4 likewise, one more with a finish; the kit 3; the floor
+  hatch 2.
+  A deli's `cut_slab` hole is the edge 3, the spoil 3 and the kit 3. Kinds that differ only in colour share a
+  material and carry the colour in `Wear`. MultiMesh buys nothing here (every piece is a one-off shape, and a level
+  has one or two holes); Zoo's export already makes each module one submission a material. At the 6.8 m maximum
+  the edge reads 3,588-5,616 triangles against its 2,000 budget, a warn: a regression detector, not a frame cost,
+  and no hole in Deli Counter's library is wider than 2.2 m (a 2.8 m edge, 1,296-1,704).
+
+### Census
+- `tests/test_coincident_faces.py`: the three species and `roof_hatch` at its new minimum, 0 pairs everywhere but
+  `hole_spoil`'s 3 inside single fracture fragments (`rubble_frag`'s construction), recorded as residue; the first
+  run read 33 and each was moved off by more than the census's 2 mm. `CENSUS_BUILDS` 402 -> 411.
+- Every form, the same probe one form at a time (`patches/zoo_hole_causes/census_forms.py` in the factory): 0 pairs
+  in every edge but `broken`'s at its maximum -- one inside its collar, 0.23 cm2 back to back; in the spoils, only
+  pairs inside single fracture fragments, as the default form's (`broken` 3, `broken_slab` 1,
+  `broken_slab_plaster` 1, the others 0), and with a finish none between it and its board. The floor hatch 260
+  triangles and 0 pairs at every corner.
+
 ## [1.113.1] - the lid stands vertical, inside the curb's footprint
 
 **Cold run 9315, the first with a roof hatch, stopped at the art pass** on Deli Counter's placement gate: it

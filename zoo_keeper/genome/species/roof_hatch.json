@@ -3,15 +3,15 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. A roof scuttle: a low steel curb around the ladder's opening and a hinged lid on it (factory roadmap 170 -- every roof opening was a bare hole). The lid is this species' interactive: `open` (the default) stands it up vertical on its back hinge, inside the curb's footprint and clear of the climber, and `closed` lays it flush in the curb. The curb is the slot; the raised lid is art above it."
+    "notes": "Original procedural construction. A roof scuttle: a low steel curb around the ladder's opening and a hinged lid on it (factory roadmap 170 -- every roof opening was a bare hole). The lid is this species' interactive: `open` (the default) stands it up vertical on its back hinge, inside the curb's footprint and clear of the climber, and `closed` lays it flush in the curb. The curb is the slot; the raised lid is art above it. FORM floor (1.114.0, the factory's roadmap 265): the same hatch let into a floor over a drop -- a frame 3 cm proud rather than a curb, painted safety yellow so a player reads the opening from across the room, the lid grey; Deli Counter's hole_causes.py stands it where a hole's cause is a hatch."
   },
   "dimensions": {
     "width": {"min": 0.9, "max": 2.4, "default": 1.66},
     "depth": {"min": 0.9, "max": 2.4, "default": 1.66},
-    "height": {"min": 0.12, "max": 0.35, "default": 0.2}
+    "height": {"min": 0.03, "max": 0.35, "default": 0.2}
   },
   "parts": ["RoofHatch_Curb", "RoofHatch_Lid", "RoofHatch_Hinge"],
-  "params": {},
+  "params": {"form": ["auto", "roof", "floor"]},
   "materials": {"default": "metal", "options": ["metal"]},
   "styles": {
     "default": {"material": "metal", "color": [0.58, 0.58, 0.56], "wear": 0.15, "bevel": 0.004},
@@ -25,5 +25,5 @@
   "attachments": [],
   "collision": true,
   "connectors": {"anchor": {"type": "roof"}},
-  "keywords": ["roof hatch", "roof_hatch", "scuttle", "hatch lid", "roof access hatch"]
+  "keywords": ["roof hatch", "roof_hatch", "scuttle", "hatch lid", "roof access hatch", "floor hatch", "trapdoor"]
 }

@@ -281,6 +281,8 @@ RESIDUE = {
     "club_fixture": (7, 3, 4, 3, 16.8, 1323.6),
     "water_barrel": (6, 6, 0, 6, None, 4652.1),
     "rubble_frag": (3, 2, 1, 3, None, 53.4),
+    # 1.114.0: inside single fracture fragments, as rubble_frag's are (its construction)
+    "hole_spoil": (3, 0, 3, 3, None, 0.49),
     "weed_tuft": (2, 2, 0, 2, None, 2.4),
     "security_camera": (2, 1, 1, 1, 59.9, 55.9),
     "desk": (182, 0, 182, 0, 15.75, 10180.2),
@@ -542,7 +544,22 @@ DID_NOT_BUILD = {"boots"}
 #: curb's planes (the placement gate's footprint): re-run the same way, the
 #: same 260 / 260 / 260 tris and 0 pairs, the bollard its 2 / 2 / 1
 #: (`patches/roof_hatch/census_1131.log`).
-CENSUS_BUILDS = 402
+#: 1.114.0: `hole_edge`, `hole_spoil` and `hole_kit` (the factory's roadmap 265: a hole in a floor with
+#: a cause), nine builds more, and `roof_hatch` re-run for its new 3 cm minimum frame -- `blender -b
+#: --python tools/coplanar_census.py -- --species hole_edge hole_spoil hole_kit roof_hatch bollard`,
+#: the bollard the control (its known 2 / 2 / 1): "15 builds, 5 with coincident pairs, 0 that did not
+#: build". The edge 412 / 1,296 / 3,588 tris and 0 pairs, the kit 1,380 at each corner and 0, the hatch
+#: 260 and 0 at all three (its min corner now the floor form's frame), the spoil 140 / 272 / 348 tris
+#: and 1 / 0 / 2 pairs, each inside one fracture fragment -- the residue `rubble_frag`'s construction
+#: carries, listed below (108 / 240 / 348 and 2 / 0 / 1 before the spoil placed one piece of each kind
+#: first; the same three pairs' worth). Not first run: the first read 33 pairs over the three new species -- the
+#: edge's cavity plates on the joists' tops and sides and its rim boards' ends on the plates, the kit's
+#: tarp, fold and what stands on them within 2 mm of each other in a 6 mm cloth, its handle bars as
+#: deep as their posts, its lens's back 1 mm inside the lamp head, its cord's turns through each other
+#: and through the saw, and the spoil's grid tee's web on its flange's plane -- each moved off by more
+#: than the census's 2 mm (`core.hole_forms.WALL_GAP`, a 12 mm folded cloth, bars 6 mm deeper, a 6 mm
+#: flange). The record is the factory's `patches/zoo_hole_causes/`.
+CENSUS_BUILDS = 411
 
 
 def test_the_census_covers_every_species_there_is():
@@ -567,13 +584,14 @@ def test_the_residue_is_the_count_the_entry_claims():
     1.88.0 redrew the payphone, and its 2 (both exposed) went: 2995. 1.99.1
     stood the exhaust fan's hood on its drum, and the census counts the
     fan's one buried pair at the default corner as two: 2996, and no
-    coincidence more."""
+    coincidence more. 1.114.0 added `hole_spoil`'s 3, all exposed, each
+    inside one fracture fragment as `rubble_frag`'s are: 2999."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 2996, total
+    assert total == 2999, total
     exposed = sum(v[3] for v in RESIDUE.values())
-    assert exposed == 971, exposed
-    # 0.96.0's, the ATM's, sign_box's and the payphone's went; the fan's split
-    assert total + 18 + 6 + 6 + 2 - 1 == 3027
+    assert exposed == 974, exposed
+    # 0.96.0's, the ATM's, sign_box's and the payphone's went; the fan's split; hole_spoil's came
+    assert total + 18 + 6 + 6 + 2 - 1 - 3 == 3027
 
 
 def test_every_residue_row_is_self_consistent():

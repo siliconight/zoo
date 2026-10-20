@@ -30,5 +30,8 @@
  "traffic_signal",
  "utility_pole",
  "water_barrel",
- "roof_hatch"
+ "roof_hatch",
+ "hole_edge",
+ "hole_kit",
+ "hole_spoil"
 ]

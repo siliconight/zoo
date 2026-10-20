@@ -1,0 +1,124 @@
+{
+ "species": "hole_edge",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction (the factory's roadmap 265: the walker asked that a hole in a floor be 'clear to the player' and have 'some reason other than a perfectly cut square'). Every decision is core.hole_forms, pure and tested. The torn edge round a hole Deli Counter cut: the floor's underlayer torn back irregularly and jutting past the cut, the joist ends in the slab's thickness, the ceiling broken back underneath with shards hanging into the opening. Visual only: the slab's rectangular cut stays the collider and the drop's route. Forms: cut (a crew broke through), broken (the floor gave way). Its slot reaches hole_forms.BAND past the hole a side and is TOP + 2 SKIN + the slab + HANG tall: the contract Deli Counter's hole_causes.py mirrors. Forms name the cause, the floor's construction and the ceiling under it: cut or broken; _slab where the floor is a concrete slab (its bars stand out of the cut, no joists); _plaster where the ceiling below is plaster and lath rather than a drop ceiling's tiles."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "hole edge",
+  "torn floor edge",
+  "broken floor edge",
+  "hole rim"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 1.2,
+   "max": 6.8,
+   "default": 2.8
+  },
+  "depth": {
+   "min": 1.2,
+   "max": 6.8,
+   "default": 2.8
+  },
+  "height": {
+   "min": 0.4,
+   "max": 1.4,
+   "default": 0.652
+  }
+ },
+ "parts": [
+  "HoleEdge_Collar",
+  "HoleEdge_Joists",
+  "HoleEdge_Hang_tile",
+  "HoleEdge_Hang_grid",
+  "HoleEdge_Hang_plaster",
+  "HoleEdge_Hang_lath",
+  "HoleEdge_Cavity",
+  "HoleEdge_Rebar"
+ ],
+ "params": {
+  "form": [
+   "auto",
+   "cut",
+   "cut_plaster",
+   "cut_slab",
+   "cut_slab_plaster",
+   "broken",
+   "broken_plaster",
+   "broken_slab",
+   "broken_slab_plaster"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "wood",
+  "options": [
+   "wood"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 2000
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.15,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.35,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.57,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.29,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}

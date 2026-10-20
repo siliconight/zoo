@@ -1,0 +1,132 @@
+{
+ "species": "hole_spoil",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Original procedural construction (the factory's roadmap 265: the walker asked that a hole in a floor be 'clear to the player' and have 'some reason other than a perfectly cut square'). Every decision is core.hole_forms, pure and tested. What came down through a hole, on the floor below it: the cut-out floor in sawn panels with its finish on them (the slot's stock), ceiling tile shards, a grid tee, offcuts and fragments (cut); floorboards splintered, plaster, lath (broken). Every piece lies flat under the unassisted step, none on another, the tallest fragment the slot's height. Collisionless: the drop lands on it. Forms as hole_edge's: a slab's spoil is concrete fragments and lengths of bar; a plaster ceiling's is plaster and lath."
+ },
+ "collision": false,
+ "transparency": "opaque",
+ "keywords": [
+  "hole spoil",
+  "floor debris",
+  "cut debris",
+  "collapse debris"
+ ],
+ "match_priority": -1,
+ "dimensions": {
+  "width": {
+   "min": 0.8,
+   "max": 7.0,
+   "default": 2.7
+  },
+  "depth": {
+   "min": 0.8,
+   "max": 7.0,
+   "default": 2.7
+  },
+  "height": {
+   "min": 0.04,
+   "max": 0.1,
+   "default": 0.1
+  }
+ },
+ "parts": [
+  "HoleSpoil_panel",
+  "HoleSpoil_finish",
+  "HoleSpoil_tile",
+  "HoleSpoil_grid",
+  "HoleSpoil_joist",
+  "HoleSpoil_plank",
+  "HoleSpoil_lath",
+  "HoleSpoil_plaster",
+  "HoleSpoil_chunk",
+  "HoleSpoil_slab",
+  "HoleSpoil_rebar"
+ ],
+ "params": {
+  "form": [
+   "auto",
+   "cut",
+   "cut_plaster",
+   "cut_slab",
+   "cut_slab_plaster",
+   "broken",
+   "broken_plaster",
+   "broken_slab",
+   "broken_slab_plaster"
+  ],
+  "stock": [
+   "none",
+   "carpet",
+   "tile"
+  ]
+ },
+ "module_variants": 4,
+ "materials": {
+  "default": "wood",
+  "options": [
+   "wood"
+  ]
+ },
+ "budgets": {
+  "tris_lod0": 1600
+ },
+ "attachments": [],
+ "styles": {
+  "default": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.15,
+   "bevel": 0.0
+  },
+  "delco": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.35,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "center_city": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.2,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "industrial_flats": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.57,
+   "bevel": 0.0,
+   "ambient": 0.05
+  },
+  "rockay": {
+   "material": "wood",
+   "color": [
+    0.62,
+    0.47,
+    0.3
+   ],
+   "wear": 0.29,
+   "bevel": 0.0,
+   "ambient": 0.05
+  }
+ }
+}
