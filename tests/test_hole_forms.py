@@ -188,6 +188,34 @@ def test_the_roof_hatch_has_a_floor_form_with_a_three_centimetre_frame():
     assert plan["modules"][0]["species"] == "roof_hatch" and "_ffloor" in plan["modules"][0]["stem"]
 
 
+def test_the_floor_form_paints_on_a_tintable_kind_never_the_slots_material():
+    """Cold run 9343 (the factory's roadmap 265): the floor hatch's safety-yellow frame shipped dark brown. The
+    yellow rides in the frame's vertex colours (`geometry.tint_wear`) and multiplies into the pack's albedo, and the
+    slot's `metal` resolves to the theme's rusted street steel -- Pixelcoat declares that pack not tintable, mean sRGB
+    (0.45, 0.32, 0.21) -- so yellow times rust read brown. The floor form paints on `metal_painted`, which Pixelcoat
+    declares tintable (a near-white grain, mean 0.93), whatever material the slot carries. Read off the recipe's
+    source, because a recipe imports Blender's layer."""
+    import ast
+    import os
+
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "zoo_keeper", "recipes", "roof_hatch.py")
+    tree = ast.parse(open(path, encoding="utf-8").read())
+    consts = {t.id: n.value.value for n in tree.body if isinstance(n, ast.Assign)
+              for t in n.targets if isinstance(t, ast.Name) and isinstance(n.value, ast.Constant)}
+    assert consts.get("FLOOR_PAINT") == "metal_painted", consts.get("FLOOR_PAINT")
+    build = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build")
+    branch = next(n for n in ast.walk(build) if isinstance(n, ast.If)
+                  and isinstance(n.test, ast.Name) and n.test.id == "floor")
+    calls = [c for stmt in branch.body for c in ast.walk(stmt)
+             if isinstance(c, ast.Call) and getattr(c.func, "attr", "") == "make_material"]
+    assert len(calls) == 1, [ast.dump(c) for c in calls]
+    kind = calls[0].args[2]
+    assert isinstance(kind, ast.Name) and kind.id == "FLOOR_PAINT", ast.dump(kind)
+    # the colour is the mesh's: the paint itself stays white
+    assert [ast.literal_eval(v) for v in calls[0].args[1].elts] == [1.0, 1.0, 1.0]
+
+
 def test_a_roof_hatch_slot_without_a_form_plans_as_it_always_did():
     """The 40 roof scuttles Deli Counter emits name no form: their stems must not move."""
     plan = _plan("roof_hatch", [1.66, 1.66, 0.2])

@@ -39,6 +39,11 @@ SKIRT = 0.004        # m; the closed lid sinks this far into the curb's top (cor
 #: The floor form's frame, linear RGB: safety yellow, the colour a person reads as "opening here"
 #: across a room (1.114.0, the factory's roadmap 265).
 SAFETY_YELLOW = (0.86, 0.64, 0.04)
+#: The floor form's paint kind, whatever the slot's material (1.114.1): a TINTABLE pack, an achromatic grain the
+#: mesh's colours multiply into. Cold run 9343 shipped the frame dark brown: the slot's `metal` resolves to the
+#: theme's rusted street steel, which Pixelcoat declares not tintable (mean sRGB 0.45, 0.32, 0.21), and safety
+#: yellow times rust is brown. `metal_painted` is tintable (mean 0.93), as the CRT cabinet and the containers take it.
+FLOOR_PAINT = "metal_painted"
 
 
 def _ring(bm, w, d, t, z0, z1):
@@ -134,12 +139,14 @@ def build(plan, streams, collection):
     # Counter's 3 cm, painted safety yellow so the opening reads from across a room; the lid keeps
     # the style's grey. One material either way: in the floor form it is white and each part's
     # colour rides in `Wear` (`geometry.tint_wear`), the draw-call rule for colour-only variation.
+    # The white is FLOOR_PAINT's, never the slot's material (1.114.1): a colour can only ride a
+    # tintable pack, and the slot's `metal` is rust.
     floor = (plan.get("params") or {}).get("form") == "floor"
     if floor:
         geometry.tint_wear(curb, SAFETY_YELLOW)
         geometry.tint_wear(lid, plan["color"])
         paint = materials.make_material(
-            f"M_RoofHatch_{plan['material']}_floor", [1.0, 1.0, 1.0], plan["material"])
+            f"M_RoofHatch_{FLOOR_PAINT}_floor", [1.0, 1.0, 1.0], FLOOR_PAINT)
     else:
         paint = materials.make_material(
             f"M_RoofHatch_{plan['material']}", plan["color"], plan["material"])

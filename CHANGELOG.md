@@ -1,3 +1,23 @@
+## [1.114.1] - the floor hatch's yellow frame paints on a tintable pack, so it reads yellow
+
+**Found by the factory's cold run 9343** (precinct_yard_001, the first package with a floor hatch in it; roadmap 265).
+1.114.0's floor form paints its 3 cm frame safety yellow so the opening reads from across a room, and in the frame
+it read dark brown. Measured on the shipped module, `prop_roof_hatch_delco_04_w166_d166_h3_ffloor.glb`: the yellow
+is there, (0.863, 0.638, 0.040) in the frame's vertex colours, and Level Factory's worldskin draws them; but the
+recipe painted the form with the slot's own material, `metal`, and the theme's `metal` pack is rusted street steel,
+which Pixelcoat declares not tintable -- one material per theme, `M_Skin_metal_delco`, its albedo mean sRGB (0.451,
+0.315, 0.208). Yellow times rust lands near (0.39, 0.20, 0.01). The hinge, on `metal_bare`, took the neutral pack.
+
+### Fixed
+- `recipes/roof_hatch.py`: `FLOOR_PAINT = "metal_painted"`, the floor form's paint kind whatever the slot's
+  material -- a tintable pack, an achromatic grain (mean 0.93 on the same run) the mesh's colours multiply into, as
+  the CRT cabinet and the containers take it. The frame's yellow and the lid's grey still ride in the vertex
+  colours; still one material and the hinge's, two submissions. The roof form is unchanged.
+
+### Tests
+- `test_hole_forms.py`: `test_the_floor_form_paints_on_a_tintable_kind_never_the_slots_material` (602 in the file;
+  fails on 1.114.0), read off the recipe's source because a recipe imports Blender's layer.
+
 ## [1.114.0] - a hole in a floor that says why it is there
 
 **The factory's roadmap 265.** The walker, 2026-10-19, asked why the levels have holes in their floors -- Deli
