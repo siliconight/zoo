@@ -1,3 +1,61 @@
+## [1.119.0] - a run of retractable-belt queue stanchions, posts and belt: stanchion_run
+
+**The factory's roadmap 267, the walker, 2026-10-20**: asked what arena_a02's four steel barricades on its event floor
+were for, they chose "queue lanes to the box office", then: "stanchion or stanchions are likley more common for banks
+and indoor common areas", "metal barriers are for outdoor concerts or riot protection from police", "retractable belt
+stanchion", and a photo -- black posts on round weighted bases, a flat black belt pulled taut between each pair at
+waist height, lanes switching back in front of a desk. Deli Counter 0.243.0 lays a box office's queue as runs of this
+species. The steel `crowd_barrier` (1.118.0) stays for the outdoors.
+
+- **`stanchion_run`**, laid out in pure Python by `core/stanchion_run_forms.py` and built vertex for vertex through
+  `bpylayer.prim_mesh` (the crowd barrier's pattern), from the slot's box alone: one straight run, posts along its
+  width, ONE belt through them. A queue's switchback is several runs; a run is one slot.
+- **The numbers are the common retractable-belt stanchion's** (no code governs one): a 38 in post 2-1/2 in across on a
+  14 in base 2 in high, a cassette head 3 in across and 4 in tall, a 2 in belt -- drawn 6 mm thick so it holds a pixel
+  across a room -- its centre 2 in under the heads' tops, and 7-1/2 ft of it the most between two posts. A run is as
+  few posts as keep every belt within that reach, the spans equal, the end bases' rims at the run's ends; a run whose
+  bases would stand within 0.2 m of each other is refused. Defaults: two belts' reach, 4.6 m, three posts; the genome's
+  ranges 1.1-12 x 0.3-0.42 x 0.9-1.05 m.
+- **The base stands proud of a building's floor skin**, the crowd barrier's lesson (1.118.1): Deli Counter lays a room's
+  finish as a 2 cm skin over the slab and stands props on the slab under it, and the base's 5 cm clears it by 3.
+- **No face of one part lies on another's, and no open end shows.** A post is open at both ends, its foot inside its
+  base and its top inside its head; a base is open only at the floor; the belt is one band from the first post's axis
+  to the last's, through every head -- a belt a span put two end faces on one plane inside each middle head, which the
+  census counts as a pair. The bases are twelve-sided (at 14 in across eight read as an octagon), the posts and heads
+  eight, as every tube's in Zoo.
+- **One material, one part, one submission:** black powder coat, `metal_painted` (0.045 / 0.045 / 0.05), the belt in
+  the same black, worn by theme.
+- **Collision: each post, and the belt line** -- a band at the belt's height from end post to end post -- so a body
+  cannot walk through a run and a shot above or below the belt passes, as it would. Deli Counter 0.243.0 writes no
+  box over a run (`prop_species.SPECIES_OWNS_COLLISION`): a solid box would be cover the belt is not.
+- **Its words are its own.** `stanchion run`, `queue line`, `queue lane`, `retractable belt stanchion`; none of
+  `queue_stanchion`'s, a single post, whose `belt barrier` and `queue stanchion` keep resolving to it -- a word that
+  extended one of them would have taken its plural.
+
+**Measured, Blender 5.1.1** (the factory's `patches/zoo_stanchion_run/`):
+
+- `blender -b --python tools/coplanar_census.py -- --species stanchion_run bollard`: the run's three corners build at
+  168 / 246 / 558 tris with 0 pairs, first run; the bollard, the control that the census sees a pair, its known 2 / 2
+  / 1. "6 builds, 3 with coincident pairs, 0 that did not build". `CENSUS_BUILDS` 414 -> 417. 600 is the genome's
+  budget, inside the standard's small-clutter class (the factory's
+  `docs/reference/MODERN_LOW_POLY_ASSET_STANDARD.md`, section 1).
+- Four runs through `zoo_cli --build-kit` as Deli Counter writes a species that owns its collision (1.1, 3.0, 4.6 and
+  12 m): four modules PASS, each one visual mesh, one primitive, one material (`M_StanchionRun_metal_painted`), its
+  bounds the slot's exactly, and its `-colonly` proxy the posts and the belt line.
+
+### Tests
+- `tests/test_stanchion_run.py` (new): the genome validates; its keywords resolve to it and every other genome's word
+  resolves as it did without it, the probe seeing a planted move; a slot in its own kind plans
+  `prop_stanchion_run_delco_1997_10_w460_d36_h97` with no fallback; the defaults are the reference stanchion; over 81
+  sizes the extents are the slot's exactly, no face lies on another (the probe seeing the two-belt pair), the posts are
+  as few as keep every belt within its reach and no two bases touch, and the base clears a 2 cm skin; every open end
+  lies inside another member but the bases' undersides, on the floor; the belt runs through every head and ends inside
+  the end ones; one material and one part inside the budget; the collision is the posts and the belt line; a box too
+  small is refused. It cannot import on 1.118.1, which has no such species.
+- `tests/test_material_options_closed.py`: `stanchion_run` is painted. `tests/test_coincident_faces.py`: the census
+  covers it, `CENSUS_BUILDS` 417. Four checks of these two fail on 1.118.1 (the factory's
+  `patches/zoo_stanchion_run/prove_tests_on_11181.out.txt`).
+
 ## [1.118.1] - the crowd barrier's feet stand proud of a building's floor skin
 
 **Found in the factory's cold run 9359**, which framed arena_a02's four crowd barriers (roadmap 267; the factory's

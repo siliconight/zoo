@@ -566,7 +566,14 @@ DID_NOT_BUILD = {"boots"}
 #: hooks' arms turn a sixteenth of a circle so no facet of theirs is parallel to a leg's or a rail's, and
 #: every open tube end lies inside the member it runs into (`crowd_barrier_forms`), so
 #: `prims.coincident_pairs` reads 0 over 96 sizes before Blender does. 520 is the genome's budget.
-CENSUS_BUILDS = 414
+#: 1.119.0: `stanchion_run` (the factory's roadmap 267, a box office's queue lanes), three builds more, same tool,
+#: Blender 5.1.1 -- `blender -b --python tools/coplanar_census.py -- --species stanchion_run bollard`, the bollard the
+#: control (its known 2 / 2 / 1): "6 builds, 3 with coincident pairs, 0 that did not build", the run's three corners
+#: 168 / 246 / 558 tris and 0 pairs, first run. The bases' rings are twelve-sided and the posts' eight, a post's ends
+#: lie inside its base and its head, and the belt is ONE band through every head -- a belt a span put two end faces on
+#: one plane inside each middle head -- so `prims.coincident_pairs` reads 0 over 81 sizes before Blender does. 600
+#: is the genome's budget.
+CENSUS_BUILDS = 417
 
 
 def test_the_census_covers_every_species_there_is():

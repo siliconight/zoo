@@ -1,0 +1,104 @@
+{
+  "species": "stanchion_run",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Factory roadmap 267. The walker, 2026-10-20: 'stanchion or stanchions are likley more common for banks and indoor common areas', 'metal barriers are for outdoor concerts or riot protection from police', 'retractable belt stanchion', and a photo -- black posts on round weighted bases, a flat black belt taut between each pair at waist height, lanes switching back in front of a desk. REFERENCE: the common retractable-belt queue stanchion -- a 38 in post 2-1/2 in across on a 14 in weighted base 2 in high, a cassette head, a 2 in belt, 7-1/2 ft of reach -- black powder coat. One straight run a slot: posts along its width, one belt through them (`core/stanchion_run_forms.py`). The base stands 3 cm proud of a building's 2 cm floor skin (Zoo 1.118.1's lesson). Collision: the posts and the belt line; a body cannot walk through, a shot above or below the belt passes. BUILT: 168 tris for a two-post run, 246 at the default 4.6 m, 558 at 12 m (2026-10-20)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.1,
+      "max": 12.0,
+      "default": 4.6
+    },
+    "depth": {
+      "min": 0.3,
+      "max": 0.42,
+      "default": 0.356
+    },
+    "height": {
+      "min": 0.9,
+      "max": 1.05,
+      "default": 0.97
+    }
+  },
+  "parts": [
+    "StanchionRun_Steel"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.045,
+        0.045,
+        0.05
+      ],
+      "wear": 0.12,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.045,
+        0.045,
+        0.05
+      ],
+      "wear": 0.25,
+      "bevel": 0.0,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.045,
+        0.045,
+        0.05
+      ],
+      "wear": 0.1,
+      "bevel": 0.0,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.05,
+        0.05,
+        0.05
+      ],
+      "wear": 0.4,
+      "bevel": 0.0,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.045,
+        0.045,
+        0.05
+      ],
+      "wear": 0.2,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 600
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "stanchion run",
+    "queue line",
+    "queue lane",
+    "retractable belt stanchion",
+    "stanchion_run"
+  ]
+}
