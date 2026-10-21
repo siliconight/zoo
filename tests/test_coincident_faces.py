@@ -559,7 +559,14 @@ DID_NOT_BUILD = {"boots"}
 #: and through the saw, and the spoil's grid tee's web on its flange's plane -- each moved off by more
 #: than the census's 2 mm (`core.hole_forms.WALL_GAP`, a 12 mm folded cloth, bars 6 mm deeper, a 6 mm
 #: flange). The record is the factory's `patches/zoo_hole_causes/`.
-CENSUS_BUILDS = 411
+#: 1.118.0: `crowd_barrier` (the factory's roadmap 267, arena_a02's crowd rails), three builds more, same
+#: tool, Blender 5.1.1 -- `blender -b --python tools/coplanar_census.py -- --species crowd_barrier bollard`,
+#: the bollard the control (its known 2 / 2 / 1): "6 builds, 3 with coincident pairs, 0 that did not
+#: build", the barricade's three corners 348 / 412 / 508 tris and 0 pairs, first run. The pickets and the
+#: hooks' arms turn a sixteenth of a circle so no facet of theirs is parallel to a leg's or a rail's, and
+#: every open tube end lies inside the member it runs into (`crowd_barrier_forms`), so
+#: `prims.coincident_pairs` reads 0 over 96 sizes before Blender does. 520 is the genome's budget.
+CENSUS_BUILDS = 414
 
 
 def test_the_census_covers_every_species_there_is():

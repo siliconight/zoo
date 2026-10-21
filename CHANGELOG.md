@@ -1,3 +1,57 @@
+## [1.118.0] - a steel crowd-control barricade, one interlocking panel on its flat feet: crowd_barrier
+
+**The factory's roadmap 267, the walker's look review of 2026-10-20**: arena_a02's four barrier volumes -- 3.0 x 0.8 x
+1.2 m, built as plain boxes -- are to be "Crowd rails (a new model)", not the concrete jersey barrier. Deli Counter
+0.242.0 routes the word `barrier` to this species and writes those volumes in its own kind.
+
+- **`crowd_barrier`**, laid out in pure Python by `core/crowd_barrier_forms.py` and built vertex for vertex through
+  `bpylayer.prim_mesh` (the stoop railing's pattern), from the slot's box alone: two flat-bar feet the panel's depth
+  long; a leg on each, capped at the top; a bottom and a top rail between the legs; pickets between the rails; and at
+  +X two hooks -- an arm out of the leg into a drop hanging below it, its opening just over a leg's width -- so a panel
+  could hook over the next one's leg.
+- **The numbers are the common fabricated sizes** (no code governs a barricade): 1-1/2 in tube legs, 1-1/4 in rails,
+  3/4 in pickets at 5-1/4 in clear, fourteen to a 7.5 ft panel; the bottom rail 8 in up; 2 in flat-bar feet drawn 3/8
+  in thick so they hold a pixel; 5/8 in rod hooks. The genome's defaults are the common panel, 7.5 ft x 43 in on 24 in
+  feet; its ranges, 1.8-3.2 x 0.45-0.9 x 0.95-1.25 m, hold arena_a02's slot.
+- **Every tube has eight sides.** Zoo's export keeps a fold under 50 degrees smooth (`geometry.SMOOTH_ANGLE_DEG`), so
+  eight sides, folding at 45, read round; six would read as hexagonal bar.
+- **No face of one part lies on another's, and no open end shows.** The pickets and the hooks' arms turn a sixteenth
+  of a circle, so no facet of theirs is parallel to a leg's or a rail's. A tube end hidden inside another member is
+  left open and is narrower than that member's flats -- a leg's foot in its plate, a rail's ends in the legs, a
+  picket's on the rails' centre lines, an arm in its leg and its drop -- and what shows is closed: the legs' tops,
+  capped 1 cm over the top rail, and each drop, capped at both ends.
+- **One material, one part, one submission:** hot-dip galvanised steel, `metal_bare` in the chain-link fence's grey
+  (0.60 / 0.62 / 0.63, worn by theme). **Collision:** the panel, the frame's thickness from leg to leg and floor to
+  top; the feet stay out of it. Deli Counter writes its volume's own collider in the greybox the graders walk --
+  arena_a02's is the convex 3.0 x 0.8 x 1.2 box the barriers always were -- so their cover and pathing do not move.
+- **A slot's kind decides the module.** The kit keeps a slot's known kind that the genome does not offer
+  (`dna.resolve_module_plan`), so a slot in `metal` plans the `_mmetal` module in the theme's metal pack. Deli Counter
+  0.242.0 writes arena_a02's barriers in the species' own `metal_bare` (its `level_design._PROP_MATERIALS`, the
+  dartboard's rule), and the stem carries no `_m`.
+
+**Measured, Blender 5.1.1** (the factory's `patches/zoo_crowd_barrier/`):
+
+- `blender -b --python tools/coplanar_census.py -- --species crowd_barrier bollard`: the barricade's three corners
+  build at 348 / 412 / 508 tris with 0 pairs, first run; the bollard, the control that the census sees a pair, its
+  known 2 / 2 / 1. "6 builds, 3 with coincident pairs, 0 that did not build". `CENSUS_BUILDS` 411 -> 414. 520 is the
+  genome's budget, inside the standard's small-clutter class, 300 to 1,500 (the factory's
+  `docs/reference/MODERN_LOW_POLY_ASSET_STANDARD.md`, section 1).
+- arena_a02's four barrier slots through `zoo_cli --build-kit`, shaped as Deli Counter 0.242.0 writes them:
+  `prop_crowd_barrier_delco_1997_04_w300_d80_h120.glb` x4 PASS -- one visual mesh, one primitive, one material
+  (`M_CrowdBarrier_metal_bare`), 476 tris, its bounds the slot's exactly, and its panel collider.
+
+### Tests
+- `tests/test_crowd_barrier.py` (new): the genome validates and plans at arena_a02's slot with no fallback and the
+  stem above; the defaults are the reference panel and plan its fourteen pickets; the extents are the slot's exactly
+  and no face lies on another over 96 sizes, the probe's control seeing a planted pair; every open end's every vertex
+  lies strictly inside another member, at four sizes; the clear gaps are equal and inside 5-1/4 in; the hooks' opening
+  holds a leg; one material and one part inside the budget at every size; the collision is the panel; a box too small
+  for the frame is refused. Every one fails on 1.117.0, which has no such species.
+- `tests/test_coincident_faces.py`: the census's record and `CENSUS_BUILDS`; `tests/test_material_options_closed.py`:
+  `crowd_barrier` among the galvanised species (`BARE`).
+
+**Suite:** 6,348 passed, 491 skipped, 1 xfailed in 6 min 5 s in the proven clone, where 1.117.0's clone passed 6,040 with 490 skipped (the factory's `patches/zoo_booth_marks/suite_clone.out.txt`; 27 tests skip in a scratch clone): the new file's 303, the five material checks every genome gets, and one skip more, `test_recipe_that_builds_materials_reads_its_genome[crowd_barrier]`, "builds no materials" -- it sees only a direct `make_material` call, and this recipe builds through `prim_mesh` as the stoop railing's does. Of the tests that name the species, 308 pass and that one skips.
+
 ## [1.117.0] - the booth's marks are small, and mostly weather
 
 **The factory's roadmap 210.** The walker's look review, 2026-10-20, on 1.116.0's booths: "more subtle

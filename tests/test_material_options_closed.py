@@ -128,7 +128,9 @@ BARE = ("gold_bar", "flat_top_grill",
         "bar_stool",
         # a chain-link fence's posts, rail and wire are galvanised (1.77.0);
         # its fabric is a kind of its own, `chain_link`
-        "chain_link_fence")
+        "chain_link_fence",
+        # a crowd barricade is hot-dip galvanised tube (1.118.0)
+        "crowd_barrier")
 MOVED = PAINTED + BARE
 
 

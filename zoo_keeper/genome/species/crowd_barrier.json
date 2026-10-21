@@ -1,0 +1,106 @@
+{
+  "species": "crowd_barrier",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Factory roadmap 267, the walker's look review of 2026-10-20 on arena_a02's four barrier volumes (3.0 x 0.8 x 1.2 m, built as boxes): 'Crowd rails (a new model)', not the jersey barrier. REFERENCE: a hot-dip galvanised steel crowd-control barricade -- one interlocking panel of 1-1/2 in tube legs and 1-1/4 in rails with 3/4 in pickets, fourteen to a 7.5 ft panel, the bottom rail 8 in up, on two flat-bar feet, hooks at one end that drop over the next panel's leg. The defaults are the common fabricated sizes, 7.5 ft x 43 in on 24 in feet; the ranges hold arena_a02's slot (`core/crowd_barrier_forms.py`). One material. Collision: the panel; Deli Counter writes its volume's own collider in the greybox. BUILT: 412 tris at the default dims, 476 at arena_a02's, 508 at the largest corner (2026-10-20)."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.8,
+      "max": 3.2,
+      "default": 2.286
+    },
+    "depth": {
+      "min": 0.45,
+      "max": 0.9,
+      "default": 0.61
+    },
+    "height": {
+      "min": 0.95,
+      "max": 1.25,
+      "default": 1.092
+    }
+  },
+  "parts": [
+    "CrowdBarrier_Steel"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_bare",
+    "options": [
+      "metal_bare"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_bare",
+      "color": [
+        0.6,
+        0.62,
+        0.63
+      ],
+      "wear": 0.15,
+      "bevel": 0.0
+    },
+    "delco": {
+      "material": "metal_bare",
+      "color": [
+        0.6,
+        0.62,
+        0.63
+      ],
+      "wear": 0.35,
+      "bevel": 0.0,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_bare",
+      "color": [
+        0.6,
+        0.62,
+        0.63
+      ],
+      "wear": 0.122,
+      "bevel": 0.0,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_bare",
+      "color": [
+        0.55,
+        0.56,
+        0.56
+      ],
+      "wear": 0.57,
+      "bevel": 0.0,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_bare",
+      "color": [
+        0.6,
+        0.62,
+        0.63
+      ],
+      "wear": 0.29,
+      "bevel": 0.0,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 520
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "crowd barrier",
+    "crowd control barrier",
+    "crowd barricade",
+    "bike rack barricade",
+    "crowd rail",
+    "police barricade",
+    "crowd_barrier"
+  ]
+}
