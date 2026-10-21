@@ -1,3 +1,62 @@
+## [1.120.0] - a parked car's history: sun, salt, the road, a repair and its owner's stickers
+
+**The factory's roadmap 44, the walker's look review, 2026-10-19**, on the parked cars: "Looks right", and "some of
+the cars need some patina and wear...rusting....ect....bumper stickers....". The roadmap's next step: wear per car as
+seeded variation on the shared species, never a material per colour.
+
+- **A history a car, drawn from its own stream** (`core/car_wear.py`, stream `car_history`): kept (35 %), driven
+  (45 %) or beater (20 %), and with it how strongly the sun and the road have worked on it, where its rust is, whether
+  it carries a primer patch, how much clear coat it has lost and which stickers it wears. Measured over 3,000 stems,
+  each share within three points of its weight. Its own stream, so every car 1.119.0 built keeps its style,
+  proportions, paint and trim: four of Lot's parked modules, read off 1.119.0 as literals, resolve the same. A plan's
+  `history` param names one; the draw is taken either way.
+- **The sun and the road, in the body's `Wear`** (`car_wear.finish_rgb`): the faces that look at the sky chalk toward
+  a pale, dull version of the paint (`chalk`), mottled; the lower third takes the road's colour. REFUTED, kept: the
+  first cut chalked toward the getaway van's bleach, a pale grey against the van's near-black and DARKER than a silver
+  or a white car -- the first silver beater's roof went grey. Every paint the street parks now chalks lighter or no
+  darker, a test holds it.
+- **The rust, the primer and the peeled clear coat are thin pieces of the car's one painted material**, each corner's
+  colour in its own `Wear`, packed into the painted mesh: no submission of their own. Rust blooms hug the door skin's
+  lower edge over an arch (the rear arches first) or along a rocker, ragged on top; a primer patch, red oxide on a
+  light paint and grey on a dark one, sits on the kerb side's front door; a beater's roof loses its clear coat in
+  ragged milky patches. Every piece stands proud of its face by a distance kept at least 2.5 mm from every strip's
+  plane it can lie over (rust 8.5 mm, primer 11.5 mm; a seam 3, the moulding and the cladding 6), reaches no further
+  past an arch than 15 mm (the cladding stops at 20, the moulding at 30), and keeps off the handles, the moulding's
+  line and a clad car's rocker. The pieces are open sheets wound outward and finished by hand, as `cargo_container`'s
+  are: `bm_to_object`'s normal recalculation may turn an open sheet over. Their wear stream is their own
+  (`car_weather`), so a car's `wear` draws are the ones they always were.
+- **The peel stands on the roof, the slot's top**, so it is returned as `dressing_objects`: counted in the car's
+  triangles and parts, not its fit -- the rule a desk's monitor stands by.
+- **Bumper stickers from one sheet** (`core/car_stickers.py`): twelve invented Delco stickers -- HONK IF YOU'RE FROM
+  DELCO, MY OTHER CAR IS A TROLLEY, I STOPPED AT FLAPPAHS, SKEEVY'S WOODER ICE, THE WOODER HOLE LAST CALL CLUB and the
+  rest -- in the shop's hand (`smooth_type.OWNERS["shop"]`), no real mark (a denylist test reads every line). One
+  524 x 442 image -- 79,982 bytes as Blender writes it, 74,835 as this suite's Python does; no grain, which is most
+  of a PNG's size and no camera on the kerb resolves -- that every car module references as the same file in its
+  kit's `_tex`, and one material, `M_Car_stickers`, in every car: a car with stickers is one submission more than one
+  without, and a merged street side one more. Up to three on the rear bumper's upper band, a fixed pitch apart, read
+  from behind the right way round.
+- **Only the street's styles weather.** The cruiser is the county's: its build is byte for byte 1.119.0's (measured,
+  the default slot's GLB compared whole).
+- **The triangle budget, 3,400 -> 3,500.** A kept car is at most 2 tris over 1.119.0's (one sticker); a beater 92 to
+  136, which put six SUV beaters at 3,404-3,436. The budget is the regression detector it was; this is what bought the
+  raise.
+
+### Measured
+- The car's matrix again (`tests/test_car_forms.py`'s MEASURED; the factory's `patches/zoo_car_wear/car_matrix.py`):
+  646 builds -- every street style at the genome's min, default and max with style ints 1-8, each a beater, and 550 at
+  random sizes, styles and histories -- 0 SAME and 0 OPP coincident pairs, every fit check passing, tris max sedan
+  3,192, hatchback 3,020, SUV 3,436, coupe 3,128. Its first run found two stickers overlapping on all eight 1.55 m
+  wide grid beaters; the stickers stand `STICKER_PITCH` apart since.
+- A beater compact (1.75 x 4.30 x 1.45, the parked compact's style 1) exports five visual meshes on five materials:
+  the interior, the stickers, the glass, the painted parts with every piece packed in, the rubber trim.
+
+### Tests
+- `test_car_wear.py` (new, 13): the history re-rolls nothing; the weights; an asked history; the cruiser never
+  weathers; the sun never darkens a paint; the finish; every piece where it belongs, wound outward and off the
+  strips; the primer's colour by paint; the peel inside the roof; the stickers apart and on the band at every width;
+  the sheet sets every line, carries no real mark and stays small; one sticker material, the pieces on the painted
+  one. It cannot import on 1.119.0, and `test_car_forms.py`'s MEASURED fails its budget there.
+
 ## [1.119.0] - a run of retractable-belt queue stanchions, posts and belt: stanchion_run
 
 **The factory's roadmap 267, the walker, 2026-10-20**: asked what arena_a02's four steel barricades on its event floor

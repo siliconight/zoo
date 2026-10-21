@@ -31,10 +31,21 @@ _MATERIALS = os.path.join(_ZOO, "zoo_keeper", "bpylayer", "materials.py")
 #: / fit_height / fit_pivot check passing. The min / default / max grid
 #: alone once read clean while a 1.60 x 3.80 x 1.40 hatchback carried a SAME
 #: pair -- which is why the random sizes are part of the number. The largest
-#: visual tri count per style, read off the same builds:
+#: visual tri count per style, read off the same builds: sedan 3,100,
+#: hatchback 2,884, SUV 3,328, coupe 3,004.
+#:
+#: RE-MEASURED 2026-10-21 for 1.120.0's history (`core/car_wear.py`), by the
+#: factory's `patches/zoo_car_wear/car_matrix.py`, the same shape: the 96
+#: grid builds each a BEATER (the history that lays the most pieces) and 550
+#: at random sizes, each a random style or `auto` and a random history or
+#: `auto` -- 646 builds, 275 of them beaters, 0 SAME and 0 OPP pairs. Its
+#: first run found two stickers overlapping on all eight 1.55 m wide grid
+#: beaters (`car_wear.STICKER_PITCH` keeps them apart since). A kept car is
+#: at most 2 tris over 1.119.0's (one sticker); a beater 92 to 136, which put
+#: six SUV beaters over the genome's 3,400 -- raised to 3,500 for it:
 MEASURED = {"builds": 646, "same_pairs": 0, "opp_pairs": 0,
-            "tris_max": {"sedan": 3100, "hatchback": 2884, "suv": 3328,
-                         "coupe": 3004}}
+            "tris_max": {"sedan": 3192, "hatchback": 3020, "suv": 3436,
+                         "coupe": 3128}}
 
 
 def _plan(dims, body_style="auto", doors=0, color=None, block=None):

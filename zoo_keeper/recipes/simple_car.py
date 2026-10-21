@@ -46,7 +46,7 @@ from __future__ import annotations
 import math
 
 from ..bpylayer import geometry, materials
-from ..core import car_forms
+from ..core import car_forms, car_stickers, car_wear
 
 #: How far a flat detail (lamp, plate, handle) stands proud of its face.
 #: tools/coplanar_probe.py reports coincidence within 2 mm; 4 mm is the
@@ -536,6 +536,11 @@ def build(plan, streams, collection, form=None):
             (-xb, yub, mid - 0.02),
             (-xa + 0.02, top_back, bz1), (xa - 0.02, top_back, bz1),
             (xb - 0.01, yub, bz1), (-xb + 0.01, yub, bz1)])
+        if sy > 0.0:
+            # the rear band's face, which a car's stickers stand on (1.120.0,
+            # `car_wear.sticker_quads`); only above the rub strip does it show
+            rear_band = {"x_half": xa, "y_lo": yu, "z_lo": mid - 0.02, "y_hi": top_back,
+                         "z_hi": bz1, "z_seen": mid}
 
     # --- nose: lamps and grille on the nose face --------------------------------
     # Planes in front of the nose face, nearest first: lamp housing 4 mm,
@@ -832,6 +837,79 @@ def build(plan, streams, collection, form=None):
         objs.append(obj)
         glass_objs.append(obj)
 
+    # --- a street car's history (1.120.0, the factory's roadmap 44; `car_wear`) ----------
+    # The sun and the dust ride the body's `Wear` (its tint below). The rust, the primer
+    # and the peeled clear coat are thin pieces of the painted material, each corner's
+    # colour in its own `Wear`; the stickers sample one sheet. Only the street's styles
+    # weather -- the cruiser is the county's, its body its livery's. Each piece is an open
+    # sheet `car_wear` winds outward, so it is NOT finished by `bm_to_object`, whose normal
+    # recalculation may turn an open sheet over: the steps it would take are taken here,
+    # as `cargo_container`'s sheets take them, from a stream of their own so the car's
+    # `wear` draws are the ones they always were.
+    weathered = style in car_forms.STREET_STYLES
+    weather_objs, peel_obj, sticker_obj = [], None, None
+    weather_lut, sticker_uv = {}, {}
+
+    def _key(co):
+        return (round(co[0], 5), round(co[1], 5), round(co[2], 5))
+
+    def _pieces_bm(pieces, lut, field):
+        """The pieces in one bmesh, each vertex's ``field`` value (its colour or its UV)
+        in ``lut`` by where the vertex stands -- read back off the bmesh, so the key is
+        the float the mesh will hold."""
+        bm = geometry.new_bm()
+        for p in pieces:
+            vs = [bm.verts.new(v) for v in p["verts"]]
+            for face in p["faces"]:
+                bm.faces.new([vs[i] for i in face])
+            for v, val in zip(vs, p[field]):
+                k = _key(v.co)
+                if k in lut and lut[k] != val:
+                    raise RuntimeError(f"simple_car: two {field} values for the corner at {k}")
+                lut[k] = val
+        return bm
+
+    def _finish(bm, name):
+        bm.normal_update()
+        geometry.shade_by_angle(bm, 1.0)
+        geometry.cube_project_uv(bm, 0.5)
+        geometry.wear_colors(bm, weather_rng, 0.0)
+        obj = geometry.bm_to_object(bm, name, collection, finish=False)
+        objs.append(obj)
+        return obj
+
+    if weathered:
+        weather_rng = streams.stream("car_weather")
+
+        def edge(y):
+            # the door skin's lower edge, as `section` sets it: over an arch, the arch
+            return max(z_base(y) + ROCKER_H, z_well(y) + 0.012)
+
+        def paint_at(co, n):
+            return car_wear.finish_rgb(co, n, tuple(f["paint"]), f)
+
+        rocker = None if f["two_tone"] else (ya_f + R + 0.04, ya_r - R - 0.04)
+        skin = car_wear.rust_blooms(f, lay, edge, half_w, paint_at, rocker_span=rocker)
+        # the front door's clear panel: past its seams, ahead of its handle, above the
+        # moulding's line and below the shoulder
+        primer = car_wear.primer_patch(
+            f, (door_edges[0] + 0.03, door_edges[1] - 0.33, zm_moulding + 0.054, z2_at - 0.04), half_w,
+            tuple(f["paint"]))
+        if primer is not None:
+            skin.append(primer)
+        if skin:
+            weather_objs.append(_finish(_pieces_bm(skin, weather_lut, "rgb"), "Car_Weather"))
+        # THE PEEL STANDS ON THE ROOF, which is the slot's top on a car with no rack: it is
+        # returned as dressing (below), counted in the car's triangles and not in its fit --
+        # the rule a desk's monitor stands by (`build._recentre`, `export.gather_facts`)
+        peels = car_wear.peel_patches(
+            f, {"z": zr, "x_half": 0.55 * hwg(1.0), "y0": yF(1.0), "y1": yR(1.0)}, paint_at)
+        if peels:
+            peel_obj = _finish(_pieces_bm(peels, weather_lut, "rgb"), "Car_Peel")
+        stickers = car_wear.sticker_quads(f, rear_band)
+        if stickers:
+            sticker_obj = _finish(_pieces_bm(stickers, sticker_uv, "uv"), "Car_Stickers")
+
     kind_paint = plan["material"] if plan["material"] != "glass" else "metal_painted"
     hexcol = "".join("%02x" % max(0, min(255, int(round(c * 255)))) for c in f["paint"])
     mats = {
@@ -867,20 +945,62 @@ def build(plan, streams, collection, form=None):
             materials.assign([obj], mats[key])
             continue
         materials.assign([obj], painted)
-        if not geometry.tint_wear(obj, tints[key]):
+        if weathered and key == "body":
+            # the history's sun and road on the body's paint (`car_wear.finish_rgb`)
+            landed = geometry.tint_wear_by(obj, lambda co, n: car_wear.finish_rgb(co, n, tints["body"], f))
+        else:
+            landed = geometry.tint_wear(obj, tints[key])
+        if not landed:
             raise RuntimeError(f"simple_car: {obj.name} has no Wear layer, so its "
                                f"paint would not land")
     glass = materials.make_see_through_material("M_Car_glass", list(GLASS_TINT), GLASS_OPACITY)
     materials.assign(glass_objs, glass)
+    # the history's pieces: on the one painted material, each corner its own colour, and
+    # every corner found in the table it was built with -- a corner that is not is a piece
+    # whose colour would not land, refused rather than shipped in white
+    for obj in weather_objs + ([peel_obj] if peel_obj is not None else []):
+        materials.assign([obj], painted)
+        missed = []
+
+        def piece_rgb(co, n, missed=missed):
+            c = weather_lut.get(_key(co))
+            if c is None:
+                missed.append(co)
+                return (1.0, 1.0, 1.0)
+            return c
+        if not geometry.tint_wear_by(obj, piece_rgb) or missed:
+            raise RuntimeError(f"simple_car: {obj.name}'s colours did not land "
+                               f"({len(missed)} corners not in its table)")
+    if sticker_obj is not None:
+        sheet = car_stickers.art()
+        materials.assign([sticker_obj], materials.make_painted_material(
+            "M_Car_stickers", materials.image_from_png(sheet["name"], sheet["png"]), 0.55, smooth=True))
+        missed = []
+
+        def sticker_at(co, n, missed=missed):
+            uv = sticker_uv.get(_key(co))
+            if uv is None:
+                missed.append(co)
+                return (0.0, 0.0)
+            return uv
+        if not geometry.set_uv_by(sticker_obj, sticker_at) or missed:
+            raise RuntimeError(f"simple_car: Car_Stickers' UVs did not land "
+                               f"({len(missed)} corners not in its table)")
 
     print(f"[car] style={style} ({f['style_how']}) doors={f['doors']} "
           f"paint={f['paint_name']} wheels={f['wheel_kind']} bumpers={f['bumper_kind']} "
           f"rack={f['rack']} two_tone={f['two_tone']} quarter={f['quarter_glass']} "
-          f"panes={len(glass_objs)} stations={len(stations)}")
+          f"panes={len(glass_objs)} stations={len(stations)} "
+          f"history={f['history'] if weathered else 'none'} rust={len(f['rust']) if weathered else 0} "
+          f"primer={weathered and primer is not None} peel={len(peels) if weathered else 0} "
+          f"stickers={len(stickers) if weathered else 0}")
 
     cboxes = [((-W / 2.0, yF0, clear), (W / 2.0, yR0, belt)),
               ((-hw_gb, y_ws, belt), (hw_gb, y_bl, zr))]
     return {"objects": objs, "collision_boxes": cboxes,
+            # the peeled clear coat stands on the roof, the slot's top: counted in the
+            # car's triangles, not in its fit (1.120.0)
+            "dressing_objects": [peel_obj] if peel_obj is not None else [],
             "form": {k: v for k, v in f.items() if not isinstance(v, tuple)},
             "attachments": {"ATT_roof": (0.0, (y_rf + y_rr) / 2.0, zr),
                             "ATT_driver_seat": (xd, y_fs, seat_z),

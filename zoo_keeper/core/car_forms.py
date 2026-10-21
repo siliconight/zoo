@@ -50,6 +50,8 @@ without Blender.
 """
 from __future__ import annotations
 
+from . import car_wear
+
 #: name -> form. Heights are fractions of h, lengths of d from the front
 #: bumper, `roof_w` the roof's half-width over the body's.
 #:   natural     the (depth, height) window a real car of the style lives in;
@@ -335,7 +337,8 @@ def pick_paint(plan: dict, style: str, rng) -> tuple[str, tuple]:
 def resolve(plan: dict, streams) -> dict:
     """Every decision the recipe executes, from named streams: the style
     (`car_style`), its proportions (`car_form`), paint (`car_paint`) and
-    trim (`car_trim`). Separate streams so adding a trim decision later
+    trim (`car_trim`), and since 1.120.0 its history (`car_history`,
+    `car_wear.resolve`). Separate streams so adding a trim decision later
     never re-rolls a car's paint or silhouette."""
     params = plan.get("params") or {}
     dims = plan["dimensions"]
@@ -364,6 +367,7 @@ def resolve(plan: dict, streams) -> dict:
     f["cladding"] = _weighted(trim, (("tan", 0.5), ("silver", 0.3), ("grey", 0.2)))
     f["interior"] = _weighted(trim, (("grey", 0.5), ("tan", 0.3), ("blue_grey", 0.2)))
     f["paint_name"], f["paint"] = pick_paint(plan, style, streams.stream("car_paint"))
+    f.update(car_wear.resolve(params, streams))
     return f
 
 
