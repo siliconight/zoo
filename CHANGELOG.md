@@ -1,3 +1,27 @@
+## [1.118.1] - the crowd barrier's feet stand proud of a building's floor skin
+
+**Found in the factory's cold run 9359**, which framed arena_a02's four crowd barriers (roadmap 267; the factory's
+`docs/findings/crowd_barrier_267/`): the barricades stood with no feet, their legs planted straight into the carpet.
+Deli Counter lays a room's floor finish as a 2 cm skin over the slab and stands every prop on the slab under it (its
+`floors.SKIN_THICK`), so 1.118.0's 9.5 mm flat-bar feet were buried whole.
+
+### Changed
+- `core/crowd_barrier_forms.py`: the feet are 2 x 1-1/2 in rectangular steel tube, as many barricades' are, standing
+  1.8 cm proud of a 2 cm skin; the legs' open ends still lie inside them. Triangles (348 / 412 / 508 at the genome's
+  corners, 476 at arena_a02's), parts, material and extents are 1.118.0's; the coplanar census re-run the same way
+  reads 0 pairs at all three corners and the bollard control its known 2 / 2 / 1 (the factory's
+  `patches/zoo_crowd_feet/census.log`).
+
+### Records corrected
+- 1.118.0's kit build named its module `prop_crowd_barrier_delco_1997_04_w300_d80_h120`: its slots kept Deli Counter
+  0.241.0's style. Deli Counter 0.242.0 declares `metal_bare` tenth in arena_a02's palette, its slots carry style 10,
+  and the module ships as `prop_crowd_barrier_delco_1997_10_w300_d80_h120` -- the same geometry and material (the
+  factory's `patches/dc_crowd_barrier/kit_real_slots.log`).
+
+### Tests
+- `tests/test_crowd_barrier.py`: `test_the_feet_stand_proud_of_a_floor_skin`, a foot's top a centimetre or more over a
+  2 cm skin at every size. It fails on 1.118.0, and nothing else does.
+
 ## [1.118.0] - a steel crowd-control barricade, one interlocking panel on its flat feet: crowd_barrier
 
 **The factory's roadmap 267, the walker's look review of 2026-10-20**: arena_a02's four barrier volumes -- 3.0 x 0.8 x

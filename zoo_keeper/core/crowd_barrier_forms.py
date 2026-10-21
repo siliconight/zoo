@@ -3,7 +3,7 @@
 Factory roadmap 267, the walker's look review of 2026-10-20: arena_a02's four barriers -- Deli Counter volumes of
 3.0 x 0.8 x 1.2 m that built as plain boxes -- are to be "Crowd rails (a new model)", not the concrete jersey barrier.
 This draws one panel of the interlocking barricade crowds are lined up behind at an arena's gates and a parade's kerb:
-a welded tube frame on two flat feet, vertical pickets between its rails, hooks at one end that drop over the next
+a welded tube frame on two tube feet, vertical pickets between its rails, hooks at one end that drop over the next
 panel's leg.
 
 REFERENCE, the common sizes as fabricators list them (not a standard's; no code governs a barricade's dimensions):
@@ -13,8 +13,11 @@ galvanised. The genome's defaults are those sizes and its ranges hold arena_a02'
   * `LEG_R`, `RAIL_R`, `PICKET_R`: the tubes' radii, 1-1/2, 1-1/4 and 3/4 in across;
   * `PICKET_CLEAR`: the clear between pickets, 5-1/4 in -- the clear of fourteen pickets in a 7.5 ft frame;
   * `BOTTOM_Z`: the bottom rail's centre 8 in over the floor;
-  * `FOOT_W`, `FOOT_T`: 2 in flat bar, drawn 3/8 in thick where the steel is 1/4, so it holds a pixel a few metres out
-    (as the stoop railing's pickets and the fence's tension wire are drawn heavier than they are);
+  * `FOOT_W`, `FOOT_T`: feet of 2 x 1-1/2 in rectangular steel tube, as many barricades' are. NOT the 1/4 in flat bar
+    of the lowest feet, which 1.118.0 drew 3/8 in thick: Deli Counter lays a room's floor finish as a 2 cm skin over
+    the slab and stands every prop on the slab under it (its `floors.SKIN_THICK`), so a foot thinner than 2 cm is
+    buried whole -- the factory's cold run 9359 framed arena_a02's barricades with their legs planted straight into
+    the carpet. 1-1/2 in stands 1.8 cm proud of that skin, and on bare ground it is a foot a fabricator would weld;
   * `HOOK_R`, `HOOK_CLEAR`, `HOOK_DROP`: 5/8 in rod bent out and down, its opening just over a leg's width, so it
     could drop over the next panel's leg.
 
@@ -33,8 +36,8 @@ its corners), so no opening shows: a leg's foot inside its foot plate, a rail's 
 the rails' centre lines, a hook's arm inside its leg and its drop. What shows is closed: the legs' tops are capped,
 `LEG_PROUD` over the top rail, and each hook's drop is capped at both ends.
 
-COLLISION: the panel -- the frame's thickness, leg to leg, floor to top. The feet stay out of it: a 3/8 in plate is
-under any step. Deli Counter writes its volume's own collider in the greybox the graders walk (arena_a02's is the
+COLLISION: the panel -- the frame's thickness, leg to leg, floor to top. The feet stay out of it: 1-1/2 in is under
+any step. Deli Counter writes its volume's own collider in the greybox the graders walk (arena_a02's is the
 convex 3.0 x 0.8 x 1.2 box the barriers always were); this one is the module's, for a panel standing anywhere else.
 """
 from __future__ import annotations
@@ -49,8 +52,8 @@ RAIL_R = round(0.625 * IN, 5)         # 1-1/4 in tube
 PICKET_R = round(0.375 * IN, 5)       # 3/4 in tube
 PICKET_CLEAR = round(5.25 * IN, 5)    # fourteen pickets to a 7.5 ft panel
 BOTTOM_Z = round(8 * IN, 4)           # the bottom rail's centre over the floor
-FOOT_W = round(2 * IN, 4)             # flat bar across X
-FOOT_T = round(0.375 * IN, 4)         # its thickness, drawn heavier than the 1/4 in steel
+FOOT_W = round(2 * IN, 4)             # the foot's tube across X
+FOOT_T = round(1.5 * IN, 4)           # its height: proud of a 2 cm floor skin (the docstring)
 HOOK_R = round(0.3125 * IN, 5)        # 5/8 in rod: the drop
 ARM_R = round(HOOK_R * 0.9, 5)        # the arm, narrower than the drop's flats so its end hides in it
 HOOK_CLEAR = round(1.75 * IN, 4)      # the opening between the leg and the drop: over a 1-1/2 in leg
@@ -113,7 +116,7 @@ def plan(w, d, h):
     if d < 2 * LEG_R:
         raise ValueError("a crowd barrier %.4f m deep cannot stand its legs on its feet" % d)
     out = []
-    # the two flat feet, the panel's depth long, under the legs
+    # the two feet, rectangular tube the panel's depth long, under the legs
     for x in (x_lo, x_hi):
         out.append(prims.box(PART, MAT, (x - FOOT_W / 2, -d / 2, z0), (x + FOOT_W / 2, d / 2, z0 + FOOT_T)))
     # the legs: open at the foot (inside the plate), capped at the top

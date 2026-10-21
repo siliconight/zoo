@@ -155,6 +155,19 @@ def test_no_open_end_shows(w, d, h):
     assert opened == 2 + 4 + 2 * F.plan(w, d, h)["facts"]["pickets"] + 4
 
 
+def test_the_feet_stand_proud_of_a_floor_skin():
+    """1.118.1: Deli Counter lays a room's floor finish as a 2 cm skin over the slab and stands a prop on the slab under
+    it (its `floors.SKIN_THICK`), so a foot under 2 cm is buried -- the factory's cold run 9359 framed 1.118.0's 9.5 mm
+    feet out of sight, the legs planted in the carpet. A foot's top clears that skin by a centimetre or more, at every
+    size. FAILS ON 1.118.0."""
+    skin = 0.02
+    assert F.FOOT_T - skin >= 0.01
+    for w, d, h in SIZES:
+        feet = [p for p in F.plan(w, d, h)["prims"] if len(p["faces"]) == 6]
+        assert len(feet) == 2
+        assert all(max(v[2] for v in p["verts"]) - (-h / 2) >= skin + 0.01 for p in feet)
+
+
 def test_an_open_end_is_narrower_than_what_hides_it():
     assert F.RAIL_R < F.LEG_R * F.FLAT and F.PICKET_R < F.RAIL_R * F.FLAT and F.ARM_R < F.HOOK_R * F.FLAT
     assert F.LEG_R < F.FOOT_W / 2 and 0 < F.SINK < F.FOOT_T
