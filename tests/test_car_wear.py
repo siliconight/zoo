@@ -68,6 +68,34 @@ def test_the_histories_park_in_their_weights():
     assert sum(w for _n, w in car_wear.HISTORIES) == pytest.approx(1.0)
 
 
+#: 1.120.0's histories for the same four stems, every draw (history, rust, primer, peel, stickers, seed) --
+#: literals, read off 1.120.0.
+HISTORY_1120 = (
+    ("prop_simple_car_delco_1997_01_w175_d430_h145", "beater", (("rear_arch", 1), ("front_arch", -1),
+                                                                ("rear_arch", -1)), True, 3, (4, 5, 8), 46222),
+    ("prop_simple_car_delco_1997_02_w175_d480_h142", "kept", (), False, 0, (5,), 331612),
+    ("prop_simple_car_delco_1997_01_w160_d380_h140", "driven", (("rear_arch", 1),), False, 0, (0,), 126983),
+    ("prop_simple_car_delco_1997_02_w180_d470_h173", "driven", (), False, 0, (11,), 512975),
+)
+
+
+def test_whether_its_stickers_are_on_moves_nothing_else_1120_drew():
+    """1.120.1 draws `stuck` LAST: every car keeps 1.120.0's history, rust, primer, peel and seed, and its stickers
+    are the ones it drew or none."""
+    for stem, name, rust, primer, peel, stickers, seed in HISTORY_1120:
+        h = car_wear.resolve({}, _streams(stem))
+        assert (h["history"], h["rust"], h["primer"], h["peel"], h["wear_seed"]) == (name, rust, primer, peel, seed)
+        assert h["stickers"] in (stickers, ()), (stem, h["stickers"])
+
+
+def test_stickers_are_some_cars_not_most():
+    """The walker: "some of the cars". 1.120.0 put a sticker on 27 of cold run 9365's 35 parked cars. Over 3,000
+    stems the share is `sticker_share` within three points, and that is under half."""
+    n = sum(1 for k in range(3000) if car_wear.resolve({}, _streams("st_%d" % k))["stickers"])
+    assert n / 3000.0 < 0.45, n
+    assert abs(n / 3000.0 - car_wear.sticker_share()) < 0.03, (n, car_wear.sticker_share())
+
+
 def test_an_asked_history_wins_and_a_drawn_one_says_so():
     f = car_wear.resolve({"history": "beater"}, _streams("x"))
     assert f["history"] == "beater" and f["history_how"] == "asked"
@@ -81,7 +109,7 @@ def test_an_asked_history_wins_and_a_drawn_one_says_so():
             h = car_wear.resolve({"history": name}, _streams("%s_%d" % (name, k)))
             assert w["rust"][0] <= len(h["rust"]) <= w["rust"][1]
             assert w["peel"][0] <= h["peel"] <= w["peel"][1]
-            assert w["stickers"][0] <= len(h["stickers"]) <= w["stickers"][1]
+            assert len(h["stickers"]) == 0 or w["stickers"][0] <= len(h["stickers"]) <= w["stickers"][1]
             assert len(set(h["stickers"])) == len(h["stickers"])
             assert len(set(h["rust"])) == len(h["rust"])
             if w["primer"] == 0.0:

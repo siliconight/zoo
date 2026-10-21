@@ -15,7 +15,8 @@ WHAT A STREET OF 1997 DELCO CARS CARRIES, and where each mark comes from:
     (`rust_blooms`).
   * THE ROAD. A car that is driven carries the road on its lower third (`finish_rgb`'s dust).
   * A REPAIR. A dented door, filled and sanded and never painted: a patch of grey primer (`primer_patch`).
-  * ITS OWNER. Bumper stickers on the rear bumper (`sticker_quads`, the sheet `car_stickers`).
+  * ITS OWNER. Bumper stickers on the rear bumper (`sticker_quads`, the sheet `car_stickers`) -- on some cars:
+    a beater most often, a kept car seldom (`WEATHER`'s ``stuck``).
 
 A HISTORY IS DRAWN PER MODULE, from its own stream (`car_history`), so it never re-rolls a car's style, paint or
 trim, and a Zoo with it builds every car's silhouette and colour exactly as one without it did. Lot parks a street
@@ -48,12 +49,21 @@ from . import car_stickers, van_forms
 
 #: How often each history parks on a street, and what each leaves. ``sun`` and ``dust`` are the strengths
 #: `finish_rgb` paints with (0..1); ``rust``, ``peel`` and ``stickers`` are (fewest, most) of each piece; ``primer``
-#: is the chance of one filled dent in primer.
+#: is the chance of one filled dent in primer; ``stuck`` the chance that the stickers a car drew are on it at all.
+#:
+#: STICKERS ARE SOME CARS' (1.120.1). 1.120.0 had no ``stuck``: a kept car drew none or one sticker and a driven
+#: car none to two, so in the factory's cold run 9365 seven of the street's eight parked modules carried a sticker --
+#: 27 of its 35 cars, where the walker asked for "some of the cars". With ``stuck`` the share is about three cars in
+#: eight (`sticker_share`); the draw comes after every other, so each car's rust, primer, peel and seed are what
+#: 1.120.0 drew, and only whether its stickers are on it moved.
 HISTORIES = (("kept", 0.35), ("driven", 0.45), ("beater", 0.20))
 WEATHER = {
-    "kept": {"sun": 0.10, "dust": 0.10, "rust": (0, 0), "primer": 0.00, "peel": (0, 0), "stickers": (0, 1)},
-    "driven": {"sun": 0.35, "dust": 0.35, "rust": (0, 2), "primer": 0.15, "peel": (0, 0), "stickers": (0, 2)},
-    "beater": {"sun": 0.80, "dust": 0.55, "rust": (2, 4), "primer": 0.60, "peel": (1, 3), "stickers": (1, 3)},
+    "kept": {"sun": 0.10, "dust": 0.10, "rust": (0, 0), "primer": 0.00, "peel": (0, 0), "stickers": (0, 1),
+             "stuck": 0.20},
+    "driven": {"sun": 0.35, "dust": 0.35, "rust": (0, 2), "primer": 0.15, "peel": (0, 0), "stickers": (0, 2),
+               "stuck": 0.60},
+    "beater": {"sun": 0.80, "dust": 0.55, "rust": (2, 4), "primer": 0.60, "peel": (1, 3), "stickers": (1, 3),
+               "stuck": 0.80},
 }
 #: Where the salt starts, as (place, side, weight): the rear arches' lips first, the front's next, a rocker last.
 #: A side is +1 for the driver's (+X) and -1 for the kerb's.
@@ -175,9 +185,24 @@ def resolve(params, streams) -> dict:
     n_st = len(car_stickers.STICKERS)
     stickers = _sample(rng, list(range(n_st)), [1.0] * n_st, _count(rng, w["stickers"]))
     seed = int(rng.random() * 1000003)
+    # LAST, so it moves nothing drawn before it (1.120.1): are the stickers it drew on it at all
+    if rng.random() >= w["stuck"]:
+        stickers = []
     return {"history": name, "history_how": "asked" if asked in WEATHER else "drawn",
             "sun": w["sun"], "dust": w["dust"], "rust": tuple(places), "primer": primer, "peel": peel,
             "stickers": tuple(stickers), "wear_seed": seed}
+
+
+def sticker_share():
+    """The share of a street's cars that carry a sticker, from the tables: each history's weight times the chance it
+    drew at least one, times `stuck`."""
+    out = 0.0
+    for name, weight in HISTORIES:
+        w = WEATHER[name]
+        lo, hi = w["stickers"]
+        drew = (hi - max(lo, 1) + 1) / float(hi - lo + 1) if hi >= 1 else 0.0
+        out += weight * drew * w["stuck"]
+    return out
 
 
 def _noise(a, b, seed, k):

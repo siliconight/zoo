@@ -42,10 +42,14 @@ _MATERIALS = os.path.join(_ZOO, "zoo_keeper", "bpylayer", "materials.py")
 #: first run found two stickers overlapping on all eight 1.55 m wide grid
 #: beaters (`car_wear.STICKER_PITCH` keeps them apart since). A kept car is
 #: at most 2 tris over 1.119.0's (one sticker); a beater 92 to 136, which put
-#: six SUV beaters over the genome's 3,400 -- raised to 3,500 for it:
+#: six SUV beaters over the genome's 3,400 -- raised to 3,500 for it. Its
+#: maxima: sedan 3,192, hatchback 3,020, SUV 3,436, coupe 3,128.
+#:
+#: AND AGAIN for 1.120.1, whose stickers are some cars' (`car_wear`'s
+#: `stuck`): the same 646, 0 pairs, every check passing:
 MEASURED = {"builds": 646, "same_pairs": 0, "opp_pairs": 0,
-            "tris_max": {"sedan": 3192, "hatchback": 3020, "suv": 3436,
-                         "coupe": 3128}}
+            "tris_max": {"sedan": 3188, "hatchback": 3020, "suv": 3430,
+                         "coupe": 3122}}
 
 
 def _plan(dims, body_style="auto", doors=0, color=None, block=None):

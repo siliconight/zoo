@@ -1,3 +1,25 @@
+## [1.120.1] - stickers are some cars', not most
+
+**Measured in a package, the factory's cold run 9365** (bank_block_001, seed 9082, Zoo 1.120.0): seven of the
+street's eight parked modules carried a sticker -- 27 of its 35 cars -- where the walker asked for "some of the
+cars". 1.120.0 drew a kept car none or one sticker and a driven car none to two, so over 3,000 stems 2,026 cars in
+3,000 carried one (67.5 %). The cost is the sticker's material, one submission a stickered car: the package's parked
+cars were 140 surfaces at 1.119.0 and 167 at 1.120.0, every one of the 27 more a sticker sheet.
+
+- **`WEATHER`'s ``stuck``**: the chance that the stickers a car drew are on it at all -- kept 0.20, driven 0.60,
+  beater 0.80 -- so about three cars in eight carry one (`car_wear.sticker_share`, 0.375; measured over 3,000 stems
+  within three points). The draw comes LAST in the history's stream: every car keeps 1.120.0's history, rust,
+  primer, peel and seed, and its stickers are the ones it drew or none (four of Lot's parked modules, read off
+  1.120.0 as literals). On bank_block_001's street at seed 9082 that is two of the eight modules -- the silver beater
+  compact and one driven SUV -- seven of its 35 cars.
+- **The matrix again** (the factory's `patches/zoo_car_wear/car_matrix.py`): 646 builds, 0 SAME and 0 OPP pairs, every
+  check passing, tris max sedan 3,188, hatchback 3,020, SUV 3,430, coupe 3,122 (`test_car_forms.py`'s MEASURED).
+
+### Tests
+- `test_car_wear.py`: two more (15) -- whether a car's stickers are on moves nothing else 1.120.0 drew, and stickers
+  are under half the street's cars and the tables' share within three points; the second fails on 1.120.0 (2,026 of
+  3,000).
+
 ## [1.120.0] - a parked car's history: sun, salt, the road, a repair and its owner's stickers
 
 **The factory's roadmap 44, the walker's look review, 2026-10-19**, on the parked cars: "Looks right", and "some of
