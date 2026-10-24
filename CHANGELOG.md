@@ -1,3 +1,18 @@
+## [1.129.0] - `stoop_railing`'s flight form reaches a storey
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 6), of the office's
+switchback: the block over its upper flight, "the walling/railing doesn't loook natural yet". Deli Counter >= 0.269.0
+stands this species' flight form along that flight's inner edge, its box the flight's rise plus the rail.
+
+### Changed
+- **The genome's height reaches 6.0 m** (was 1.6): a 3.6 m storey's flight asks 4.51 m, a 5.0 m storey's 5.91. The
+  office's, 5.2339 x 0.05 x 4.5144 m, builds as the species -- a raking rail at 34.6 degrees, 44 pickets sheared to
+  its pitch, one mesh of 282 faces. Planning reads no limit from the genome: 126 stoop railings plan vertex for vertex
+  as before (the factory's `patches/zoo_rail_flight_height/stoop_unchanged.out.txt`).
+
+### Tests
+- `tests/test_rail_flight_height.py` (new): a storey's flight rail plans as the species, failing on 1.128.0.
+
 ## [1.128.0] - `stoop_railing` is a stair hole's balustrade too
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 6), of the office

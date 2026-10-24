@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Factory roadmap 240, the walker's calls of 2026-10-13 ('3 risers, concrete, railings both sides -- build the railings') on the comps' rowhouse street: 'three or four steps up to each door, with iron railings'. REFERENCE: a black painted wrought-iron stoop railing -- square posts, a flat-bar top rail, a bottom rail, square pickets -- one a side, along the landing and down the steps. The residential code gives the numbers where a three-riser stoop does not require one (IRC R311.7.8: a handrail 34-38 in over the nosings, drawn at 36; R312.1.3: pickets at 4 in clear). Two forms drawn from the slot's box alone: level and flight (`core/stoop_railing_forms.py`). No collision: Deli Counter writes it with the stoop's. A STAIR'S BALUSTRADE TOO (1.128.0): the walker, walking cold run 9386, of an office stair's guards -- solid wood boxes round its hole -- \"the walling/railing doesn't loook natural yet\". Deli Counter >= 0.268.0 stands a stair hole's guards as this species' level form, so the width reaches a hole edge's length (8 m) and the depth a guard's (0.12 m, the top rail as wide as the guard); a run longer than one bay stands a post at least every `POST_BAY` (2.0 m, a newel's spacing on a long balustrade)."
+    "notes": "Factory roadmap 240, the walker's calls of 2026-10-13 ('3 risers, concrete, railings both sides -- build the railings') on the comps' rowhouse street: 'three or four steps up to each door, with iron railings'. REFERENCE: a black painted wrought-iron stoop railing -- square posts, a flat-bar top rail, a bottom rail, square pickets -- one a side, along the landing and down the steps. The residential code gives the numbers where a three-riser stoop does not require one (IRC R311.7.8: a handrail 34-38 in over the nosings, drawn at 36; R312.1.3: pickets at 4 in clear). Two forms drawn from the slot's box alone: level and flight (`core/stoop_railing_forms.py`). No collision: Deli Counter writes it with the stoop's. A STAIR'S BALUSTRADE TOO (1.128.0): the walker, walking cold run 9386, of an office stair's guards -- solid wood boxes round its hole -- \"the walling/railing doesn't loook natural yet\". Deli Counter >= 0.268.0 stands a stair hole's guards as this species' level form, so the width reaches a hole edge's length (8 m) and the depth a guard's (0.12 m, the top rail as wide as the guard); a run longer than one bay stands a post at least every `POST_BAY` (2.0 m, a newel's spacing on a long balustrade). A STOREY'S FLIGHT (1.129.0): Deli Counter >= 0.269.0 stands this species' flight form along a switchback's upper flight, its box the flight's rise plus `RAIL_H` -- a 3.6 m storey asks 4.51 m -- so the height reaches 6.0 m (a 5.0 m storey and its rail). Planning reads no limit from the genome, so no railing built before moves."
   },
   "dimensions": {
     "width": {
@@ -18,7 +18,7 @@
     },
     "height": {
       "min": 0.85,
-      "max": 1.6,
+      "max": 6.0,
       "default": 0.9144
     }
   },
