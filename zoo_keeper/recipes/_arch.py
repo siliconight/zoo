@@ -291,7 +291,35 @@ def build_slab(plan, streams, collection, species):
         # is the stained `wood_panel` leaf every Empty door had
         name, colour, kind = doors.leaf_material(
             plan.get("door"), plan.get("door_color", FACADE_DOOR_COLOR))
-        materials.assign([leaf], materials.make_material(name, colour, kind))
+        leaf_mat = materials.make_material(name, colour, kind)
+        materials.assign([leaf], leaf_mat)
         objs.append(leaf)
+        # ITS PANELS AND ITS KNOB (1.124.0, `doors`' A DOOR HAS HARDWARE): on the
+        # street face, +Y, each sunk doors.SINK into the leaf
+        face_y = d / 2.0 - FACADE_DOOR_SETBACK
+        cx = (void["x0"] + void["x1"]) / 2.0
+        bm = geometry.new_bm()
+        pw = lw - 2.0 * doors.PANEL_INSET
+        ph = (lh - 2.0 * doors.PANEL_INSET - doors.PANEL_GAP) / 2.0
+        if pw > 0.1 and ph > 0.1:
+            for k in (0, 1):
+                pz = void["z0"] + doors.PANEL_INSET + ph / 2.0 + k * (ph + doors.PANEL_GAP)
+                geometry.add_box(bm, (cx, face_y + (doors.PANEL_PROUD - doors.SINK) / 2.0, pz),
+                                 (pw, doors.PANEL_PROUD + doors.SINK, ph))
+            panels = geometry.bm_to_object(bm, f"{root}_LeafPanels", collection, bevel=0.0,
+                                           texel=1.0, rng=rng, wear=wear)
+            materials.assign([panels], leaf_mat)
+            objs.append(panels)
+        kx = void["x1"] - doors.KNOB_FROM_EDGE
+        kz = void["z0"] + doors.KNOB_Z
+        bm = geometry.new_bm()
+        geometry.add_box(bm, (kx, face_y + (doors.PLATE[1] - doors.SINK) / 2.0, kz),
+                         (doors.PLATE[0], doors.PLATE[1] + doors.SINK, doors.PLATE[2]))
+        geometry.add_cylinder(bm, (kx, face_y + doors.PLATE[1] + doors.KNOB_PROUD / 2.0 - doors.SINK, kz),
+                              doors.KNOB_D / 2.0, doors.KNOB_PROUD, segments=8, axis="Y")
+        knob = geometry.bm_to_object(bm, f"{root}_LeafHardware", collection, bevel=0.0,
+                                     texel=1.0, rng=rng, wear=wear * 0.5)
+        materials.assign([knob], materials.make_material(*doors.HARDWARE))
+        objs.append(knob)
 
     return {"objects": objs, "collision_boxes": cboxes, "attachments": {}}

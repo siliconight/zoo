@@ -39,3 +39,27 @@ def leaf_material(finish, default_color):
         return "M_Door_wood_panel", default_color, "wood_panel"
     kind, tint = FINISHES[finish]
     return "M_Door_%s" % finish, (tint if tint is not None else default_color), kind
+
+
+#: A DOOR HAS HARDWARE (1.124.0). The walker, walking cold run 9386, at a
+#: rowhome's stoop: "many of the rowhome doors dont have doorknobs?" -- the
+#: leaf was one flat box in its paint. A painted panel door: two raised panels
+#: on its street face, in the leaf's own material (they merge with it, no draw),
+#: and a knob on an escutcheon plate at the latch edge at handle height, in one
+#: shared brass (`HARDWARE`: one material for every door in a build, so the
+#: Empties' per-side merge carries it as one more mesh a front at most). Each
+#: piece sinks `SINK` into the leaf, so no face of it lies on the leaf's face
+#: (`tests/test_coincident_faces.py`'s rule). Sizes: a residential knob about
+#: 2 1/4 in across on its rose, 2 3/8 in back from the latch edge, about 38 in
+#: to its centre; the plate rounded to what reads at play distance. Built by
+#: `recipes/_arch.py`.
+KNOB_D = 0.06
+KNOB_PROUD = 0.06
+KNOB_Z = 0.95
+KNOB_FROM_EDGE = 0.07
+PLATE = (0.065, 0.012, 0.20)
+PANEL_INSET = 0.11
+PANEL_PROUD = 0.012
+PANEL_GAP = 0.12
+SINK = 0.001
+HARDWARE = ("M_Door_hardware_brass", (0.71, 0.55, 0.24), "metal_painted")

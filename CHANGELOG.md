@@ -1,3 +1,21 @@
+## [1.124.0] - an Empty's front door has panels and a knob
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 13), at
+gs_empty_rowhome_j's stoop: "many of the rowhome doors dont have doorknobs?" -- an Empty's shut front door was one flat
+box in its house's paint (`_arch.py`, 1.61.0; its finish 1.72.0), no panels, no hardware.
+
+### Changed
+- **A painted panel door** (`recipes/_arch.py`, sizes in `core/doors.py`): two raised panels on its street face in the
+  leaf's own material, which merge with it and cost no draw; a knob on an escutcheon plate at the latch edge,
+  0.95 m to its centre and 0.07 m in from the edge, in one shared brass (`doors.HARDWARE`, `M_Door_hardware_brass`) --
+  one material for every door in a build, so Level Factory's per-side merge of an Empty carries it as one more mesh
+  a front at most. Each piece is sunk 1 mm into the leaf, so no face of it lies on the leaf's face; the coincident-face
+  census passes unchanged (78 passed, the same xfail, Blender 5.1.1).
+
+### Tests
+- `tests/test_door_hardware.py` (new): the knob where a hand reaches it; in Blender, a facade doorway in no finish,
+  navy and stained builds its `_LeafPanels` and its `_LeafHardware` in the brass. The Blender test fails on 1.123.0.
+
 ## [1.123.0] - a fixtures build can leave a kind out
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 1), of a
