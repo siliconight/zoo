@@ -1,3 +1,18 @@
+## [1.123.0] - a fixtures build can leave a kind out
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 1), of a
+pharmacy with its band along the parapet and a lit box over its door: "in real life this would be 1 sign".
+
+### Added
+- **`fixtures.plan(..., skip=)` and `--skip-fixture-types`**: anchor types left out whatever `--fixture-types` says,
+  each said in the plan's `skipped` ("left out by --skip-fixture-types"). A caller that wants everything but one kind
+  names that kind, not every other -- an allow-list of the rest would go stale the day a kind is added. Level Factory
+  0.241.0 leaves out a shell's `sign` when its street band names the business.
+
+### Tests
+- `tests/test_fixture_skip.py` (new): a skipped `sign` builds nothing and says why; no skip builds the door box as
+  before. Fails on 1.122.0.
+
 ## [1.122.0] - no rim across a hole where two rooms' skins meet
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 4): "non

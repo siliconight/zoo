@@ -234,11 +234,15 @@ def _seed_offset(anchor_id: str, slot: int) -> int:
     return (zlib.crc32(str(anchor_id).encode("utf-8")) + slot) % 100000
 
 
-def plan(manifest: dict, types=None) -> dict:
+def plan(manifest: dict, types=None, skip=None) -> dict:
     """The fixture build plan for a lights manifest.
 
     ``types``: optional iterable of anchor types to include (default: every
-    type in FIXTURES). Returns::
+    type in FIXTURES). ``skip``: optional iterable of anchor types to leave
+    out, whatever ``types`` says (1.123.0) -- a caller that wants everything
+    but one kind names that kind, not every other: Level Factory leaves out a
+    shell's ``sign`` when its street band names the business, one sign a
+    building (the walker, cold run 9386). Returns::
 
         {"scope_id", "space", "counts": {species: n},
          "placements": [{"anchor_id", "slot", "type", "species", "mount",
@@ -246,6 +250,7 @@ def plan(manifest: dict, types=None) -> dict:
          "skipped": [{"id", "type", "reason"}]}
     """
     wanted = set(types) if types else set(FIXTURES)
+    left_out = set(skip or ())
     placements, skipped, counts = [], [], {}
     for a in light_anchors(manifest):
         t = str(a.get("type", ""))
@@ -276,6 +281,10 @@ def plan(manifest: dict, types=None) -> dict:
         if fx is None:
             skipped.append({"id": aid, "type": t,
                             "reason": "no fixture species for this type"})
+            continue
+        if t in left_out:
+            skipped.append({"id": aid, "type": t,
+                            "reason": "left out by --skip-fixture-types"})
             continue
         if t not in wanted:
             skipped.append({"id": aid, "type": t,

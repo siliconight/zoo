@@ -748,7 +748,7 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         opts.update(options)
     seed = int(opts.get("seed", 1999))
 
-    plan = fixtures_mod.plan(lights_manifest, types=opts.get("types"))
+    plan = fixtures_mod.plan(lights_manifest, types=opts.get("types"), skip=opts.get("skip"))
     scope = plan["scope_id"]
 
     if opts["clear_scene"]:

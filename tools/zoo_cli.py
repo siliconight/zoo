@@ -137,6 +137,11 @@ def parse_args():
                          "the streetlights out of a merged site manifest "
                          "whose interior fixtures are already baked "
                          "per-building.")
+    ap.add_argument("--skip-fixture-types", dest="skip_fixture_types",
+                    help="with --fixtures: comma list of anchor types to leave "
+                         "out whatever --fixture-types says (1.123.0), e.g. "
+                         "'sign' for a shell whose street band already names "
+                         "the business -- one sign a building")
     ap.add_argument("--sign-pack", dest="sign_pack",
                     help="with --fixtures: a Pixelcoat sign pack directory "
                          "every door box of this build wears -- the business "
@@ -579,10 +584,13 @@ def fixtures_run(args):
     types = None
     if args.fixture_types:
         types = [t.strip() for t in args.fixture_types.split(",") if t.strip()]
+    skip = None
+    if getattr(args, "skip_fixture_types", None):
+        skip = [t.strip() for t in args.skip_fixture_types.split(",") if t.strip()]
 
     if not HAS_BPY:
         from zoo_keeper.core import fixtures as fixtures_mod
-        print(json.dumps(fixtures_mod.plan(manifest, types=types),
+        print(json.dumps(fixtures_mod.plan(manifest, types=types, skip=skip),
                          indent=2, sort_keys=True))
         print("[zoo] bpy not available -> fixture plan only. "
               "Run inside Blender to build the hardware.")
@@ -592,7 +600,7 @@ def fixtures_run(args):
     res = build.build_fixtures(
         manifest, os.path.abspath(args.out), theme=args.theme,
         options={"save_blend": not args.no_blend, "clear_scene": True,
-                 "seed": args.seed, "types": types,
+                 "seed": args.seed, "types": types, "skip": skip,
                  # 1.100.0: a fixture's parts merge inside it; this is the control
                  "merge_parts": not args.no_merge_parts,
                  "sign_pack": (os.path.abspath(args.sign_pack)
