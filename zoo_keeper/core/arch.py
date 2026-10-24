@@ -221,32 +221,72 @@ def slab_parts(w: float, d: float, h: float, void: dict | None):
     return parts
 
 
-#: A plate's voids are inset from its edges by this much so the union's outer
-#: bbox still equals the authored (w, d, h). Same law as the jambs in
-#: :func:`void_for` -- fit-to-exact-dims has to pass by construction, and a
-#: stairwell cut hard against a wall would otherwise shrink the plate. Two
-#: centimetres of rim at the lip of a hole is invisible from below and carries
-#: no collision.
+#: A plate's voids are inset from an edge by this much WHERE THEY WOULD TAKE
+#: THAT WHOLE EDGE, so the union's outer bbox still equals the authored
+#: (w, d, h). Same law as the jambs in :func:`void_for` -- fit-to-exact-dims has
+#: to pass by construction, and a stairwell cut hard against a wall the whole
+#: plate's depth would otherwise shrink it.
+#:
+#: REFUTED AND KEPT: "Two centimetres of rim at the lip of a hole is invisible
+#: from below." It was inset from EVERY edge a void reached. Where a stairwell
+#: crosses the line between two rooms, each room's ceiling skin kept its 2 cm
+#: rim straight across the hole, and the two met back to back as a pale bar
+#: spanning the stairwell with no collision -- the walker, walking cold run
+#: 9386: "non collision rod on the stair case that shouldn't be there" (the
+#: office's two storey-0 ceilings, found by hiding them: the factory's
+#: `docs/findings/walk_2026-10-23_9386/`). A void reaching an edge along PART of
+#: it leaves the rest of that edge standing, which holds the bbox already, so
+#: it is cut to the edge (1.122.0).
 PLATE_RIM = 0.02
+
+
+def _covers(spans, lo: float, hi: float) -> bool:
+    """Does the union of ``spans`` ((a, b) intervals) cover [lo, hi]?"""
+    at = lo
+    for a, b in sorted(spans):
+        if a > at + _EPS:
+            return False
+        at = max(at, b)
+    return at >= hi - _EPS
 
 
 def plate_voids(w: float, d: float, voids, rim: float = PLATE_RIM):
     """Clip rectangular voids to a centered w x d plate, dropping degenerates.
 
     ``voids`` are dicts with x0/y0/x1/y1 in the plate's own centered coords.
-    Returns a normalised list, sorted, so the tiling below is deterministic.
+    Each is cut to the plate's edge, except on a side the voids touching it
+    would take END TO END: there each keeps ``rim`` from that edge, so some of
+    the plate still stands on every side and its bbox is the authored one
+    (`PLATE_RIM`, 1.122.0). Returns a normalised list, sorted, so the tiling
+    below is deterministic.
     """
     hw, hd = w / 2.0, d / 2.0
-    lo_x, hi_x = -hw + rim, hw - rim
-    lo_y, hi_y = -hd + rim, hd - rim
-    out = []
+    cut = []
     for v in voids or ():
-        x0 = _clamp(min(float(v["x0"]), float(v["x1"])), lo_x, hi_x)
-        x1 = _clamp(max(float(v["x0"]), float(v["x1"])), lo_x, hi_x)
-        y0 = _clamp(min(float(v["y0"]), float(v["y1"])), lo_y, hi_y)
-        y1 = _clamp(max(float(v["y0"]), float(v["y1"])), lo_y, hi_y)
+        x0 = _clamp(min(float(v["x0"]), float(v["x1"])), -hw, hw)
+        x1 = _clamp(max(float(v["x0"]), float(v["x1"])), -hw, hw)
+        y0 = _clamp(min(float(v["y0"]), float(v["y1"])), -hd, hd)
+        y1 = _clamp(max(float(v["y0"]), float(v["y1"])), -hd, hd)
         if x1 - x0 <= _EPS or y1 - y0 <= _EPS:
             continue          # entirely outside the plate, or a sliver
+        cut.append([x0, y0, x1, y1])
+    # the sides the voids would take whole, asked of the cut voids, not the rimmed
+    lo_x = _covers([(v[1], v[3]) for v in cut if v[0] <= -hw + _EPS], -hd, hd)
+    hi_x = _covers([(v[1], v[3]) for v in cut if v[2] >= hw - _EPS], -hd, hd)
+    lo_y = _covers([(v[0], v[2]) for v in cut if v[1] <= -hd + _EPS], -hw, hw)
+    hi_y = _covers([(v[0], v[2]) for v in cut if v[3] >= hd - _EPS], -hw, hw)
+    out = []
+    for x0, y0, x1, y1 in cut:
+        if lo_x and x0 <= -hw + _EPS:
+            x0 = -hw + rim
+        if hi_x and x1 >= hw - _EPS:
+            x1 = hw - rim
+        if lo_y and y0 <= -hd + _EPS:
+            y0 = -hd + rim
+        if hi_y and y1 >= hd - _EPS:
+            y1 = hd - rim
+        if x1 - x0 <= _EPS or y1 - y0 <= _EPS:
+            continue
         out.append({"x0": round(x0, 6), "y0": round(y0, 6),
                     "x1": round(x1, 6), "y1": round(y1, 6)})
     return sorted(out, key=lambda v: (v["x0"], v["y0"], v["x1"], v["y1"]))

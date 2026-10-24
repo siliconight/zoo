@@ -1,3 +1,27 @@
+## [1.122.0] - no rim across a hole where two rooms' skins meet
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 4): "non
+collision rod on the stair case that shouldn't be there" -- a pale bar across the office's stairwell at head height,
+which they walked through. Found by attribution, after five bounds-based probes named nothing: the walker's view
+reproduced from their eye (`tools/look_shots.py`'s new `hide:<node>` switch), then hidden by family until the bar
+went -- it is drawn by BOTH of the office's storey-0 ceiling skins (the lobby's and the ground bullpen's merged
+meshes), and goes only when both are hidden.
+
+`plate_voids` inset a plate's voids `PLATE_RIM` (2 cm) from EVERY edge they reached, "invisible from below". The
+office's stairwell crosses the line between those two rooms, so each ceiling kept a 2 cm rim straight across the hole
+on that line, and the two met back to back as the bar.
+
+### Changed
+- **The rim only on a side a void would take END TO END** (`plate_voids`, `_covers`): there it still keeps the plate's
+  bbox the authored one, the law the jambs keep. A void reaching an edge along PART of it leaves the rest of that
+  edge standing, which holds the bbox already, so it is cut to the edge. Floor skins take the same rule; nothing else
+  calls it.
+
+### Tests
+- `tests/test_plate.py`: the ground bullpen's plate (34 x 12, its void running past its edge) keeps no part over the
+  hole, loses the hole's whole area and keeps its bbox; a void taking a whole edge keeps its rim on that side only.
+  Both fail on 1.121.0.
+
 ## [1.121.0] - a traffic signal for the driver's right
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 12): "where are

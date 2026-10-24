@@ -44,6 +44,29 @@ def test_the_outer_bbox_still_equals_the_authored_dims():
     assert (round(lo[1], 6), round(hi[1], 6)) == (-4.0, 4.0)
 
 
+def test_a_hole_crossing_part_of_an_edge_keeps_no_rim_across_it():
+    """1.122.0, the walker walking cold run 9386: "non collision rod on the stair case that shouldn't be there". The
+    office's stairwell crosses the line between two rooms, and each room's ceiling skin kept a 2 cm rim across the
+    hole at that line. Here the ground bullpen's: 34 x 12, its void x -2..2 running past its +y edge. No part stands
+    over the hole, the hole takes its whole area, and the bbox is still the authored one. FAILS ON 1.121.0."""
+    w, d = 34.0, 12.0
+    p = arch.plate_parts(w, d, 0.02, [{"x0": -2.0, "y0": 3.35, "x1": 2.0, "y1": 9.15}])
+    over = [(n, c, s) for n, c, s in p
+            if c[0] - s[0] / 2.0 < 2.0 - 1e-9 and c[0] + s[0] / 2.0 > -2.0 + 1e-9
+            and c[1] + s[1] / 2.0 > 3.35 + 1e-9]
+    assert not over, over
+    assert abs(_area(p) - (w * d - 4.0 * (6.0 - 3.35))) < 1e-6
+    lo, hi = arch.parts_bbox(p)
+    assert (round(lo[0], 6), round(hi[0], 6), round(lo[1], 6), round(hi[1], 6)) == (-17.0, 17.0, -6.0, 6.0)
+
+
+def test_a_hole_taking_a_whole_edge_keeps_its_rim_on_that_side_only():
+    """The rim is for the side a void would take end to end -- here +x, the void running the plate's whole depth --
+    and nowhere else: the +y and -y edges keep standing beside the void, so it is cut to them."""
+    vs = arch.plate_voids(10.0, 8.0, [{"x0": 3.0, "y0": -9.0, "x1": 9.0, "y1": 9.0}])
+    assert vs == [{"x0": 3.0, "y0": -4.0, "x1": round(5.0 - arch.PLATE_RIM, 6), "y1": 4.0}], vs
+
+
 def test_two_holes():
     p = arch.plate_parts(20.0, 10.0, 0.02,
                          [{"x0": -8, "y0": -2, "x1": -4, "y1": 2},
