@@ -23,7 +23,12 @@
     }
   },
   "parts": [],
-  "params": {},
+  "params": {
+    "form": [
+      "auto",
+      "right"
+    ]
+  },
   "materials": {
     "default": "metal_painted",
     "options": [

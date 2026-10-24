@@ -1,3 +1,22 @@
+## [1.121.0] - a traffic signal for the driver's right
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 12): "where are
+the traffic lights for this side of the road?" The signal's heads face -y off an arm along +x -- from above, the face
+is the arm turned clockwise, which is a pole on the driver's LEFT reaching right over the lanes. A US junction stands
+its signal on an approach's far RIGHT corner, arm back over the lanes, heads facing the driver (MUTCD 4D.14: two
+faces at least 8 ft apart, one at least 40 ft beyond the stop line). Lot cannot turn the left-hand module into that:
+it is a mirror, and a negative scale would mirror the pole's collider with it.
+
+### Added
+- **`traffic_signal`'s `right` form**: both heads, their lenses and visors face +y -- the arm turned
+  counter-clockwise. The genome lists `params.form: ["auto", "right"]`, so `kit.honour_dressing` keeps it and the
+  module is `..._fright`; same geometry, materials, collision and triangles either way. Lot 0.128.0 asks for it.
+
+### Tests
+- `tests/test_signal_hand.py` (new): the genome lists the form; the kit builds it under its own name and drops a hand
+  it does not list; in Blender 5.1.1, every lens vertex of the plain module at -y and of the `right` form at +y. The
+  form's tests fail on 1.120.1, the Blender one on behaviour.
+
 ## [1.120.1] - stickers are some cars', not most
 
 **Measured in a package, the factory's cold run 9365** (bank_block_001, seed 9082, Zoo 1.120.0): seven of the

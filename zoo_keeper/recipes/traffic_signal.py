@@ -19,6 +19,18 @@ whose state is baked is a signal that is wrong half the time.
 
 Extents are exactly (w, d, h). Collision is the POLE only -- a body walks
 under an arm.
+
+TWO HANDS (1.121.0). The heads face -y off an arm along +x: seen from above,
+the face is the arm turned clockwise, which is a pole on the driver's LEFT
+reaching right over the lanes. The `right` form turns both heads round to
+face +y -- the arm turned counter-clockwise -- for the pole a US junction
+stands on the approach's far RIGHT corner, its arm back over the lanes and
+its heads facing the driver (MUTCD 4D.14: two faces at least 8 ft apart, one
+at least 40 ft beyond the stop line; the arm's head and the pole's are 4.3 m
+apart). The walker, walking cold run 9386: "where are the traffic lights for
+this side of the road?" -- Lot stood a signal only on a junction's yielding
+leg, its heads facing across it. Same geometry, materials and collision
+either way; only the heads, their lenses and visors change side.
 """
 from __future__ import annotations
 
@@ -39,18 +51,18 @@ LENS_R = 0.11
 LENS_COLORS = ([0.90, 0.07, 0.05], [0.98, 0.62, 0.08], [0.10, 0.82, 0.55])
 
 
-def _head(bm, lens_bms, centre):
-    """A three-lens head hung with its top at ``centre``, facing -y.
-    ``lens_bms`` holds one bmesh per lens row -- red, amber, green -- so each
-    row can wear its own colour."""
+def _head(bm, lens_bms, centre, face=-1):
+    """A three-lens head hung with its top at ``centre``, facing -y (``face``
+    -1) or +y (+1, the `right` form). ``lens_bms`` holds one bmesh per lens
+    row -- red, amber, green -- so each row can wear its own colour."""
     cx, cy, cz = centre
     geometry.add_box(bm, (cx, cy, cz - HEAD_H / 2.0), (HEAD_W, HEAD_D, HEAD_H))
     for i in range(3):
         lz = cz - HEAD_H * (0.19 + 0.31 * i)
-        y = cy - (HEAD_D / 2.0 + 0.012)
+        y = cy + face * (HEAD_D / 2.0 + 0.012)
         geometry.add_cylinder(lens_bms[i], (cx, y, lz), LENS_R, 0.02,
                               segments=8, axis="Y")
-        geometry.add_box(bm, (cx, y - 0.055, lz + LENS_R * 0.8),
+        geometry.add_box(bm, (cx, y + face * 0.055, lz + LENS_R * 0.8),
                          (HEAD_W * 0.92, 0.11, 0.03))          # the visor
     geometry.add_box(bm, (cx, cy, cz + 0.03), (HEAD_W * 0.5, HEAD_D * 0.5, 0.06))
 
@@ -74,6 +86,8 @@ def build(plan, streams, collection):
         steel.append(obj)
         return obj
 
+    # which way the heads face: -y, or +y on the `right` form (TWO HANDS)
+    face = 1 if (plan.get("params") or {}).get("form") == "right" else -1
     mast = w * 0.62                      # the signal arm, over the road
     lum = w - mast                       # the luminaire arm, the other way
     arm_z = h / 2.0 - 0.45
@@ -95,8 +109,8 @@ def build(plan, streams, collection):
 
     bm = geometry.new_bm()
     lens_bms = [geometry.new_bm() for _ in LENS_COLORS]
-    _head(bm, lens_bms, (mast * 0.92, 0.0, arm_z - 0.08))      # over the road
-    _head(bm, lens_bms, (POLE_D * 1.4, 0.0, arm_z - 0.60))     # the near head
+    _head(bm, lens_bms, (mast * 0.92, 0.0, arm_z - 0.08), face)      # over the road
+    _head(bm, lens_bms, (POLE_D * 1.4, 0.0, arm_z - 0.60), face)     # the near head
     # the cobra head at the luminaire arm's tip
     verts = geometry.add_box(bm, (-lum * 0.94, 0.0, lum_z - 0.07),
                              (0.58, 0.28, 0.14))
