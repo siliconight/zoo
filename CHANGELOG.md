@@ -1,3 +1,29 @@
+## [1.125.0] - a drop safe is painted steel
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 3), of
+pharmacy_a01's drop safe: "looks like a brown box". `drop_safe` offered one material, `metal`, every one of its five
+styles named it, and its recipe gave the dial and handle `metal` too -- and a theme spends `metal` on its street
+metal: delco_1997's `metal_rusted_street`, averaging (115, 80, 53) against its wood's (86, 60, 41).
+
+### Changed
+- **`drop_safe`'s genome**: `metal_painted` its default and its only option, and every style's own material, in
+  the style's colour (delco's (0.20, 0.21, 0.23)); the licence notes say why. It joins the painted list of
+  `tests/test_material_options_closed.py`, whose rule is that a species on it offers no raw `metal` -- this
+  change's first draft kept `metal` as an option and that file's `test_nothing_else_moved` refused it.
+- **`recipes/drop_safe.py`**: the dial and handle are `metal_bare`, a constant, as the dartboard's chrome and the
+  display case's frame are.
+
+### Not changed, and why
+- A slot that NAMES `metal` still builds `metal`: a kit module's slot override wins with any known kind
+  (`dna.resolve_module_plan`), whatever the genome offers. The library's stored safes name `metal`, so Deli Counter
+  0.267.0 repaints them; this genome decides a safe whose slot names nothing.
+
+### Tests
+- `tests/test_safe_paint.py` (new): the genome offers `metal_painted` alone; the recipe's trim is `metal_bare`, not
+  `metal`; a safe naming no material resolves to painted steel and, in Blender, builds its body and door in
+  `M_DropSafe_metal_painted`; a safe asking for `metal_painted` gets it. All but the last fail on 1.124.0; the last
+  guards Deli Counter 0.267.0's safe row. `tests/test_material_options_closed.py`: `drop_safe` on the painted list.
+
 ## [1.124.0] - an Empty's front door has panels and a knob
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 13), at

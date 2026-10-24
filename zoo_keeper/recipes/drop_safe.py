@@ -69,8 +69,10 @@ def build(plan, streams, collection):
 
     body_mat = materials.make_material(
         f"M_DropSafe_{plan['material']}", plan["color"], plan["material"])
+    # the dial and handle are bare steel, a constant (1.125.0): the body is
+    # painted, and `metal` would be the theme's street rust on both
     trim = materials.make_material("M_DropSafe_trim",
-                                   _darker(plan["color"]), "metal")
+                                   _darker(plan["color"]), "metal_bare")
     black = materials.make_material("M_DropSafe_slot", [0.02, 0.02, 0.02],
                                     "plastic")
     for o in objs:

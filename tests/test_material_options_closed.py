@@ -116,7 +116,10 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "fire_escape",
            # a queue's retractable-belt stanchions are powder-coated black,
            # the belt with them (1.119.0)
-           "stanchion_run")
+           "stanchion_run",
+           # a drop safe is painted steel, its dial and handle bare steel as
+           # a constant in the recipe (1.125.0)
+           "drop_safe")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)
