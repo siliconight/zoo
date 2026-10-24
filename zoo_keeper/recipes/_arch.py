@@ -163,6 +163,17 @@ def build_slab(plan, streams, collection, species):
         bm = geometry.new_bm()
         geometry.add_box(bm, center, size)
         part(bm, f"{root}_{name}{mark}", bv=plate_bevel)
+    # A CASED OPENING (1.126.0, `arch.casing_parts`): a doorway's or breach
+    # panel's ends, both states, by the slot's TYPE -- an intact breach panel is
+    # built as a wall and is still a breach slot. Structure, so it takes the
+    # wall's material and its room face; no collider (built after `slab`'s).
+    if ((plan.get("module") or {}).get("type") in arch.CASED_TYPES
+            and species not in arch.PLATE_SPECIES and not plan.get("storefront")):
+        for name, center, size in arch.casing_parts(w, d, h, void):
+            bm = geometry.new_bm()
+            geometry.add_box(bm, center, size)
+            geometry.drop_faces(bm, lambda n, nm=name: arch.casing_dropped(nm, n))
+            part(bm, f"{root}_{name}", bv=0.0)
     if species not in arch.PLATE_SPECIES or species in arch.PLATE_COLLIDES:
         # PLATE-NESS AND COLLISION ARE TWO FACTS, and this line used to test
         # one for the other. A floor or ceiling skin emits none because Deli

@@ -675,6 +675,63 @@ def storefront_glass_top(h: float) -> float:
     return min(-hh + SF_GLASS_TOP, hh - SF_HEAD_MIN)
 
 
+#: A CASED OPENING (1.126.0). The walker, walking cold run 9386: "textures have
+#: visible seams" -- eight of their ten marks stood where an interactive
+#: opening meets the wall it is set in (the factory's
+#: `docs/findings/walk_2026-10-23_9386/`, finding 2). A door and a breach panel
+#: change state, so Level Factory keeps each a mesh of its own, lit from its
+#: own rect of the lightmap, and the two bakes disagree across the joint (-12 %
+#: and +13 % at a breach panel's edges). A building covers that joint with a
+#: casing, and so does this: a strip on each face at each end, standing across
+#: the joint so it covers both sides' edge, in the module's own material, so it
+#: packs into the module's mesh and costs no draw. AN OPEN SHELL, front and
+#: two sides: its back lies on the wall's face and its ends on the floor and the
+#: ceiling, where nothing sees them, so they are not built and nothing is left
+#: to be coplanar -- this change's first draft sank a closed box 1 mm and Zoo's
+#: coincident-face census counted 12 more pairs a build on doorways and breach
+#: panels (`tests/test_coincident_faces.py`, 6 -> 42). No collider.
+#: The walker, 2026-10-24, on framing a breach panel, which shows a player
+#: where a wall will open: "Yes hide the seam for breaches".
+CASED_TYPES = ("doorway", "breach")
+CASING_W = 0.09
+CASING_PROUD = 0.015
+#: what a casing keeps clear of an opening's void, so it never narrows it
+CASING_VOID_CLEAR = 0.005
+
+
+def casing_parts(w: float, d: float, h: float, void: dict | None = None,
+                 width: float = CASING_W, proud: float = CASING_PROUD):
+    """The casing of a module ``w`` x ``d`` x ``h`` in the slab's centred frame:
+    ``(name, (cx, cy, cz), (sx, sy, sz))`` boxes, one a face (+Y ``Out``, -Y
+    ``In``) at each end (``L`` at ``x = -w/2``, ``R`` at ``+w/2``), full height.
+    Each reaches ``width / 2`` past the end into the neighbour's span and as
+    far into the module's own, stopping ``CASING_VOID_CLEAR`` short of the
+    void. Its back lies on the face; the builder drops the back and the ends
+    (``CASING_DROPPED``)."""
+    hw, half = w / 2.0, width / 2.0
+    out = []
+    for side, sgn in (("L", -1.0), ("R", 1.0)):
+        inner = half
+        if void:
+            gap = (void["x0"] + hw) if side == "L" else (hw - void["x1"])
+            inner = min(half, max(0.0, gap - CASING_VOID_CLEAR))
+        lo, hi = (-hw - half, -hw + inner) if side == "L" else (hw - inner, hw + half)
+        for face, fs in (("Out", 1.0), ("In", -1.0)):
+            cy = fs * (d / 2.0 + proud / 2.0)
+            out.append((f"Casing_{side}_{face}",
+                        (round((lo + hi) / 2.0, 6), round(cy, 6), 0.0),
+                        (round(hi - lo, 6), round(proud, 6), round(h, 6))))
+    return out
+
+
+def casing_dropped(name: str, normal) -> bool:
+    """Whether a face of casing box ``name`` with ``normal`` (x, y, z) is one
+    nobody sees: its ends (floor and ceiling) or its back (on the wall's face,
+    which points the face's way, so the back points the other)."""
+    back = -1.0 if name.endswith("_Out") else 1.0
+    return abs(normal[2]) > 0.9 or normal[1] * back > 0.9
+
+
 def storefront_parts(w: float, d: float, h: float, void: dict | None = None,
                      leaves: bool = False):
     """``(frame, glass)``: boxes ``(name, (cx, cy, cz), (sx, sy, sz))`` of a

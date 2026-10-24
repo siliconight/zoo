@@ -28,6 +28,17 @@ def new_bm() -> bmesh.types.BMesh:
     return bmesh.new()
 
 
+def drop_faces(bm, pred):
+    """Delete the faces of ``bm`` whose normal ``pred`` accepts, returning how
+    many (1.126.0): a part whose hidden sides would only lie coplanar with
+    what hides them, as a casing's back lies on its wall."""
+    bm.normal_update()
+    dead = [f for f in bm.faces if pred(tuple(f.normal))]
+    if dead:
+        bmesh.ops.delete(bm, geom=dead, context="FACES_ONLY")
+    return len(dead)
+
+
 def add_box(bm, center, size):
     """Axis-aligned box. center/size are (x, y, z) in meters."""
     ret = bmesh.ops.create_cube(bm, size=1.0)

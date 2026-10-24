@@ -1,3 +1,32 @@
+## [1.126.0] - a doorway and a breach panel are cased at their ends
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 2): "textures have
+visible seams and it doesn't look as continous as it could be". Eight of their ten marks stood where an interactive
+opening meets the wall it is set in. A door and a breach panel change state, so Level Factory keeps each a mesh of its
+own, lit from its own rect of the lightmap, and the two bakes disagree across the joint: -12 % and +13 % at a breach
+panel's edges, read off the bake. The walker, on framing a breach panel, which shows a player where a wall will open:
+"Yes hide the seam for breaches".
+
+### Changed
+- **A casing** (`core/arch.py`, `casing_parts`, `CASED_TYPES`): a doorway's and a breach panel's two ends each get a
+  strip on each face, `CASING_W` (0.09 m) wide and `CASING_PROUD` (0.015 m) proud, full height, standing across the
+  joint so it covers both sides' edge, never narrowing the opening (`CASING_VOID_CLEAR`). By the slot's TYPE, so an
+  intact breach panel, built as a wall, is cased, and so is its breached state; a plain wall is not; a storefront
+  keeps its own frame.
+- **An open shell** (`casing_dropped`, `bpylayer/geometry.py`'s new `drop_faces`): front and two sides. Its back lies
+  on the wall's face and its ends on the floor and ceiling, where nothing sees them, so they are not built and
+  nothing is left coplanar. The first draft, a closed box sunk 1 mm, took the coincident-face census from 6 to 42
+  pairs on doorways and breach panels; refused there and replaced.
+- **No draw added**: the casing is the module's own material and packs into the module's own meshes -- a doorway,
+  both breach states and a plain wall, built on 1.125.0 and on this, export 3 primitives each either way (the
+  factory's `patches/zoo_casing/glb_meshes.out.txt`). An intact breach panel's meshes are named `Wall_concrete` and
+  `Wall_drywall` now, where it was one `Wall_Panel`; nothing in the tool repos reads that name. No collider.
+
+### Tests
+- `tests/test_casing.py` (new): four ends a module, each straddling its joint; on the face, its back and ends
+  dropped and nothing else; clear of the opening; in Blender, a doorway and both breach states cased in three-face
+  strips and a plain wall not. All four fail on 1.125.0.
+
 ## [1.125.0] - a drop safe is painted steel
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 3), of
