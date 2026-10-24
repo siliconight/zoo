@@ -1,3 +1,24 @@
+## [1.128.0] - `stoop_railing` is a stair hole's balustrade too
+
+**The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 6), of the office
+stair, its hole ringed by solid wood guard boxes 1.07 m high: "the walling/railing doesn't loook natural yet". Their
+pick for the form: the compact U, walls where they enclose the well and a rail between the flights. Deli Counter
+0.268.0 stands a stair hole's rails as this species' level form.
+
+### Changed
+- **The genome** takes a hole edge: width to 8.0 m (was 2.0), depth to 0.12 m (was 0.06; the top rail is as wide
+  as the guard). The office's 4.3889 x 0.1 x 1.07 m rail builds as the species, one mesh of 252 faces, no fallback.
+- **A long level run stands a post at least every `POST_BAY`** (2.0 m, equally spaced, the pickets bay by bay; the
+  rails run through the posts, which nest as the end posts do). 2.0 m is the old genome's widest run, so nothing
+  1.127.0 could build gains a post: 126 stoop railings -- seven widths, three depths, three heights, both forms --
+  plan vertex for vertex as before (the factory's `patches/zoo_stair_balustrade/stoop_unchanged.out.txt`). 1.8 m,
+  first tried, split a 1.83 m run of the thinnest post into two bays (`stoop_unchanged_bay18.out.txt`).
+
+### Tests
+- `tests/test_stair_balustrade.py` (new): the office's rail plans as the species; a 4.39 m run stands four posts
+  equally spaced inside `POST_BAY`; a stoop's railing is unchanged; the genome still takes a stoop. The first two fail
+  on 1.127.0.
+
 ## [1.127.0] - a door's hardware is the stoop railing's black iron
 
 **Priced in cold run 9391** (the factory's `docs/cold_runs/cold_9391/`): 1.124.0's brass knob was one more colour of

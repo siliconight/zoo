@@ -42,6 +42,12 @@ lines, and a post stands `POST_PROUD` over the top rail. Across the module, each
 mm a side) narrower than the one it runs into: post inside top rail, bottom rail inside post, picket
 inside bottom rail.
 
+A STAIR'S BALUSTRADE (1.128.0): Deli Counter >= 0.268.0 stands a stair hole's guards as the LEVEL form, up
+to 8 m long. A level run longer than `POST_BAY` stands a post at least every `POST_BAY`, equally spaced, the
+pickets bay by bay; the rails run through the posts, which nest inside the top rail and around the bottom
+rail as the end posts do. A run of one bay -- every stoop -- builds exactly the parts, in exactly the order,
+it did before.
+
 COLLISION: none here (the genome's `collision: false`). Deli Counter writes the railing's colliders
 itself, in the greybox the graders walk, as it does the stoop's.
 """
@@ -68,6 +74,11 @@ POST_PROUD = 0.006
 SINK = 0.004
 #: how much narrower, each side, a member is than the one it runs into
 NEST = 0.003
+#: a post at least this often along a long level run (1.128.0): a newel's spacing on a balustrade,
+#: and the old genome's widest run, so no railing 1.127.0 could build gains a post -- 1.8 m, first tried,
+#: split a 1.83 m run of the thinnest post into two bays (`stoop_unchanged.out.txt` in the factory's
+#: `patches/zoo_stair_balustrade/`)
+POST_BAY = 2.0
 FORMS = ("level", "flight")
 MAT = "iron"
 PART = "StoopRailing_Iron"
@@ -129,10 +140,18 @@ def _level(w, d, h):
     out.append(prims.box(PART, MAT, (rx0, -bottom_w / 2, bc - RAIL_T / 2),
                          (rx1, bottom_w / 2, bc + RAIL_T / 2)))
     tc = top - RAIL_T / 2
-    for xc in pickets(x0 + post, x1 - post, picket):
-        out.append(prims.box(PART, MAT, (xc - picket / 2, -picket / 2, bc),
-                             (xc + picket / 2, picket / 2, tc)))
-    return out, {"rail_top": [round(top, 6), round(top, 6)], "posts": 2}
+    # the bays (1.128.0): as few as keep each at most POST_BAY, equal; one bay is the stoop's
+    bays = max(1, math.ceil((w - post) / POST_BAY - 1e-9))
+    step = (w - post) / bays
+    inner = [x0 + post / 2.0 + step * k for k in range(1, bays)]
+    edges = [x0 + post] + [xc + s * post / 2.0 for xc in inner for s in (-1.0, 1.0)] + [x1 - post]
+    for b in range(bays):
+        for xc in pickets(edges[2 * b], edges[2 * b + 1], picket):
+            out.append(prims.box(PART, MAT, (xc - picket / 2, -picket / 2, bc),
+                                 (xc + picket / 2, picket / 2, tc)))
+    for xc in inner:
+        out.append(prims.box(PART, MAT, (xc - post / 2, -post / 2, z0), (xc + post / 2, post / 2, z1)))
+    return out, {"rail_top": [round(top, 6), round(top, 6)], "posts": 2 + len(inner)}
 
 
 def _flight(w, d, h):
