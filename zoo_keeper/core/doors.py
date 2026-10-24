@@ -45,9 +45,8 @@ def leaf_material(finish, default_color):
 #: rowhome's stoop: "many of the rowhome doors dont have doorknobs?" -- the
 #: leaf was one flat box in its paint. A painted panel door: two raised panels
 #: on its street face, in the leaf's own material (they merge with it, no draw),
-#: and a knob on an escutcheon plate at the latch edge at handle height, in one
-#: shared brass (`HARDWARE`: one material for every door in a build, so the
-#: Empties' per-side merge carries it as one more mesh a front at most). Each
+#: and a knob on an escutcheon plate at the latch edge at handle height, in
+#: `HARDWARE`. Each
 #: piece sinks `SINK` into the leaf, so no face of it lies on the leaf's face
 #: (`tests/test_coincident_faces.py`'s rule). Sizes: a residential knob about
 #: 2 1/4 in across on its rose, 2 3/8 in back from the latch edge, about 38 in
@@ -62,4 +61,18 @@ PANEL_INSET = 0.11
 PANEL_PROUD = 0.012
 PANEL_GAP = 0.12
 SINK = 0.001
-HARDWARE = ("M_Door_hardware_brass", (0.71, 0.55, 0.24), "metal_painted")
+#: THE HARDWARE IS THE RAILING'S BLACK IRON (1.127.0). 1.124.0 drew it in
+#: brass, one more colour of `metal_painted`, which Level Factory makes one more
+#: material -- and the Empties' per-side merge one more mesh on EVERY side with
+#: a door: cold run 9391 counted +2 meshes on each of its 26 Empties against
+#: 9389 (front and back), +582 draws over the package's 53 headings, up to +45
+#: at one; frame time inside the controls' spread (the factory's
+#: `docs/cold_runs/cold_9391/`). A colour-only variation as a new material is
+#: the defect `CLAUDE.md` names first. In the stoop railing's own colour and
+#: kind (`genome/species/stoop_railing.json`, every style), the knob is the
+#: railing's material and merges into its mesh on a side with a stoop -- every
+#: front; a back door with no railing keeps one. Black iron with black iron
+#: railings is a South Philly front, a call made 2026-10-24 and meant to be
+#: changed: brass back is this colour, at one draw a side.
+IRON = (0.06, 0.06, 0.065)
+HARDWARE = ("M_Door_hardware_iron", IRON, "metal_painted")

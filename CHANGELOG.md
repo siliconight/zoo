@@ -1,3 +1,20 @@
+## [1.127.0] - a door's hardware is the stoop railing's black iron
+
+**Priced in cold run 9391** (the factory's `docs/cold_runs/cold_9391/`): 1.124.0's brass knob was one more colour of
+`metal_painted`, which Level Factory makes one more material, and the Empties' per-side merge one more mesh on every
+side with a door -- +2 meshes on each of the level's 26 Empties against cold run 9389, +582 draws over the package's
+53 headings, up to +45 at one, frame time inside the controls' spread. A colour-only variation as a new material.
+
+### Changed
+- **`doors.IRON`, `doors.HARDWARE`**: the knob and plate in the stoop railing's own colour and kind, (0.06, 0.06,
+  0.065) `metal_painted` (`genome/species/stoop_railing.json`, every style), so on a side with a stoop -- every front
+  -- they are the railing's material and merge into its mesh. A back door with no railing keeps one mesh. Black iron
+  with black iron railings is a call made 2026-10-24 and meant to be changed; brass back is a colour, at one draw a
+  side. Not yet measured in a package: the next cold run proves the merge.
+
+### Tests
+- `tests/test_door_hardware.py`: the hardware is the stoop railing's colour and kind, failing on 1.126.0.
+
 ## [1.126.0] - a doorway and a breach panel are cased at their ends
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 2): "textures have

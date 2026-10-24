@@ -44,3 +44,14 @@ def test_bpy_a_facade_door_has_panels_and_a_knob(finish, tmp_path):
     panels = [o for o in bpy.data.objects if o.type == "MESH" and o.name.endswith("_LeafPanels")]
     assert hw and panels, names
     assert hw[0].data.materials[0].name == A.HARDWARE[0]
+
+
+def test_the_hardware_is_the_stoop_railings_own_iron():
+    """1.127.0: the knob shares the railing's material, so a front with a stoop merges it (FAILS ON 1.126.0)."""
+    import json
+    import os
+    g = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "zoo_keeper",
+                                    "genome", "species", "stoop_railing.json"), encoding="utf-8"))
+    name, colour, kind = A.HARDWARE
+    assert kind == g["materials"]["default"] == "metal_painted"
+    assert {tuple(s["color"]) for s in g["styles"].values()} == {tuple(colour)}, (colour, g["styles"])
