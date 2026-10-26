@@ -1,0 +1,111 @@
+{
+  "species": "pew",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-10-25 by tools/new_species.py; shaped the same day for the factory's roadmap 308 (a chapel, a viewing room, a courtroom's public benches, an assembly room). REFERENCE: an American oak pew, the common catalogue pattern -- two end panels the full height and depth, a seat 0.45 m up meeting a back behind it, a hymnal rack on the back's rear for the row behind and, in a deep slot, a kneeler for that row; one stained wood throughout. The range reaches the 8.0 x 0.9 m `pew_row` boxes Deli Counter's funeral_home_a01 chapel authored."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.2,
+      "max": 8.0,
+      "default": 3.6
+    },
+    "depth": {
+      "min": 0.5,
+      "max": 1.0,
+      "default": 0.62
+    },
+    "height": {
+      "min": 0.85,
+      "max": 1.1,
+      "default": 0.95
+    }
+  },
+  "parts": [
+    "Pew_End_L",
+    "Pew_End_R",
+    "Pew_Seat",
+    "Pew_Back",
+    "Pew_TopRail",
+    "Pew_Rack",
+    "Pew_Kneeler"
+  ],
+  "params": {},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "concrete",
+      "metal",
+      "wood",
+      "plaster"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.42,
+        0.27,
+        0.15
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.22,
+        0.12
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.4,
+        0.26,
+        0.15
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.33,
+        0.21,
+        0.13
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.38,
+        0.24,
+        0.14
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 360
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "pew",
+    "church_pew",
+    "gallery_pew"
+  ]
+}

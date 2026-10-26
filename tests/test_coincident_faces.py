@@ -573,7 +573,13 @@ DID_NOT_BUILD = {"boots"}
 #: lie inside its base and its head, and the belt is ONE band through every head -- a belt a span put two end faces on
 #: one plane inside each middle head -- so `prims.coincident_pairs` reads 0 over 81 sizes before Blender does. 600
 #: is the genome's budget.
-CENSUS_BUILDS = 417
+#: 1.130.0: `pew` (the factory's roadmap 308, a chapel's and a courtroom's rows), three builds more, same tool, Blender
+#: 5.1.1 -- `blender -b --python tools/coplanar_census.py -- --species pew bench`, the bench the control (its known
+#: 6 a corner): "6 builds, 3 with coincident pairs, 0 that did not build", the pew's three corners 308 / 308 / 352 tris
+#: (the deepest with its kneeler) and 0 pairs. The first reading was 4 pairs a corner -- the back's end faces on one
+#: plane with the seat's and the rack's, all buried in the end panels at the same depth -- and the back and the rack's
+#: lip now end half as deep. 360 is the genome's budget.
+CENSUS_BUILDS = 420
 
 
 def test_the_census_covers_every_species_there_is():

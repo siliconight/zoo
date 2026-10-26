@@ -1,3 +1,35 @@
+## [1.130.0] - `pew`: a seat for a row that faces one front
+
+**The factory's roadmap 308**: a chapel, a funeral home's viewing rooms, two courtrooms and two assembly halls were
+furnished as a cafeteria, partly because there was nothing to stand in rows facing a front. `bench` is a street bench
+with no back.
+
+### Added
+- **`pew`**, minted by `tools/new_species.py` and shaped. Reference: an American oak pew, the common catalogue
+  pattern. It has:
+  - two end panels the pew's full height and depth;
+  - a seat 0.45 m up, 0.46 m deep, meeting the back;
+  - a back with a top rail, and a hymnal rack on the back's rear for the row behind;
+  - in a slot deep enough, a kneeler for that row at the floor.
+
+  One stained-oak wood in every style: one material, one mesh a pew to the merge. The genome runs 1.2-8.0 m long,
+  0.5-1.0 m deep and 0.85-1.1 m tall, so it reaches the 8.0 x 0.9 m `pew_row` boxes Deli Counter's funeral home
+  authored. Its budget is 360 tris; the census measured 308 / 308 / 352.
+- **No coincident faces**: every part runs 1 cm into whatever it meets and stops 5 mm short of the ends' outer
+  faces. The back and the rack's lip end half as deep in the ends as the other parts. The census's first reading
+  was 4 pairs a corner, the back's end faces sharing planes with the seat's and the rack's, and now reads 0 at all
+  three corners. The coincident-face census grows by three builds, to 420.
+- **The seat is a pew's depth, whatever the slot's.** A deep slot keeps the seat and gains the kneeler. A first
+  draft ran the seat back to a back pushed against the slot's rear.
+
+### Tests
+- `tests/test_pew.py`:
+  - discovered, validates, plans at its dims, one stained wood;
+  - built in Blender: its slot's extents, its six parts, one material, the seat 0.45 m up, the rack behind the back;
+  - a 0.9 m slot keeps a pew's seat and gains a kneeler.
+
+  Fails on 1.129.0, which has no pew.
+
 ## [1.129.0] - `stoop_railing`'s flight form reaches a storey
 
 **The walker, walking cold run 9386** (the factory's `docs/findings/walk_2026-10-23_9386/`, finding 6), of the office's
