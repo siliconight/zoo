@@ -51,7 +51,8 @@ def build(plan, streams, collection):
     d = plan["dimensions"]["depth"]
     h = plan["dimensions"]["height"]
     key, variant = SG.resolve(plan)
-    got = SG.plan(w, d, h, key, variant)
+    form = SG.form_of(plan)
+    got = SG.plan(w, d, h, key, variant, form)
     f = got["facts"]
     rng = streams.stream("wear")
     objs = []
@@ -63,11 +64,13 @@ def build(plan, streams, collection):
         for o in built:
             geometry.tint_wear(o, factor)
         objs.extend(built)
-    A = SG.bag_art()
+    # the grocery form (1.133.0) paints its own image; the snack form's is
+    # the one that shipped
+    A = SG.grocery_art() if form == "grocery" else SG.bag_art()
     paint = materials.make_painted_material(
         f"M_Snack_{A['name']}", materials.image_from_png(A["name"], A["canvas"].png()), 0.35)
     objs.append(_bags([p for p in got["prims"] if p["mat"] == "bag"], A, paint, collection, streams))
-    print(f"[snack_gondola] bays={f['bays']} shelves={f['shelves']} end_caps={f['end_caps']} "
+    print(f"[snack_gondola] form={form} bays={f['bays']} shelves={f['shelves']} end_caps={f['end_caps']} "
           f"bags={f['bags']} art={A['name']}")
     return {"objects": objs, "collision_boxes": [f["collision"]], "attachments": {},
             "snack_gondola": {"bays": f["bays"], "bags": f["bags"], "end_caps": f["end_caps"]}}

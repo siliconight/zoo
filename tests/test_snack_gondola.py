@@ -36,7 +36,9 @@ def test_the_gondola_fills_its_slot_and_shares_no_plane(dims):
     assert P.coincident_pairs(pr, tol=0.0022) == []
     for p in pr:
         assert S.signed_volume(p) > 0, (p["part"], p["mat"])
-    assert P.tri_count(pr) <= genome_mod.load_species("snack_gondola")["budgets"]["tris_lod0"]
+    # the snack form's own ceiling (1.133.0 raised the genome's for the
+    # grocery form's)
+    assert P.tri_count(pr) <= S.SNACK_TRIS_BUDGET
 
 
 @pytest.mark.parametrize("dims", CASES)

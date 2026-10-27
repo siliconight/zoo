@@ -1,3 +1,61 @@
+## [1.133.0] - `snack_gondola`'s `grocery` form: a supermarket's shelves sell what the sign over them says
+
+The walker's grocery comps (the factory's docs/reference/GROCERY_STORE_COMPS.md): "shiny floor, bright lights,
+isles, glowing freezer section, stacked high". In the walker's level the supermarket's gondolas sold the convenience
+store's chips, cakes and lunch kits. The markers over them (1.131.0) said CEREAL, COFFEE & TEA and CANNED VEG.
+
+### Added
+- **`snack_gondola` form `grocery`.** The same frame, shelves and price strips. Each FACE sells one category of
+  `core/grocery_brands.py`, the 24 names the grocery aisle markers print (`card_brands.GROCERY_AISLE_SAYS`, two a
+  lane).
+- **The variant is the gondola's line in its store** (`grocery_faces`):
+  - Line n stands between lane n - 1 and lane n.
+  - Face "a" (-Y) sells category 2n - 1 of the markers' flat order, the second category of the lane before.
+  - Face "b" (+Y) sells category 2n, the first of the lane after.
+  - So a store that stands its gondolas in order, -Y toward the lane before, has each shelf selling what its
+    lane's marker says.
+  - `module_variants` 4 -> 12: twelve lines sell the 24 categories, each once.
+- **A category is a PACK** (`GROCERY_PACKS`):
+  - cartons: cereal, pasta and rice, baking, cookies, spices, health, cards, and paper goods and diapers in bulk
+    packs;
+  - hexagonal cans, 20 triangles, STACKED as high as the shelf's clearance takes them (two on Deli Counter's 1.45 m
+    gondola), the comps' "stacked high", and canisters of coffee and drink mix;
+  - jars of peanut butter and sauce;
+  - bottles of juice and shampoo, and jugs of cleaner, each with a shoulder and a neck (44 triangles);
+  - bags: bread, chips, candy, and sacks of pet food and charcoal.
+  - A hexagon's width is its extent along the shelf, across its corners. The first cut took it across the flats,
+    and neighbouring cans 9.3 cm apart overlapped by 5 mm; the coplanar census caught it.
+- **Three categories are other tables' products**, so the supermarket and the corner shop sell the same thing:
+  CHIPS are `snack_brands`', CANDY `candy_brands`', SODA the vending machine's (`brands`) in two-litre bottles.
+- **The end caps are cereal.**
+- **`core/grocery_brands.py`**: invented, PG-13, a word a tile, six letters or fewer on its 40-pixel tile.
+  `DENY_WORDS` and `DENY_PARTS` hold the cereal, soup, canned-goods, pasta and household makers and the region's
+  supermarket chains.
+- **Its own image** (`grocery_art`, 240 x 948, 220 tiles and colour blocks). The snack form's every plan and its
+  image are unchanged: one digest of all 44 snack plans and the image is the same on 1.132.0 and 1.133.0
+  (the factory's `patches/zoo_grocery_gondola/snack_digest_113*.out.txt`).
+
+### Changed
+- **`budgets.tris_lod0` 22,000 -> 48,000**, the grocery form's ceiling: 46,116 at the range's largest corner,
+  14 x 1.5 x 2.2. It is 30,596 at Deli Counter's 14 m supermarket run. It stays two submissions whatever it stocks,
+  the steel and the products, so the frame pays the same draw count.
+- The snack form keeps the 22,000 it shipped under (21,660 at that corner), as `SNACK_TRIS_BUDGET` in its own test.
+
+### Tests
+- `tests/test_grocery_gondola.py`:
+  - every category a marker prints is stocked;
+  - a line sells the categories either side of it;
+  - at Deli Counter's three runs on all twelve lines, and the range's corners, the module fills its slot with no
+    coincident faces;
+  - each face sells its own category, and the end caps sell cereal;
+  - a product's printed front looks at the shopper;
+  - cans stack two high;
+  - every product face maps into the grocery image, which is its own;
+  - the products are invented and legible;
+  - built in Blender: PASS, two submissions, the grocery image's material.
+
+  Fails on 1.132.0, which has no `grocery_brands`. The bpy half passed 100 of 100 in Blender 5.1.1.
+
 ## [1.132.0] - `produce_table`: a supermarket's produce section
 
 The walker's grocery comps, 2026-10-26, are filed as the factory's docs/reference/GROCERY_STORE_COMPS.md. The 18 old
