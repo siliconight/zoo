@@ -1,0 +1,119 @@
+{
+  "species": "drive_up_tube",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': shaped for Zoo 1.138.0: a pedestal cabinet on a curb island, the carrier receptacle at a car window, a speaker grille and call button, the tube out of its top; 204 tris on one material. REFERENCE: A bank's drive-up teller lane station (the factory's docs/reference/BANK_INTERIOR_COMPS.md, researched): a pedestal cabinet on a curb island, the pneumatic tube's carrier receptacle at a car window's height, a speaker grille and call button, the tube rising out of its top to the canopy and on to the teller"
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.81,
+      "max": 1.125,
+      "default": 0.9
+    },
+    "depth": {
+      "min": 0.72,
+      "max": 1.0,
+      "default": 0.8
+    },
+    "height": {
+      "min": 2.88,
+      "max": 4.0,
+      "default": 3.2
+    }
+  },
+  "parts": [
+    "DriveUp_Island",
+    "DriveUp_Cabinet",
+    "DriveUp_Mouth",
+    "DriveUp_Hood",
+    "DriveUp_Grille",
+    "DriveUp_Button",
+    "DriveUp_Collar",
+    "DriveUp_Tube"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "concrete",
+      "metal",
+      "wood",
+      "plaster"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 240
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "drive up",
+    "drive-up",
+    "drive up tube",
+    "pneumatic tube",
+    "drive_up"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  }
+}

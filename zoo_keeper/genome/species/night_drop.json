@@ -1,0 +1,115 @@
+{
+  "species": "night_drop",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': shaped for Zoo 1.138.0: a stainless plate, a hood with its chute door, pull and lock, and NIGHT DEPOSITORY lettered on a panel, 130 tris on two materials. REFERENCE: A bank's night depository (the factory's docs/reference/BANK_INTERIOR_COMPS.md, researched): a stainless steel plate in the facade by the door, a hood with a pull-down chute door and handle for after-hours deposits, a keyed lock, NIGHT DEPOSITORY lettered over it"
+  },
+  "dimensions": {
+    "width": {
+      "min": 0.582,
+      "max": 0.78,
+      "default": 0.6
+    },
+    "depth": {
+      "min": 0.145,
+      "max": 0.195,
+      "default": 0.15
+    },
+    "height": {
+      "min": 0.873,
+      "max": 1.17,
+      "default": 0.9
+    }
+  },
+  "parts": [
+    "NightDrop_Plate",
+    "NightDrop_Hood",
+    "NightDrop_Door",
+    "NightDrop_Handle",
+    "NightDrop_Lock",
+    "NightDrop_Label"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal",
+    "options": [
+      "concrete",
+      "metal",
+      "wood",
+      "plaster"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.55,
+        0.53
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal",
+      "color": [
+        0.5,
+        0.49,
+        0.46
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal",
+      "color": [
+        0.56,
+        0.5655,
+        0.58
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal",
+      "color": [
+        0.4708,
+        0.4463,
+        0.4367
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal",
+      "color": [
+        0.5264,
+        0.5445,
+        0.5565
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 160
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "night drop",
+    "night depository",
+    "night_drop"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "wall"
+    }
+  }
+}

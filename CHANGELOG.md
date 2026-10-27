@@ -1,3 +1,69 @@
+## [1.138.0] - a bank's outside: its time-and-temperature sign, its night drop, its drive-up tube and canopy
+
+The walker's bank list, its last step: outside, the drive-up, the night drop and the time-and-temperature sign (the
+factory's docs/reference/BANK_INTERIOR_COMPS.md, researched). The walker, asked to keep going on them: "keep going on
+the outside pieces while it runs".
+
+### Added
+- **`price_pylon` form `bank`**, a bank's time-and-temperature sign. It is the gas pylon's frame (plinth, posts, three
+  lit cabinets, one backlit image, Lux's power cut on its `_Face`) with a bank's faces (`price_pylon_forms.bank_art`).
+  - The top cabinet carries the bank's name in its colours, two lines when that sets bigger.
+  - The middle cabinet carries the time over the temperature in amber lamps on black, unlit bulbs dotted behind.
+  - The strip says MEMBER FDIC.
+  - **Sixteen variants**, the teller line's: four names in four colourways (`teller_line_forms.bank_said`), so
+    `variant_for(business)` names the bank its door sign does. The gas pylon's four are variants 0-3 as before.
+  - The temperature is set tight, "54°F". The pixel faces have no degree sign (a ° renders as their "?"), so the
+    ring is drawn. A first layout set the figures, the ring and the F apart, and read "54°   F".
+  - A still sign: a reading a variant, `READINGS`. The walker's "levels feel static" asks it to tick; it does not yet.
+- **`night_drop`**, minted by `tools/new_species.py` and shaped: a bank's night depository on its facade.
+  - A stainless plate at the wall, a hood with a darker chute door and its pull on stand-offs, and a brass lock.
+  - NIGHT DEPOSITORY on a lettered panel. It uses the teller line's nameboard painter (`card_art` kind
+    `teller_board`) in the bank's sign voice. It sets at 0.52 x 0.18 m and not at 0.16, so the genome's narrowest
+    plate (0.582 m) leaves the label 0.522 m.
+  - Two submissions: the steel on one material, colours in the vertex colour; the lettering one atlas. 130 tris.
+  - Its measures are `core/night_drop_forms.py`, pure, so the tests set the lettering at every size.
+- **`drive_up_tube`**, minted and shaped: a drive-up lane's pneumatic tube station.
+  - A pedestal cabinet on a curb island, the carrier receptacle at a car window's height (a 1.05 m sill), a steel
+    hood framing its dark mouth, a speaker grille and a red call button, and the tube rising from a collar on the
+    cabinet's top to the slot's height.
+  - One material, every colour in the vertex colour. 204 tris. The island and cabinet collide; the tube overhead
+    does not.
+  - The lane and its canopy are not this species: Lot lays the lane (0.132.0, `site_driveup`), and the canopy is
+    `drive_up_canopy`.
+- **`drive_up_canopy`**, minted and shaped: the drive-up lane's roof. The walker: "do the drive-up lane next".
+  - A flat deck off the building's wall (its -X face meets the wall; nothing stands on that side), its fascia the
+    bank's colour, a light soffit under it, and two steel columns on concrete footings on the island line.
+  - The pneumatic tube's run under the soffit, from the island line to the wall. The station's tube rises to it
+    (`run_z`), so the canister crosses the served lane overhead.
+  - **Sixteen variants, the bank's**: the fascia is the variant's field colour (`teller_line_forms.bank_said`), so a
+    lane reads as the bank whose sign is out front.
+  - One material, every colour in the vertex colour. 120 tris. The columns and footings collide; the deck overhead
+    does not.
+  - The footings' outer faces stand 3 mm inside the module's, which the deck owns overhead. A first draft centred a
+    footing on its column and put it 0.1 m past the envelope.
+- All four can be asked for by name ("night drop", "night depository", "drive up tube", "pneumatic tube",
+  "drive up canopy", "time and temperature sign").
+
+### Tests
+- `tests/test_time_temp_sign.py`:
+  - the form and its sixteen variants are honoured;
+  - every word sets at three pylon sizes in all sixteen variants;
+  - the image keeps the gas pylon's layout;
+  - the sign names the bank its door does, for the library's banks;
+  - the art is its own and repeatable, and the gas pylon is unchanged.
+- `tests/test_night_drop.py`: discovered, validates, asked for by name; the lettering sets at every size and stays
+  on the plate; built in Blender at three sizes, on two materials, with the pull in front of the door, the hood and
+  the plate.
+- `tests/test_drive_up_tube.py`: discovered, validates, asked for by name; built at three sizes on one material, its
+  receptacle's sill at a car window and its mouth toward the lane.
+- `tests/test_drive_up_canopy.py`: discovered, validates, asked for by name, planned in every bank's variant; built
+  at three sizes on one material, its fascia the variant's colour, its columns on the island line, its run at `run_z`
+  reaching the wall.
+- `tests/test_coincident_faces.py`: `CENSUS_BUILDS` 435 -> 444, 0 pairs at all nine corners, the first readings
+  recorded beside the count.
+
+All four new files fail on 1.137.0.
+
 ## [1.137.0] - a bank's printed offers and its name over the teller line
 
 The walker's bank list, after the cameras, walls and plants: "the rate board and posters", then the bank's name over the

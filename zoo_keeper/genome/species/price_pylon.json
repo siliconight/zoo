@@ -31,10 +31,11 @@
  ],
  "params": {
   "form": [
-   "auto"
+   "auto",
+   "bank"
   ]
  },
- "module_variants": 4,
+ "module_variants": 16,
  "materials": {
   "default": "metal_painted",
   "options": [
@@ -117,7 +118,9 @@
   "pylon sign",
   "gas price sign",
   "price sign",
-  "pole sign"
+  "pole sign",
+  "time and temperature sign",
+  "bank sign"
  ],
  "connectors": {
   "anchor": {

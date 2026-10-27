@@ -60,7 +60,9 @@ def build(plan, streams, collection):
         for o in built:
             geometry.tint_wear(o, factor)
         objs.extend(built)
-    A = PP.art(w, h, variant)
+    # a bank's time-and-temperature sign (1.138.0): the same frame, its own faces
+    form = str((plan.get("params") or {}).get("form") or "auto")
+    A = PP.art(w, h, variant, form)
     glow = materials.make_backlit_material(
         f"M_Pylon_{A['name']}_Face", materials.image_from_png(A["name"], A["canvas"].png()),
         PP.GLOW_EMISSION, PP.GLOW_ALBEDO)

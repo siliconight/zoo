@@ -597,7 +597,14 @@ DID_NOT_BUILD = {"boots"}
 #: planter's lip on the pot's top face (1 a corner), then -- the lip a ring, the pot open -- the ring's side bars on
 #: the long bars' ends and the soil's edges on the side bars' (4-5), then a stem's foot 2 mm under the pot's top (1);
 #: the clock's back plate a millimetre inside its bezel and its marks and hands on one another's planes (25 a corner).
-CENSUS_BUILDS = 435
+#: 1.138.0: `night_drop`, `drive_up_tube` and `drive_up_canopy` (the walker's bank list, outside), nine builds more,
+#: same tool and Blender: "3 builds, 0 with coincident pairs, 0 that did not build" each; the night drop 130 tris at
+#: every corner, the station 204, the canopy 120. The first readings: the night drop's pull, its stand-offs ending 1 mm
+#: inside the bar (1 a corner); the station's grille and receptacle hood buried to one depth (1), the hood's side bars
+#: ending on its top and bottom bars (2), then -- run into them flush -- their fronts, backs and outsides on the bars'
+#: planes (4); the canopy 0 at its first reading. `price_pylon`'s new `bank` form is the same frame and builds no new
+#: geometry: 0 pairs at its three corners. A first count of 441 left the canopy out; the suite said 148 x 3.
+CENSUS_BUILDS = 444
 
 
 def test_the_census_covers_every_species_there_is():
