@@ -579,7 +579,13 @@ DID_NOT_BUILD = {"boots"}
 #: (the deepest with its kneeler) and 0 pairs. The first reading was 4 pairs a corner -- the back's end faces on one
 #: plane with the seat's and the rack's, all buried in the end panels at the same depth -- and the back and the rack's
 #: lip now end half as deep. 360 is the genome's budget.
-CENSUS_BUILDS = 420
+#: 1.132.0: `produce_table` (the walker's grocery comps), three builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species produce_table`: "3 builds, 0 with coincident pairs, 0
+#: that did not build", 416 / 656 / 1,136 tris at its min, default and max corners. The first reading was 6 pairs a
+#: corner -- the rim's faces on the bed's front and ends, and the bed's two steps meeting face to face -- then one, the
+#: dividers' front faces on the bed's; the bed now starts behind the rim, the steps overlap, the rim, back board and
+#: dividers stop short of the ends and run into what they meet.
+CENSUS_BUILDS = 423
 
 
 def test_the_census_covers_every_species_there_is():

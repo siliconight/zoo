@@ -1,0 +1,112 @@
+{
+  "species": "produce_table",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-10-26 by tools/new_species.py; shaped the same day for the walker's grocery comps (the factory's docs/reference/GROCERY_STORE_COMPS.md: a produce section of tables and baskets under a sign). REFERENCE: the common 1990s supermarket wet-rack produce table -- a cabinet skirted in dark green, a bed raked toward the aisle, bays of fruit and vegetables heaped in mounds, a price card on the front rim. Construction knowledge only; no brand."
+  },
+  "dimensions": {
+    "width": {
+      "min": 1.2,
+      "max": 4.8,
+      "default": 2.4
+    },
+    "depth": {
+      "min": 0.8,
+      "max": 1.6,
+      "default": 1.2
+    },
+    "height": {
+      "min": 0.8,
+      "max": 1.1,
+      "default": 0.95
+    }
+  },
+  "parts": [
+    "ProduceTable_Skirt",
+    "ProduceTable_Bed",
+    "ProduceTable_Rim",
+    "ProduceTable_Dividers",
+    "ProduceTable_Back",
+    "ProduceTable_Heap",
+    "ProduceTable_Cards"
+  ],
+  "params": {},
+  "materials": {
+    "default": "wood",
+    "options": [
+      "concrete",
+      "metal",
+      "wood",
+      "plaster"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "wood",
+      "color": [
+        0.45,
+        0.31,
+        0.18
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "wood",
+      "color": [
+        0.4,
+        0.27,
+        0.15
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "wood",
+      "color": [
+        0.44,
+        0.3,
+        0.18
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "wood",
+      "color": [
+        0.36,
+        0.25,
+        0.15
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "wood",
+      "color": [
+        0.42,
+        0.29,
+        0.17
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 760
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "produce",
+    "produce_table",
+    "produce_bin"
+  ],
+  "module_variants": 8
+}

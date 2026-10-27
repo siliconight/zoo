@@ -1,3 +1,35 @@
+## [1.132.0] - `produce_table`: a supermarket's produce section
+
+The walker's grocery comps, 2026-10-26, are filed as the factory's docs/reference/GROCERY_STORE_COMPS.md. The 18 old
+supermarkets the walker linked include "a retro produce section ... neatly arranged fruit and vegetables": produce
+on tables and in baskets under a category sign. The library had nothing to stand there.
+
+### Added
+- **`produce_table`**, minted by `tools/new_species.py` and shaped. Reference: the common 1990s supermarket
+  wet-rack table. It has:
+  - a cabinet skirted in dark green;
+  - a bed raked toward the shopper;
+  - bays about 0.6 m wide, between low dividers;
+  - a heap of produce in each bay, its lumps jittered from the module's own stream;
+  - a white price card on the front rim of each bay;
+  - a back riser board on the bed's high edge, to the slot's top.
+- **Two materials, whatever its size.** The wood, the skirt's green, the heaps' colours and the cards' white are
+  colour-only variation, so they ride the `Wear` vertex colour (`geometry.tint_wear`).
+- **The variant is the stock.** A table's bays take `PRODUCE[(variant + i) % 8]`: apples, oranges, lemons, greens,
+  potatoes, onions, grapes, limes. `module_variants` is 8.
+- The genome runs 1.2-4.8 m wide, 0.8-1.6 m deep and 0.8-1.1 m tall. It measures 416 / 656 / 1,136 tris at its min,
+  default and max corners, against a budget of 760 at its default.
+- **No coincident faces.** The census's first reading was 6 pairs a corner: the rim on the bed's front and ends, and
+  the bed's two steps face to face. Then one: the dividers' front faces on the bed's. Now 0 at all three corners.
+  The census grows by three builds, to 423.
+
+### Tests
+- `tests/test_produce_table.py`:
+  - discovered, validates, plans at its dims, a variant a different module, its wood brown;
+  - built in Blender: its slot's extents on two materials, four heaps at 2.4 m, seven at 4.2 m.
+
+  Fails on 1.131.0, which has no produce table.
+
 ## [1.131.0] - the aisle sign's `grocery` form: a supermarket's numbered aisle marker
 
 The walker, 2026-10-26: grocery comps with a printed sign over the head of every aisle, its number large and what is
