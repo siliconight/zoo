@@ -35,8 +35,8 @@ from zoo_keeper.core import prims as P
 
 KEYS = ("a", "b", "c", "d")
 #: The face each string is set in (`poster_art`).
-HEAD_FACE = {"club": PA.CLUB_FACE, "bar": "m5x7", "alley": "bold", "store": "m5x7"}
-SMALL_FACE = {"club": "small", "bar": "m5x7", "alley": "m5x7", "store": "small"}
+HEAD_FACE = {"club": PA.CLUB_FACE, "bar": "m5x7", "alley": "bold", "store": "m5x7", "bank": "m5x7"}
+SMALL_FACE = {"club": "small", "bar": "m5x7", "alley": "m5x7", "store": "small", "bank": "small"}
 #: The narrower face a line falls back to when its own will not fit.
 SMALL_FALLBACK = {"club": "m5x7"}
 
@@ -329,3 +329,16 @@ def test_bpy_a_run_is_one_object_one_material_and_fits(tmp_path, family):
         assert "emissiveTexture" in m and all(abs(v - emission) < 1e-6 for v in m["emissiveFactor"])
     else:
         assert not (m.get("emissiveFactor") and max(m["emissiveFactor"]) > 0), m
+
+
+@pytest.mark.parametrize("stock", (None, "loud", "plain"))
+def test_the_rate_board_sets_every_product_and_rate(stock):
+    """1.137.0: the bank's rate board at the size it ships. `fit_text` sets
+    nothing for a line too wide for its column, and the three tests above
+    passed a board that had lost every rate."""
+    w, h = _size("bank")
+    row = [head for head, _ in PC.BANK].index("RATES TODAY")
+    for key in KEYS:
+        board = PA.paint("bank", w, h, row, key, stock)[1]["board"]
+        assert len(board) == len(PC.RATE_BOARD), (key, board)
+        assert all(at is not None for line in board for at in line), (key, stock, board)

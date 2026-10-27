@@ -23,12 +23,14 @@ held against `DENYLIST` below and the factory's other denylists by
 `test_poster_wall.py`.
 
 Family keys are the locations the walker named: `club`, `bar`, `alley`,
-`store`. Each row is ``(headline, small_line)``; a bar row's headline is a
+`store` -- and (1.137.0) `bank`, the walker's bank comps
+(the factory's docs/reference/BANK_INTERIOR_COMPS.md): a lobby's printed
+offers in frames, and the rate board. Each row is ``(headline, small_line)``; a bar row's headline is a
 band. Every character must be in the pixel face the painter sets it in.
 """
 from __future__ import annotations
 
-FAMILIES = ("club", "bar", "alley", "store")
+FAMILIES = ("club", "bar", "alley", "store", "bank")
 
 #: The strip club's own posters: brash faux glamour with a wink. The
 #: headline is the promise; the small line lets the air out of it. Every
@@ -102,7 +104,36 @@ STORE = (
     ("PRETZELS", "SOFT. SALTY. LIKE US."),
 )
 
-COPY = {"club": CLUB, "bar": BAR, "alley": ALLEY, "store": STORE}
+#: The bank's printed offers (1.137.0): the lobby's framed posters the comps
+#: show beside the rate board -- the offer, its one big figure, and the fine
+#: print that lets the air out of it. A Christmas Club is the Depression-era
+#: holiday savings account banks still opened in the 1990s; a free toaster for
+#: a new account is the decade's joke about banks that is also true. Every
+#: headline word sets at scale 2 across the sheet (CHRISTMAS did not).
+BANK = (
+    ("XMAS CLUB", "SAVE ALL YEAR. SPEND IT IN A WEEK."),
+    ("FREE CHECKING", "FREE-ISH. SEE A TELLER."),
+    ("CD RATES", "LOCK IT UP. LIKE YOUR COUSIN."),
+    ("HOME EQUITY", "YOUR ROWHOME. OUR PROBLEM."),
+    ("AUTO LOANS", "FOR THE CAR IN THE YARD"),
+    ("SAT HOURS", "9 TO NOON. NOT A MINUTE AFTER."),
+    ("NEW ACCOUNT", "FREE TOASTER. WHILE THEY LAST."),
+    ("ATM CARDS", "THE MACHINE IS NICER THAN US"),
+    ("RATES TODAY", "ANNUAL PERCENTAGE YIELD. ASK US WHY."),
+    ("PASSBOOK", "STILL GOT YOURS IN A DRAWER?"),
+    ("LOW RATES", "LOW-ISH. ASK US."),
+    ("NIGHT DROP", "AROUND BACK. WATCH YOUR STEP."),
+)
+#: The one big figure each offer shows; the rate board shows `RATE_BOARD`.
+#: Rates of the autumn of 1997.
+BANK_FIGURES = {"XMAS CLUB": "JOIN", "FREE CHECKING": "$0", "CD RATES": "5.65%", "HOME EQUITY": "7.9%",
+                "AUTO LOANS": "8.5%", "SAT HOURS": "9-12", "NEW ACCOUNT": "FREE", "ATM CARDS": "24 HR",
+                "PASSBOOK": "2.5%", "LOW RATES": "6.9%", "NIGHT DROP": "3 PM"}
+#: The rate board's rows, product and APY, the lobby's changeable letters.
+RATE_BOARD = (("PASSBOOK", "2.50%"), ("CD 6 MO", "5.15%"), ("CD 1 YR", "5.65%"), ("CD 5 YR", "6.25%"),
+              ("IRA", "6.00%"))
+
+COPY = {"club": CLUB, "bar": BAR, "alley": ALLEY, "store": STORE, "bank": BANK}
 
 #: Real businesses, bands, brands and chains a writer reaches for around
 #: Delaware County in the 1990s, held against every line above.
@@ -113,6 +144,10 @@ DENYLIST = (
     "POWERBALL", "MEGA MILLIONS", "CHICKIE", "PAT'S", "GENO", "DELILAH",
     "CHEERLEADERS", "PENTHOUSE", "PLAYBOY", "HOOTERS", "BON JOVI",
     "SPRINGSTEEN", "HALL & OATES", "PHISH", "PEARL JAM", "NIRVANA",
+    # the region's 1990s banks and ATM network (1.137.0; the bank reference's
+    # "researched" section)
+    "CORESTATES", "MERIDIAN", "PSFS", "MELLON", "PNC", "FIRST UNION",
+    "COMMERCE BANK", "FIDELITY", "MAC MACHINE", "FDIC",
 )
 
 #: Fictional phone numbers only: the 555-01xx block is reserved for fiction.
@@ -137,4 +172,5 @@ def all_strings():
     for fam in FAMILIES:
         for head, small in COPY[fam]:
             out += [head, small]
+    out += list(BANK_FIGURES.values()) + [s for row in RATE_BOARD for s in row]
     return out + list(PHONES) + list(DATES)

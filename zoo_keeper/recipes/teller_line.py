@@ -17,6 +17,14 @@ and a speak-through. This recipe builds that per BAY (`_bays.bays`, at most
 width, a post stands at every bay boundary, and each bay's glass carries
 its own service opening.
 
+THE BANK FORM (1.137.0, the walker's bank comps: a name over the line, a
+number on every window). The header rises to `teller_line_forms.BANK_HEADER`
+and steps back by a nameboard's thickness, and the board fills the step: the
+bank's name across it, each window's number over its bay, painted in one
+atlas (`teller_line_forms.bank_board`). The middle posts stop just inside the
+raised header, where they would cut through the board. The default form is
+the line it always was.
+
 This builds only the intact state. Its `shattered` state reuses this same
 species art (the resolver falls back to the base) until a shattered-glass
 art pass gives it distinct geometry. The frame + counter tile the exact
@@ -26,6 +34,7 @@ from __future__ import annotations
 
 from ..bpylayer import geometry, materials
 from ..core import arch
+from ..core import teller_line_forms as TF
 from ._bays import bay_max_of, bays
 
 
@@ -40,6 +49,11 @@ def build(plan, streams, collection):
     counter_h = min(float(p.get("counter_h", 1.1)), h * 0.6)
     post = min(float(p.get("post", 0.10)), w * 0.3)
     header = min(float(p.get("header", 0.20)), (h - counter_h) * 0.5)
+    bank = str(p.get("form") or "auto") == "bank"
+    if bank:
+        header = TF.header_of(header, h, counter_h)
+    # the bank's header steps back by its nameboard, which fills the step
+    step = TF.BOARD_T if bank else 0.0
     hw, hh = w / 2.0, h / 2.0
     counter_top = -hh + counter_h
     header_bot = hh - header
@@ -64,8 +78,8 @@ def build(plan, streams, collection):
     box(f"{root}_Counter", (0.0, 0.0, -hh + counter_h / 2.0), (w, d, counter_h))
     # header, the full run
     if header > 1e-4:
-        box(f"{root}_Header", (0.0, 0.0, (header_bot + hh) / 2.0),
-            (w - 2.0 * post, d, header))
+        box(f"{root}_Header", (0.0, step / 2.0, (header_bot + hh) / 2.0),
+            (w - 2.0 * post, d - step, header))
 
     # BAYS: a post at the two ends and at every station boundary; one
     # glass panel with a service opening per station.
@@ -74,8 +88,11 @@ def build(plan, streams, collection):
     if post > 1e-4:
         for i, x in enumerate(edges):
             tag = "L" if i == 0 else ("R" if i == len(edges) - 1 else "M%d" % i)
-            box(f"{root}_Post_{tag}", (x, 0.0, (counter_top + hh) / 2.0),
-                (post, d, hh - counter_top))
+            top = hh
+            if bank and tag.startswith("M"):
+                top = header_bot + TF.POST_INTO_HEADER
+            box(f"{root}_Post_{tag}", (x, 0.0, (counter_top + top) / 2.0),
+                (post, d, top - counter_top))
 
     glass_th = max(0.02, float(p.get("glass_frac", 0.12)) * d)
     glass_mat = materials.make_material(
@@ -109,7 +126,13 @@ def build(plan, streams, collection):
     body = materials.make_material(
         f"M_TellerLine_{plan['material']}", plan["color"], plan["material"])
     materials.assign(structure, body)
+    art = []
+    if bank:
+        from ._card_atlas import build_art
+        prims, tiles = TF.bank_board(w, d, h, post, header, runs, p.get("variant", 0))
+        art, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams,
+                                "TellerLine_Board", smooth=True)
     attachments = {f"ATT_tray{'' if len(runs) == 1 else '_B%d' % (i + 1)}":
                    (bx, -d / 2.0, counter_top) for i, (bx, bw) in enumerate(runs)}
-    return {"objects": structure + glassboxes, "collision_boxes": cboxes,
+    return {"objects": structure + glassboxes + art, "collision_boxes": cboxes,
             "attachments": attachments}

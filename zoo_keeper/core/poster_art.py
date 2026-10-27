@@ -647,14 +647,90 @@ def store(w, h, row, key, stock=None):
                "title": title, "focal": (cx - r, cy - r, cx + r, cy + r), "ground": paper}
 
 
-PAINTERS = {"club": club, "bar": bar, "alley": alley, "store": store}
+#: A bank's printed colours (1.137.0): ``(accent, paper)``, one a wall -- the
+#: bank's own, as every sheet of one lobby is printed by one bank.
+BANK_PALETTES = (((22, 40, 108), (248, 246, 238)), ((122, 24, 38), (246, 240, 226)),
+                 ((24, 84, 56), (246, 244, 232)), ((30, 70, 150), (250, 250, 246)))
+#: The rate board: white changeable letters on a black felt board.
+BOARD = (26, 26, 30)
+BOARD_INK = (240, 240, 232)
+
+
+def bank(w, h, row, key, stock=None):
+    """A bank lobby's printed offer (1.137.0): the bank's band across the
+    top, the offer, its one big figure on a panel, the fine print at the foot
+    -- or, on the `RATES TODAY` row, the rate board: white letters on black
+    felt, a product and its yield a line. The palette is the WALL's (``key``
+    alone), so one lobby's sheets are one bank's. A LOUD sheet is printed on
+    the bank's colour; a plain one on its paper. THE FLAW: the lower corner
+    has curled off its tape, a fold of the paper's back showing."""
+    roll = Roll(f"bank|{row}|{key}")
+    accent, paper = BANK_PALETTES[Roll(f"bank|{key}").below(len(BANK_PALETTES))]
+    head, small = PC.BANK[row % len(PC.BANK)]
+    # the stock by `_pool`, as the bar's, the alley's and the store's: one sheet in four loud when the run does not say
+    pool = _pool(stock, (True, False, False, False), (True,), (False,))
+    loud = pool[roll.below(len(pool))]
+    ground = accent if loud else paper
+    if head == "RATES TODAY":
+        # the board on the sheet's ground, the bank's band and title above it: black felt with white letters on
+        # paper, a white letterboard with black ones on the bank's colour -- both were changeable-letter boards, and
+        # a dark board on a dark colour stepped 18 of the 42.5 `poster_checks` asks (so did a sheet that WAS the felt)
+        felt, letters = ((244, 244, 238), INK) if loud else (BOARD, BOARD_INK)
+        c = Canvas(w, h, ground)
+        c.rect(0, 0, w, int(h * 0.10), _mix(accent, (0, 0, 0), 0.45) if loud else accent)
+        title = fit_text(c, head, (3, int(h * 0.12), w - 3, int(h * 0.34)), (252, 252, 246) if loud else accent)
+        rows = PC.RATE_BOARD
+        y0, y1 = int(h * 0.37), int(h * 0.79)
+        c.rect(4, y0, w - 4, y1, felt)
+        rh = (y1 - y0 - 4) / float(len(rows))
+        # where each line set, product and rate: `fit_text` returns None for a line too wide for its column at its
+        # smallest size and draws nothing, so a board can lose a rate silently (a MONEY MKT line, and then every
+        # rate at the shipped 118 px, did)
+        board = []
+        for k, (prod, rate) in enumerate(rows):
+            ya, yb = int(y0 + 2 + k * rh), int(y0 + 2 + (k + 1) * rh) - 1
+            set_at = [fit_text(c, prod, (6, ya, int(w * 0.58), yb), letters, face=SMALL_FACE, cap=1)]
+            set_at.append(fit_text(c, rate, (int(w * 0.60), ya, w - 6, yb), letters, face=SMALL_FACE, cap=1))
+            board.append(set_at)
+        focal = (4, y0, w - 4, y1)
+        c.rect(2, int(h * 0.82), w - 2, h - 2, (252, 252, 246))
+        small_at = fit_text(c, small, (4, int(h * 0.82) + 1, w - 4, h - 3), INK, face=SMALL_FACE, cap=1)
+        return c, {"family": "bank", "headline": head, "small": small, "small_at": small_at,
+                   "title": title, "focal": focal, "ground": ground, "board": board}
+    ink = (252, 252, 246) if loud else accent
+    c = Canvas(w, h, ground)
+    # the bank's band: its colour on plain paper, a dark rule on its colour
+    c.rect(0, 0, w, int(h * 0.10), _mix(accent, (0, 0, 0), 0.45) if loud else accent)
+    title = fit_text(c, head, (3, int(h * 0.12), w - 3, int(h * 0.38)), ink,
+                     outline=_mix(ink, (0, 0, 0), 0.5) if loud else None)
+    # the figure on a panel against the ground, the sheet's focal mass: white on the bank's colour on plain paper,
+    # dark on white on loud. A light panel on light paper stepped 37 of the 42.5 `poster_checks` asks.
+    fy0, fy1 = int(h * 0.42), int(h * 0.74)
+    panel, fig = ((252, 252, 246), INK) if loud else (_mix(accent, (0, 0, 0), 0.2), (252, 252, 246))
+    c.rect(5, fy0, w - 5, fy1, panel)
+    fit_text(c, PC.BANK_FIGURES[head], (8, fy0 + 3, w - 8, fy1 - 2), fig)
+    focal = (5, fy0, w - 5, fy1)
+    # the fine print on a white strip, both ends of the value range on every sheet
+    c.rect(2, int(h * 0.80), w - 2, h - 2, (252, 252, 246))
+    small_at = fit_text(c, small, (4, int(h * 0.80) + 1, w - 4, h - 3), INK, face=SMALL_FACE, cap=1)
+    # THE FLAW: the lower right corner curled off its tape
+    k = max(4, w // 9)
+    for i in range(k):
+        for j in range(k - i):
+            c.px(w - 1 - j, h - 1 - i, _mix(ground, (255, 255, 255), 0.55) if j < k - i - 1 else (90, 90, 90))
+    return c, {"family": "bank", "headline": head, "small": small, "small_at": small_at,
+               "title": title, "focal": focal, "ground": ground}
+
+
+PAINTERS = {"club": club, "bar": bar, "alley": alley, "store": store, "bank": bank}
 
 #: Each family's sheet, width x height in metres: a club one-sheet, an
 #: 11 x 17 gig bill, a letter-size handbill, a sale poster -- the system
 #: guide's "ordinary wall poster" band is 0.45-0.75 m tall; a handbill is
 #: smaller because a handbill is -- but not letter size: at 0.22 m a sheet
 #: was 56 px wide and set its pitch on one handbill in twelve.
-SIZES_M = {"club": (0.46, 0.64), "bar": (0.30, 0.44), "alley": (0.30, 0.42), "store": (0.46, 0.60)}
+SIZES_M = {"club": (0.46, 0.64), "bar": (0.30, 0.44), "alley": (0.30, 0.42), "store": (0.46, 0.60),
+           "bank": (0.46, 0.62)}
 
 
 def paint(family, w_px, h_px, row, key="", stock=None):

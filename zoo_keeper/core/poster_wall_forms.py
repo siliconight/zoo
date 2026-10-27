@@ -52,9 +52,11 @@ LAYER = 0.004
 #: bounds must meet in every axis.
 FIT_TOL = 0.02
 #: The family's spacing along the run, metres, and its tilt range, degrees.
-LAYOUT = {"club": (0.22, 0.0), "store": (0.08, 0.0), "bar": (0.05, 3.0), "alley": (-0.06, 5.0)}
+LAYOUT = {"club": (0.22, 0.0), "store": (0.08, 0.0), "bar": (0.05, 3.0), "alley": (-0.06, 5.0),
+          # a bank's framed offers hang square and apart (1.137.0)
+          "bank": (0.30, 0.0)}
 #: How far a bar or alley sheet's top may wander below the band's top.
-WANDER = {"club": 0.0, "store": 0.0, "bar": 0.06, "alley": 0.10}
+WANDER = {"club": 0.0, "store": 0.0, "bar": 0.06, "alley": 0.10, "bank": 0.0}
 #: THE CLUB'S BLACKLIGHT (1.33.0): ``(emission, albedo)`` for
 #: `materials.make_backlit_material`, by family; a family not here is paper,
 #: lit by the room. The walker, 2026-09-30, choosing among three after cold

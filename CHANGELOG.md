@@ -1,3 +1,68 @@
+## [1.137.0] - a bank's printed offers and its name over the teller line
+
+The walker's bank list, after the cameras, walls and plants: "the rate board and posters", then the bank's name over the
+line and a number on every window (the factory's docs/reference/BANK_INTERIOR_COMPS.md, comps 2, 4 and 7; roadmap 321).
+The library had neither: a bank's walls could carry only a club's, a bar's, an alley's or a store's sheets, and every
+teller line was a plain grey frame.
+
+### Added
+- **`poster_wall` form `bank`**: a bank lobby's printed offers, 0.46 x 0.62 m, hung square 0.30 m apart.
+  - Twelve offers, each with one big figure: XMAS CLUB / JOIN, FREE CHECKING / $0, CD RATES / 5.65%, HOME EQUITY /
+    7.9%, AUTO LOANS / 8.5%, SAT HOURS / 9-12, NEW ACCOUNT / FREE, ATM CARDS / 24 HR, PASSBOOK / 2.5%, LOW RATES /
+    6.9%, NIGHT DROP / 3 PM, and RATES TODAY.
+  - A sheet is the bank's band across the top, the offer, its figure on a panel, and the fine print on a white strip.
+    The figure is white on the bank's colour on plain paper, and dark on white on loud.
+  - **RATES TODAY is the rate board**: five products and their yields (PASSBOOK, CD 6 MO, CD 1 YR, CD 5 YR, IRA).
+    It is white letters on black felt on plain paper, and black letters on a white letterboard on the bank's colour.
+  - One palette a wall (the wall's key), so one lobby's sheets are one bank's. Four palettes: navy, maroon, green, blue.
+  - THE FLAW: the lower right corner has curled off its tape.
+- **`teller_line` form `bank`**, its sixteen variants `storefront_names`' four bank names (FIRST DELCO SAVINGS, PIKE
+  SAVINGS & LOAN, MATTRESS MONEY TRUST, YOUSE CREDIT CO-OP) in the sign pylon's four colourways.
+  - **The variant is the door sign's.** `teller_line_forms.variant_for(business)` is the variant whose name and colours
+    `storefront_names.sign_for` puts over that bank's door. Deli Counter stamps it, so the line names the bank its
+    sign does.
+  - A NAMEBOARD on the header's public face: the bank's name across its top band, and each window's number centred
+    over its bay, under a rule. A line of one bay carries the name alone.
+  - The header rises to 0.45 m (`teller_line_forms.BANK_HEADER`). It steps back by the board's 2 cm and the board
+    fills the step, so the envelope is unchanged. The board is an art front and four edges with no back face,
+    `sign_box`'s face built the same way.
+  - The middle posts stop 5 mm inside the raised header, under the board's lower edge.
+  - One painted atlas (`card_art` kind `teller_board`, `teller_line_forms.paint`), so one material more a line.
+    +10 tris on a one-bay line, +10 on six bays (the art quad and its rim).
+  - The default form is the line it always was.
+
+### Measured
+- **A rate line that does not fit sets nothing.** `fit_text` returns None and draws nothing. A MONEY MKT line did that,
+  and then, with its column widened, every rate at the shipped 118 px. The three poster tests passed that board. The
+  painter now reports each line, and a test holds it.
+- **The nameboard's thresholds are measured, not chosen**, off the painter at `storefront_names`' 80 px a metre and
+  `MIN_CAP` 12.
+  - The narrowest numbered board (two 1.0 m bays, 1.78 m) sets every word from 0.30 m, and not at 0.29.
+  - A name alone sets from 0.17 m on a 1.0 m line.
+- **A first board was a name tile and a tile a number**, each with a sign's margins and two rules. It needed a 0.57 m
+  header and still set the name 9 cm tall on a 6 m line. The number thresholds were first measured on "1" alone, which
+  lost every "3". The one-tile board sets the name about 17 cm and the numbers about 15 on a 0.43 m board.
+- **Census** (`tools/coplanar_census.py`'s loop, every slot dressed form `bank`, variant 1): 13, 13 and 63 pairs at the
+  min, default and max corners, against the plain line's 13, 13 and 88. None involves the board. The 13 are the
+  line's own touching boxes and are unchanged. The max corner loses 15 because its middle posts no longer reach the
+  header's top.
+  - The first census found one pair: a middle post's front 1 cm up the board's face, at 2 cm into the header.
+
+### Tests
+- `tests/test_poster_wall.py`: the bank family is in every family test.
+  - Its sheets pass the three tests: the headline at 5 m, the focal image off its ground, the mass.
+  - Both stocks: plain paper is plain, loud is not, and an unknown stock is refused.
+  - Every product and rate on the board sets at the size it ships.
+- New `tests/test_teller_line_bank.py`:
+  - the form and sixteen variants are honoured;
+  - a line reads its door sign: seven library banks and forty made-up ones;
+  - every name and number sets at five lines across the genome's range;
+  - the board is inside the envelope on the public face, with each number over its bay;
+  - the name-alone fallback;
+  - the measured threshold;
+  - the header's clamp;
+  - the post under the board.
+
 ## [1.136.0] - `planter` and `wall_clock`: a lobby's plants and its clock
 
 The walker, shown the bank's furnished lobby: "fix it before we rush to the release". Against the comps (the factory's

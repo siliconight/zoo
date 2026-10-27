@@ -527,6 +527,10 @@ def paint(spec):
     if kind == "storefront_sign":
         from . import storefront_names as SN
         return SN.paint(spec)
+    # A BANK'S TELLER LINE (1.137.0): its nameboard, `teller_line_forms`'
+    if kind == "teller_board":
+        from . import teller_line_forms as TF
+        return TF.paint(spec)
     # THE VIDEO-POKER CABINET (1.39.0): its belly glass, deck, CRT and
     # marquee are `video_poker_forms`' tiles
     if kind.startswith("vp_"):

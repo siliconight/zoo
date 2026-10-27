@@ -4,7 +4,7 @@
   "collision": false,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Authored 2026-09-30 for Zoo 1.30.0 from the walker's three poster guides (root repo docs/reference/, indexed by POSTER_GUIDES.md) and their choice of where posters go: strip club interiors, bar interiors, exterior alley walls and poles, store windows and walls. Construction and art-direction knowledge only. Every string this species paints is in core/poster_copy.py, invented, reviewed, and held against a denylist of real businesses, bands and brands by tests/test_poster_wall.py; no reference's names, marks or compositions reach a texture."
+    "notes": "Authored 2026-09-30 for Zoo 1.30.0 from the walker's three poster guides (root repo docs/reference/, indexed by POSTER_GUIDES.md) and their choice of where posters go: strip club interiors, bar interiors, exterior alley walls and poles, store windows and walls. Construction and art-direction knowledge only. Every string this species paints is in core/poster_copy.py, invented, reviewed, and held against a denylist of real businesses, bands and brands by tests/test_poster_wall.py; no reference's names, marks or compositions reach a texture. 1.137.0: form 'bank' -- a bank lobby's printed offers (the walker's bank comps): the bank's band, the offer, one big figure on a panel, the fine print; the RATES TODAY row a rate board, black felt on plain paper and a white letterboard on loud; one palette a wall, a bank's."
   },
   "dimensions": {
     "width": {
@@ -31,7 +31,8 @@
       "club",
       "bar",
       "alley",
-      "store"
+      "store",
+      "bank"
     ]
   },
   "module_variants": 8,
