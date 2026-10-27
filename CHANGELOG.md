@@ -1,3 +1,41 @@
+## [1.136.0] - `planter` and `wall_clock`: a lobby's plants and its clock
+
+The walker, shown the bank's furnished lobby: "fix it before we rush to the release". Against the comps (the factory's
+docs/reference/BANK_INTERIOR_COMPS.md) its 390 m2 floor was nearly empty. The comps keep plants in planters by the
+windows and counters (comps 1, 4, 5, 6) and a clock over the teller line (2, 4), and the library had neither.
+
+### Added
+- **`planter`**, minted by `tools/new_species.py` and shaped. A square commercial planter, slightly tapered, under a
+  rim that overhangs it, with its soil recessed inside the rim and a plant on one to three bare stems, its crown a few
+  rounded masses.
+  - The VARIANT is the plant (four): a ficus on one stem, two, a dracaena's three canes, a low bush.
+  - The crowns are lifted until the tallest touches the slot's top and held inside its box, so the module is its slot.
+  - The pot collides; a body brushes through the leaves.
+  - Two materials: the pot (the plan's material); and the soil, stems and leaves as colour on one.
+  - 0.4-0.9 m square and 0.8-2.0 m tall, 320-560 tris.
+- **`wall_clock`**, minted and shaped. A round office clock: an open bezel and a back plate (the dark rim), a white
+  face, twelve hour marks and two hands standing at ten past ten.
+  - On a wall, its face to the room (-Y, `security_camera`'s convention). No collision.
+  - One material, every colour in the vertex colour. 0.25-0.5 m across, 408 tris.
+- Both can be asked for by name ("potted plant", "wall clock").
+
+### Tests
+- `tests/test_planter.py`:
+  - discovered, validates, asked for by name;
+  - a variant a different module;
+  - built in Blender at three sizes: its slot on two materials, every part present, the soil above the pot's solid.
+- `tests/test_wall_clock.py`:
+  - discovered, validates, asked for by name, hung without collision;
+  - built at three sizes: its slot on one material, its hands in front of its face.
+- `tests/test_coincident_faces.py`: `CENSUS_BUILDS` 429 -> 435. The census reads 0 pairs at all six corners. The first
+  readings are recorded beside the count:
+  - the planter's lip on its pot;
+  - its ring's corners and soil edges;
+  - a stem's foot 2 mm under the pot's top;
+  - the clock's back plate a millimetre inside its bezel, and its marks and hands on one another's planes.
+
+  Both new files fail on 1.135.0. The bpy half passed 100, with 1 xfail, in Blender 5.1.1.
+
 ## [1.135.0] - `check_desk` and `cash_cart`: a bank's lobby desk and its money cart
 
 The walker, 2026-10-27: "we need to prioritize a great looking bank interior next", with twelve bank comps (the

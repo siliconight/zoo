@@ -27,6 +27,7 @@
   "payphone",
   "pew",
   "pin_oak",
+  "planter",
   "produce_table",
   "pump",
   "red_maple",
@@ -39,5 +40,6 @@
   "street_tree",
   "traffic_signal",
   "utility_pole",
+  "wall_clock",
   "water_barrel"
 ]

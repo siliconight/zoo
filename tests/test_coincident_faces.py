@@ -591,7 +591,13 @@ DID_NOT_BUILD = {"boots"}
 #: readings were one corner each: the desk's two pedestals and plinths meeting in the middle at its minted 0.8 m (they
 #: now scale below 1.6 m, and it runs from 1.0), and three of the cart's stacked bags' sides 1-2 mm from the bag under
 #: them at 2.4 m (a stacked bag now stands 10 mm inside the one below).
-CENSUS_BUILDS = 429
+#: 1.136.0: `planter` and `wall_clock` (the walker's bank comps), six builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species planter` and `wall_clock`: "3 builds, 0 with coincident
+#: pairs, 0 that did not build" each; the planter 320 tris at every corner, the clock 408. The first readings: the
+#: planter's lip on the pot's top face (1 a corner), then -- the lip a ring, the pot open -- the ring's side bars on
+#: the long bars' ends and the soil's edges on the side bars' (4-5), then a stem's foot 2 mm under the pot's top (1);
+#: the clock's back plate a millimetre inside its bezel and its marks and hands on one another's planes (25 a corner).
+CENSUS_BUILDS = 435
 
 
 def test_the_census_covers_every_species_there_is():
