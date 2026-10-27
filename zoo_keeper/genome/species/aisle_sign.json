@@ -29,7 +29,11 @@
     "AisleSign_ArtBack"
   ],
   "params": {
-    "says": ""
+    "says": "",
+    "form": [
+      "auto",
+      "grocery"
+    ]
   },
   "materials": {
     "default": "wood",
@@ -169,6 +173,6 @@
     "sockets": {}
   },
   "notes": "'A hand-lettered STRATEGY sign hangs over an aisle' -- property 3 of the card-shop reference, and the one tile in this set whose lettering HAS to be legible: a sign nobody can read over an aisle is a coloured rectangle with a chain on it. The words are `card_brands.AISLE_SAYS`, a table separate from `SHOP_SAYS` because that is what a storage box's end carries at 0.15 m and this is read across a room. WHAT IT HANGS FROM, which nothing in this pipeline had ever answered. There is no grid geometry to hang from: a dropped ceiling here is one solid `Ceiling_Panel` (`recipes/ceiling.py` -> `_arch.build_slab`) and the grid is a Pixelcoat `ceiling_tile` skin on its underside, so there are no T-bars in the mesh. Deli Counter's LIGHT pipeline has exactly the mechanism -- `core/fixtures.py`'s `mount: \"hang\"`, added in 0.94.0 after a club can was built inside the slab -- but its input is a lights manifest and a painted model is not a lamp. The hanging point that DOES exist and already ships is the PROP SLOT: `level_design._piece`'s `under` field is the gap between a piece's top and the ceiling plane and `_piece_lift` turns it into a centre height, which is how `pennant_row` has hung since 0.95.0. So the Zoo-side rule is: THE TOP OF THE SLOT BOX IS THE CEILING PLANE. The chain starts at z = h and the painted board hangs below it, and Deli Counter needs one `_piece(..., under=_CEILING_AIR)` row and nothing else. HEADROOM, AND WHERE THE NUMBER COMES FROM: height tops out at 0.60 m, DERIVED rather than chosen. `deli_counter/agent_contract.json` clearances.min_headroom_m is 2.0 (read 2026-09-16); `level_design._clear_height` is the storey less the thicker slab less `_CEILING_AIR`; the piece's own `under` spends that air again. At the library's shortest storey that is 3.0 - 0.3 - 0.05 - 0.05 - 2.0 = 0.60. A THICKER SLAB MAKES IT SMALLER, and Zoo cannot see the slab, so this is a genome cap and not a guarantee -- the placement is Deli Counter's. TWO DROPS AND NOT ONE, because a lettered board on a single chain swings and a real one does not; the spread is what the variant moves. RANGES: width 0.50 to 1.80; depth 0.03 to 0.12; height 0.25 to 0.60 per the derivation above. COLLISION: none. BUDGET: 200 triangles; it measures 88 at every corner.",
-  "module_variants": 4,
+  "module_variants": 12,
   "match_priority": 0
 }

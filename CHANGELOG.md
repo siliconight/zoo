@@ -1,3 +1,32 @@
+## [1.131.0] - the aisle sign's `grocery` form: a supermarket's numbered aisle marker
+
+The walker, 2026-10-26: grocery comps with a printed sign over the head of every aisle, its number large and what is
+down it beside it. They are filed as the factory's docs/reference/GROCERY_STORE_COMPS.md. `aisle_sign` was the card
+shop's hand-lettered marker board, lettered with card-shop words.
+
+### Added
+- **`aisle_sign` form `grocery`** (`flat_forms.plan_aisle_sign`, `flat_art.grocery_marker`):
+  - the aisle's NUMBER, the variant's (aisle 1 is variant 0), large in a white-ruled box at the hoist end;
+  - two lines of what is down the aisle beside it;
+  - white on a 1990s chain's blue, printed rather than hand-lettered.
+- **`card_brands.GROCERY_AISLE_SAYS`**: twelve aisles' lines, in the order a store walks them. They are categories
+  only, never a product or a brand, and are painted through `card_art.painted_strings`, so the denylist test holds
+  them.
+- **The genome**: `params.form` `auto` / `grocery`, `module_variants` 4 -> 12.
+  - A variant is its own module in geometry too (`test_flat_art`): the grocery form's drops step in 5 mm an aisle.
+  - The card-shop form's variants 0-3 are as they shipped; past them its drops step out 5 mm a round.
+
+### Tests
+- `tests/test_grocery_aisle_sign.py`:
+  - the genome offers the form and twelve variants;
+  - the variant is the aisle's number and its lines;
+  - the marker is printed white on blue;
+  - each grocery variant is its own module;
+  - the card shop's form is unchanged;
+  - every grocery line is painted and held by the denylist.
+
+  Fails on 1.130.0.
+
 ## [1.130.0] - `pew`: a seat for a row that faces one front
 
 **The factory's roadmap 308**: a chapel, a funeral home's viewing rooms, two courtrooms and two assembly halls were

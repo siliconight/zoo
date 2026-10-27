@@ -588,7 +588,7 @@ def build_atlas(tiles, name_prefix="cardshop", smooth=False):
 
 
 def painted_strings(games=None, makers=None, teams=None, says=None,
-                    aisle=None):
+                    aisle=None, grocery=None):
     """Every string this module can paint, for the denylist test. It is
     deliberately built from the ART's inputs and not from `card_brands`'
     tables: the two are the same set today and stop being the same set the
@@ -608,4 +608,7 @@ def painted_strings(games=None, makers=None, teams=None, says=None,
         out.append(t[0])
     out += list(says if says is not None else CB.SHOP_SAYS)
     out += list(aisle if aisle is not None else CB.AISLE_SAYS)
+    # 1.131.0: the grocery aisle markers' lines, `flat_art.grocery_marker`
+    for pair in (grocery if grocery is not None else CB.GROCERY_AISLE_SAYS):
+        out += list(pair)
     return tuple(out)

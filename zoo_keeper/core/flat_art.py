@@ -418,6 +418,34 @@ def aisle_letters(says, w_px, h_px, key):
     return c
 
 
+#: The grocery marker's colours: a 1990s chain's printed aisle sign, white on
+#: a blue ground under a white rule.
+GROCERY_GROUND = (28, 66, 140)
+GROCERY_INK = (244, 244, 238)
+
+
+def grocery_marker(number, says, w_px, h_px, key):
+    """A supermarket's aisle marker (1.131.0): the aisle's NUMBER large in a
+    white-ruled box at the hoist end, and the two lines of what is down it
+    beside it. Printed, not hand-lettered -- this is the chain's sign, not the
+    card shop's marker board. The number is the one thing that has to read
+    from the head of the aisle, so it takes the box's whole height."""
+    c = Canvas(w_px, h_px, GROCERY_GROUND)
+    rule = max(1, h_px // 18)
+    _frame(c, 0, 0, w_px, h_px, rule, GROCERY_INK)
+    pad = max(2, h_px // 9)
+    box = min(int(w_px * 0.34), h_px - 2 * pad)
+    _frame(c, pad, pad, pad + box, pad + box, rule, GROCERY_INK)
+    _stamp(c, str(int(number)), pad + rule + 1, pad + rule + 1, pad + box - rule - 1,
+           pad + box - rule - 1, GROCERY_INK, cap=12)
+    x0 = pad + box + pad
+    half = (h_px - 2 * pad) // 2
+    for i, line in enumerate(says[:2]):
+        _stamp(c, line, x0, pad + i * half, w_px - pad, pad + (i + 1) * half,
+               GROCERY_INK, cap=6)
+    return c
+
+
 def playmat_face(game, w_px, h_px, key):
     """A printed playmat: a full-bleed painted scene under the cards.
 
@@ -467,6 +495,8 @@ def paint(spec, w, h):
     key = spec.get("key", "")
     maker = next((m for m in CB.MAKERS if m["id"] == spec.get("maker")), None)
     if kind == "aisle":
+        if spec.get("number"):
+            return grocery_marker(spec["number"], tuple(spec.get("lines") or ()), w, h, key)
         return aisle_letters(spec.get("says", ""), w, h, key)
     game = CB.BY_ID[spec["game"]]
     if kind == "poster":

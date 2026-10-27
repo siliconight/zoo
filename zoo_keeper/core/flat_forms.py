@@ -552,10 +552,33 @@ def plan_hanger(w, d, h, params=None, variant=0, key="ceiling_hanger"):
 def plan_aisle_sign(w, d, h, params=None, variant=0, key="aisle_sign"):
     """The hand-lettered sign hung over an aisle naming what is under it."""
     params = params or {}
+    # THE GROCERY FORM (1.131.0): a supermarket's numbered aisle marker, the
+    # number the variant's (aisle 1 is variant 0) and its two lines
+    # `card_brands.GROCERY_AISLE_SAYS`'s, printed on `flat_art.grocery_marker`
+    if params.get("form") == "grocery":
+        lines = CB.GROCERY_AISLE_SAYS[variant % len(CB.GROCERY_AISLE_SAYS)]
+        prims, tiles = [], {}
+        # a variant is a different module in GEOMETRY too, not only in its tile
+        # (`test_flat_art`'s rule): the drops step in by 5 mm an aisle
+        spread = 0.40 - 0.005 * variant
+        xs = (-w * spread, w * spread)
+        board_h = _hung_board(prims, tiles, w, d, h, SIGN_DROP_K, xs,
+                              {"kind": "aisle", "number": variant + 1, "lines": list(lines)},
+                              "AisleSign", key)
+        prims, _ = P.fit_exact(prims, (-w / 2.0, -d / 2.0, 0.0),
+                               (w / 2.0, d / 2.0, h))
+        return {"prims": prims, "tiles": tiles, "collision": [],
+                "facts": {"variant": variant, "says": " / ".join(lines), "form": "grocery",
+                          "number": variant + 1, "tiles": len(tiles),
+                          "tris": P.tri_count(prims), "drop_m": round(h - board_h, 3),
+                          "board_m": round(board_h, 3)}}
     says = params.get("says")
     if not says:
         says = CB.AISLE_SAYS[variant % len(CB.AISLE_SAYS)]
-    spread = 0.30 + 0.04 * (variant % 4)
+    # variants 0-3 as they shipped; past them (1.131.0, the grocery form's
+    # twelve) the drops step out 5 mm a round, so each variant stays its own
+    # module in geometry
+    spread = 0.30 + 0.04 * (variant % 4) + 0.005 * (variant // 4)
     prims, tiles = [], {}
     xs = (-w * spread, w * spread)
     board_h = _hung_board(prims, tiles, w, d, h, SIGN_DROP_K, xs,

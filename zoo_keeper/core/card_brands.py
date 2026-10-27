@@ -189,6 +189,26 @@ AISLE_SAYS = (
     "BACK ISSUES HON",
 )
 
+#: THE SUPERMARKET'S AISLE MARKERS (1.131.0): what the `grocery` form of
+#: `aisle_sign` prints under an aisle's number, two lines a sign, in the order
+#: a 1990s store walks them. The walker's comps, 2026-10-26 (the factory's
+#: docs/reference/GROCERY_STORE_COMPS.md): a numbered sign over every aisle
+#: naming what is down it. Categories only -- never a product or a brand.
+GROCERY_AISLE_SAYS = (
+    ("BREAD", "PEANUT BUTTER"),
+    ("CEREAL", "COFFEE & TEA"),
+    ("CANNED VEG", "SOUP"),
+    ("PASTA & RICE", "SAUCES"),
+    ("BAKING", "SPICES"),
+    ("CHIPS", "SODA"),
+    ("COOKIES", "CANDY"),
+    ("JUICE", "DRINK MIX"),
+    ("PAPER GOODS", "CLEANING"),
+    ("PET FOOD", "CHARCOAL"),
+    ("HEALTH", "BEAUTY"),
+    ("BABY", "CARDS"),
+)
+
 #: Real marks as WHOLE WORDS (upper case), matched as tokens so a short mark
 #: that is also an English word catches the mark and not a word containing
 #: it. SCORE, LEAF, CLASSIC, ULTRA, PRO and UNION are card brands or clubs
