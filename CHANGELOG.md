@@ -1,3 +1,50 @@
+## [1.135.0] - `check_desk` and `cash_cart`: a bank's lobby desk and its money cart
+
+The walker, 2026-10-27: "we need to prioritize a great looking bank interior next", with twelve bank comps (the
+factory's docs/reference/BANK_INTERIOR_COMPS.md). Two things in them the library had nothing for.
+
+### Added
+- **`check_desk`**, minted by `tools/new_species.py` and shaped. The comps: "a check desk island stands mid-floor in
+  front of [the teller line]: a standing-height table with slots for slips" (comps 1, 4, 7).
+  - Two pedestals on plinths and a stretcher between them.
+  - A dark top overhanging them all round.
+  - A row of brass slip pockets under both long edges, so it is shopped from either side.
+  - Comp 1's perpetual date block on its middle, its cards on both faces. That is the comps' "date clock", so it
+    stands here rather than as a species of its own.
+  - Two materials: the body, with the top's dark and the pockets' brass in the `Wear` vertex colour; and the paper.
+  - 1.0-3.2 m long, 0.6-1.2 m deep and 1.0-1.2 m tall, a desk a customer writes at standing. Below 1.6 m the
+    pedestals scale with it.
+- **`cash_cart`**, minted and shaped. The comps' money room "canvas hampers on wheels, a steel cage cart" and the
+  depot's "carts and tubs" (comps 10, 11).
+  - A steel deck on four casters.
+  - Corner posts with top and middle rails, bars a hand apart on both long sides and the far end, and the near end
+    open behind a push handle.
+  - On the deck, deposit bags and strapped bundles, stacked in one or two layers.
+  - The load is the variant: four (`module_variants`).
+  - Two materials: the steel, with the casters' rubber as colour; and the load, every bag's colour in the vertex
+    colour.
+  - 0.8-1.6 m long, 0.5-0.9 m wide and 0.9-1.4 m tall.
+
+- **Both can be asked for by name.** Each genome's keywords include its spaced name ("check desk", "cash cart",
+  "money cart"). As minted, with only underscored keywords, a prompt for either resolved to `desk` and `cash_stack`,
+  and `test_species_by_name`'s unreachable set grew. `desk` and `cash_stack` still resolve as they did.
+
+### Tests
+- `tests/test_check_desk.py`:
+  - discovered, validates, plans;
+  - standing height;
+  - built in Blender at three sizes: its slot's extents on two materials, every part present;
+  - the pedestals keep apart on a short desk.
+- `tests/test_cash_cart.py`:
+  - discovered, validates, plans, a variant a different module;
+  - built at three sizes: its slot's extents on two materials, a load on the deck;
+  - a stacked bag stands inside the one under it.
+- `tests/test_coincident_faces.py`: `CENSUS_BUILDS` 423 -> 429. The census reads 0 pairs at all six corners (the desk
+  844 / 1,108 / 1,900 tris, the cart 1,212 / 1,816 / 2,132). The first readings found one corner each, the cause
+  recorded beside the count.
+
+  Both new files fail on 1.134.0, which has neither species. The bpy half passed 93, with 1 xfail, in Blender 5.1.1.
+
 ## [1.134.0] - a light row's `bake_reach` rides its lamps' markers
 
 The walker: "far too dark in teh super market". Measured in the factory's docs/findings/black_gondola_ends/: the

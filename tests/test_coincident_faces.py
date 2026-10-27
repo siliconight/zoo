@@ -585,7 +585,13 @@ DID_NOT_BUILD = {"boots"}
 #: corner -- the rim's faces on the bed's front and ends, and the bed's two steps meeting face to face -- then one, the
 #: dividers' front faces on the bed's; the bed now starts behind the rim, the steps overlap, the rim, back board and
 #: dividers stop short of the ends and run into what they meet.
-CENSUS_BUILDS = 423
+#: 1.135.0: `check_desk` and `cash_cart` (the walker's bank comps), six builds more, same tool, Blender 5.1.1 --
+#: `blender -b --python tools/coplanar_census.py -- --species check_desk` and `cash_cart`: "3 builds, 0 with coincident
+#: pairs, 0 that did not build" each; the desk 844 / 1,108 / 1,900 tris, the cart 1,212 / 1,816 / 2,132. The first
+#: readings were one corner each: the desk's two pedestals and plinths meeting in the middle at its minted 0.8 m (they
+#: now scale below 1.6 m, and it runs from 1.0), and three of the cart's stacked bags' sides 1-2 mm from the bag under
+#: them at 2.4 m (a stacked bag now stands 10 mm inside the one below).
+CENSUS_BUILDS = 429
 
 
 def test_the_census_covers_every_species_there_is():
