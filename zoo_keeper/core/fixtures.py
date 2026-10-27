@@ -314,6 +314,12 @@ def plan(manifest: dict, types=None, skip=None) -> dict:
                 # to that floor instead of the one under it. 0.0 everywhere
                 # else, and then no marker carries it.
                 "reach": float(a.get("reach", 0.0) or 0.0),
+                # 1.134.0: a row Deli Counter (>= 0.279.0) asks to bake
+                # further than it lights live carries `bake_reach`, the
+                # horizontal metres its lightmap must reach; Lux >= 0.80.0
+                # lends the lamp that range only while a lightmap bakes. 0.0
+                # everywhere else, and then no marker carries it.
+                "bake_reach": float(a.get("bake_reach", 0.0) or 0.0),
                 "seed_offset": _seed_offset(aid, j),
                 # v0.94: whether this placement emits a LuxEmit marker (see
                 # the club rows in FIXTURES). Every row that does not say

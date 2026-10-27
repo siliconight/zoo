@@ -882,6 +882,9 @@ def build_fixtures(lights_manifest: dict, out_dir: str, theme: str = "delco",
         # (and GLB) stay as they were; the spawner reads an absent key as 0.
         if float(p.get("reach", 0.0)) > 0.0:
             mk["lux_reach"] = float(p["reach"])
+        # 1.134.0: the same, for the reach a row's lightmap bakes to
+        if float(p.get("bake_reach", 0.0)) > 0.0:
+            mk["lux_bake_reach"] = float(p["bake_reach"])
         coll.objects.link(mk)
         mk.matrix_world = mathutils.Matrix.Translation(
             mathutils.Vector(p["pos"])) @ rot

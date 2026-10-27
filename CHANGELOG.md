@@ -1,3 +1,22 @@
+## [1.134.0] - a light row's `bake_reach` rides its lamps' markers
+
+The walker: "far too dark in teh super market". Measured in the factory's docs/findings/black_gondola_ends/: the
+supermarket's baked lamps light their store when the lightmap bakes them further than their live range. Lux 0.80.0
+lends a static lamp that range only while a lightmap bakes. Deli Counter 0.279.0 asks for it on a supermarket's rows
+as `bake_reach`, the horizontal metres the bake must reach, which is the row's lamp spacing.
+
+### Added
+- **`fixtures.plan`**: every lamp of a row carries the row's `bake_reach`, 0.0 where it has none, beside `reach`.
+- **`build.build_fixtures`**: a lamp's marker carries `lux_bake_reach`, where Lux's spawner reads it, only when its
+  row has one. Every other building's markers, and GLB, stay as they were (as `lux_reach`, 1.21.0).
+
+### Tests
+- `tests/test_fixtures.py`:
+  - `bake_reach` rides every lamp of its row and no other's, a storefront row's `reach` beside it untouched;
+  - built in Blender, the GLB's markers carry `lux_bake_reach` on that row's lamps and not on the control row's.
+
+  The first fails on 1.133.0. The fixture tests pass 39 of 39 in Blender 5.1.1.
+
 ## [1.133.0] - `snack_gondola`'s `grocery` form: a supermarket's shelves sell what the sign over them says
 
 The walker's grocery comps (the factory's docs/reference/GROCERY_STORE_COMPS.md): "shiny floor, bright lights,

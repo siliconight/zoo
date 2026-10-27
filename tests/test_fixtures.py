@@ -251,6 +251,20 @@ def test_reach_rides_every_lamp_of_a_storefront_row():
                      "stockroom_ceiling": [0.0, 0.0]}
 
 
+def test_bake_reach_rides_every_lamp_of_its_row_and_no_other():
+    # 1.134.0: Deli Counter stamps `bake_reach` on a supermarket's rows
+    p = fixtures.plan(_manifest([
+        {"id": "sales_floor_ceiling", "type": "fluorescent", "pos": [0, 0, 4.1],
+         "row": {"count": 3, "spacing": 5.5}, "drop": 4.1, "bake_reach": 5.5},
+        {"id": "stockroom_ceiling", "type": "fluorescent", "pos": [0, 9, 3.8],
+         "row": {"count": 2, "spacing": 4.0}, "drop": 3.8, "reach": 6.0}]))
+    got = {}
+    for pl in p["placements"]:
+        got.setdefault(pl["anchor_id"], []).append((pl["bake_reach"], pl["reach"]))
+    assert got == {"sales_floor_ceiling": [(5.5, 0.0)] * 3,
+                   "stockroom_ceiling": [(0.0, 6.0)] * 2}
+
+
 # --- the club set's hardware (v0.94) ------------------------------------------
 
 
@@ -433,6 +447,28 @@ def test_bpy_a_storefront_row_marks_its_reach_and_no_other_row_does(tmp_path):
     marks = [n.get("extras", {}) for n in j["nodes"] if n["name"].startswith("LuxEmit")]
     got = sorted((m["lux_anchor_id"], m.get("lux_reach")) for m in marks)
     assert got == [("sales_floor_ceiling", 6.0), ("sales_floor_ceiling", 6.0),
+                   ("stockroom_ceiling", None)], got
+
+
+def test_bpy_a_row_marks_its_bake_reach_and_no_other_row_does(tmp_path):
+    # 1.134.0: as the reach, for Lux's bake -- absent on the control
+    pytest.importorskip("bpy")
+    import json
+    import os
+    from zoo_keeper.bpylayer import build
+    manifest = {"light_manifest_version": "1.2.0", "building_id": "bake_reach_bpy",
+                "space": "Blender Z-up, meters", "anchors": [
+                    {"id": "sales_floor_ceiling", "type": "fluorescent", "pos": [0.0, 0.0, 4.1],
+                     "rot_y": 0.0, "row": {"count": 2, "spacing": 5.5}, "drop": 4.1, "bake_reach": 5.5},
+                    {"id": "stockroom_ceiling", "type": "fluorescent", "pos": [0.0, 9.0, 3.8],
+                     "rot_y": 0.0, "row": {"count": 1, "spacing": 0.0}, "drop": 3.8}]}
+    build.build_fixtures(manifest, str(tmp_path), theme="delco", options={"save_blend": False})
+    with open(os.path.join(str(tmp_path), "bake_reach_bpy_fixtures.built.json"), encoding="utf-8") as fh:
+        index = json.load(fh)
+    j = _gltf(os.path.join(str(tmp_path), index["files"]["glb"]))
+    marks = [n.get("extras", {}) for n in j["nodes"] if n["name"].startswith("LuxEmit")]
+    got = sorted((m["lux_anchor_id"], m.get("lux_bake_reach")) for m in marks)
+    assert got == [("sales_floor_ceiling", 5.5), ("sales_floor_ceiling", 5.5),
                    ("stockroom_ceiling", None)], got
 
 
