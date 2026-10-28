@@ -124,7 +124,13 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            # and a lane's clearance bar are painted steel, their colours in the
            # vertex; a wall clock's rim may be enamelled steel. delco_1997's
            # `metal` is street rust, and the canopy's fascia read black on it
-           "drive_up_canopy", "drive_up_tube", "clearance_bar", "wall_clock")
+           "drive_up_canopy", "drive_up_tube", "clearance_bar", "wall_clock",
+           # a vault's deposit boxes are steel doors in a steel frame (1.140.0, the
+           # walker's bank comp 12), on bare steel until 1.142.0: a building
+           # piece lit by the bake, the wall read near black (the vault door's
+           # finding, roadmap item 46), so painted, the locks and plates brass in
+           # the vertex
+           "safe_deposit_boxes")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)
@@ -144,10 +150,7 @@ BARE = ("gold_bar", "flat_top_grill",
         "crowd_barrier",
         # a night depository is polished stainless (UL 771), a cash cart a
         # steel cage (1.139.0)
-        "night_drop", "cash_cart",
-        # a vault's deposit boxes are steel doors in a steel frame (1.140.0, the
-        # walker's bank comp 12); `metal` stood them in street rust
-        "safe_deposit_boxes")
+        "night_drop", "cash_cart")
 MOVED = PAINTED + BARE
 
 

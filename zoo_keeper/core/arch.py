@@ -657,6 +657,20 @@ SF_BURY = 0.005           # every pane's edges buried this far in the frame
 #: 6 mm float glass transmits about 88% of visible light, so a pane blended
 #: over what is behind it keeps 1 - 0.88 of its own colour.
 SF_GLASS_OPACITY = 0.12
+#: A GLASS WALL'S STOREFRONT FRAMES IN ALUMINIUM (1.142.0). The frame -- kick,
+#: header, mullions, jambs, rail and leaves -- builds in the structure's
+#: material, which on a brick or block shop front is a material a frame can
+#: be made of. A `glass` wall's is `glass_facade` (`dna.OPAQUE_FOR`), the
+#: opaque curtain-wall skin, and a bank's three glass fronts (Deli Counter
+#: 0.285.0) drew every mullion and the band over the glass in it: from inside
+#: they read as dark brown bars (the factory's docs/findings/bank_interior/,
+#: frame 18). Those take clear anodised aluminium instead. PAINTED, not bare:
+#: a frame is a building piece, lit by the bake, and bare steel at metallic
+#: 0.9 mirrored the dark room on the vault door (the factory's roadmap,
+#: item 46). The brick and block fronts keep their frames as they were.
+SF_FRAME_FOR = frozenset({"glass", "glass_facade"})
+SF_FRAME_KIND = "metal_painted"
+SF_FRAME_RGB = (0.66, 0.67, 0.69)
 LEAF_T = 0.045
 LEAF_STILE = 0.06
 LEAF_TOP = 0.08

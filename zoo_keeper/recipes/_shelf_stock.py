@@ -197,6 +197,150 @@ _GROUPS = ((_binders, 3.0), (_boxes, 3.0), (_bankers, 2.0),
            (_ledgers, 2.0), (_cans, 1.5))
 
 
+#: THE VAULT'S STOCK (1.142.0, the factory's roadmap 321; the walker: "we need
+#: to make the cash! in the vault room!"). A bank's vault keeps its money in
+#: BRICKS: ten straps of a hundred notes, 156 x 66 mm (a note) and about
+#: 109 mm high, each strap's paper band round its middle, the straps
+#: shrink-wrapped together (US Federal Reserve practice). A vault rack holds
+#: rows of them stacked flat, and the deposit bags the night's takings come in
+#: (the walker's comp 10: "stacked deposit bags").
+#:
+#: A ROW OF BRICKS is one box, ``BRICK_X`` long by a whole number of bricks
+#: deep, and one BAND box across its middle: bricks lined up front to back
+#: line their bands up, so the row's top and front show what each brick's
+#: would. A band stands ``BAND_PROUD`` off the row's front, back and top, and
+#: starts ``BAND_FOOT`` over the row's base: under that it would lie within
+#: 2 mm of the top of the row below, or of that row's band.
+#:
+#: The bands are the ABA's strap colours, by denomination, and the colour is
+#: the only thing a player reads at a rack's distance: $20 violet (the ATM's
+#: note, the most), $100 mustard, $50 brown, $10 yellow, $5 red, $1 blue. Each
+#: lightened as far as it must be to read against the notes' green
+#: (`tests/test_shelf_stock_vault.py`). The notes are well darker than every
+#: shelving grey, a bag well darker or well lighter (a clear deposit bag).
+BRICK_X = 0.156
+BRICK_Y = 0.066
+BRICK_H = 0.109
+BRICK_GAP = (0.012, 0.022)   # between neighbouring columns: two staggers and MIN_GAP
+BRICK_STAGGER = 0.004        # a layer sits this far either side of its column's line,
+                             # alternating, so a layer's sides are 2 x this off the one below
+BAND_W = 0.032
+BAND_PROUD = 0.003
+BAND_FOOT = 0.0085
+NOTES = "notes"
+BANDS = (("band_20", 4.0), ("band_100", 2.0), ("band_50", 1.5), ("band_10", 1.5),
+         ("band_5", 1.0), ("band_1", 1.0))
+BAGS = ("bag_navy", "bag_tan", "bag_clear")
+#: one kind for all of it: the vault's stock builds as one material, its
+#: colours in the vertex (`shelving.build`), so a loaded rack costs one draw
+VAULT_KIND = "paper"
+VAULT_PALETTE = {
+    NOTES:       [0.15, 0.21, 0.12],
+    "band_20":   [0.50, 0.32, 0.68],
+    "band_100":  [0.72, 0.55, 0.15],
+    "band_50":   [0.55, 0.33, 0.15],
+    "band_10":   [0.85, 0.72, 0.15],
+    "band_5":    [0.80, 0.20, 0.15],
+    "band_1":    [0.22, 0.36, 0.78],
+    "bag_navy":  [0.04, 0.06, 0.16],
+    "bag_tan":   [0.17, 0.12, 0.06],
+    "bag_clear": [0.90, 0.91, 0.93],
+}
+
+
+def _denomination(rng):
+    total = sum(wt for _b, wt in BANDS)
+    pick = rng.uniform(0.0, total)
+    for band, wt in BANDS:
+        pick -= wt
+        if pick <= 0.0:
+            return band
+    return BANDS[-1][0]
+
+
+def _bricks(rng, x, x1, yf, yb, z0, clear):
+    """A block of brick rows: two to six columns side by side, each a stack of
+    rows, one denomination to a block but now and then a column of another."""
+    tall = clear - HEADROOM - BAND_PROUD
+    depth_room = (yb - yf) - 2.0 * (BAND_PROUD + BRICK_STAGGER)
+    if tall < BRICK_H or depth_room < BRICK_Y:
+        return [], x
+    deep = int(depth_room // BRICK_Y)
+    deep = rng.randint(max(1, deep - 1), deep)
+    sy = deep * BRICK_Y
+    # a row's front is BAND_PROUD in, and its stagger takes it up to 2 x BRICK_STAGGER further back
+    y0 = yf + BAND_PROUD
+    # n rows stand n x (BRICK_H - SINK) over the shelf, each sunk SINK into the one below
+    most = max(1, int(tall // (BRICK_H - SINK)))
+    band = _denomination(rng)
+    out = []
+    for _c in range(rng.randint(2, 6)):
+        if x + BRICK_X + 2.0 * BRICK_STAGGER > x1:
+            break
+        col_band = band if rng.random() < 0.8 else _denomination(rng)
+        cx = x + BRICK_STAGGER + BRICK_X / 2.0
+        layers = rng.randint(max(1, most - 1), most)
+        base = z0 - SINK
+        for k in range(layers):
+            s = BRICK_STAGGER if k % 2 else -BRICK_STAGGER
+            top = base + BRICK_H
+            bx0, bx1 = cx + s - BRICK_X / 2.0, cx + s + BRICK_X / 2.0
+            ry0, ry1 = y0 + BRICK_STAGGER + s, y0 + BRICK_STAGGER + s + sy
+            out.append(_box(NOTES, bx0, bx1, ry0, ry1, base, top))
+            out.append(_box(col_band, cx + s - BAND_W / 2.0, cx + s + BAND_W / 2.0,
+                            ry0 - BAND_PROUD, ry1 + BAND_PROUD, base + BAND_FOOT, top + BAND_PROUD))
+            base = top - SINK
+        x += BRICK_X + 2.0 * BRICK_STAGGER + rng.uniform(*BRICK_GAP)
+    return out, x
+
+
+def _bags(rng, x, x1, yf, yb, z0, clear):
+    """Sealed deposit bags, lying flat, one to three in a pile."""
+    tall = clear - HEADROOM
+    if tall < 0.08 or (yb - yf) < 0.2:
+        return [], x
+    sx = rng.uniform(0.28, 0.40)
+    sy = min(yb - yf, rng.uniform(0.22, 0.30))
+    heights = [rng.uniform(0.07, 0.12) for _ in range(rng.randint(1, 3))]
+    colours = [rng.choice(BAGS) for _ in heights]
+    return _stack(rng, lambda k: colours[k], x, x1, yf, yb, z0, tall, sx, sy, heights)
+
+
+_VAULT_GROUPS = ((_bricks, 4.0), (_bags, 1.5))
+
+
+def plan_vault_shelf(rng, x0, x1, y_front, y_back, z0, clear):
+    """`plan_shelf`'s contract, for a bank vault's rack: brick rows and deposit
+    bags (`VAULT_PALETTE`), and a gap now and then where a block went out.
+    Every item's finish is a `VAULT_PALETTE` key."""
+    x0 += EDGE
+    x1 -= EDGE
+    y_front += EDGE
+    y_back -= BACK_GAP
+    items = []
+    if x1 - x0 < 0.1 or y_back - y_front < 0.08 or clear - HEADROOM < 0.04:
+        return items
+    x = x0 + rng.uniform(0.0, 0.04)
+    stalls = 0
+    while x < x1 - 0.05 and stalls < 6:
+        total = sum(wt for _f, wt in _VAULT_GROUPS)
+        pick = rng.uniform(0.0, total)
+        for fn, wt in _VAULT_GROUPS:
+            pick -= wt
+            if pick <= 0.0:
+                break
+        got, nx = fn(rng, x, x1, y_front, y_back, z0, clear)
+        if not got:
+            stalls += 1
+            continue
+        stalls = 0
+        items += got
+        x = nx + rng.uniform(0.012, 0.04)
+        if rng.random() < 0.12:           # a block gone out to the line
+            x += rng.uniform(0.12, 0.3)
+    return items
+
+
 def plan_shelf(rng, x0, x1, y_front, y_back, z0, clear):
     """Items for one shelf: the span ``x0..x1`` by ``y_front..y_back`` on a
     surface at ``z0`` with ``clear`` metres to the underside of the board

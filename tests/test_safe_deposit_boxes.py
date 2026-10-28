@@ -86,10 +86,16 @@ def test_which_boxes_are_drawn_is_the_seeds():
     assert len(db.drawn(1, 0)) == 1
 
 
-def test_the_wall_is_bare_steel():
+def test_the_wall_is_painted_steel():
+    # bare until 1.142.0: lit by the bake, the wall read near black (the factory's docs/findings/bank_interior/,
+    # frame 18), as the vault door did before it went painted (the factory's roadmap, item 46)
     g = genome.load_species("safe_deposit_boxes")
-    assert g["materials"] == {"default": "metal_bare", "options": ["metal_bare", "laminate"]}
-    assert {st["material"] for st in g["styles"].values()} <= {"metal_bare", "laminate"}
+    assert g["materials"] == {"default": "metal_painted", "options": ["metal_painted", "laminate"]}
+    assert {st["material"] for st in g["styles"].values()} <= {"metal_painted", "laminate"}
+    for name, st in g["styles"].items():
+        if st["material"] == "metal_painted":
+            # the steel reads light: the brass locks and plates in the vertex are lighter still, the drawn cells dark
+            assert sum(st["color"]) / 3.0 >= 0.53, (name, st["color"])
 
 
 def test_plan_is_exact_fit_and_validates():
@@ -100,7 +106,7 @@ def test_plan_is_exact_fit_and_validates():
          "stem": "safe_deposit_boxes_delco_01_w200"}
     plan = dna.resolve_module_plan(m, g, "delco", 1, TOOL_VERSION)
     assert plan["pivot"] == "center" and plan["fit_exact"] is True
-    assert plan["material"] == "metal_bare"
+    assert plan["material"] == "metal_painted"
     parts = db.layout(2.0, 0.3, 2.4, plan["params"], 1)
     lo, hi = _bbox(parts)
     facts = {"dimensions": {"width": round(hi[0] - lo[0], 4),
@@ -108,7 +114,7 @@ def test_plan_is_exact_fit_and_validates():
                             "height": round(hi[2] - lo[2], 4)},
              "tris": 12 * sum(len(b) for _n, b, _c in parts), "parts": [n for n, _b, _c in parts],
              "has_uvs": True, "has_wear_colors": True,
-             "materials": ["M_SafeDepositBoxes_metal_bare"], "has_collision": True,
+             "materials": ["M_SafeDepositBoxes_metal_painted"], "has_collision": True,
              "unapplied_transforms": []}
     report = validate.evaluate(facts, g, plan, {"collision": True})
     assert report["status"] == "pass", validate.summarize(report)

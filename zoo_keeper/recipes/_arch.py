@@ -190,6 +190,10 @@ def build_slab(plan, streams, collection, species):
 
     structure = materials.make_material(
         f"M_{root}_{plan['material']}", plan["color"], plan["material"])
+    # a glass wall's storefront frames in aluminium (1.142.0, `arch.SF_FRAME_FOR`)
+    if plan.get("storefront") and plan["material"] in arch.SF_FRAME_FOR:
+        structure = materials.make_material(
+            "M_Storefront_frame", list(arch.SF_FRAME_RGB), arch.SF_FRAME_KIND)
     materials.assign(objs, structure)
     # THE ROOM FACE (1.38.0). Deli Counter places a wall module with its
     # local +Y outdoors on every facing (measured through its placement

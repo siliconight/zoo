@@ -18,6 +18,13 @@ of boxes, binders, ledgers and cans, planned by `_shelf_stock.plan_shelf`
 from the recipe's own "stock" stream -- a named stream, so the wear noise of
 the frame is exactly what it was.
 
+A VAULT'S RACK (1.142.0, the factory's roadmap 321). The ``stock`` param,
+``none`` by default and that back office's stock as before, takes ``vault``:
+brick rows and deposit bags (`_shelf_stock.plan_vault_shelf`), all of it ONE
+material, its colours in the vertex (`geometry.tint_wear`), where the back
+office's stock is a material a finish. Deli Counter's `shelf_cash` asks for it
+on a bank vault's walls.
+
 NO COINCIDENT FACES (0.78.0). Measured with tools/coplanar_probe.py on the
 2.0 x 0.4 x 1.9 module cold run 9049 shipped (Zoo 0.76.0), 24 coincident
 pairs, all gap 0.00 mm: the back panel ran the full height, so its top face
@@ -95,6 +102,8 @@ def build(plan, streams, collection):
     # always did
     board_back = (back_rear + back_front) / 2 if back else d * 0.48
     stock_rng = streams.stream("stock")
+    vault = (plan["params"].get("stock") or "none") == "vault"
+    plan_stock = _shelf_stock.plan_vault_shelf if vault else _shelf_stock.plan_shelf
     stock = []
     for bi, (bx, bw) in enumerate(runs):
         tag = "" if len(runs) == 1 else f"_B{bi + 1}"
@@ -108,7 +117,7 @@ def build(plan, streams, collection):
                              (span_w, board_back - front_y, board))
             part(bm, f"Shelf_Board_{i + 1}{tag}")
             if i < n_shelves - 1:
-                stock += _shelf_stock.plan_shelf(
+                stock += plan_stock(
                     stock_rng, left, right, front_y,
                     back_front if back else d * 0.48,
                     z + board / 2, pitch - board)
@@ -157,7 +166,13 @@ def build(plan, streams, collection):
                   if "Upright" in o.name or "Back" in o.name]
     materials.assign([o for o in structure if o not in frame_objs], surface)
     materials.assign(frame_objs, frame)
-    for finish, obj in stock_objs.items():
+    if vault:
+        money = materials.make_material(
+            "M_Shelf_vault_stock", (1.0, 1.0, 1.0), _shelf_stock.VAULT_KIND)
+        for finish, obj in stock_objs.items():
+            geometry.tint_wear(obj, _shelf_stock.VAULT_PALETTE[finish])
+            materials.assign([obj], money)
+    for finish, obj in ({} if vault else stock_objs).items():
         colour, kind = _shelf_stock.PALETTE[finish]
         materials.assign([obj], materials.make_material(
             f"M_Shelf_stock_{finish}", colour, kind))

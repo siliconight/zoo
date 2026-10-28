@@ -39,7 +39,11 @@
       "max": 1,
       "default": 1
     },
-    "bay_max": 2.4
+    "bay_max": 2.4,
+    "stock": [
+      "none",
+      "vault"
+    ]
   },
   "materials": {
     "default": "metal_bare",
@@ -105,7 +109,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 3000
+    "tris_lod0": 5000
   },
   "attachments": [],
   "collision": true,

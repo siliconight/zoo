@@ -1,3 +1,62 @@
+## [1.142.0] - the vault's money on its racks, a glass storefront's frame in aluminium, the deposit wall painted
+
+The walker, of the bank after the interior pass: "add the lobby desks and fix those two first" -- the deposit wall's
+steel reading dark and the storefront's mullions reading as dark stripes (the factory's
+docs/findings/bank_interior/, frame 18) -- and then "we need to make the cash! in the vault room!". The vault held a
+cash cart, two safes and a count table with a few bundles on it, each bundle a note's size.
+
+### Added
+- **A bank vault's rack carries the money** (`shelving`'s `stock` param, `none` or `vault`;
+  `_shelf_stock.plan_vault_shelf`).
+  - BRICKS, as a vault keeps them: ten straps of a hundred notes, 156 x 66 mm and 109 mm high, stacked flat in
+    rows a whole number of bricks deep, each row's band round its middle in the ABA's strap colour for its
+    denomination ($20 violet the most, $100 mustard, $50 brown, $10 yellow, $5 red, $1 blue), one denomination to
+    a block and now and then a column of another. A row is one box and its band one more: bricks lined up front to
+    back line their bands up.
+  - Deposit bags among them, navy, tan or clear, one to three in a pile (the walker's comp 10, "stacked deposit
+    bags"), and a gap now and then where a block went out.
+  - ALL OF IT ONE MATERIAL, `paper`, its colours in the `Wear` vertex colour: a loaded rack is the frame's two
+    materials and the money's one, where the back office's stock is a material a finish.
+  - A stacked row stands `BRICK_STAGGER` (4 mm) either side of its column's line, alternating, so no side shares a
+    plane with the row under it; a band stands 3 mm off its row's front, back and top and starts `BAND_FOOT`
+    (8.5 mm) over the row's base, clear of the row below and that row's band. The coplanar probe on the
+    1.8 x 0.5 x 1.9 rack: 2,228 triangles, 0 coincident pairs.
+  - `none`, the default, is the back office's stock as before: every existing rack's stem, planner and draws are
+    unchanged. Deli Counter's `shelf_cash` (0.286.0) asks for `vault` on a bank vault's walls.
+
+### Changed
+- **A glass wall's storefront frames in aluminium** (`arch.SF_FRAME_FOR`, `SF_FRAME_KIND`, `SF_FRAME_RGB`).
+  - A storefront's frame -- kick, header, mullions, jambs, rail and leaves -- builds in its wall's material. On a
+    brick or block front that is a material a frame can be made of; a `glass` wall's is `glass_facade`
+    (`dna.OPAQUE_FOR`), the opaque curtain-wall skin, and the three bank fronts Deli Counter 0.285.0 made storefronts
+    drew every mullion and the band over the glass in it: dark brown bars from inside.
+  - Those frames take clear anodised aluminium, `metal_painted` (0.66, 0.67, 0.69), one material
+    (`M_Storefront_frame`). Painted, not bare: a frame is a building piece lit by the bake, and bare steel at
+    metallic 0.9 mirrored the dark room on the vault door (the factory's roadmap, item 46).
+  - The brick and block fronts keep their frames in their walls' materials. The module docstring has called every
+    storefront "aluminium" since 1.18.0; making the rest so would move every shop front in the library, and is the
+    walker's call, not this release's.
+- **The deposit wall is painted steel** (`safe_deposit_boxes`: `metal_painted`, or `laminate`; was `metal_bare`).
+  - A deposit wall is a building piece in Deli Counter's slots, lit by the bake. At metallic 0.9 it read near black
+    in the vault beside a cash cart of the same bare steel, which is a prop lit live. The vault door went painted in
+    0.86.0 for the same reading. The brass locks and number plates stay in the vertex colour.
+  - The styles' steel is lighter, a mean of 0.54-0.65 where it was 0.45-0.53. A species offers one metal
+    (`test_no_species_is_both_painted_and_bare`), so `metal_bare` is no longer an option.
+- **`shelving`'s budget is 5,000 triangles** (was 3,000): a vault rack's money at Deli Counter's 2.4 m bay draws up to
+  316 boxes, 3,792 triangles, the frame's on top. A regression detector, not a frame cost: the rack's draws are
+  three materials.
+
+### Tests
+- `tests/test_shelf_stock_vault.py` (new; fails on 1.141.0): nothing overhangs; no two faces share a plane, a band and
+  its own row included; a row is a brick long and whole bricks deep and its band wraps it; a stacked row stands off
+  the one under it; a Deli Counter bay is mostly money and draws every denomination; the colours read (notes and
+  bags against every shelving grey, every band against the notes); shelving honours `vault` and nothing else.
+- `tests/test_vault_money_and_frames.py` (new; fails on 1.141.0): a glass storefront's frame builds in
+  `M_Storefront_frame` and a brick one's does not; a vault rack builds its money on one material at three sizes,
+  within budget; an unstocked rack is the back office it was.
+- `tests/test_safe_deposit_boxes.py`: the wall is painted steel, its styles light.
+- `tests/test_material_options_closed.py`: `safe_deposit_boxes` moves from BARE to PAINTED.
+
 ## [1.141.0] - the check desk's pens on their chains
 
 The walker, 2026-10-27, with two photographs: "they had these pens attached with a little chain at banks", then "also

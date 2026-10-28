@@ -57,29 +57,29 @@
   }
  },
  "materials": {
-  "default": "metal_bare",
+  "default": "metal_painted",
   "options": [
-   "metal_bare",
+   "metal_painted",
    "laminate"
   ]
  },
  "styles": {
   "default": {
-   "material": "metal_bare",
+   "material": "metal_painted",
    "color": [
-    0.52,
-    0.53,
-    0.55
+    0.64,
+    0.65,
+    0.67
    ],
    "wear": 0.18,
    "bevel": 0.003
   },
   "delco": {
-   "material": "metal_bare",
+   "material": "metal_painted",
    "color": [
-    0.47,
-    0.47,
-    0.49
+    0.6,
+    0.6,
+    0.62
    ],
    "wear": 0.3,
    "bevel": 0.003
@@ -96,22 +96,22 @@
    "ambient": 0
   },
   "industrial_flats": {
-   "material": "metal_bare",
+   "material": "metal_painted",
    "color": [
-    0.4652,
-    0.4409,
-    0.4313
+    0.56,
+    0.54,
+    0.53
    ],
    "wear": 0.52,
    "bevel": 0.003,
    "ambient": 0.1
   },
   "rockay": {
-   "material": "metal_bare",
+   "material": "metal_painted",
    "color": [
-    0.4888,
-    0.5247,
-    0.5775
+    0.58,
+    0.61,
+    0.66
    ],
    "wear": 0.32,
    "bevel": 0.003,
