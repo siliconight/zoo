@@ -39,11 +39,66 @@ CARD_T = 0.004           # a date card's thickness, proud of the block
 #: a slip lies on the top, half buried: its faces 4 mm either side of the top's, past the census's 2.2 mm
 SLIP = (0.18, 0.09, 0.008)
 BURY = 0.008             # a part runs this far into the one it meets, never onto its face
+#: A PEN ON A CHAIN each long side (1.141.0, the walker, 2026-10-27, with two photographs: "they had these pens
+#: attached with a little chain at banks"): a pen lying on the top, its cap end on a ball chain to a pad stuck to the
+#: top -- the counter pen set. Each part sits in the top, and no two of their faces lie within the census's 2.2 mm:
+#: the pen and the pad sink `PEN_SINK`, the chain half its section (a first build sank all three alike and the census
+#: found the chain's underside 1 mm off the pen's and the pad's).
+PEN_L, PEN_D = 0.14, 0.012       # the pen's length and its diameter, drawn square
+PAD = (0.05, 0.05, 0.012)        # the pad's footprint and height
+#: THE CHAIN IS A BALL CHAIN, LONG AND SLACK (the walker: "also longer chain"; the first photograph's runs about half
+#: a metre and curls). Beads `BEAD` square, `BEAD_STEP` apart along a cubic curve from the pad to the pen's cap that
+#: sags toward the desk's middle (`chain_reach`). Beads, not a bar:
+#: a bent bar's jointed segments share faces. The step keeps any two beads' facing sides past the census's 2.2 mm
+#: (beside each other within a bead's width, they are at least sqrt(7.3**2 + 5**2) = 8.85 mm apart on centre).
+BEAD = 0.005
+BEAD_STEP = 0.0095
+CHAIN_GAP = (0.10, 0.20)         # between the pad's edge and the pen's cap end, the least and the most
+CHAIN_SAG = 0.15                 # the most the chain's handles pull toward the middle
+CHAIN_CLEAR = 0.006              # the first and last bead's centre off the pad and the pen
+PEN_IN = 0.08                    # the pad's centre this far inside the top's long edge
+PEN_OFF = 0.03                   # and this far past the date block's end
+PEN_SINK = 0.0055
 
 DARK_TOP = (0.10, 0.10, 0.11)
 BRASS = (0.78, 0.62, 0.30)
 DATE_BODY = (0.06, 0.05, 0.05)
 PAPER = (0.95, 0.94, 0.90)
+PEN = (0.10, 0.12, 0.30)         # a navy pen and pad, the second photograph's black as likely
+CHAIN_RGB = (0.70, 0.70, 0.72)   # a nickel ball chain
+
+
+def chain_reach(w, d):
+    """``(gap, sag)``: how far the pen lies from its pad, and how far the chain's curve is pulled toward the desk's
+    middle -- each as much as the top allows. The pen's far end stays 3 cm inside the top's end; the chain's lowest
+    bead (a cubic sags 3/4 of its handles' pull) stays a bead and the census's tolerance clear of the other side's
+    slip (`SLIP`, at 0.15 of the depth from the middle)."""
+    near = DATE_W / 2.0 + PEN_OFF + PAD[0] + PEN_L       # pad and pen, without the gap
+    gap = max(CHAIN_GAP[0], min(CHAIN_GAP[1], w / 2.0 - 0.03 - near))
+    slip_edge = 0.15 * d + SLIP[1] / 2.0
+    sag = min(CHAIN_SAG, (d / 2.0 - PEN_IN - slip_edge - BEAD - 0.003) / 0.75)
+    return gap, sag
+
+
+def ball_chain(a, b, sag):
+    """The beads' centres ``[(x, y)]`` along a cubic from ``a`` to ``b`` whose handles both pull ``sag`` in y: a slack
+    chain lying on the top. One every `BEAD_STEP` of arc, the ends included."""
+    import math
+    (ax, ay), (bx, by) = a, b
+    p1, p2 = (ax, ay + sag), (bx, by + sag)
+
+    def at(u):
+        v = 1.0 - u
+        return (v ** 3 * ax + 3 * v * v * u * p1[0] + 3 * v * u * u * p2[0] + u ** 3 * bx,
+                v ** 3 * ay + 3 * v * v * u * p1[1] + 3 * v * u * u * p2[1] + u ** 3 * by)
+    pts = [at(i / 400.0) for i in range(401)]
+    out, run = [pts[0]], 0.0
+    for q0, q1 in zip(pts, pts[1:]):
+        run += math.hypot(q1[0] - q0[0], q1[1] - q0[1])
+        if run >= BEAD_STEP:
+            out.append(q1)
+            run = 0.0
+    return out
 
 
 def pedestal(w):
@@ -99,6 +154,21 @@ def layout(w, d, h):
     slips = [((s * 0.45 * w / 2.0, -s * 0.15 * d, top_z1), SLIP)
              for s in (-1.0, 1.0)]
     parts.append(("CheckDesk_Paper", "paper", cards + slips, PAPER))
+    # the pens: on each long side, beyond the date block's end on the side away from that side's slip
+    pens, pads, chains = [], [], []
+    for s in (-1.0, 1.0):
+        px = -s * (DATE_W / 2.0 + PEN_OFF + PAD[0] / 2.0)
+        py = s * (d / 2.0 - PEN_IN)
+        pads.append(((px, py, top_z1 + PAD[2] / 2.0 - PEN_SINK), PAD))
+        gap, sag = chain_reach(w, d)
+        e = px - s * (PAD[0] / 2.0 + gap)                    # the pen's cap end
+        chains += [((x, y, top_z1), (BEAD, BEAD, BEAD))
+                   for x, y in ball_chain((px - s * (PAD[0] / 2.0 + CHAIN_CLEAR), py),
+                                          (e + s * CHAIN_CLEAR, py), -s * sag)]
+        pens.append(((e - s * PEN_L / 2.0, py, top_z1 + PEN_D / 2.0 - PEN_SINK), (PEN_L, PEN_D, PEN_D)))
+    parts.append(("CheckDesk_Pen", "paper", pens, PEN))
+    parts.append(("CheckDesk_PenPad", "paper", pads, PEN))
+    parts.append(("CheckDesk_PenChain", "paper", chains, CHAIN_RGB))
     return parts
 
 

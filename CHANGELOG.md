@@ -1,3 +1,30 @@
+## [1.141.0] - the check desk's pens on their chains
+
+The walker, 2026-10-27, with two photographs: "they had these pens attached with a little chain at banks", then "also
+longer chain".
+
+### Added
+- **A pen on a ball chain each long side of `check_desk`**: the counter pen set -- a pen lying on the top, its cap end
+  on a chain to a pad stuck to the top, navy (the photographs' navy and black). Beyond the date block's end, on the
+  side away from that side's slip.
+  - The chain is separate beads (`BEAD` 5 mm, `BEAD_STEP` 9.5 mm apart) along a slack cubic from the pad to the pen,
+    sagging toward the desk's middle: 0.33 m of chain on the library's 1.6 and 2.4 m desks, 0.19 m on the smallest.
+    `chain_reach` sets the pen's distance and the sag from the top's size, the chain clear of the slips. Beads, not a
+    bar: a bent bar's jointed segments share faces.
+  - In the desk's second material (the paper's white plastic) as `Wear` colour: still two materials.
+  - The coplanar census finds none at any corner. A first build sank the pen, the pad and the chain alike and the
+    census found the chain's underside 1 mm off the pen's and the pad's (2 pairs a corner); the pen and pad now sink
+    5.5 mm, the chain 2.5 mm.
+
+### Changed
+- **`check_desk`'s budget is 3,000 triangles** (was 2,000): the default desk builds 1,972, the widest (3.2 m) 2,764,
+  the chains' 68 beads 816 of it.
+
+### Tests
+- `tests/test_check_desk.py`: a pen on a ball chain each side, on the top, clear of the slips, 0.3 m of chain on the
+  library's desks, no two beads facing within the census's tolerance (fails on 1.140.0); the widest desk within its
+  budget.
+
 ## [1.140.0] - a vault's deposit boxes, numbered steel doors with brass locks
 
 The walker, of the bank's frames: "do the interiors look really good?", then "hold the release, do the interior pass

@@ -67,3 +67,41 @@ def test_bpy_the_pedestals_keep_apart_on_a_short_desk(tmp_path):
         peds = [b for name, _k, boxes, _c in K.layout(w, 0.9, 1.1) if name == "CheckDesk_Pedestal" for b in boxes]
         (a, sa), (b, sb) = peds
         assert (b[0] - sb[0] / 2.0) - (a[0] + sa[0] / 2.0) > 0.3, w
+
+
+@pytest.mark.parametrize("dims", [(1.0, 0.6, 1.0), (1.6, 0.9, 1.1), (2.4, 1.0, 1.1), (3.2, 1.2, 1.2)])
+def test_bpy_a_pen_on_a_ball_chain_each_side(tmp_path, dims):
+    """1.141.0, the walker: "they had these pens attached with a little chain at banks", then "also longer chain". Two
+    pens, each on its pad by a slack chain of separate beads that clears the slips, every part on the top and inside
+    it, the library's desks (1.6 and 2.4 m) with 0.3 m of chain or more. FAILS ON 1.140.0, which draws no pen."""
+    pytest.importorskip("bpy")
+    import math
+    from zoo_keeper.recipes import check_desk as K
+    w, d, h = dims
+    parts = {name: boxes for name, _k, boxes, _c in K.layout(w, d, h)}
+    pens, pads, beads = parts["CheckDesk_Pen"], parts["CheckDesk_PenPad"], parts["CheckDesk_PenChain"]
+    assert len(pens) == len(pads) == 2 and len(beads) % 2 == 0
+    for c, s in pens + pads + beads:
+        assert abs(c[0]) + s[0] / 2.0 <= w / 2.0 - 0.02 and abs(c[1]) + s[1] / 2.0 <= d / 2.0
+    slip_edge = 0.15 * d + K.SLIP[1] / 2.0
+    for c, s in beads:
+        assert abs(c[1]) - s[1] / 2.0 > slip_edge + 0.002, (dims, c)
+    half = beads[: len(beads) // 2]
+    run = sum(math.hypot(b[0][0] - a[0][0], b[0][1] - a[0][1]) for a, b in zip(half, half[1:]))
+    if w >= 1.6:
+        assert run >= 0.30, run
+    # no two beads' sides face each other within the census's tolerance: sides face where the beads overlap across
+    # them (within a bead on the other axis), so a diagonal neighbour 6.9 mm off on both axes faces nothing
+    k = K.BEAD + 0.0022
+    for i, (a, sa) in enumerate(beads):
+        for b, sb in beads[i + 1:]:
+            dx, dy = abs(a[0] - b[0]), abs(a[1] - b[1])
+            assert not ((dx < k and dy < K.BEAD) or (dy < k and dx < K.BEAD)), (a, b)
+
+
+def test_bpy_the_widest_desk_is_within_its_budget(tmp_path):
+    pytest.importorskip("bpy")
+    budget = genome.load_species("check_desk")["budgets"]["tris_lod0"]
+    meshes, _pts = _build(tmp_path, (3.2, 1.2, 1.2))
+    tris = sum(len(p.vertices) - 2 for o in meshes for p in o.data.polygons)
+    assert tris <= budget, (tris, budget)
