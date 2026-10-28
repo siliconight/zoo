@@ -1,3 +1,13 @@
+## [1.144.0] - a pack material samples its textures as the pack asks
+
+The factory's roadmap 324; the walker, 2026-10-28: "how would we make our assets look more realistic?", and the
+target, "the look of Xbox 360 Games like Halo 3 and Gears of War". `skins.load_pack` has read a pack's
+`interpolation` hint since 1.94.0, and the sign path honoured it; the pack material (`materials._textured`) hardcoded
+Closest -- "pixel art stays pixel art" -- so a pack asking for `linear` was sampled nearest anyway, the retro look's
+sampling kept after realism replaced it. It now asks the pack, as a sign does. A pack that does not say keeps Closest,
+and every Pixelcoat pack says `nearest` today, so nothing built changes until Pixelcoat asks for `linear`: this is the
+dial, turned there. Tests: tests/test_pack_sampling.py, run in Blender (fails on 1.143.0).
+
 ## [1.143.0] - a vault rack is blue painted steel, its bricks pale
 
 The walker, of the vault after 1.142.0: "that vault room needs some love", with four photographs -- a gold vault's

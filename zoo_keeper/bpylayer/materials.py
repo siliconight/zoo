@@ -738,11 +738,17 @@ def _textured(name, pack, material_kind, tint=None):
     bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(material_kind, 0.6)
     bsdf.inputs["Metallic"].default_value = METALLIC.get(material_kind, 0.0)
     maps = pack["maps"]
+    # AS THE PACK ASKS (1.144.0, the factory's roadmap 324), as a sign's has
+    # since 1.94.0: `skins.load_pack` reads the pack's `interpolation` hint,
+    # and this hardcoded Closest -- "pixel art stays pixel art" -- so a pack
+    # asking for `linear` was sampled nearest anyway, and a 128 px tile read
+    # as blocky up close. A pack that does not say keeps Closest.
+    filt = "Linear" if pack.get("interpolation") == "linear" else "Closest"
 
     def tex_node(path, non_color=False):
         node = tree.nodes.new("ShaderNodeTexImage")
         node.image = _load_image(path, non_color)
-        node.interpolation = "Closest"       # pixel art stays pixel art
+        node.interpolation = filt
         node.extension = "REPEAT"
         return node
 
