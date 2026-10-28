@@ -1,3 +1,42 @@
+## [1.140.0] - a vault's deposit boxes, numbered steel doors with brass locks
+
+The walker, of the bank's frames: "do the interiors look really good?", then "hold the release, do the interior pass
+first". Comp 12 of the walker's bank comps (the factory's docs/reference/BANK_INTERIOR_COMPS.md): "a free-standing
+bank of numbered steel boxes with brass locks, several pulled open". 1.139.0's wall was a grid of dividers on a
+backing, and the recipe's note left "numbers, handles and keyholes" to "a Delco art pass" nobody made.
+
+### Added
+- **`core.deposit_boxes`: the wall's layout, pure** (no Blender), which the recipe draws.
+  - Every door carries a brass escutcheon for its two keys (the guard's and the renter's) on its right as a person
+    facing it sees it, and a number plate on its upper left.
+  - The bottom `LARGE_ROWS` (2) rows are boxes two rows high, a box wall's large boxes, where they are easy to lift.
+  - About one box in 25 is drawn (at least one, at most 6, by the module's own `drawn` stream). A renter's box is
+    carried out to a booth whole, so it shows as a dark empty cell, not a door swung into the room outside the slot.
+  - The lock, the plate and the drawn cell are colour in the `Wear` vertex colour (the check desk's brass rule): the
+    wall is ONE material and one submission, whatever its size.
+
+### Changed
+- **The doors stand nearly flush in their frame**: the frame `FRAME_PROUD` (15 mm) proud of them, where 1.139.0's stood
+  30 % of the depth (9 cm on a 0.3 m wall). The first render of the hardware on the old frame read as pigeonholes.
+- **The wall is bare steel**: `materials` `metal_bare` (options `metal_bare`, `laminate`), and the four styles that
+  named `metal` take `metal_bare`. delco_1997 maps `metal` to street rust. Joins `BARE` in
+  `tests/test_material_options_closed.py`.
+- **Its budget is 8,000 triangles** (was 1,400): two unbevelled plates a door, at most 16 x 16 doors. The default
+  2.0 x 0.3 x 2.4 m wall builds 1,976.
+
+### Fixed
+- **No two of the wall's faces share a plane.** 1.139.0's frame crossed its bars on one plane at front and back, and
+  the coplanar census counted 884 pairs over the three corners (411 exposed, 2.08 mm the least cover). The stiles
+  bury 6 mm into the doors and the rails 2 mm, and the rails stand 3 mm behind the stiles' front; a first 1 mm
+  setback was inside the census's 2 mm tolerance and left 7. The frame is unbevelled: its crossing chamfers drew a
+  dark dot at every crossing. `safe_deposit_boxes` leaves the census's residue (2,999 pairs to 2,115).
+
+### Tests
+- `tests/test_safe_deposit_boxes.py`, rewritten on `core.deposit_boxes` (fails on 1.139.0): the exact envelope at five
+  sizes, the cap within the budget, a lock and a plate on every door or the door drawn, the large bottom rows, the
+  drawn boxes by seed, bare steel, and built, one material.
+- `tests/test_coincident_faces.py`: the species' row leaves `RESIDUE`, and the sums say why.
+
 ## [1.139.0] - the bank's pieces on their own surfaces, and the drive-up as the research drew it
 
 The walker, of the bank's outside frames: "fix those three, then cut the release", and "do some more research, make it

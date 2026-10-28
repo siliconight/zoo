@@ -144,7 +144,10 @@ BARE = ("gold_bar", "flat_top_grill",
         "crowd_barrier",
         # a night depository is polished stainless (UL 771), a cash cart a
         # steel cage (1.139.0)
-        "night_drop", "cash_cart")
+        "night_drop", "cash_cart",
+        # a vault's deposit boxes are steel doors in a steel frame (1.140.0, the
+        # walker's bank comp 12); `metal` stood them in street rust
+        "safe_deposit_boxes")
 MOVED = PAINTED + BARE
 
 

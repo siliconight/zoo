@@ -260,7 +260,6 @@ MAILBOX_BUTT_JOINTS = {("Mailbox_Body", "Mailbox_Lid"),
 #: the same run. This is the honest residue: it is not a to-do list in
 #: priority order and nothing here has been attributed to a recipe.
 RESIDUE = {
-    "safe_deposit_boxes": (884, 822, 62, 411, 2.08, 1169.8),
     "cubicle_bank": (583, 290, 293, 127, 15.0, 8315.9),
     "stair_rail": (162, 162, 0, 100, 5.0, 148.4),
     "glass_shard": (118, 64, 54, 118, None, 258.0),
@@ -634,13 +633,16 @@ def test_the_residue_is_the_count_the_entry_claims():
     stood the exhaust fan's hood on its drum, and the census counts the
     fan's one buried pair at the default corner as two: 2996, and no
     coincidence more. 1.114.0 added `hole_spoil`'s 3, all exposed, each
-    inside one fracture fragment as `rubble_frag`'s are: 2999."""
+    inside one fracture fragment as `rubble_frag`'s are: 2999. 1.140.0 drew
+    the deposit boxes' doors and stood their frame's rails off its stiles,
+    and the species' 884 (411 exposed), every one the frame's crossings,
+    went: 2115."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 2999, total
+    assert total == 2115, total
     exposed = sum(v[3] for v in RESIDUE.values())
-    assert exposed == 974, exposed
-    # 0.96.0's, the ATM's, sign_box's and the payphone's went; the fan's split; hole_spoil's came
-    assert total + 18 + 6 + 6 + 2 - 1 - 3 == 3027
+    assert exposed == 563, exposed
+    # 0.96.0's, the ATM's, sign_box's, the payphone's and the deposit boxes' went; the fan's split; hole_spoil's came
+    assert total + 18 + 6 + 6 + 2 + 884 - 1 - 3 == 3027
 
 
 def test_every_residue_row_is_self_consistent():
@@ -661,7 +663,7 @@ def test_the_worst_buried_residue_fights_closer_than_the_stop_sign_did():
              if v[4] is not None and v[4] < 2.70}
     assert set(worse) == {"soda_cup", "litter_scrap", "cheesesteak",
                           "flat_top_grill", "red_maple", "callery_pear",
-                          "safe_deposit_boxes", "street_tree"}, sorted(worse)
+                          "street_tree"}, sorted(worse)
     assert round(fight_distance_m(0.21), 1) == 13.3
     assert round(fight_distance_m(2.70), 1) == 47.6
 
