@@ -1,3 +1,32 @@
+## [1.143.0] - a vault rack is blue painted steel, its bricks pale
+
+The walker, of the vault after 1.142.0: "that vault room needs some love", with four photographs -- a gold vault's
+racks of blue painted steel in rows, a room walled in deposit boxes, white wall shelving, a stack of Federal Reserve
+bricks -- and of Deli Counter 0.286.0's racks: "we wouldn't have cash inside a wooden bookcase, that looks very
+wrong". 1.142.0 drew a brick's sides a banknote's face green, dark, on a bare grey rack that read near black.
+
+### Changed
+- **A brick's sides are pale** (`_shelf_stock.VAULT_PALETTE`'s `notes`: 0.58, 0.56, 0.46). They are the edges of a
+  thousand notes, paper-grey under clear wrap, as in the walker's photograph. The bands are as dark as they must be
+  to read against them, each still its denomination's strap colour ($10's yellow the closest, 1.43).
+- **A vault rack is painted and open-backed** (`shelving`, stock `vault`; `VAULT_RACK_RGB` 0.03, 0.05, 0.28,
+  `VAULT_RACK_KIND` `metal_painted`). Frame and boards in the deep blue of the gold vault's racks, one material with
+  its colour in the vertex, whatever the style; no back panel, as racks in a row are loaded from both sides. A rack is
+  two materials, the paint and the money, where it was three.
+- **The navy deposit bag is grey canvas** (`bag_grey`): navy on a blue rack would not read.
+
+### Measured
+- The 1.8 x 0.5 x 1.9 rack: 2,184 triangles (2,228 with its back panel), 0 coincident pairs.
+
+### Not yet drawn
+- The wrap's printed blue ("THE FEDERAL RESERVE ... WARNING" on clear film, in the photograph). The bricks read as
+  pale banded blocks.
+
+### Tests
+- `tests/test_shelf_stock_vault.py`: the notes and bags read against the rack's paint, every band against the notes;
+  the notes pale and near grey, the rack dark and blue (fails on 1.142.0).
+- `tests/test_vault_money_and_frames.py`: a vault rack is the paint and the money, and has no back panel.
+
 ## [1.142.0] - the vault's money on its racks, a glass storefront's frame in aluminium, the deposit wall painted
 
 The walker, of the bank after the interior pass: "add the lobby desks and fix those two first" -- the deposit wall's

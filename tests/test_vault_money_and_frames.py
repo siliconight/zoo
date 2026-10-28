@@ -77,8 +77,9 @@ def test_bpy_a_vault_rack_is_money_on_one_material(tmp_path, dims):
     stock = [o for o in meshes if o.name.startswith("Shelf_Stock_")]
     assert any(o.name == "Shelf_Stock_notes" for o in stock), sorted(o.name for o in meshes)
     assert {s.material.name for o in stock for s in o.material_slots} == {"M_Shelf_vault_stock"}
-    # the frame's two and the money's one
-    assert len({s.material.name for o in meshes for s in o.material_slots}) == 3
+    # the rack's paint and the money (1.143.0; 1.142.0's grey frame was two of its own), and no back panel
+    assert {s.material.name for o in meshes for s in o.material_slots} == {"M_Shelf_vault_rack", "M_Shelf_vault_stock"}
+    assert not any(o.name.startswith("Shelf_Back") for o in meshes), sorted(o.name for o in meshes)
 
 
 def test_bpy_an_unstocked_rack_is_the_back_office_it_was(tmp_path):

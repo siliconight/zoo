@@ -25,6 +25,12 @@ material, its colours in the vertex (`geometry.tint_wear`), where the back
 office's stock is a material a finish. Deli Counter's `shelf_cash` asks for it
 on a bank vault's walls.
 
+A vault rack is PAINTED and OPEN-BACKED (1.143.0): frame and boards in
+`_shelf_stock.VAULT_RACK_RGB`, one `metal_painted` material, whatever the
+style, and no back panel -- the walker's photograph of a gold vault's racks,
+blue steel standing in rows, loaded from both sides. Bare grey steel read near
+black under the vault's light, the colour of the money on it.
+
 NO COINCIDENT FACES (0.78.0). Measured with tools/coplanar_probe.py on the
 2.0 x 0.4 x 1.9 module cold run 9049 shipped (Zoo 0.76.0), 24 coincident
 pairs, all gap 0.00 mm: the back panel ran the full height, so its top face
@@ -73,7 +79,8 @@ def build(plan, streams, collection):
     bevel, wear = plan["bevel"], plan["wear"]
     rng = streams.stream("wear")
     n_shelves = max(2, int(plan["params"]["shelves"]))
-    back = bool(plan["params"].get("back", 1))
+    # a vault rack is open-backed (1.143.0)
+    back = bool(plan["params"].get("back", 1)) and (plan["params"].get("stock") or "none") != "vault"
     objs, cboxes = [], []
 
     def part(bm, name):
@@ -164,8 +171,15 @@ def build(plan, streams, collection):
         plan["material"])
     frame_objs = [o for o in structure
                   if "Upright" in o.name or "Back" in o.name]
-    materials.assign([o for o in structure if o not in frame_objs], surface)
-    materials.assign(frame_objs, frame)
+    if vault:
+        paint = materials.make_material(
+            "M_Shelf_vault_rack", (1.0, 1.0, 1.0), _shelf_stock.VAULT_RACK_KIND)
+        for o in structure:
+            geometry.tint_wear(o, _shelf_stock.VAULT_RACK_RGB)
+        materials.assign(structure, paint)
+    else:
+        materials.assign([o for o in structure if o not in frame_objs], surface)
+        materials.assign(frame_objs, frame)
     if vault:
         money = materials.make_material(
             "M_Shelf_vault_stock", (1.0, 1.0, 1.0), _shelf_stock.VAULT_KIND)

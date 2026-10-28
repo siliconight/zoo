@@ -215,9 +215,15 @@ _GROUPS = ((_binders, 3.0), (_boxes, 3.0), (_bankers, 2.0),
 #: The bands are the ABA's strap colours, by denomination, and the colour is
 #: the only thing a player reads at a rack's distance: $20 violet (the ATM's
 #: note, the most), $100 mustard, $50 brown, $10 yellow, $5 red, $1 blue. Each
-#: lightened as far as it must be to read against the notes' green
-#: (`tests/test_shelf_stock_vault.py`). The notes are well darker than every
-#: shelving grey, a bag well darker or well lighter (a clear deposit bag).
+#: as dark as it must be to read against the notes (`tests/test_shelf_stock_vault.py`).
+#:
+#: THE NOTES ARE PALE (1.143.0). A brick's sides are the edges of a thousand
+#: notes, paper-grey under clear wrap -- the walker's photograph of a stack of
+#: Federal Reserve bricks -- and 1.142.0 drew them a banknote's face green,
+#: dark, on a dark rack: "that vault room needs some love". They are pale now,
+#: on a rack painted the deep blue of the walker's photograph of a gold vault's
+#: racks (`VAULT_RACK_RGB`), and the bags read against the rack: grey canvas,
+#: tan, clear. Not yet drawn: the wrap's printed blue.
 BRICK_X = 0.156
 BRICK_Y = 0.066
 BRICK_H = 0.109
@@ -230,22 +236,26 @@ BAND_FOOT = 0.0085
 NOTES = "notes"
 BANDS = (("band_20", 4.0), ("band_100", 2.0), ("band_50", 1.5), ("band_10", 1.5),
          ("band_5", 1.0), ("band_1", 1.0))
-BAGS = ("bag_navy", "bag_tan", "bag_clear")
+BAGS = ("bag_grey", "bag_tan", "bag_clear")
 #: one kind for all of it: the vault's stock builds as one material, its
 #: colours in the vertex (`shelving.build`), so a loaded rack costs one draw
 VAULT_KIND = "paper"
 VAULT_PALETTE = {
-    NOTES:       [0.15, 0.21, 0.12],
-    "band_20":   [0.50, 0.32, 0.68],
-    "band_100":  [0.72, 0.55, 0.15],
-    "band_50":   [0.55, 0.33, 0.15],
-    "band_10":   [0.85, 0.72, 0.15],
-    "band_5":    [0.80, 0.20, 0.15],
-    "band_1":    [0.22, 0.36, 0.78],
-    "bag_navy":  [0.04, 0.06, 0.16],
-    "bag_tan":   [0.17, 0.12, 0.06],
+    NOTES:       [0.58, 0.56, 0.46],
+    "band_20":   [0.40, 0.22, 0.58],
+    "band_100":  [0.42, 0.28, 0.04],
+    "band_50":   [0.32, 0.16, 0.06],
+    "band_10":   [0.52, 0.37, 0.00],
+    "band_5":    [0.70, 0.10, 0.07],
+    "band_1":    [0.12, 0.25, 0.70],
+    "bag_grey":  [0.36, 0.37, 0.38],
+    "bag_tan":   [0.30, 0.20, 0.09],
     "bag_clear": [0.90, 0.91, 0.93],
 }
+#: a vault rack's paint (1.143.0): `shelving` builds a `vault` rack in it, frame
+#: and boards, whatever its style -- `metal_painted`, its colour in the vertex
+VAULT_RACK_RGB = [0.03, 0.05, 0.28]
+VAULT_RACK_KIND = "metal_painted"
 
 
 def _denomination(rng):

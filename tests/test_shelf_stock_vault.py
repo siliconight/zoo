@@ -151,19 +151,23 @@ def _ratio(a, b):
 
 
 def test_the_money_reads():
-    """`test_shelf_stock`'s 1.4 against every shelving style's board and frame for the notes and the bags, and the
-    same 1.4 between each band and the notes it is wrapped round: the band is how a rack reads as money."""
-    g = json.load(open(_GENOME, encoding="utf-8"))
-    greys = []
-    for st in g["styles"].values():
-        greys += [st["color"], [v * 0.7 for v in st["color"]]]
+    """`test_shelf_stock`'s 1.4 between the notes and the bags and the rack they stand on -- a vault rack is painted
+    `VAULT_RACK_RGB` whatever its style (1.143.0) -- and between each band and the notes it is wrapped round: the band
+    is how a rack reads as money."""
     for finish in (ss.NOTES,) + ss.BAGS:
-        for grey in greys:
-            assert _ratio(ss.VAULT_PALETTE[finish], grey) >= 1.4, (finish, grey)
+        assert _ratio(ss.VAULT_PALETTE[finish], ss.VAULT_RACK_RGB) >= 1.4, finish
     for band, _w in ss.BANDS:
         assert _ratio(ss.VAULT_PALETTE[band], ss.VAULT_PALETTE[ss.NOTES]) >= 1.4, band
     assert set(ss.VAULT_PALETTE) == {ss.NOTES} | {b for b, _w in ss.BANDS} | set(ss.BAGS)
-    assert ss.VAULT_KIND in skins.KNOWN_KINDS
+    assert ss.VAULT_KIND in skins.KNOWN_KINDS and ss.VAULT_RACK_KIND in skins.KNOWN_KINDS
+
+
+def test_the_notes_are_pale_and_the_rack_dark():
+    """1.143.0, the walker's photographs: a brick's sides are paper-grey note edges (1.142.0 drew them a dark green),
+    on a rack of deep blue painted steel."""
+    notes, rack = ss.VAULT_PALETTE[ss.NOTES], ss.VAULT_RACK_RGB
+    assert _lum(notes) >= 0.5 and max(notes) - min(notes) <= 0.15, notes          # pale and near grey
+    assert _lum(rack) <= 0.1 and rack[2] > 3 * max(rack[0], rack[1]), rack       # dark, and blue
 
 
 def test_shelving_honours_the_vault_stock_and_nothing_else_moves():
