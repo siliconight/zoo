@@ -1,3 +1,56 @@
+## [1.139.0] - the bank's pieces on their own surfaces, and the drive-up as the research drew it
+
+The walker, of the bank's outside frames: "fix those three, then cut the release", and "do some more research, make it
+look better". The three: the canopy's fascia near black, the station and the cash cart brown, the lanes unmarked
+(Lot 0.135.0).
+
+### Fixed
+- **The bank's pieces on the surfaces they are made of.** delco_1997 maps the `metal` kind to `metal_rusted_street`
+  (Pixelcoat's `profiles/themes/delco_1997.json`), and a minted species took `metal` and the generic options
+  (concrete, metal, wood, plaster).
+  - `drive_up_canopy`, `drive_up_tube`, `clearance_bar` take `metal_painted`.
+  - `night_drop` takes `metal_bare`: polished stainless, as a UL 771 depository is.
+  - `cash_cart` takes `metal_bare`, a steel cage.
+  - `wall_clock` takes `plastic`; `planter` takes `plaster`.
+  - Each offers only what it could be made of, so a slot asking for something else falls back to it (Deli Counter
+    0.284.0). Every style agrees with its default.
+  - The three whose colours ride the vertex colour (canopy, station, night drop) take a near-white base, the price
+    pylon's rule, so a tinted pack does not darken them. How much the canopy's near-black fascia owed to the grey
+    base, against the rust, is not measured.
+- **`teller_line` offers `wood`**, which every library line asks for: the comps' wood counter.
+
+### Added
+- **`drive_up_canopy`, as the research drew it.**
+  - The tube's run is ENCLOSED in a boxed chase under the deck. The remote-banking patents run the horizontal tube
+    "enclosed ... below a canopy" (US 4,455,112), where 1.138.0 drew a bare pipe.
+  - DRIVE-UP is lettered on the canopy's two ends, the faces a driver meets coming up the lane, on boards in the bank's
+    colours. The deck steps in by the boards' 2 cm, so the envelope holds.
+  - Two materials now (the steel, the boards' atlas). 104 tris.
+- **`drive_up_tube`, a visual customer terminal** (US 4,462,721): a teller's screen over the receptacle at a seated
+  driver's eye, the grille and the call button beside it. The cabinet is 1.8 m tall to hold it. 216 tris.
+- **`clearance_bar`**, minted and shaped: the drive-through lane's "headache bar" a bank drive-up plan details at its
+  entry (Albuquerque, 2022).
+  - Two safety-yellow posts the slot's depth and a beam across them.
+  - A bar hung on two chains at 9 ft (2.74 m), lower than the canopy on purpose, carrying CLEARANCE 9 FT on a plate
+    facing the lane's entry.
+  - Two materials, 84 tris. The posts collide; a body walks under the bar.
+  - A first build drew the posts a section short of the slot's depth: the module measured 0.225 deep in a 0.25 slot,
+    and validation failed it.
+
+### Tests
+- `tests/test_clearance_bar.py`: discovered, validates, asked for by name, its plate sets, its bar at 9 ft; built at
+  three sizes on two materials, its plate at the bar's height.
+- `tests/test_bank_materials.py`: each bank piece defaults to its own surface, offers no `metal` or `wood`, and every
+  style agrees; the teller line offers wood.
+- `tests/test_drive_up_canopy.py`: the chase at `run_z` and reaching the wall; DRIVE-UP on both ends; two materials.
+- `tests/test_coincident_faces.py`: `CENSUS_BUILDS` 444 -> 447, 0 pairs at every corner of every changed species.
+- `tests/test_material_options_closed.py`: the metal-split registry.
+  - The canopy, station, clearance bar and clock's enamelled rim are painted; the night drop and cash cart are bare.
+  - The clone's first full suite failed on both its checks: the six were not registered, and the cash cart offered
+    both painted and bare. It offers bare only.
+
+All fail on 1.138.0.
+
 ## [1.138.0] - a bank's outside: its time-and-temperature sign, its night drop, its drive-up tube and canopy
 
 The walker's bank list, its last step: outside, the drive-up, the night drop and the time-and-temperature sign (the

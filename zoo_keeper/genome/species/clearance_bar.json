@@ -1,0 +1,110 @@
+{
+  "species": "clearance_bar",
+  "version": 1,
+  "license": {
+    "construction_knowledge": "CC0",
+    "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': shaped for Zoo 1.139.0: two safety-yellow posts, a beam, a bar on chains at 9 ft, CLEARANCE 9 FT on a plate; two materials. REFERENCE: A drive-through lane's clearance bar, the 'headache bar' (a 2022 Albuquerque bank drive-up plan's detail): two safety-yellow posts, a beam across the lane, a bar hung on chains at the posted clearance, CLEARANCE lettered on it"
+  },
+  "dimensions": {
+    "width": {
+      "min": 3.91,
+      "max": 5.98,
+      "default": 4.6
+    },
+    "depth": {
+      "min": 0.212,
+      "max": 0.325,
+      "default": 0.25
+    },
+    "height": {
+      "min": 3.06,
+      "max": 4.68,
+      "default": 3.6
+    }
+  },
+  "parts": [
+    "ClearanceBar_Steel",
+    "ClearanceBar_Chain",
+    "ClearanceBar_Plate"
+  ],
+  "params": {},
+  "materials": {
+    "default": "metal_painted",
+    "options": [
+      "metal_painted"
+    ]
+  },
+  "styles": {
+    "default": {
+      "material": "metal_painted",
+      "color": [
+        0.92,
+        0.92,
+        0.92
+      ],
+      "wear": 0.15,
+      "bevel": 0.006
+    },
+    "delco": {
+      "material": "metal_painted",
+      "color": [
+        0.92,
+        0.92,
+        0.92
+      ],
+      "wear": 0.35,
+      "bevel": 0.006,
+      "ambient": 0.35
+    },
+    "center_city": {
+      "material": "metal_painted",
+      "color": [
+        0.92,
+        0.92,
+        0.92
+      ],
+      "wear": 0.122,
+      "bevel": 0.006,
+      "ambient": 0.15
+    },
+    "industrial_flats": {
+      "material": "metal_painted",
+      "color": [
+        0.92,
+        0.92,
+        0.92
+      ],
+      "wear": 0.57,
+      "bevel": 0.006,
+      "ambient": 0.45
+    },
+    "rockay": {
+      "material": "metal_painted",
+      "color": [
+        0.92,
+        0.92,
+        0.92
+      ],
+      "wear": 0.29,
+      "bevel": 0.006,
+      "ambient": 0.05
+    }
+  },
+  "budgets": {
+    "tris_lod0": 160
+  },
+  "attachments": [],
+  "collision": true,
+  "match_priority": 0,
+  "keywords": [
+    "clearance bar",
+    "headache bar",
+    "clearance_bar",
+    "height bar"
+  ],
+  "connectors": {
+    "anchor": {
+      "type": "floor"
+    }
+  }
+}

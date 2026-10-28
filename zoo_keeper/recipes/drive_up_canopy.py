@@ -29,6 +29,16 @@ COLUMN = 0.30
 FOOTING = (0.50, 0.45)   # a column's concrete footing: its side and its height, a bollard a bumper meets first
 TUBE_R = 0.065
 TUBE_DROP = 0.18         # the run's centre under the soffit
+#: THE CHASE (1.139.0): the run enclosed in a boxed housing, its section square about the run's centre -- the
+#: remote-banking patents' "enclosed horizontal pneumatic tube portions ... below a canopy" (US 4,455,112), where
+#: 1.138.0 drew a bare pipe. The station's tube rises 6 cm into it.
+CHASE = 0.24
+#: THE ENDS' BOARDS (1.139.0): DRIVE-UP on the two faces a driver meets coming up the lane, in the bank's colours.
+#: The deck steps in by the board's thickness at each end and the board fills the step, so the envelope is the deck's
+#: (the teller line's nameboard, 1.137.0). The words set on the nameboard painter at 0.17 m and up.
+BOARD_T = 0.02
+BOARD_INSET = 0.04
+BOARD_TEXT = "DRIVE-UP"
 BURY = 0.004
 SHY = 0.003
 SEG = 12
@@ -80,9 +90,10 @@ def build(plan, streams, collection):
     def box(bm, lo, hi):
         geometry.add_box(bm, tuple((lo[i] + hi[i]) / 2.0 for i in range(3)), tuple(hi[i] - lo[i] for i in range(3)))
 
-    # the deck: the fascia's colour all round, the module's width and depth; its -X face meets the building's wall
+    # the deck: the fascia's colour all round, the module's width; its -X face meets the building's wall, and it
+    # stands in by the boards' thickness at each end, where they fill the step
     bm = geometry.new_bm()
-    box(bm, (-w / 2.0, -d / 2.0, soffit), (w / 2.0, d / 2.0, top))
+    box(bm, (-w / 2.0, -d / 2.0 + BOARD_T, soffit), (w / 2.0, d / 2.0 - BOARD_T, top))
     finish(bm, "DriveUpCanopy_Deck", fascia_rgb(variant))
     # the soffit: a light panel under the deck, inside its edges, its top buried in it
     bm = geometry.new_bm()
@@ -101,13 +112,43 @@ def build(plan, streams, collection):
             (cx + COLUMN / 2.0, cy + COLUMN / 2.0, soffit + 0.05))
     finish(bm_foot, "DriveUpCanopy_Footing", FOOTING_RGB)
     finish(bm_col, "DriveUpCanopy_Column", COLUMN_RGB)
-    # the tube's run under the soffit, from the island line to the wall
+    # the tube's run under the soffit, from the island line to the wall, in its chase; the chase's top is buried in the
+    # soffit, its island end runs past the column line by half its section
     bm = geometry.new_bm()
     rz = floor + run_z(h)
-    geometry.add_cylinder(bm, ((cx - w / 2.0) / 2.0, 0.0, rz), TUBE_R, cx + w / 2.0, segments=SEG, axis="X")
-    finish(bm, "DriveUpCanopy_Tube", TUBE_RGB)
+    box(bm, (-w / 2.0, -CHASE / 2.0, rz - CHASE / 2.0), (cx + CHASE / 2.0, CHASE / 2.0, soffit - SOFFIT_T + BURY))
+    finish(bm, "DriveUpCanopy_Chase", TUBE_RGB)
     body = materials.make_material(f"M_DriveUpCanopy_{plan['material']}", plan["color"], plan["material"])
     materials.assign(objs, body)
+    # the ends' boards: an art front and four edges a board, no back (it would lie in the deck's stepped face)
+    from ..core import prims as P
+    from ._card_atlas import build_art
+    said = TF.bank_said(variant)
+    quad_uv = [((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))]
+    bx0, bx1 = -w / 2.0 + BOARD_INSET, w / 2.0 - BOARD_INSET
+    bz0, bz1 = soffit + BOARD_INSET / 2.0, top - BOARD_INSET / 2.0
+    prims = []
+    for sgn in (-1.0, 1.0):
+        yf = sgn * d / 2.0                  # the board's front
+        yb = sgn * (d / 2.0 - BOARD_T)      # the deck's stepped face
+        tag = "S" if sgn < 0 else "N"
+        # the front, wound to face out (-Y at the -Y end, +Y at the +Y end), read left to right from outside
+        xa, xb = (bx0, bx1) if sgn < 0 else (bx1, bx0)
+        art = P.mesh(f"DriveUpCanopy_Board{tag}", "art", [(xa, yf, bz0), (xb, yf, bz0), (xb, yf, bz1), (xa, yf, bz1)],
+                     [(0, 1, 2, 3)])
+        art["tile"] = "board"
+        art["uvs"] = list(quad_uv)
+        rim = P.box(f"DriveUpCanopy_BoardRim{tag}", "art", (bx0, min(yf, yb), bz0), (bx1, max(yf, yb), bz1))
+        rim["faces"] = [f for k, f in enumerate(rim["faces"]) if k in (0, 1, 3, 5)]
+        rim["tile"] = "edge"
+        rim["uvs"] = list(quad_uv) * len(rim["faces"])
+        prims += [art, rim]
+    tiles = {"board": {"kind": "teller_board", "w_m": bx1 - bx0, "h_m": bz1 - bz0, "text": BOARD_TEXT,
+                       "colours": said["colours"], "voice": "shop", "numbers": []},
+             "edge": {"kind": "storefront_sign", "w_m": 0.1, "h_m": 0.1, "edge": True, "text": "",
+                      "colours": said["colours"]}}
+    got, _atlas = build_art(prims, collection, dict(plan, _tiles=tiles), streams, "DriveUpCanopy_Board", smooth=True)
+    objs += got
     # a body walks under it: the columns and their footings collide, the deck overhead does not need to
     cols = [((cx - fs / 2.0, column_y(d, sy) - fs / 2.0, floor), (cx + fs / 2.0, column_y(d, sy) + fs / 2.0, soffit))
             for sy in (-1.0, 1.0)]

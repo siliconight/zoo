@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': shaped for Zoo 1.138.0: a stainless plate, a hood with its chute door, pull and lock, and NIGHT DEPOSITORY lettered on a panel, 130 tris on two materials. REFERENCE: A bank's night depository (the factory's docs/reference/BANK_INTERIOR_COMPS.md, researched): a stainless steel plate in the facade by the door, a hood with a pull-down chute door and handle for after-hours deposits, a keyed lock, NIGHT DEPOSITORY lettered over it"
+    "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': shaped for Zoo 1.138.0: a stainless plate, a hood with its chute door, pull and lock, and NIGHT DEPOSITORY lettered on a panel, 130 tris on two materials. REFERENCE: A bank's night depository (the factory's docs/reference/BANK_INTERIOR_COMPS.md, researched): a stainless steel plate in the facade by the door, a hood with a pull-down chute door and handle for after-hours deposits, a keyed lock, NIGHT DEPOSITORY lettered over it 1.139.0: material metal_bare (a polished stainless plate (UL 771 depositories are stainless)), options metal_bare."
   },
   "dimensions": {
     "width": {
@@ -32,64 +32,61 @@
   ],
   "params": {},
   "materials": {
-    "default": "metal",
+    "default": "metal_bare",
     "options": [
-      "concrete",
-      "metal",
-      "wood",
-      "plaster"
+      "metal_bare"
     ]
   },
   "styles": {
     "default": {
-      "material": "metal",
+      "material": "metal_bare",
       "color": [
-        0.56,
-        0.55,
-        0.53
+        0.92,
+        0.92,
+        0.92
       ],
       "wear": 0.15,
       "bevel": 0.006
     },
     "delco": {
-      "material": "metal",
+      "material": "metal_bare",
       "color": [
-        0.5,
-        0.49,
-        0.46
+        0.92,
+        0.92,
+        0.92
       ],
       "wear": 0.35,
       "bevel": 0.006,
       "ambient": 0.35
     },
     "center_city": {
-      "material": "metal",
+      "material": "metal_bare",
       "color": [
-        0.56,
-        0.5655,
-        0.58
+        0.92,
+        0.92,
+        0.92
       ],
       "wear": 0.122,
       "bevel": 0.006,
       "ambient": 0.15
     },
     "industrial_flats": {
-      "material": "metal",
+      "material": "metal_bare",
       "color": [
-        0.4708,
-        0.4463,
-        0.4367
+        0.92,
+        0.92,
+        0.92
       ],
       "wear": 0.57,
       "bevel": 0.006,
       "ambient": 0.45
     },
     "rockay": {
-      "material": "metal",
+      "material": "metal_bare",
       "color": [
-        0.5264,
-        0.5445,
-        0.5565
+        0.92,
+        0.92,
+        0.92
       ],
       "wear": 0.29,
       "bevel": 0.006,

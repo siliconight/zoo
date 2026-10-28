@@ -3,7 +3,7 @@
  "version": 1,
  "license": {
   "construction_knowledge": "CC0",
-  "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. NO REFERENCE GIVEN: look at ten photographs of one before drawing it."
+  "notes": "Minted 2026-10-27 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. NO REFERENCE GIVEN: look at ten photographs of one before drawing it. 1.139.0: material plastic (a moulded office clock), options plastic, metal_painted."
  },
  "dimensions": {
   "width": {
@@ -29,11 +29,8 @@
  "materials": {
   "default": "plastic",
   "options": [
-   "concrete",
-   "metal",
-   "wood",
-   "plaster",
-   "plastic"
+   "plastic",
+   "metal_painted"
   ]
  },
  "styles": {

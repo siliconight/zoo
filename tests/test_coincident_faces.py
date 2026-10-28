@@ -604,7 +604,11 @@ DID_NOT_BUILD = {"boots"}
 #: ending on its top and bottom bars (2), then -- run into them flush -- their fronts, backs and outsides on the bars'
 #: planes (4); the canopy 0 at its first reading. `price_pylon`'s new `bank` form is the same frame and builds no new
 #: geometry: 0 pairs at its three corners. A first count of 441 left the canopy out; the suite said 148 x 3.
-CENSUS_BUILDS = 444
+#: 1.139.0: `clearance_bar` (the drive-up's research), three builds more, same tool: 0 pairs at every corner, 84 tris;
+#: the canopy's chase and DRIVE-UP boards and the station's screen re-measured, 0 pairs, 104 and 216 tris; the
+#: night drop, cash cart, clock and planter on their own materials, 0 pairs. The first build of the bar measured the
+#: module 0.225 deep in a 0.25 slot (posts a section short of the depth) and validation failed it.
+CENSUS_BUILDS = 447
 
 
 def test_the_census_covers_every_species_there_is():

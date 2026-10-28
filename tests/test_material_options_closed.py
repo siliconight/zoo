@@ -119,7 +119,12 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "stanchion_run",
            # a drop safe is painted steel, its dial and handle bare steel as
            # a constant in the recipe (1.125.0)
-           "drop_safe")
+           "drop_safe",
+           # the bank's outside (1.139.0): a drive-up canopy, its tube station
+           # and a lane's clearance bar are painted steel, their colours in the
+           # vertex; a wall clock's rim may be enamelled steel. delco_1997's
+           # `metal` is street rust, and the canopy's fascia read black on it
+           "drive_up_canopy", "drive_up_tube", "clearance_bar", "wall_clock")
 BARE = ("gold_bar", "flat_top_grill",
         # a roller grill offers chrome; its painted cabinet and dogs are a
         # constant kind in the recipe, as a counter's brass is (1.17.0)
@@ -136,7 +141,10 @@ BARE = ("gold_bar", "flat_top_grill",
         # its fabric is a kind of its own, `chain_link`
         "chain_link_fence",
         # a crowd barricade is hot-dip galvanised tube (1.118.0)
-        "crowd_barrier")
+        "crowd_barrier",
+        # a night depository is polished stainless (UL 771), a cash cart a
+        # steel cage (1.139.0)
+        "night_drop", "cash_cart")
 MOVED = PAINTED + BARE
 
 

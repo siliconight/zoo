@@ -3,7 +3,7 @@
   "version": 1,
   "license": {
     "construction_knowledge": "CC0",
-    "notes": "Original procedural construction. Architectural interactive module: a bank teller line \u2014 a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass. 1.137.0: form 'bank' -- a nameboard on the header's public face, the bank's name (storefront_names' bank names) over each window's number; sixteen variants, four names in four colourways, the door sign's by `teller_line_forms.variant_for`."
+    "notes": "Original procedural construction. Architectural interactive module: a bank teller line \u2014 a solid counter base + a framed bulletproof-glass barrier with a transaction pass-slot. The intact (default) state; its shattered state reuses the same species art (deferred) until a shattered-glass art pass. 1.137.0: form 'bank' -- a nameboard on the header's public face, the bank's name (storefront_names' bank names) over each window's number; sixteen variants, four names in four colourways, the door sign's by `teller_line_forms.variant_for`. 1.139.0: wood offered -- the comps' wood teller counter, which every library line asks for."
   },
   "dimensions": {
     "width": {
@@ -72,7 +72,8 @@
     "options": [
       "metal",
       "laminate",
-      "concrete"
+      "concrete",
+      "wood"
     ]
   },
   "glass_color": [

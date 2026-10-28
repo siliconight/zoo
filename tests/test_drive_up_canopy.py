@@ -53,7 +53,8 @@ def test_bpy_a_canopy_is_its_slot_its_fascia_the_banks_colour_its_columns_on_the
     lo = [min(p[a] for p in pts) for a in range(3)]
     for axis, size in enumerate(dims):
         assert max(p[axis] for p in pts) - lo[axis] == pytest.approx(size, abs=0.02), axis
-    assert len({s.material.name for o in meshes for s in o.material_slots}) == 1
+    # the steel on one material, the boards' lettering on one atlas
+    assert len({s.material.name for o in meshes for s in o.material_slots}) == 2
     parts = {o.name.split(".")[0]: o for o in meshes}
     # the fascia is the variant's bank colour, in the vertex colour
     deck = parts["DriveUpCanopy_Deck"]
@@ -69,7 +70,13 @@ def test_bpy_a_canopy_is_its_slot_its_fascia_the_banks_colour_its_columns_on_the
     cols = [col.matrix_world @ v.co for v in col.data.vertices]
     cx = (min(p.x for p in cols) + max(p.x for p in cols)) / 2.0
     assert cx == pytest.approx(C.column_x(dims[0]), abs=1e-3)
-    tube = [parts["DriveUpCanopy_Tube"].matrix_world @ v.co for v in parts["DriveUpCanopy_Tube"].data.vertices]
-    assert (min(p.z for p in tube) + max(p.z for p in tube)) / 2.0 - lo[2] == pytest.approx(C.run_z(dims[2]), abs=1e-3)
-    # the run reaches the wall at -X
-    assert min(p.x for p in tube) == pytest.approx(lo[0], abs=1e-3)
+    # the run in its chase (1.139.0): the chase's underside half its section under the run's centre, where the
+    # station's tube rises to; the chase reaches the wall at -X
+    chase = [parts["DriveUpCanopy_Chase"].matrix_world @ v.co for v in parts["DriveUpCanopy_Chase"].data.vertices]
+    assert min(p.z for p in chase) - lo[2] == pytest.approx(C.run_z(dims[2]) - C.CHASE / 2.0, abs=1e-3)
+    assert min(p.x for p in chase) == pytest.approx(lo[0], abs=1e-3)
+    # DRIVE-UP on both ends, the boards' fronts the module's ends
+    art = [o for o in meshes if o.name.startswith("DriveUpCanopy_Board")]
+    assert art, sorted(parts)
+    ys = [(o.matrix_world @ v.co).y for o in art for v in o.data.vertices]
+    assert min(ys) == pytest.approx(lo[1], abs=1e-3) and max(ys) == pytest.approx(lo[1] + dims[1], abs=1e-3)

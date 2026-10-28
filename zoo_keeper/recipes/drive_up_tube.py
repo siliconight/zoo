@@ -18,14 +18,18 @@ from ..bpylayer import geometry, materials
 
 ISLAND_H = 0.15          # a curb's height
 CAB_W_F, CAB_D_F = 0.70, 0.62
-CAB_TOP = 1.55           # the cabinet's top over the ground: a sedan's roof
+CAB_TOP = 1.80           # the cabinet's top over the ground: room over the receptacle for the teller's screen (1.139.0)
 #: the receptacle: its sill at a car window's height (1.05 m, the sill of a sedan's window), 0.38 m wide
 REC_SILL = 1.05
 REC = (0.38, 0.30)       # width, height
 REC_DEPTH = 0.16         # how far the dark mouth goes into the cabinet
 REC_LIP = 0.035          # the hood's lip stands this far proud of the cabinet's face
-GRILLE = (0.18, 0.12)
-GRILLE_Z = 1.42
+GRILLE = (0.12, 0.14)
+GRILLE_Z = 1.55
+#: THE TELLER'S SCREEN (1.139.0): a visual customer terminal (US 4,462,721) -- the teller's face on a small screen
+#: over the receptacle, at a seated driver's eye, the grille and the call button beside it
+SCREEN = (0.24, 0.19)
+SCREEN_RGB = (0.05, 0.08, 0.10)
 BUTTON = 0.035
 TUBE_R = 0.065
 COLLAR = (0.11, 0.12)    # the tube's collar on the cabinet: radius, height
@@ -90,13 +94,18 @@ def build(plan, streams, collection):
                     (rw / 2.0 + lip - SHY, cy0 + BURY + SHY, rz0 + rh + lip / 2.0))):
         geometry.add_box(bm, tuple((lo[i] + hi[i]) / 2.0 for i in range(3)), tuple(hi[i] - lo[i] for i in range(3)))
     finish(bm, "DriveUp_Hood", LIP_RGB)
-    # the speaker grille and the call button on the face above it, standing a few mm proud
+    # the teller's screen, the speaker grille beside it and the call button beyond, a few mm proud; each buried to
+    # its own depth, so no two backs share a plane inside the cabinet
     gw, gh = GRILLE
     gz = floor + GRILLE_Z
-    # buried twice as deep as the hood: at one depth the census read their backs on one plane inside the cabinet
-    box("DriveUp_Grille", (-gw / 2.0, cy0 - 0.006, gz - gh / 2.0), (gw / 2.0, cy0 + 2.0 * BURY, gz + gh / 2.0),
+    sw, sh = SCREEN
+    sx0 = -cw / 2.0 + 0.05
+    box("DriveUp_Screen", (sx0, cy0 - 0.008, gz - sh / 2.0), (sx0 + sw, cy0 + 3.0 * BURY, gz + sh / 2.0), SCREEN_RGB)
+    gx0 = sx0 + sw + 0.04
+    # the grille buried twice as deep as the hood: at one depth the census read their backs on one plane
+    box("DriveUp_Grille", (gx0, cy0 - 0.006, gz - gh / 2.0), (gx0 + gw, cy0 + 2.0 * BURY, gz + gh / 2.0),
         GRILLE_RGB)
-    bx = gw / 2.0 + 0.06
+    bx = gx0 + gw + 0.05
     box("DriveUp_Button", (bx - BUTTON / 2.0, cy0 - 0.012, gz - BUTTON / 2.0),
         (bx + BUTTON / 2.0, cy0 + BURY, gz + BUTTON / 2.0), BUTTON_RGB)
     # the tube: a collar on the cabinet's top, the tube out of it to the slot's top
