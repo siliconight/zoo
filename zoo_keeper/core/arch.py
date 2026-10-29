@@ -746,6 +746,112 @@ def casing_dropped(name: str, normal) -> bool:
     return abs(normal[2]) > 0.9 or normal[1] * back > 0.9
 
 
+#: A FRAMED WINDOW (1.145.0). The walker, 2026-10-28, of what makes an asset read
+#: as real: "i think its less about realistic textures and more about the 3d shape
+#: themselves?". A window was a hole in a slab with a pane at mid-depth: a 13 cm
+#: reveal on a 30 cm wall, in the wall's own material, so under any light that
+#: lit the face it lit the reveal the same and the window read as a dark square
+#: painted on the wall (seed 9082's bank, the factory's
+#: `docs/findings/realism_trial/`). A window has a frame the glass is set in and
+#: a sill that throws a shadow line; those are what this builds.
+#:
+#: THE FRAME is a ring inside the opening, on the pane's plane, standing
+#: `WINDOW_FRAME_PROUD` proud of the pane on both faces (`window_frame_depth`:
+#: the pane is a fraction of the wall, so a fixed depth was thinner than the
+#: pane on the genome's 0.6 m wall), with a mullion down the middle of a
+#: pane wider than `WINDOW_MULLION_OVER`. An open shell like a casing: every
+#: face that lies on a jamb, the sill or the head, and a rail's ends inside a
+#: stile, is not built (`window_frame_dropped`), so nothing is coplanar. No
+#: collider: an opening's collision stays the slab's.
+#:
+#: THE SILL stands on the slab's sill, `WINDOW_SILL_LIFT` above it so its top is
+#: a face of its own, from `WINDOW_SILL_TUCK` inside the frame's outdoor face
+#: out past the wall's (+Y) by `WINDOW_SILL_PROUD`, bearing `WINDOW_SILL_BEAR`
+#: into each jamb. Outdoors only, and only where the slab has a sill to stand it
+#: on. Its underside past the face is the shadow line. Its back stops short of
+#: the pane: the first draft ran it to the pane's plane, and the census
+#: (`tools/coplanar_census.py --species window`) counted the pane's bottom edge
+#: 1.5 mm off the sill's top, a pair the slab never had.
+#:
+#: NOT on a painted pane: `window_panes` paints a rowhouse's sash, and the
+#: Empties that carry one get Patina's stone sill and lintel as dressing
+#: (`dressing.sill_parts`), so a second would stand in the first.
+WINDOW_FRAME_W = 0.05
+WINDOW_FRAME_PROUD = 0.0125
+WINDOW_MULLION_OVER = 1.2
+WINDOW_SILL_H = 0.05
+WINDOW_SILL_PROUD = 0.05
+WINDOW_SILL_BEAR = 0.05
+WINDOW_SILL_LIFT = 0.015
+WINDOW_SILL_TUCK = 0.005
+
+
+def window_frame_depth(d: float) -> float:
+    """How deep a window's frame is in a wall ``d`` deep: the pane's
+    thickness (``d * SF_PANE_D``) and ``WINDOW_FRAME_PROUD`` either side, no
+    deeper than the wall -- 0.07 m in a 0.30 m wall."""
+    return min(d, d * SF_PANE_D + 2.0 * WINDOW_FRAME_PROUD)
+
+
+def window_frame_parts(d: float, void: dict, width: float = WINDOW_FRAME_W):
+    """The frame of a window whose opening is ``void``, on the pane's plane
+    (``y = 0``): ``(name, (cx, cy, cz), (sx, sy, sz))`` boxes -- ``Frame_L`` /
+    ``Frame_R`` stiles the opening's full height, ``Frame_B`` / ``Frame_T``
+    rails between them, and ``Frame_M`` between the rails where the pane is
+    wider than ``WINDOW_MULLION_OVER``. No wider than a third of the opening
+    either way; ``window_frame_depth(d)`` deep."""
+    x0, x1, z0, z1 = void["x0"], void["x1"], void["z0"], void["z1"]
+    fw = min(width, (x1 - x0) / 3.0, (z1 - z0) / 3.0)
+    fd = window_frame_depth(d)
+    out = []
+
+    def box(name, bx0, bx1, bz0, bz1):
+        out.append((name, (round((bx0 + bx1) / 2.0, 6), 0.0, round((bz0 + bz1) / 2.0, 6)),
+                    (round(bx1 - bx0, 6), round(fd, 6), round(bz1 - bz0, 6))))
+
+    box("Frame_L", x0, x0 + fw, z0, z1)
+    box("Frame_R", x1 - fw, x1, z0, z1)
+    box("Frame_B", x0 + fw, x1 - fw, z0, z0 + fw)
+    box("Frame_T", x0 + fw, x1 - fw, z1 - fw, z1)
+    if x1 - x0 - 2.0 * fw > WINDOW_MULLION_OVER:
+        mid = (x0 + x1) / 2.0
+        box("Frame_M", mid - fw / 2.0, mid + fw / 2.0, z0 + fw, z1 - fw)
+    return out
+
+
+def window_frame_dropped(name: str, normal) -> bool:
+    """Whether a face of frame box ``name`` with ``normal`` (x, y, z) lies on
+    the slab or inside another part of the frame: a stile's outer side and its
+    ends, a rail's outer side and its ends, a mullion's ends."""
+    nx, nz = normal[0], normal[2]
+    if name == "Frame_L":
+        return nx < -0.9 or abs(nz) > 0.9
+    if name == "Frame_R":
+        return nx > 0.9 or abs(nz) > 0.9
+    if name == "Frame_B":
+        return nz < -0.9 or abs(nx) > 0.9
+    if name == "Frame_T":
+        return nz > 0.9 or abs(nx) > 0.9
+    return abs(nz) > 0.9
+
+
+def window_sill_parts(w: float, d: float, h: float, void: dict):
+    """The outdoor sill of a window ``w`` x ``d`` x ``h`` whose opening is
+    ``void``: one ``("Sill_Stone", centre, size)`` box, or ``[]`` where the
+    opening reaches the floor or the slab's sill is too short to stand it on.
+    It bears into the jambs no further than the jambs reach."""
+    hw, hh = w / 2.0, h / 2.0
+    x0, x1, z0 = void["x0"], void["x1"], void["z0"]
+    if z0 - (-hh) < WINDOW_SILL_H:
+        return []
+    bear = max(0.0, min(WINDOW_SILL_BEAR, x0 + hw, hw - x1))
+    top = z0 + WINDOW_SILL_LIFT
+    y0, y1 = window_frame_depth(d) / 2.0 - WINDOW_SILL_TUCK, d / 2.0 + WINDOW_SILL_PROUD
+    return [("Sill_Stone", (round((x0 + x1) / 2.0, 6), round((y0 + y1) / 2.0, 6),
+                            round(top - WINDOW_SILL_H / 2.0, 6)),
+             (round(x1 - x0 + 2.0 * bear, 6), round(y1 - y0, 6), WINDOW_SILL_H))]
+
+
 def storefront_parts(w: float, d: float, h: float, void: dict | None = None,
                      leaves: bool = False):
     """``(frame, glass)``: boxes ``(name, (cx, cy, cz), (sx, sy, sz))`` of a

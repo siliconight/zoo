@@ -1,3 +1,35 @@
+## [1.145.0] - a window has a frame and a sill
+
+The factory's roadmap 324; the walker, 2026-10-28: "i think its less about realistic textures and more about the 3d
+shape themselves?", and of the plan that followed, "Yes now you get it". A window was a hole in a slab with a pane at
+mid-depth: on the bank's 30 cm wall a 13 cm reveal, in the wall's own material, which any light that lit the face lit
+the same, so the window read as a dark square painted on the wall (seed 9082, the factory's
+`docs/findings/window_frames/`). Only an Empty's window had more, and from elsewhere: its sash is painted on the pane
+(`window_panes`) and its stone sill and lintel are Patina dressing.
+
+### Added
+- **A window's frame** (`arch.window_frame_parts`): stiles and rails ringing the opening on the pane's plane, a
+  mullion down a pane wider than 1.2 m, 5 cm wide, standing 12.5 mm proud of the pane on each face
+  (`window_frame_depth`: 7 cm in a 30 cm wall; derived from the pane, which is a fraction of the wall, because a fixed
+  7 cm was thinner than the pane on the genome's 0.6 m wall). In the storefront's painted aluminium. An open shell:
+  the faces on the slab and inside the frame are not built (`window_frame_dropped`). No collider.
+- **A window's sill** (`arch.window_sill_parts`): 5 cm tall, standing 1.5 cm on the slab's sill, from just inside the
+  frame to 5 cm past the outdoor face, bearing 5 cm into each jamb; none where the opening reaches the floor. In the
+  wall's own material, bevelled with the butt planes. No collider. It is outside the slot, so the module's fit leaves
+  it out (`fit_objects`, as a swung leaf is left out of a door's): fitted on everything, the first build of seed 9082
+  re-centred every framed window -- slab, collider and all -- 2.5 cm off its slot, a step in the facade at both ends
+  of the module, seen in its frames and kept in the factory's finding.
+- Neither on a painted pane (an Empty's, which carries its own) nor on a glass wall.
+
+### Measured
+- `tools/coplanar_census.py --species window`: 4 pairs at each corner, 12 in all -- the `RESIDUE` row, unchanged. The
+  first draft ran the sill back to the pane's plane and the census counted the pane's bottom edge 1.5 mm off the
+  sill's top; the sill now starts 5 mm inside the frame's face, and the frame's depth follows the pane.
+- 76 more triangles a window at the genome's corners (124 -> 200 at max).
+
+Tests: tests/test_window_frame.py (fails on 1.144.0; its bpy half in Blender). The factory's
+patches/patch_zoo_window_frame.py, written by tools/ship_change.py.
+
 ## [1.144.0] - a pack material samples its textures as the pack asks
 
 The factory's roadmap 324; the walker, 2026-10-28: "how would we make our assets look more realistic?", and the

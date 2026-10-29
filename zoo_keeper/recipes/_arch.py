@@ -49,6 +49,7 @@ def build_slab(plan, streams, collection, species):
     rng = streams.stream("wear")
     root = arch.root_name(species)
     objs, cboxes = [], []
+    proud = []          # parts standing out of the slot, left out of the fit (a window's sill)
 
     #: FLAT, and this is not a style choice. Every architectural module is
     #: built from boxes, and `shade_by_angle`'s 50-degree default smooths the
@@ -282,6 +283,31 @@ def build_slab(plan, streams, collection, species):
                 plan.get("glass_color", [0.55, 0.66, 0.72]), glazing_kind)
             materials.assign([pane], glass)
             objs.append(pane)
+        # A FRAMED WINDOW (1.145.0, `arch.window_frame_parts`): the frame in the
+        # storefront's painted aluminium, the sill in the wall's own material, so
+        # it packs into the wall side's mesh. Not on a painted pane, which
+        # paints its sash and gets its sill as dressing; not on a glass wall.
+        if painted is None and plan["material"] not in arch.SF_FRAME_FOR:
+            frame = []
+            for name, center, size in arch.window_frame_parts(d, void):
+                bm = geometry.new_bm()
+                geometry.add_box(bm, center, size)
+                geometry.drop_faces(bm, lambda n, nm=name: arch.window_frame_dropped(nm, n))
+                frame.append(geometry.bm_to_object(
+                    bm, f"{root}_{name}", collection, bevel=0.0, texel=1.0,
+                    rng=rng, wear=wear * 0.5, smooth_angle=_WALL_SMOOTH))
+            materials.assign(frame, materials.make_material(
+                "M_Storefront_frame", list(arch.SF_FRAME_RGB), arch.SF_FRAME_KIND))
+            objs.extend(frame)
+            for name, center, size in arch.window_sill_parts(w, d, h, void):
+                bm = geometry.new_bm()
+                geometry.add_box(bm, center, size)
+                sill = geometry.bm_to_object(
+                    bm, f"{root}_{name}", collection, bevel=bevel, texel=1.0,
+                    rng=rng, wear=wear, smooth_angle=_WALL_SMOOTH, butt_planes=butts)
+                materials.assign([sill], structure)
+                objs.append(sill)
+                proud.append(sill)
 
     # AN EMPTY'S DOOR IS SHUT (1.61.0). A doorway tagged `glazing: "facade"`
     # belongs to a shell with nothing behind it (Deli Counter >= 0.178.0), the
@@ -337,4 +363,12 @@ def build_slab(plan, streams, collection, species):
         materials.assign([knob], materials.make_material(*doors.HARDWARE))
         objs.append(knob)
 
-    return {"objects": objs, "collision_boxes": cboxes, "attachments": {}}
+    # A SILL IS OUTSIDE THE SLOT (1.145.0). It stands out of one face only, and
+    # `build._recentre` centres a module on what it fits: on everything, the
+    # first build moved each framed window -- slab, collider and all -- 2.5 cm
+    # off its slot, a step in the facade at both its ends. The fit is the rest,
+    # as a swung leaf is left out of a door's.
+    out = {"objects": objs, "collision_boxes": cboxes, "attachments": {}}
+    if proud:
+        out["fit_objects"] = [o for o in objs if o not in proud]
+    return out
