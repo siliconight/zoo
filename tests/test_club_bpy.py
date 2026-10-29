@@ -35,16 +35,30 @@ _ZOO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 #: measured on Zoo 0.86.0 (5b15338), kit path, theme delco_1997, flat
 #: materials: object names, vertices to 0.1 mm, Wear to 1e-4, material names
+#: THE DIGEST IS ORDER-FREE (1.147.0). It hashed each object's vertices in the
+#: order Blender stored them, so it pinned an ORDER as well as a shape, and two
+#: deliberate releases moved the order and nothing else: 1.103.0 sorts every
+#: mesh's faces so two builds write the same bytes (the factory's
+#: docs/findings/grader_speed/), and a later one moved it again. Measured in
+#: Blender 5.1.1 on 0.90.0 (82d23b1), 1.102.0, 1.103.0 and 1.146.0: the ordered
+#: digest is each old pin until 1.102.0 and differs from 1.103.0 on, while the
+#: digest below -- each object's vertex and wear lines sorted, objects sorted
+#: by name -- is the same at all four for every key. So the pins are re-taken
+#: in that form and still describe the shapes main built; the old ordered pins
+#: are kept beside them.
 MAIN_DIGESTS = {
-    # 0.86.0 - 0.89.0, the stand set that failed `fit_depth`:
+    # 0.86.0 - 0.89.0, the stand set that failed `fit_depth` (ordered):
     #   (0.55, 0.5, 0.42) ca85dce48259f1b238fcabd387b3033de8b0446f
     #   (0.9, 0.62, 0.7)  3f8cc9bbf7137bb708a200673bf0a86f28b35b86
-    # 0.90.0, measured on the first build of `crt_forms.stand_layout`:
-    ("crt_tv", (0.55, 0.5, 0.42), ()): "ea931596f371006cdda67be9e6f4f6a1bde869f6",
-    ("crt_tv", (0.9, 0.62, 0.7), ()): "13598510af7123b6ce3b4d87fb04d93036c8ecbd",
-    ("booth_seat", (2.0, 0.9, 0.85), (("form", "sofa"),)): "13cba2a4abf87dbfe4be1dc10e75cbefeefe8438",
-    ("pool_table", (2.0, 1.14, 0.79), ()): "c904dc4002de72713a3111dd26b0787d8c18dbb1",
-    ("table", (1.2, 0.8, 0.74), (("stock", "bar"), ("variant", 1))): "1a8cc276ae4b5d5ccb2c4bcde9bf008c05d128a6",
+    # 0.90.0, measured on the first build of `crt_forms.stand_layout`
+    # (ordered, held to 1.102.0): crt_tv 0.55 ea931596f371..., crt_tv 0.9
+    # 13598510af71..., booth_seat 13cba2a4abf8..., pool_table c904dc4002de...,
+    # table 1a8cc276ae4b...; order-free, the same shapes:
+    ("crt_tv", (0.55, 0.5, 0.42), ()): "6007319d5cf33aabd96ccb3eaa00e359f5dfbff3",
+    ("crt_tv", (0.9, 0.62, 0.7), ()): "df7127bb77d08a7af8fdb7d3713a90e9335b0a44",
+    ("booth_seat", (2.0, 0.9, 0.85), (("form", "sofa"),)): "7bdf16436eb2f65c3164c2c7cbb4806f1db07c1f",
+    ("pool_table", (2.0, 1.14, 0.79), ()): "214d7f936295514391a4405b78a8907c3de637e3",
+    ("table", (1.2, 0.8, 0.74), (("stock", "bar"), ("variant", 1))): "1b72f9b7777ff8387cf56b2401af30ca80c3104d",
 }
 
 LIT = {"club_stage": 1, "neon_sign": 2, "crt_tv": 1}
@@ -77,19 +91,17 @@ def _build(tmp_path, sp, dims, **fields):
     return res, objs
 
 
-def _digest(objs):
-    h = hashlib.sha1()
-    for o in objs:
-        h.update(o.name.encode())
-        for v in o.data.vertices:
-            h.update(("%.4f,%.4f,%.4f;" % tuple(v.co)).encode())
+def _digest(objs, materials=True):
+    """Every object's name, vertices, wear and materials, in no stored order
+    (see `MAIN_DIGESTS`)."""
+    rows = []
+    for o in sorted(objs, key=lambda o: o.name):
+        vs = sorted("%.4f,%.4f,%.4f" % tuple(v.co) for v in o.data.vertices)
         ca = o.data.color_attributes.get("Wear")
-        if ca:
-            for c in ca.data:
-                h.update(("%.4f" % c.color[0]).encode())
-        for s in o.material_slots:
-            h.update((s.material.name if s.material else "-").encode())
-    return h.hexdigest()
+        ws = sorted("%.4f" % c.color[0] for c in ca.data) if ca else []
+        ms = [s.material.name if s.material else "-" for s in o.material_slots] if materials else []
+        rows.append("%s|%s|%s|%s" % (o.name, ";".join(vs), ",".join(ws), ",".join(ms)))
+    return hashlib.sha1("\n".join(rows).encode()).hexdigest()
 
 
 def _probe(objs):

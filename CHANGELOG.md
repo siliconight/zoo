@@ -1,3 +1,20 @@
+## [1.146.1] - fourteen Blender tests that pinned the wrong thing
+
+Found by running every Blender test for 1.146.0, where earlier releases had run a set of them: fourteen failed on
+1.144.0, 1.145.0 and 1.146.0 alike. Each was bisected and measured; none was a defect in what Zoo builds.
+
+### Fixed
+- **`test_club_bpy` (5) and `test_interior_bpy` (7) pinned a vertex ORDER as well as a shape.** Their digests hashed
+  each object's vertices in stored order. 1.103.0 sorts every mesh's faces so two builds write the same bytes, and a
+  later release moved the order again; neither moved a vertex. Measured in Blender 5.1.1 on 0.90.0, 1.102.0, 1.103.0
+  and 1.146.0: an order-free digest -- each object's vertex and wear lines sorted, objects by name -- is the same at
+  all four for all twelve keys, and the ordered one equals each old pin through 1.102.0. The digests are order-free
+  now and re-pinned to those values, the old pins kept beside them; run on 0.89.0 the club's two TVs, whose stands
+  0.90.0 rebuilt, still fail.
+- **`test_shut_door` and `test_front_doors` read 1.124.0's knob as a leaf.** Both took every mesh with `Leaf` in its
+  name as the door leaf and wanted the door's material on it; 1.124.0 added the knob as `_LeafHardware`, in iron.
+  They pass the hardware over now; `test_door_hardware.py` pins it.
+
 ## [1.146.0] - a parapet has a coping
 
 The factory's roadmap 324; the walker, 2026-10-29, on the window frames: "keep the aluminium, keep going on the

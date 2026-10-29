@@ -21,15 +21,30 @@ import pytest
 
 _ZOO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-#: measured on Zoo 0.80.0 (main at 295a3fe), kit path, theme delco_1997
+#: THE DIGEST IS ORDER-FREE (1.147.0). It hashed each object's vertices in the
+#: order Blender stored them, so it pinned an ORDER as well as a shape, and two
+#: deliberate releases moved the order and nothing else: 1.103.0 sorts every
+#: mesh's faces so two builds write the same bytes (the factory's
+#: docs/findings/grader_speed/), and a later one moved it again. Measured in
+#: Blender 5.1.1 on 0.90.0 (82d23b1, the ordered pins taken on 0.80.0 still held there), 1.102.0, 1.103.0 and 1.146.0: the ordered
+#: digest is each old pin until 1.102.0 and differs from 1.103.0 on, while the
+#: digest below -- each object's vertex and wear lines sorted, objects sorted
+#: by name -- is the same at all four for every key. So the pins are re-taken
+#: in that form and still describe the shapes main built; the old ordered pins
+#: are kept beside them.
+#: measured on Zoo 0.80.0 (main at 295a3fe), kit path, theme delco_1997, ordered
+#: (held to 1.102.0): desk 1.6 2374d64849a5..., desk 4.4 8de4dc3118a1..., table
+#: 0.5 dac69cddbefb..., table 0.9 105412ce2b31..., counter 817d0c443e4f...,
+#: filing_cabinet 0.9 1b2b032391e9..., filing_cabinet 2.0 64963084df6f...;
+#: order-free, the same shapes:
 MAIN_DIGESTS = {
-    ("desk", (1.6, 0.8, 0.75)): "2374d64849a50ccc5af4f67b5966d0db5f2db068",
-    ("desk", (4.4, 1.5, 1.2)): "8de4dc3118a10d4b9c73b0d14819e9acbda5310d",
-    ("table", (1.2, 0.8, 0.5)): "dac69cddbefb1db72ac64a9fdfebd218c17160f0",
-    ("table", (4.0, 1.2, 0.9)): "105412ce2b312521d295db00efd2a63abb8c8e52",
-    ("counter", (2.2, 0.8, 1.05)): "817d0c443e4fe6016b5183ed613862e636bc7f80",
-    ("filing_cabinet", (0.9, 0.5, 1.4)): "1b2b032391e9ec8b04846377d188033395123dd4",
-    ("filing_cabinet", (2.0, 0.6, 1.8)): "64963084df6f9a0957b8bc20d19141336c6e39c5",
+    ("desk", (1.6, 0.8, 0.75)): "2ecb5b5ac26a68dd6599c4357406992c2ea1c94a",
+    ("desk", (4.4, 1.5, 1.2)): "6fc0cf392e6764087830682a09f14ad70e427507",
+    ("table", (1.2, 0.8, 0.5)): "8518291f11d684ed549d7a90817ca87f36aeda15",
+    ("table", (4.0, 1.2, 0.9)): "bf1667ab1d115e509a9821612ed1caa1cc0f01ee",
+    ("counter", (2.2, 0.8, 1.05)): "88132078c3d946c86d55cf79c700460cec033a21",
+    ("filing_cabinet", (0.9, 0.5, 1.4)): "cf5bf04ea92a0f31ef4ae0e8e02a6f2457f96746",
+    ("filing_cabinet", (2.0, 0.6, 1.8)): "b9e11d1a23b7fd3110785623ce59278b509168ab",
 }
 
 
@@ -50,16 +65,15 @@ def _build(tmp_path, sp, dims, **fields):
 
 
 def _digest(objs):
-    h = hashlib.sha1()
-    for o in objs:
-        h.update(o.name.encode())
-        for v in o.data.vertices:
-            h.update(("%.4f,%.4f,%.4f;" % tuple(v.co)).encode())
+    """Every object's name, vertices and wear, in no stored order (see
+    `MAIN_DIGESTS`)."""
+    rows = []
+    for o in sorted(objs, key=lambda o: o.name):
+        vs = sorted("%.4f,%.4f,%.4f" % tuple(v.co) for v in o.data.vertices)
         ca = o.data.color_attributes.get("Wear")
-        if ca:
-            for c in ca.data:
-                h.update(("%.4f" % c.color[0]).encode())
-    return h.hexdigest()
+        ws = sorted("%.4f" % c.color[0] for c in ca.data) if ca else []
+        rows.append("%s|%s|%s|" % (o.name, ";".join(vs), ",".join(ws)))
+    return hashlib.sha1("\n".join(rows).encode()).hexdigest()
 
 
 def _probe(objs):

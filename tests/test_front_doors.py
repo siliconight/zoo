@@ -87,6 +87,8 @@ def test_bpy_a_navy_door_s_leaf_is_painted_metal(tmp_path):
     from zoo_keeper.bpylayer import build as B
     B.build_module(_module(glazing="facade", door="navy"), str(tmp_path / "out"),
                    theme="delco_1997", style=1, options={"save_blend": False})
+    # the leaf and its panels; 1.124.0's knob (`_LeafHardware`) is iron and
+    # pinned by test_door_hardware.py
     leaves = {o.name: o.data.materials[0].name for o in bpy.data.objects
-              if o.type == "MESH" and "Leaf" in o.name}
+              if o.type == "MESH" and "Leaf" in o.name and "Hardware" not in o.name}
     assert leaves and all("navy" in m or "metal_painted" in m for m in leaves.values()), leaves

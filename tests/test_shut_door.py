@@ -50,7 +50,9 @@ def test_bpy_a_facade_doorway_is_shut_and_an_enterable_one_is_not(tmp_path):
     """FAILS ON 1.60.0: no leaf either way."""
     pytest.importorskip("bpy")
     shut = _built_names(tmp_path / "f", "facade")
-    leaves = {n: m for n, m in shut.items() if "Leaf" in n}
+    # the leaf and its panels; 1.124.0's knob (`_LeafHardware`) is iron and
+    # pinned by test_door_hardware.py
+    leaves = {n: m for n, m in shut.items() if "Leaf" in n and "Hardware" not in n}
     # the KIND, not a name: with no skin library the fallback is
     # `M_Door_wood_panel`, with the theme's it is `M_Skin_wood_panel_<theme>`
     assert leaves and all("wood_panel" in (m or "") for m in leaves.values()), shut
