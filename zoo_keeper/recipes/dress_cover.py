@@ -102,7 +102,7 @@ def build(plan, streams, collection):
     elif cover == "downspout":
         # the leader, its straps and its boot (1.67.0)
         w, _d, h = strip_size(cover, order.get("size", 0.6), order.get("size2"))
-        for center, size in downspout_parts(h, w):
+        for center, size in downspout_parts(h, w, head=bool(order.get("head"))):
             geometry.add_box(bm, center, size)
     elif cover in ("ac_unit", "window_bars", "lintel", "window_sill", "security_door"):
         # an Empty's window fixtures (1.69.0) and its stone lintels and sills

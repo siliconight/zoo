@@ -127,6 +127,14 @@ GUTTER_FRONT = 0.85
 DOWNSPOUT_STANDOFF = 0.02
 DOWNSPOUT_DEPTH = 0.05
 BOOT_H, BOOT_W, BOOT_D = 0.35, 0.12, 0.10
+#: A ROOF THAT DRAINS THROUGH ITS PARAPET (1.147.0; Patina >= 0.34.0 orders the downspout `head`, the factory's
+#: roadmap 324). Its water leaves by a scupper -- a lipped spout through the parapet at the roof's surface -- into a
+#: conductor head, a flared box on the wall that the leader hangs from. The run's top is the roof's surface: the
+#: scupper's lip stands on it, the head hangs just under the lip, and the leader enters the head's foot. Sized from
+#: a 1990s commercial roof's 4 in scupper and a 10 x 8 in head, drawn a little large to hold at street distance.
+SCUPPER_W, SCUPPER_OUT, SCUPPER_H = 0.24, 0.16, 0.10
+HEAD_W, HEAD_D, HEAD_H = 0.30, 0.22, 0.26
+HEAD_FOOT_W, HEAD_FOOT_H = 0.16, 0.08
 
 
 #: A PARAPET'S COPING (1.146.0; Patina >= 0.33.0, the factory's roadmap 324).
@@ -325,6 +333,7 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
                       if isinstance(order.get("size2"), (list, tuple))
                       else None),
             "frame_width": float(order.get("frame_width", 0.12)),
+            "head": bool(order.get("head", False)),
         },
     }
 
@@ -432,24 +441,50 @@ def gutter_parts(span: float, proud: float, cross: float):
     ]
 
 
-def downspout_parts(length: float, cross: float):
+def downspout_parts(length: float, cross: float, head: bool = False):
     """A downspout's parts, in the same cover-local space (y out from the wall
     face, z about the run's middle): the leader on its standoff, a cast boot
     at the ground, two straps. Bottom at ``-length / 2`` -- the ground -- and
     top at ``+length / 2``, the gutter's underside (Patina 0.25.0 measures
     the run between the two).
+
+    ``head`` (1.147.0): the top is the roof's surface instead, and the run
+    ends in a scupper and a conductor head (`scupper_parts`) with the leader
+    entering the head's foot.
     """
     L = float(length)
     zb = -L / 2.0
     y0 = DOWNSPOUT_STANDOFF
     pipe_z0 = zb + BOOT_H - 0.02                      # the leader enters the boot
-    pipe = ((0.0, y0 + DOWNSPOUT_DEPTH / 2.0, (pipe_z0 + L / 2.0) / 2.0),
-            (cross, DOWNSPOUT_DEPTH, L / 2.0 - pipe_z0))
+    top = L / 2.0
+    extra = []
+    if head:
+        extra = scupper_parts(top)
+        top = top - SCUPPER_H - HEAD_H - HEAD_FOOT_H + 0.02   # into the head's foot
+    pipe = ((0.0, y0 + DOWNSPOUT_DEPTH / 2.0, (pipe_z0 + top) / 2.0),
+            (cross, DOWNSPOUT_DEPTH, top - pipe_z0))
     boot = ((0.0, BOOT_D / 2.0, zb + BOOT_H / 2.0), (BOOT_W, BOOT_D, BOOT_H))
     strap_d = y0 + DOWNSPOUT_DEPTH + 0.004
     straps = [((0.0, strap_d / 2.0, zb + L * f), (cross + 0.012, strap_d, 0.025))
               for f in (1.0 / 3.0, 2.0 / 3.0)]
-    return [pipe, boot] + straps
+    return [pipe, boot] + straps + extra
+
+
+def scupper_parts(roof_z: float):
+    """A scupper and its conductor head (1.147.0), as (center, size) boxes in a
+    downspout's cover-local space, ``roof_z`` the roof's surface: the scupper's
+    lip standing on it out of the parapet face, the head hung just under the
+    lip and standing off the wall, and the head's narrower foot where the
+    leader enters. Every part stands 1 mm or more off the wall face."""
+    z = float(roof_z)
+    lip = ((0.0, 0.001 + SCUPPER_OUT / 2.0, z + SCUPPER_H / 2.0 - SCUPPER_H),
+           (SCUPPER_W, SCUPPER_OUT, SCUPPER_H))
+    hz1 = z - SCUPPER_H + 0.004                       # 4 mm up into the lip: no shared face
+    head = ((0.0, 0.003 + HEAD_D / 2.0, hz1 - HEAD_H / 2.0), (HEAD_W, HEAD_D, HEAD_H))
+    fy = 0.001 + (DOWNSPOUT_DEPTH + 0.04) / 2.0           # 1 mm off the wall, around the leader
+    foot = ((0.0, fy, hz1 - HEAD_H - HEAD_FOOT_H / 2.0 + 0.005),
+            (HEAD_FOOT_W, DOWNSPOUT_DEPTH + 0.04, HEAD_FOOT_H + 0.01))
+    return [lip, head, foot]
 
 
 def ac_parts(opening_w: float):

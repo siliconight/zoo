@@ -1,3 +1,16 @@
+## [1.147.0] - a scupper and a conductor head
+
+The factory's roadmap 324. Patina (>= 0.34.0) orders a downspout `head` on a side a parapet stands over, its run from
+the ground to the roof's surface: a flat roof behind a parapet drains through it, not into an eave gutter.
+
+### Added
+- **`core.dressing.scupper_parts`**, built by `downspout_parts(..., head=True)`: a scupper's lip standing out of the
+  parapet face with its top at the roof's surface, a conductor head hung under it, 4 mm up into the lip so the two
+  share no face, and the head's foot around the leader, which ends inside it. Every part stands 1 mm or more off the
+  wall. A downspout without `head` is built as it was. `dress_plan` carries `head`. Slice 2's bank: 10 headed
+  downspouts where 64 gutters hung (the factory's `docs/findings/slice_look/`). Tests: tests/test_scupper.py (fails
+  on 1.146.1).
+
 ## [1.146.1] - fourteen Blender tests that pinned the wrong thing
 
 Found by running every Blender test for 1.146.0, where earlier releases had run a set of them: fourteen failed on
