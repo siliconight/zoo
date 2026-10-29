@@ -38,6 +38,9 @@ anchor normal:
 * ``sat_dish``     — an Empty's satellite dish on a roof pole, its bowl tilted
   up toward the satellite (1.74.0; ``size2`` = [width, the bowl's height];
   ``core.dressing.dish_parts``).
+* ``coping``       — a parapet run's cap, over the whole wall and past both
+  faces (1.146.0; ``size2`` = [length, width] in plan;
+  ``core.dressing.coping_parts``).
 
 Non-collision by construction: :func:`build` returns an empty
 ``collision_boxes`` list, so ``build.build_dressing`` never emits a
@@ -67,7 +70,7 @@ from __future__ import annotations
 
 from ..bpylayer import geometry, materials
 from ..core.dressing import (DISH_R, DISH_TILT, ac_parts, antenna_parts, bar_parts,
-                             dish_parts, downspout_parts, frame_strips,
+                             coping_parts, dish_parts, downspout_parts, frame_strips,
                              gutter_parts, lintel_parts, security_door_parts,
                              sill_parts, strip_size, uv_offset)
 
@@ -116,6 +119,11 @@ def build(plan, streams, collection):
         else:
             parts = sill_parts(ow)
         for center, size in parts:
+            geometry.add_box(bm, center, size)
+    elif cover == "coping":
+        # a parapet run's cap (1.146.0); `size2` is [length, width] in plan
+        length, width = (order.get("size2") or [2.0, 0.4])[:2]
+        for center, size in coping_parts(length, width):
             geometry.add_box(bm, center, size)
     elif cover == "tv_antenna":
         # an Empty's rooftop TV antenna (1.74.0); `size2` is [boom, mast]

@@ -129,6 +129,25 @@ DOWNSPOUT_DEPTH = 0.05
 BOOT_H, BOOT_W, BOOT_D = 0.35, 0.12, 0.10
 
 
+#: A PARAPET'S COPING (1.146.0; Patina >= 0.33.0, the factory's roadmap 324).
+#: Patina plans it -- one order a parapet run, ``size2`` = [length, width] in
+#: plan, the overhang on each face already in the width and the corners already
+#: in the length -- and Zoo stands the solid on the parapet's top: 10 cm tall,
+#: twice the 6 cm `edge_strip` it replaces and the window sill's 5 cm overhang
+#: below it, so at street distance the top of a building reads as a capped wall
+#: rather than a cut one. It sinks `COPING_SINK` into the parapet, so its
+#: underside and the parapet's top are never one plane.
+COPING_H = 0.10
+COPING_SINK = 0.005
+
+
+def coping_parts(length: float, width: float):
+    """A coping's one box, in cover-local space: x along the run, y across
+    the wall, z up from the parapet's top (the order's ``pos``)."""
+    return [((0.0, 0.0, COPING_H / 2.0 - COPING_SINK),
+             (max(float(length), 0.05), max(float(width), 0.05), COPING_H))]
+
+
 def strip_size(cover: str, size_hint: float, size2=None):
     """(w, d, h) of a cover's local strip before the anchor normal orients it.
 

@@ -68,7 +68,10 @@ def test_bpy_the_minus_y_face_is_the_room_and_the_plus_y_face_is_the_wall(tmp_pa
     assert res["report"]["status"] == "pass", res["report"]["checks"]
     room = wall = jamb = 0
     for o in bpy.context.scene.objects:
-        if o.type != "MESH" or o.name.endswith(_COL_SUFFIXES) or "Glass" in o.name:
+        # the pane and (1.145.0) the aluminium frame round it are the window's,
+        # not the wall's: a room sees the frame, as it sees the glass
+        if (o.type != "MESH" or o.name.endswith(_COL_SUFFIXES) or "Glass" in o.name
+                or "_Frame_" in o.name):
             continue
         names = [m.name for m in o.data.materials]
         for poly in o.data.polygons:

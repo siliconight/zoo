@@ -1,3 +1,25 @@
+## [1.146.0] - a parapet has a coping
+
+The factory's roadmap 324; the walker, 2026-10-29, on the window frames: "keep the aluminium, keep going on the
+edges". A parapet's top was capped by Patina's roofline `edge_strip`s, 2 m strips 2.5 m apart and centred on the
+wall's outer face, which this repo built as a 6 x 10 cm stick: a dashed line along the top of every building with a
+parapet (seed 9082, the factory's `docs/findings/parapet_coping/`).
+
+### Added
+- **The `coping` cover** (`core.dressing.coping_parts`, `recipes/dress_cover`): Patina (>= 0.33.0) orders one a
+  parapet run, `size2` = [length, width] in plan with the overhang each face and the corners already in it; Zoo
+  stands a `COPING_H` (10 cm) box on the parapet's top, sunk `COPING_SINK` (5 mm) into it so the two never share a
+  plane. In the covers' own material, so on a side that has a base course it joins that side's concrete mesh: seed
+  9082's bank kept 8 meshes, its covers' top rose from 8.35 to 8.395 m and each side's concrete widened to the
+  coping's 0.43 m. Priced over 53 headings: PASS, draws median +0 and largest +2.
+
+### Fixed
+- **`tests/test_inner_face.py` failed on 1.145.0's window**: it asserted that every face looking into the room is
+  drywall, which held while a window was a slab and a pane; 1.145.0's aluminium frame is seen from the room as the
+  glass is, and the test now passes it over as it passes over the glass. The window frame's change ran a narrower
+  Blender set than this one and missed it. Fourteen other Blender tests fail on 1.144.0 and 1.145.0 alike
+  (`test_club_bpy` 5, `test_interior_bpy` 7, `test_shut_door` 1, `test_front_doors` 1) and are not this release's.
+
 ## [1.145.0] - a window has a frame and a sill
 
 The factory's roadmap 324; the walker, 2026-10-28: "i think its less about realistic textures and more about the 3d
