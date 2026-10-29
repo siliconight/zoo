@@ -1,3 +1,26 @@
+## [1.149.0] - a filling station's canopy and its columns
+
+The factory's roadmap 324; the walker, 2026-10-29, of the game's vertical slice: "Things still look simple, and
+computer made". Deli Counter's specs author a filling station's canopy as volumes -- `canopy_roof`, 24 x 10 x 0.4 in
+fourteen specs and 22 x 13 x 0.9 in two, and six `canopy_col` a canopy -- and no species built them: the forecourt's
+landmark shipped as greybox boxes, a grey slab on grey posts with the canopy's lights under it (the factory's
+`docs/findings/slice_look/`). Minted with `tools/new_species.py` and shaped.
+
+### Added
+- **`fuel_canopy`** (`core.canopy_forms.boxes`, `recipes/fuel_canopy`): a fascia band all round in the store's
+  colour, a stripe along it in the store's rule colour -- `price_pylon_forms.COLOURWAYS` by variant, so the canopy
+  and the FLAPPAHS pylon out front are one brand -- a light soffit under it and a roof cap over it. The envelope is
+  the slot's exactly; the soffit's underside is its bottom, the plane Deli Counter's canopy lights hang from. Corners
+  close as the coping's do. One material, colour in the `Wear` vertex colour. The faces that stand against another
+  part are dropped (`canopy_forms.hidden`): 0 coincident pairs at every genome corner, 88 triangles.
+- **`canopy_column`** (`core.canopy_forms.column_boxes`): a painted steel shaft on a concrete guard in safety yellow,
+  the shaft rising to the slot's top, the canopy's soffit. 0 coincident pairs, 88 triangles.
+
+Deli Counter routes the volumes to them (`prop_species`). Tests: tests/test_fuel_canopy.py, tests/test_canopy_column.py.
+- Each genome's keywords name it in words ("fuel canopy", "gas station canopy"; "canopy column"), so a prompt reaches
+  it; `tests/test_coincident_faces.py`'s census counts 151 species, 453 builds; both join
+  `test_material_options_closed`'s painted steel.
+
 ## [1.148.0] - a string course
 
 The factory's roadmap 324; the walker, 2026-10-29: "Things still look simple, and computer made", and of the target,

@@ -36,6 +36,8 @@ PAINTED = ("vending_machine", "simple_car", "box_truck", "cargo_container",
            "water_tower",
            # the forecourt clutter (roadmap 153): a bollard is painted steel
            "bollard",
+           # the filling station's canopy and its columns (1.149.0): painted steel, their colour in the vertex
+           "fuel_canopy", "canopy_column",
            # a furnace cabinet and a water heater's jacket are enamelled
            # sheet steel (0.84.0)
            "furnace",

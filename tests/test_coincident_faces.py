@@ -607,7 +607,7 @@ DID_NOT_BUILD = {"boots"}
 #: the canopy's chase and DRIVE-UP boards and the station's screen re-measured, 0 pairs, 104 and 216 tris; the
 #: night drop, cash cart, clock and planter on their own materials, 0 pairs. The first build of the bar measured the
 #: module 0.225 deep in a 0.25 slot (posts a section short of the depth) and validation failed it.
-CENSUS_BUILDS = 447
+CENSUS_BUILDS = 453
 
 
 def test_the_census_covers_every_species_there_is():
