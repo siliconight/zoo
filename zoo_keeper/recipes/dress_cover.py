@@ -38,6 +38,8 @@ anchor normal:
 * ``sat_dish``     — an Empty's satellite dish on a roof pole, its bowl tilted
   up toward the satellite (1.74.0; ``size2`` = [width, the bowl's height];
   ``core.dressing.dish_parts``).
+* ``string_course`` — a band across a facade at a floor line (``size2`` =
+  [run, height]; ``core.dressing.string_course_parts``).
 * ``coping``       — a parapet run's cap, over the whole wall and past both
   faces (1.146.0; ``size2`` = [length, width] in plan;
   ``core.dressing.coping_parts``).
@@ -71,6 +73,7 @@ from __future__ import annotations
 from ..bpylayer import geometry, materials
 from ..core.dressing import (DISH_R, DISH_TILT, ac_parts, antenna_parts, bar_parts,
                              coping_parts, dish_parts, downspout_parts, frame_strips,
+                             string_course_parts,
                              gutter_parts, lintel_parts, security_door_parts,
                              sill_parts, strip_size, uv_offset)
 
@@ -119,6 +122,11 @@ def build(plan, streams, collection):
         else:
             parts = sill_parts(ow)
         for center, size in parts:
+            geometry.add_box(bm, center, size)
+    elif cover == "string_course":
+        # a floor line's band; `size2` is [run, height]
+        run, height = (order.get("size2") or [2.0, 0.4])[:2]
+        for center, size in string_course_parts(run, height):
             geometry.add_box(bm, center, size)
     elif cover == "coping":
         # a parapet run's cap (1.146.0); `size2` is [length, width] in plan

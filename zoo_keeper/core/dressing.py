@@ -110,7 +110,7 @@ SILL_H, SILL_PROUD, SILL_BEAR = 0.07, 0.06, 0.05
 #: skin to the photograph's white stone that a cover already offers. One more
 #: material, so one more surface on a side that has openings. The colour is
 #: the flat fallback; the pack is not tintable.
-STONE_TRIM_COVERS = ("lintel", "window_sill")
+STONE_TRIM_COVERS = ("lintel", "window_sill", "string_course")
 STONE_TRIM_KIND = "plaster"
 STONE_TRIM_COLOR = (0.80, 0.76, 0.68)
 
@@ -154,6 +154,22 @@ def coping_parts(length: float, width: float):
     the wall, z up from the parapet's top (the order's ``pos``)."""
     return [((0.0, 0.0, COPING_H / 2.0 - COPING_SINK),
              (max(float(length), 0.05), max(float(width), 0.05), COPING_H))]
+
+
+#: A STRING COURSE (Patina's floor-line band, the factory's roadmap 324): a band across a facade at a floor line,
+#: over the slab's recessed edge, `size2` = [run, height] from Patina. IN THE STONE TRIM (`STONE_TRIM_COVERS`): built
+#: in the covers' concrete it vanished into a concrete wall on the slice (the factory's docs/findings/slice_look/,
+#: slice 3), and the walker asks for "contrast of colors used"; a cream band reads on brick and on render alike. It stands `STRING_PROUD` out of the wall face
+#: and reaches `STRING_INTO` into it, so its back is never the face's plane; its top is bevelled by the cover's own
+#: bevel. Six centimetres proud reads as a shadow line at street distance, as the window sill's five does.
+STRING_PROUD = 0.06
+STRING_INTO = 0.01
+
+
+def string_course_parts(run: float, height: float):
+    """A string course's one box, in cover-local space: x along the wall, y out of the face, z about its middle."""
+    y0, y1 = -STRING_INTO, STRING_PROUD
+    return [((0.0, (y0 + y1) / 2.0, 0.0), (max(float(run), 0.05), y1 - y0, max(float(height), 0.05)))]
 
 
 def strip_size(cover: str, size_hint: float, size2=None):

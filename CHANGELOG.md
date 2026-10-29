@@ -1,3 +1,17 @@
+## [1.148.0] - a string course
+
+The factory's roadmap 324; the walker, 2026-10-29: "Things still look simple, and computer made", and of the target,
+"the detail and placement of hard surfaces ... contrast of colors used". Patina (>= 0.35.0) orders a band at every
+floor line of a building that is not an Empty, over the slab edge Deli Counter leaves recessed half a wall there.
+
+### Added
+- **The `string_course` cover** (`core.dressing.string_course_parts`): a box `STRING_PROUD` (6 cm) out of the face
+  and `STRING_INTO` (1 cm) into it over the run and height Patina declares, in the STONE TRIM (`STONE_TRIM_COVERS`,
+  the Empties' lintels' and sills' cream plaster): in the covers' concrete it vanished into a concrete wall on the
+  slice. Slice 3b (the factory's `docs/findings/slice_look/`): the bank's flank groove is a continuous cream band,
+  the card shop has a stone band between its brick and its storefront; priced against slice 2, draws median +3,
+  largest +10.5 (control floor 21), p95 median +0.014 ms. Tests: tests/test_string_course.py (fails on 1.147.0).
+
 ## [1.147.0] - a scupper and a conductor head
 
 The factory's roadmap 324. Patina (>= 0.34.0) orders a downspout `head` on a side a parapet stands over, its run from
