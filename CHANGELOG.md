@@ -1,3 +1,18 @@
+## [1.150.0] - a stone pilaster on a civic wall
+
+The factory's roadmap 324; the walker, 2026-10-29, of the game's vertical slice: "Things still look simple, and
+computer made", and of the target, "detail and placement of hard surfaces". The slice's bank had a 22 m flank of
+blank stucco between its corners. A pilaster used to be a Patina cover standing proud of the wall with no collider,
+and was withdrawn for standing in walkable space; piers carved into the wall modules (`arch.relief_parts`) cannot
+follow a bay line, because Deli Counter tiles each storey round its own openings and the storeys share almost no
+seams (the factory's `docs/findings/slice_look/`). So a pilaster is a solid of its own, placed by Deli Counter (>=
+0.294.0) at the bays it chooses and collided like any other volume. `wall_pilaster`, minted by `tools/new_species.py`
+and shaped in `core/pilaster_forms.py`: a plinth block at its foot, a shaft `SHAFT_INSET` narrower each side and
+`SHAFT_BACK` behind the plinth's and cap's front, a cap block under the cornice; the slot's box exactly, one collider
+over it; one material, the building's stone trim (`dressing.STONE_TRIM_KIND` in `STONE_TRIM_COLOR`), so it reads as
+one stone with the string courses and quoins. The shaft's top and bottom abut the plinth and cap and are dropped: 0
+coincident pairs at every genome corner, 104 triangles. The census pin goes to 456. Tests: tests/test_wall_pilaster.py.
+
 ## [1.149.0] - a filling station's canopy and its columns
 
 The factory's roadmap 324; the walker, 2026-10-29, of the game's vertical slice: "Things still look simple, and

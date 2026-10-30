@@ -1,0 +1,104 @@
+{
+ "species": "wall_pilaster",
+ "version": 1,
+ "license": {
+  "construction_knowledge": "CC0",
+  "notes": "Minted 2026-10-30 by tools/new_species.py from 'prop': a placeholder box at the authored dims until the recipe is shaped. REFERENCE: a flat stone pier standing a hand proud of a civic wall, ground to cornice: a plinth block at its foot, a plain shaft, a cap block under the cornice; in the building's stone trim Shaped 2026-10-30 (Zoo 1.150.0): plinth, shaft, cap in the stone trim."
+ },
+ "dimensions": {
+  "width": {
+   "min": 0.24,
+   "max": 1.2,
+   "default": 0.6
+  },
+  "depth": {
+   "min": 0.04,
+   "max": 0.2,
+   "default": 0.1
+  },
+  "height": {
+   "min": 2.8,
+   "max": 14.0,
+   "default": 7.0
+  }
+ },
+ "parts": [
+  "WallPilaster_Plinth",
+  "WallPilaster_Shaft",
+  "WallPilaster_Cap"
+ ],
+ "params": {},
+ "materials": {
+  "default": "plaster",
+  "options": [
+   "plaster"
+  ]
+ },
+ "styles": {
+  "default": {
+   "material": "plaster",
+   "color": [
+    0.8,
+    0.76,
+    0.68
+   ],
+   "wear": 0.15,
+   "bevel": 0.006
+  },
+  "delco": {
+   "material": "plaster",
+   "color": [
+    0.8,
+    0.76,
+    0.68
+   ],
+   "wear": 0.35,
+   "bevel": 0.006,
+   "ambient": 0.35
+  },
+  "center_city": {
+   "material": "plaster",
+   "color": [
+    0.8,
+    0.76,
+    0.68
+   ],
+   "wear": 0.122,
+   "bevel": 0.006,
+   "ambient": 0.15
+  },
+  "industrial_flats": {
+   "material": "plaster",
+   "color": [
+    0.8,
+    0.76,
+    0.68
+   ],
+   "wear": 0.57,
+   "bevel": 0.006,
+   "ambient": 0.45
+  },
+  "rockay": {
+   "material": "plaster",
+   "color": [
+    0.8,
+    0.76,
+    0.68
+   ],
+   "wear": 0.29,
+   "bevel": 0.006,
+   "ambient": 0.05
+  }
+ },
+ "budgets": {
+  "tris_lod0": 200
+ },
+ "attachments": [],
+ "collision": true,
+ "match_priority": 0,
+ "keywords": [
+  "wall pilaster",
+  "pilaster",
+  "stone pier"
+ ]
+}
