@@ -105,6 +105,7 @@ TRIS_LIMB = 72             # trunk, leader, primary branch: a cylinder
 TRIS_TWIG = 12             # a twig or a twiglet: a thin box (`_stick`)
 TRIS_CLUSTER = 36          # a branch-tip mass: three boxes
 TRIS_SMALL_CLUSTER = 12    # a twig's mass: one tapered box
+TRIS_CARD_CLUMP = 16       # a leaf-card clump, at a branch or a twig: four cards, a front and a back each (1.152.0)
 #: Headroom on the derived count: one cluster and one limb, so a recipe that
 #: grows a single extra fork reports rather than warns.
 TRIS_HEADROOM = TRIS_LIMB + TRIS_CLUSTER
@@ -146,16 +147,19 @@ def sticks(f: dict) -> int:
     return b * t * (1 + twiglets(f))
 
 
-def tri_count(f: dict) -> int:
-    """Triangles `street_tree` builds for form ``f`` -- the derivation above."""
-    return (TRIS_GRATE + TRIS_LIMB * limbs(f) + TRIS_TWIG * sticks(f)
-            + TRIS_CLUSTER * big_tips(f) + TRIS_SMALL_CLUSTER * small_tips(f))
+def tri_count(f: dict, crown: str = "volume") -> int:
+    """Triangles `street_tree` builds for form ``f`` and its ``crown`` -- the derivation above: a volume crown's masses
+    at their own counts, a leaf-card crown's clumps at `TRIS_CARD_CLUMP` each, big or small."""
+    wood = TRIS_GRATE + TRIS_LIMB * limbs(f) + TRIS_TWIG * sticks(f)
+    if crown == "leafcards":
+        return wood + TRIS_CARD_CLUMP * (big_tips(f) + small_tips(f))
+    return wood + TRIS_CLUSTER * big_tips(f) + TRIS_SMALL_CLUSTER * small_tips(f)
 
 
-def tri_budget(f: dict) -> int:
-    """The genome's `tris_lod0` for form ``f``: the derived count plus one
+def tri_budget(f: dict, crown: str = "volume") -> int:
+    """The genome's `tris_lod0` for form ``f`` and its ``crown``: the derived count plus one
     fork's headroom, rounded up to a round fifty."""
-    return int(math.ceil((tri_count(f) + TRIS_HEADROOM) / 50.0) * 50)
+    return int(math.ceil((tri_count(f, crown) + TRIS_HEADROOM) / 50.0) * 50)
 
 
 def form(name: str | None) -> dict:

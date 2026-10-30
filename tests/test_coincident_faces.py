@@ -267,12 +267,12 @@ RESIDUE = {
     "flat_top_grill": (92, 69, 23, 60, 1.08, 15163.2),
     "bus_shelter": (87, 66, 21, 30, 2.83, 469.4),
     "street_tree": (6, 3, 3, 3, 1.67, 338.5),
-    "pin_oak": (6, 3, 3, 3, 20.99, 419.2),
+    "pin_oak": (6, 3, 3, 3, 17.98, 419.2),
     "cheesesteak": (29, 4, 25, 20, 0.27, 0.2),
-    "red_maple": (6, 3, 3, 3, 13.04, 327.4),
-    "callery_pear": (6, 3, 3, 3, 7.54, 319.8),
-    "london_plane": (6, 3, 3, 3, 6.58, 313.2),
-    "honey_locust": (6, 3, 3, 3, 42.24, 454.9),
+    "red_maple": (6, 3, 3, 3, 13.04, 327.3),
+    "callery_pear": (6, 3, 3, 3, 29.52, 319.8),
+    "london_plane": (7, 3, 4, 3, 5.45, 313.1),
+    "honey_locust": (6, 3, 3, 3, 54.43, 454.7),
     "cash_stack": (16, 16, 0, 16, None, 28.9),
     "hvac_unit": (13, 7, 6, 7, 112.0, 96445.4),
     "vault_door": (12, 4, 8, 1, 3.39, 43.5),
@@ -642,14 +642,17 @@ def test_the_residue_is_the_count_the_entry_claims():
     faceted masses' 128 pairs (20 exposed) went with them -- street_tree 33,
     pin_oak 25, red_maple 22, callery_pear 20, london_plane 15, honey_locust
     13 -- and what is left on each is the trunk's foot on its grate and one
-    limb joint a corner: 1987."""
+    limb joint a corner: 1987. 1.152.0 gave each leaf card a back face of its
+    own, which draws more of the seeded wear stream before the wood is
+    finished: london_plane's default corner meets one more limb joint, buried
+    (5.45 mm): 1988."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 1987, total
+    assert total == 1988, total
     exposed = sum(v[3] for v in RESIDUE.values())
     assert exposed == 543, exposed
     # 0.96.0's, the ATM's, sign_box's, the payphone's, the deposit boxes' and the tree's masses went; the fan's
     # split; hole_spoil's came
-    assert total + 18 + 6 + 6 + 2 + 884 + 128 - 1 - 3 == 3027
+    assert total + 18 + 6 + 6 + 2 + 884 + 128 - 1 - 3 - 1 == 3027
 
 
 def test_every_residue_row_is_self_consistent():

@@ -60,7 +60,9 @@ def export_glb(filepath, collection, merge_parts=True, share_textures=True,
     if weighted_normals:
         for obj in collection.objects:
             if (obj.type == "MESH"
-                    and not obj.name.endswith(partnames.COL_SUFFIXES)):
+                    and not obj.name.endswith(partnames.COL_SUFFIXES)
+                    # a part that set its own normals keeps them (1.152.0: a tree's crown)
+                    and not obj.get("zoo_own_normals")):
                 geometry.weight_normals(obj.data)
     packed = (merge.pack_by_material(collection, units=units)
               if merge_parts else None)

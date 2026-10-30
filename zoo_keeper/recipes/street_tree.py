@@ -152,8 +152,55 @@ def _card_clump(bm, centre, size, rng, uv):
         for i, loop in enumerate(face.loops):
             u, v = corners_uv[(i + turn) % 4]
             loop[uv].uv = (-u if flip else u, v)
-        verts += quad
+        # ITS BACK, ITS OWN FACE (1.152.0): the crown culls its back faces, so a card seen from behind shows this
+        # one -- the same leaves, wound the other way, `CARD_BACK` behind the front so no two faces lie on one
+        # plane (the census's 2 mm), and lit by the crown's normals like the front (`_crown_normals`)
+        face.normal_update()
+        fx, fy, fz = face.normal
+        back = [bm.verts.new((q.co.x - fx * CARD_BACK, q.co.y - fy * CARD_BACK, q.co.z - fz * CARD_BACK))
+                for q in reversed(quad)]
+        bface = bm.faces.new(back)
+        for i, loop in enumerate(bface.loops):
+            u, v = corners_uv[(3 - i + turn) % 4]
+            loop[uv].uv = (-u if flip else u, v)
+        verts += quad + back
     return verts
+
+
+#: a leaf card's back face stands this far behind its front: past the coincident-face census's 2 mm, and too close to
+#: read as two layers
+CARD_BACK = 0.003
+#: the crown's normals point out from a centre this far (of the crown's height) below its middle...
+NORMAL_DROP = 0.2
+#: ...and then mostly UP: each normal is `NORMAL_OUT` of the outward direction plus the vertical, normalised. Pure
+#: outward normals were tried first and are RETRACTED, kept: on the vertical slice (slice 15) the half of every
+#: crown that faced away from the key light took only a dynamic object's ambient -- low at evening, and the tree is
+#: kept out of the bake for its sway layer -- and read as large black masses, worse than the cards they replaced.
+#: Mostly-up normals let the whole crown take the sky and the sun, with the outward share shading its sides.
+NORMAL_OUT = 0.35
+
+
+def _crown_normals(obj):
+    """THE CROWN LIT AS A VOLUME, NOT AS CARDS (1.152.0). A flat card's own normal lights it as a plane: one seen
+    edge-on or from its unlit side read near black on the vertical slice's street trees (slice 13b). Every corner's
+    normal is mostly up, leaning `NORMAL_OUT` toward the outward direction from the crown's centre (lowered
+    `NORMAL_DROP` of its height), so the crown takes the sky as one mass and shades a little round its sides; the
+    object is marked so the export does not weight them over (`export.export_glb`)."""
+    me = obj.data
+    xs = [v.co.x for v in me.vertices]; ys = [v.co.y for v in me.vertices]; zs = [v.co.z for v in me.vertices]
+    cx, cy = (max(xs) + min(xs)) / 2.0, (max(ys) + min(ys)) / 2.0
+    cz = (max(zs) + min(zs)) / 2.0 - NORMAL_DROP * (max(zs) - min(zs))
+    out = []
+    for loop in me.loops:
+        co = me.vertices[loop.vertex_index].co
+        dx, dy, dz = co.x - cx, co.y - cy, co.z - cz
+        n = math.sqrt(dx * dx + dy * dy + dz * dz) or 1.0
+        ox, oy, oz = NORMAL_OUT * dx / n, NORMAL_OUT * dy / n, NORMAL_OUT * dz / n + 1.0
+        m = math.sqrt(ox * ox + oy * oy + oz * oz) or 1.0
+        out.append((ox / m, oy / m, oz / m))
+    me.normals_split_custom_set(out)
+    obj["zoo_own_normals"] = True
+    return len(out)
 
 
 def _sway_layer(leaves, members):
@@ -380,6 +427,7 @@ def build(plan, streams, collection):
             # part carries, which the finish would have written and the build's validation asks for
             geometry.wear_colors(leaves, rng, wear)
             crown = geometry.bm_to_object(leaves, "StreetTree_Crown", collection, finish=False)
+            _crown_normals(crown)
             objs.append(crown)
             leaf_kind = "foliage"
         else:
@@ -406,6 +454,10 @@ def build(plan, streams, collection):
                                                             "StreetTree_Twigs",
                                                             "StreetTree_Trunk"))],
                      bark)
+    if style == "leafcards":
+        # each card carries its own back face (`_card_clump`), so the crown culls: a double-sided card would show
+        # its front's normal flipped from behind -- the near-black cards of slice 13b
+        leaf.use_backface_culling = True
     materials.assign([crown], leaf)
     materials.assign([grate], iron)
     return {"objects": objs, "collision_boxes": cboxes,

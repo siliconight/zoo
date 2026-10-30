@@ -1,3 +1,23 @@
+## [1.152.0] - a leaf card lit as part of its crown
+
+The factory's roadmap 324. On the vertical slice's leaf-card trees (1.151.0; the factory's `docs/findings/slice_look/`,
+slice 13b) a few cards rendered near black: a card was one double-sided face lit by its own normal, and seen from
+behind Godot flips that normal away from the light. Each card now carries its own back face (`_card_clump`: the
+same leaves wound the other way, `CARD_BACK` 3 mm behind, past the coincident-face census's 2 mm), the crown culls
+back faces (`use_backface_culling`, so the glTF is single-sided), and every corner's normal is mostly up, leaning
+`NORMAL_OUT` (0.35) out from the crown's centre (`_crown_normals`) -- the crown takes the sky as one mass. RETRACTED,
+KEPT: pure outward normals (slice 15) left the half of every crown facing away from the key light on a dynamic
+object's ambient, low at evening, and read as large black masses. On the slice (slice 16): every crown evenly lit,
+no black cards, fuller for the backs; draws +0; frame time median -0.03 ms, but two views facing trees cost more --
+camera_socket_0 yaw 270 10.93 -> 11.30 ms (now over the 11 ms budget), extraction_12 yaw 90 8.2-8.5 -> 9.1 ms --
+against a 0.74 ms floor. Shipped for the look, with that cost said; 1.151.0's crown is the cheaper one. The export keeps a part's own normals when it says so
+(`zoo_own_normals`, `export.export_glb`). A clump is 16 triangles: `tree_forms.tri_count` and `tri_budget` now
+follow the crown, and derive every species' built count exactly (red_maple 3,020, pin_oak 3,376, honey_locust 2,812,
+london_plane 2,308, callery_pear 3,732); each genome's budget is its crown's. london_plane's default corner meets one
+more limb joint, buried 5.45 mm -- the seeded wear stream draws more before the wood is finished -- and the census
+pins follow: 1,988. Tests: tests/test_street_tree_cards.py (the back, the normals and the culling; fails on
+1.151.0), tests/test_tree_forms.py.
+
 ## [1.151.0] - a street tree's crown of leaf cards
 
 The factory's roadmap 324; the walker, 2026-10-30, of the vertical slice: "try the card-based trees". The street trees

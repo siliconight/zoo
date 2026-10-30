@@ -95,7 +95,7 @@
     }
   },
   "budgets": {
-    "tris_lod0": 3700
+    "tris_lod0": 3850
   },
   "attachments": [],
   "collision": true,

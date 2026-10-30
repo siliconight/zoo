@@ -112,8 +112,9 @@ def test_the_leaf_colour_rides_the_style_so_a_row_can_differ():
 def test_every_genome_carries_the_budget_its_form_derives():
     for sp, f in tree_forms.FORMS.items():
         g = genome.load_species(sp)
-        assert g["budgets"]["tris_lod0"] == tree_forms.tri_budget(f), sp
-        assert g["budgets"]["tris_lod0"] > tree_forms.tri_count(f), sp
+        crown = g["params"]["crown"]                     # leaf cards since 1.151.0, back faces since 1.152.0
+        assert g["budgets"]["tris_lod0"] == tree_forms.tri_budget(f, crown), sp
+        assert g["budgets"]["tris_lod0"] > tree_forms.tri_count(f, crown), sp
 
 
 # --- 1.56.0: the wind's handle on the crown ------------------------------------------------
