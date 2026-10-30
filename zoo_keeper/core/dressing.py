@@ -122,7 +122,7 @@ STONE_TRIM_COLOR = (0.80, 0.76, 0.68)
 #: exactly. Its material is the WALL'S OWN SKIN (Patina passes the slot's kind as `wall_material`; the colour is
 #: the wall genome's style): what a consumer that does not know the suffix draws is the wall, not a grey patch.
 #: Drawn opaque in that skin it shows an outline, its lighting apart from the wall's (the factory's slice 17b).
-STAIN_COVERS = ("stain_streak",)
+STAIN_COVERS = ("stain_streak", "stain_base")
 #: the stain's material is the wall's skin renamed with this, which the import draws as a multiply overlay
 STAIN_SUFFIX = "_stain"
 STAIN_PROUD = 0.002
@@ -132,6 +132,21 @@ STAIN_PROUD = 0.002
 STAIN_DARK = 0.5
 STAIN_COLS = 6
 STAIN_ROWS = 6
+#: GRIME AT A WALL'S BASE (1.154.0): rain splashes back off the ground and damp rises, so a wall darkens from the
+#: ground up and its top edge wanders. A `stain_base` is a grid laid `STAIN_PROUD` off the wall along a whole
+#: span of it, darkest at the ground (`GRIME_DARK`) and fading to 1.0 at its top, which each column lifts to its
+#: own share of the band (`GRIME_TOP`, smoothed with its neighbours so the edge wanders rather than saws); it
+#: fades out only over its last `GRIME_END` metres, where Patina ends the span at a corner or an opening. It is a
+#: stain in every other way: the wall's skin, `STAIN_SUFFIX`, drawn by Level Factory's overlay in the building's
+#: one stain mesh.
+#: 0.6 with a 1.6-power fade was measured faint (the factory's slice 18b): a 4 % darkening a few pixels tall at the
+#: bank's foot from the street, and barely there up close; darker, and a linear fade, so it reads its height
+GRIME_DARK = 0.35
+#: a column every this many metres along the span
+GRIME_COL = 0.3
+GRIME_ROWS = 4
+GRIME_TOP = (0.55, 1.0)
+GRIME_END = 0.2
 
 #: The gutter's sheet, drawn thicker than aluminium so it holds at street
 #: distance; its front stands a little lower than its back, as a hung gutter's
@@ -208,6 +223,39 @@ def stain_grid(width: float, length: float, seed: int):
         for i in range(cols):
             a = j * (cols + 1) + i
             faces.append((a, a + 1, a + cols + 2, a + cols + 1))
+    return verts, faces, shade
+
+
+def grime_grid(width: float, height: float, seed: int):
+    """``(verts, faces, shade)`` of a wall base's grime in cover-local space: x along the span, y out of the wall
+    at `STAIN_PROUD`, z up from the ground (0) to each column's own top, at most ``height``; ``faces`` index
+    quads, ``shade`` the `Wear` value a vertex carries -- darkest at the ground, 1.0 on the top row and at both
+    ends. Pure and deterministic for a seed."""
+    import math
+    import random
+    r = random.Random(int(seed))
+    width, height = float(width), float(height)
+    cols, rows = max(2, int(math.ceil(width / GRIME_COL - 1e-9))), GRIME_ROWS
+    raw = [r.uniform(*GRIME_TOP) for _ in range(cols + 1)]
+    tops = [(raw[max(i - 1, 0)] + 2.0 * raw[i] + raw[min(i + 1, cols)]) / 4.0 for i in range(cols + 1)]
+    col_k = [0.7 + 0.3 * r.random() for _ in range(cols + 1)]
+    verts, shade = [], []
+    for j in range(rows + 1):
+        t = j / rows                                    # 0 at the ground, 1 at the column's top
+        for i in range(cols + 1):
+            x = -width / 2.0 + width * i / cols
+            e = min(1.0, min(x + width / 2.0, width / 2.0 - x) / GRIME_END)
+            end = e * e * (3.0 - 2.0 * e)
+            depth = (1.0 - GRIME_DARK) * (1.0 - t) * end * col_k[i]
+            verts.append((x, STAIN_PROUD, t * height * tops[i]))
+            shade.append(round(1.0 - depth, 4))
+    faces = []
+    for j in range(rows):
+        for i in range(cols):
+            a = j * (cols + 1) + i
+            # wound the other way from `stain_grid`'s: its rows run DOWN the wall and these run up, so the same
+            # order would face the wall (slice 18 built every band facing into its building, culled unseen)
+            faces.append((a, a + cols + 1, a + cols + 2, a + 1))
     return verts, faces, shade
 
 

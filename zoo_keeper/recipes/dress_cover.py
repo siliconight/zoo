@@ -128,13 +128,18 @@ def build(plan, streams, collection):
         run, height = (order.get("size2") or [2.0, 0.4])[:2]
         for center, size in string_course_parts(run, height):
             geometry.add_box(bm, center, size)
-    elif cover == "stain_streak":
-        # where water runs down a wall (1.153.0); `size2` is [width, length]. The grid's own `Wear` colour is the
-        # stain, so it is finished without `wear_colors`, which would write over it.
+    elif cover in ("stain_streak", "stain_base"):
+        # where water runs down a wall (1.153.0), `size2` [width, length], and grime at its base (1.154.0), `size2`
+        # [span, height]. The grid's own `Wear` colour is the stain, so it is finished without `wear_colors`,
+        # which would write over it.
         import bpy
-        from ..core.dressing import STAIN_SUFFIX, stain_grid
-        width, length = (order.get("size2") or [0.8, 1.2])[:2]
-        verts, faces, shade = stain_grid(width, length, order.get("seed_offset", 0))
+        from ..core.dressing import STAIN_SUFFIX, grime_grid, stain_grid
+        if cover == "stain_base":
+            span, height = (order.get("size2") or [2.0, 0.6])[:2]
+            verts, faces, shade = grime_grid(span, height, order.get("seed_offset", 0))
+        else:
+            width, length = (order.get("size2") or [0.8, 1.2])[:2]
+            verts, faces, shade = stain_grid(width, length, order.get("seed_offset", 0))
         bv = [bm.verts.new(v) for v in verts]
         layer = bm.loops.layers.color.new(geometry.WEAR_LAYER)
         for f in faces:

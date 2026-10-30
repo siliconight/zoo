@@ -1,3 +1,26 @@
+## [1.154.0] - grime at a wall's base
+
+The factory's roadmap 324. Patina (>= 0.40.0) orders a `stain_base` along each span of a ground storey's wall.
+
+### Added
+- **`stain_base`** (`dressing.grime_grid`, `recipes/dress_cover.py`): grime at a wall's base -- rain splashes back and
+  damp rises, so a wall darkens from the ground up. A grid `STAIN_PROUD` off the wall along a whole span, a column
+  every `GRIME_COL` (0.3 m), darkest at the ground (`GRIME_DARK` 0.35) and fading linearly to 1.0 at each column's
+  own top, which `GRIME_TOP` lifts to 55-100 % of the band and smooths with its neighbours so the edge wanders; it
+  fades out over its last `GRIME_END` (0.2 m), where Patina ends the span at a corner or an opening. A stain in every
+  other way (`STAIN_COVERS`): the wall's skin renamed `_stain`, which Level Factory (>= 0.271.0) draws in the
+  building's one stain mesh, so on a building that already had stains it costs no draw.
+
+### Retracted, kept (the factory's `docs/findings/slice_look/`)
+- **Slice 18:** every band faced INTO its building. `stain_grid`'s rows run down the wall and `grime_grid`'s up, and
+  the same quad order then winds the other way; the overlay culls back faces, so the bands were submitted and never
+  drawn (the GLB's normals read -x on the bank's +x face). Both grids are now tested to face out.
+- **Slice 18b:** `GRIME_DARK` 0.6 with a 1.6-power fade read as a 4 % darkening a few pixels tall at the bank's
+  foot from the street. 0.35 and a linear fade (slice 20): about -11 there under the inspection light, and at
+  evening a darker footing along the wall.
+
+Tests: tests/test_stain_base.py.
+
 ## [1.153.0] - a stain where water runs down a wall
 
 The factory's roadmap 324. Patina (>= 0.39.0) orders a `stain_streak` below a window's sill.
