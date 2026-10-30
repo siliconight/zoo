@@ -50,7 +50,8 @@ def test_an_unknown_species_is_the_commonest_street_tree():
 def test_the_genome_names_a_form_the_table_holds():
     g = genome.load_species("street_tree")
     assert g["params"].get("form") in tree_forms.FORMS
-    assert g["params"].get("crown") == "volume"
+    # leaf cards since 1.151.0 (the walker, 2026-10-30: "try the card-based trees"); the volume stays a param
+    assert g["params"].get("crown") == "leafcards"
     assert g["budgets"]["tris_lod0"] >= 2136   # measured: a red maple builds 2,136 tris
 
 

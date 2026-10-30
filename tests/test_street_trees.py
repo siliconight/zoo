@@ -18,7 +18,7 @@ def test_each_tree_is_discovered_validates_and_names_its_form(sp):
     g = genome.load_species(sp)
     assert genome.validate_genome(g) == []
     assert g["params"]["form"] == sp and sp in tree_forms.FORMS
-    assert g["params"]["crown"] == "volume"
+    assert g["params"]["crown"] == "leafcards"           # 1.151.0, the walker's card trees
     assert g["materials"]["default"] == "wood"
 
 

@@ -26,7 +26,7 @@
     "StreetTree_Body"
   ],
   "params": {
-    "crown": "volume",
+    "crown": "leafcards",
     "form": "london_plane"
   },
   "materials": {

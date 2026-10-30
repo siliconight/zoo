@@ -219,3 +219,15 @@ def sway_weight(z: float, z_foot: float, z_top: float) -> float:
 def cluster_phase(i: int) -> float:
     """The i-th cluster's phase in [0, 1)."""
     return (i * SWAY_PHASE_STEP) % 1.0
+
+
+#: A LEAF CARD'S TILE (1.151.0): Pixelcoat's `foliage_delco` pack is
+#: `meters_per_tile` 4.0 and its leaves sit in an ellipse centred on the
+#: tile's corner, so a card whose UVs run -2 .. 2 metres frames exactly one
+#: crown of leaves. Mirrored, and pinned against the profile by
+#: tests/test_street_tree_cards.py.
+LEAF_TILE_M = 4.0
+#: a leaf card is this many times its cluster's size: the leaves fill the
+#: middle of the card's ellipse, so a card a little over twice the mass it
+#: replaces covers about what the mass did
+CARD_SCALE = 2.2

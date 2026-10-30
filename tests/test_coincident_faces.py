@@ -266,13 +266,13 @@ RESIDUE = {
     "teller_line": (114, 31, 83, 25, 100.0, 3882.2),
     "flat_top_grill": (92, 69, 23, 60, 1.08, 15163.2),
     "bus_shelter": (87, 66, 21, 30, 2.83, 469.4),
-    "street_tree": (39, 22, 17, 6, 2.09, 437884.4),
-    "pin_oak": (31, 21, 10, 7, 4.02, 391635.0),
+    "street_tree": (6, 3, 3, 3, 1.67, 338.5),
+    "pin_oak": (6, 3, 3, 3, 20.99, 419.2),
     "cheesesteak": (29, 4, 25, 20, 0.27, 0.2),
-    "red_maple": (28, 17, 11, 9, 1.48, 235404.6),
-    "callery_pear": (26, 11, 15, 5, 1.82, 116580.0),
-    "london_plane": (21, 10, 11, 4, 3.8, 350560.2),
-    "honey_locust": (19, 10, 9, 7, 11.82, 113356.1),
+    "red_maple": (6, 3, 3, 3, 13.04, 327.4),
+    "callery_pear": (6, 3, 3, 3, 7.54, 319.8),
+    "london_plane": (6, 3, 3, 3, 6.58, 313.2),
+    "honey_locust": (6, 3, 3, 3, 42.24, 454.9),
     "cash_stack": (16, 16, 0, 16, None, 28.9),
     "hvac_unit": (13, 7, 6, 7, 112.0, 96445.4),
     "vault_door": (12, 4, 8, 1, 3.39, 43.5),
@@ -638,13 +638,18 @@ def test_the_residue_is_the_count_the_entry_claims():
     inside one fracture fragment as `rubble_frag`'s are: 2999. 1.140.0 drew
     the deposit boxes' doors and stood their frame's rails off its stiles,
     and the species' 884 (411 exposed), every one the frame's crossings,
-    went: 2115."""
+    went: 2115. 1.151.0 gave every tree species a crown of leaf cards: their
+    faceted masses' 128 pairs (20 exposed) went with them -- street_tree 33,
+    pin_oak 25, red_maple 22, callery_pear 20, london_plane 15, honey_locust
+    13 -- and what is left on each is the trunk's foot on its grate and one
+    limb joint a corner: 1987."""
     total = sum(v[0] for v in RESIDUE.values()) + sum(GATED.values())
-    assert total == 2115, total
+    assert total == 1987, total
     exposed = sum(v[3] for v in RESIDUE.values())
-    assert exposed == 563, exposed
-    # 0.96.0's, the ATM's, sign_box's, the payphone's and the deposit boxes' went; the fan's split; hole_spoil's came
-    assert total + 18 + 6 + 6 + 2 + 884 - 1 - 3 == 3027
+    assert exposed == 543, exposed
+    # 0.96.0's, the ATM's, sign_box's, the payphone's, the deposit boxes' and the tree's masses went; the fan's
+    # split; hole_spoil's came
+    assert total + 18 + 6 + 6 + 2 + 884 + 128 - 1 - 3 == 3027
 
 
 def test_every_residue_row_is_self_consistent():
@@ -664,8 +669,7 @@ def test_the_worst_buried_residue_fights_closer_than_the_stop_sign_did():
     worse = {sp: v[4] for sp, v in RESIDUE.items()
              if v[4] is not None and v[4] < 2.70}
     assert set(worse) == {"soda_cup", "litter_scrap", "cheesesteak",
-                          "flat_top_grill", "red_maple", "callery_pear",
-                          "street_tree"}, sorted(worse)
+                          "flat_top_grill", "street_tree"}, sorted(worse)
     assert round(fight_distance_m(0.21), 1) == 13.3
     assert round(fight_distance_m(2.70), 1) == 47.6
 

@@ -1,3 +1,20 @@
+## [1.151.0] - a street tree's crown of leaf cards
+
+The factory's roadmap 324; the walker, 2026-10-30, of the vertical slice: "try the card-based trees". The street trees
+were the most "computer made" shape on the avenue -- a grown trunk and branches carrying faceted leaf masses that read
+as flat plates. `crown = "leafcards"` keeps the skeleton and hangs a clump of cut-out leaf cards at every tip instead
+(`street_tree._card_clump`): three upright cards crossed at 60 degrees, each tipped up to 18 degrees off vertical,
+and one lying near flat, `CARD_SCALE` (2.2) times the mass it replaces, each card's UVs framing exactly one tile of
+Pixelcoat's foliage pack (>= 0.65.0, whose cutout is leaves) -- `tree_forms.LEAF_TILE_M`, 4.0, pinned against the
+profile -- turned or mirrored by the seed; four quads, eight triangles, against a mass's thirty-six; the wind's sway
+layer as before. It is every tree species' default: `street_tree` and the five Lot plants by name, `red_maple`,
+`pin_oak`, `honey_locust`, `london_plane` and `callery_pear`. RETRACTED, KEPT in the tests: the first build set
+`street_tree`'s default alone and the slice's trees did not change -- Lot plants the five, each its own genome. The
+crown's coincident faces went with the masses: 128 pairs across the six species, each now 6 (the trunk's foot on its
+grate and one limb joint a corner); the census's totals and its tighter-than-2.70 mm set follow. On the slice (the
+factory's `docs/findings/slice_look/`, slice 13b): trees with sky through their sprays where plates stood; draws +0.
+Tests: tests/test_street_tree_cards.py.
+
 ## [1.150.0] - a stone pilaster on a civic wall
 
 The factory's roadmap 324; the walker, 2026-10-29, of the game's vertical slice: "Things still look simple, and

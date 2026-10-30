@@ -31,6 +31,7 @@ import math
 
 from ..bpylayer import geometry, materials
 from ..core import tree_forms
+from ..core.tree_forms import CARD_SCALE, LEAF_TILE_M
 
 TRUNK_D = 0.30
 GRATE = 1.2
@@ -114,6 +115,45 @@ def _cluster(bm, centre, size):
     upper = geometry.add_box(bm, (cx, cy, cz + hh * 0.30), (s, s, hh * 0.40))
     geometry.taper_z(upper, 0.45, 1.0)
     return list(lower) + list(middle) + list(upper)
+
+
+def _card_clump(bm, centre, size, rng, uv):
+    """A LEAF CLUMP OF CARDS (1.151.0): three upright cards crossed at 60
+    degrees, each tipped a little off vertical, and one card lying near flat
+    -- four quads, eight triangles against a faceted mass's thirty-six. Each
+    card's UVs frame one foliage tile (`LEAF_TILE_M`), turned or mirrored by
+    the seed so neighbouring cards differ. Returns the clump's vertices, for
+    the sway layer."""
+    cx, cy, cz = centre
+    half = size * CARD_SCALE / 2.0
+    spin = rng.random() * math.pi
+    m = LEAF_TILE_M / 2.0
+    corners_uv = [(-m, -m), (m, -m), (m, m), (-m, m)]
+    verts = []
+    for k in range(4):
+        if k < 3:
+            yaw = spin + k * math.pi / 3.0
+            tilt = math.radians(rng.uniform(-18.0, 18.0))
+            # a vertical card: across (cos yaw, sin yaw), up (tipped by tilt)
+            ax = (math.cos(yaw), math.sin(yaw), 0.0)
+            up = (-math.sin(yaw) * math.sin(tilt), math.cos(yaw) * math.sin(tilt), math.cos(tilt))
+        else:
+            yaw = spin + rng.random() * math.pi
+            tilt = math.radians(rng.uniform(70.0, 85.0))
+            ax = (math.cos(yaw), math.sin(yaw), 0.0)
+            up = (-math.sin(yaw) * math.sin(tilt), math.cos(yaw) * math.sin(tilt), math.cos(tilt))
+        quad = []
+        for su, sv in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+            quad.append(bm.verts.new((cx + su * half * ax[0] + sv * half * up[0],
+                                      cy + su * half * ax[1] + sv * half * up[1],
+                                      cz + su * half * ax[2] + sv * half * up[2])))
+        face = bm.faces.new(quad)
+        turn, flip = int(rng.random() * 4) % 4, rng.random() < 0.5
+        for i, loop in enumerate(face.loops):
+            u, v = corners_uv[(i + turn) % 4]
+            loop[uv].uv = (-u if flip else u, v)
+        verts += quad
+    return verts
 
 
 def _sway_layer(leaves, members):
@@ -298,13 +338,19 @@ def build(plan, streams, collection):
             _stick(twigs, _fitp(a), _fitp(b), r0, r1)
         leaves = geometry.new_bm()
         members = []          # (the cluster's vertices, its sway phase)
+        # LEAF CARDS (1.151.0, `crown = "leafcards"`): the same skeleton, a
+        # clump of cut-out leaf cards at every tip instead of a faceted mass
+        cards = style == "leafcards"
+        card_uv = leaves.loops.layers.uv.new("UVMap") if cards else None
         for p, c in big:
             q = _fitp(p)
-            members.append((_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c),
+            members.append(((_card_clump(leaves, (q[0], q[1], q[2] + c * 0.2), c, rng, card_uv)
+                             if cards else _cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)),
                             tree_forms.cluster_phase(len(members))))
         for p, c in small:
             q = _fitp(p)
-            members.append((_small_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c),
+            members.append(((_card_clump(leaves, (q[0], q[1], q[2] + c * 0.2), c, rng, card_uv)
+                             if cards else _small_cluster(leaves, (q[0], q[1], q[2] + c * 0.2), c)),
                             tree_forms.cluster_phase(len(members))))
         # the exact slot: a last per-axis correction of both meshes, small
         # now that the skeleton fits, so a cluster keeps its shape
@@ -329,8 +375,16 @@ def build(plan, streams, collection):
         trunk = part(wood, "StreetTree_Wood", texel=1.5)
         twig_obj = part(twigs, "StreetTree_Twigs", texel=2.0, part_bevel=0.0,
                         smooth=False)
-        crown = part(leaves, "StreetTree_Crown", texel=0.6, part_bevel=0.0)
-        leaf_kind = "vegetation"
+        if cards:
+            # the cards' own UVs frame one tile each: no projection over them -- but the `Wear` colour every
+            # part carries, which the finish would have written and the build's validation asks for
+            geometry.wear_colors(leaves, rng, wear)
+            crown = geometry.bm_to_object(leaves, "StreetTree_Crown", collection, finish=False)
+            objs.append(crown)
+            leaf_kind = "foliage"
+        else:
+            crown = part(leaves, "StreetTree_Crown", texel=0.6, part_bevel=0.0)
+            leaf_kind = "vegetation"
         cboxes.append(((-TRUNK_D / 2.0, -TRUNK_D / 2.0, z0),
                        (TRUNK_D / 2.0, TRUNK_D / 2.0, trunk_top_z)))
 
