@@ -113,6 +113,25 @@ SILL_H, SILL_PROUD, SILL_BEAR = 0.07, 0.06, 0.05
 STONE_TRIM_COVERS = ("lintel", "window_sill", "string_course")
 STONE_TRIM_KIND = "plaster"
 STONE_TRIM_COLOR = (0.80, 0.76, 0.68)
+#: A STAIN WHERE WATER RUNS (1.153.0, the factory's roadmap 324). The walker, of the vertical slice: "Things still
+#: look simple, and computer made". A real facade darkens below whatever sheds water onto it -- a sill, a coping, a
+#: scupper -- and nowhere else; the slice's walls were one even field. A `stain_streak` is a grid laid `STAIN_PROUD`
+#: off the wall, its darkening in its `Wear` colour: `STAIN_DARK` at the cause, fading to 1.0 down its length and
+#: out to its sides, varied by column so it reads as runoff and not as a band. Level Factory's import (>= 0.271.0,
+#: `zoo_worldskin.gd`) draws it as a multiply overlay onto the wall, out of the bake, so a shade of 1.0 is the wall
+#: exactly. Its material is the WALL'S OWN SKIN (Patina passes the slot's kind as `wall_material`; the colour is
+#: the wall genome's style): what a consumer that does not know the suffix draws is the wall, not a grey patch.
+#: Drawn opaque in that skin it shows an outline, its lighting apart from the wall's (the factory's slice 17b).
+STAIN_COVERS = ("stain_streak",)
+#: the stain's material is the wall's skin renamed with this, which the import draws as a multiply overlay
+STAIN_SUFFIX = "_stain"
+STAIN_PROUD = 0.002
+#: the darkest a stain draws a wall to, at its cause (its column's jitter lightens it to 0.55-1.0 of that). 0.72 was
+#: chosen unseen and measured faint: on the slice's bank (the factory's slice 17d) the sill row kept 0.80 of the
+#: wall under the inspection light and 0.49 at evening, and at evening read as nothing
+STAIN_DARK = 0.5
+STAIN_COLS = 6
+STAIN_ROWS = 6
 
 #: The gutter's sheet, drawn thicker than aluminium so it holds at street
 #: distance; its front stands a little lower than its back, as a hung gutter's
@@ -164,6 +183,32 @@ def coping_parts(length: float, width: float):
 #: bevel. Six centimetres proud reads as a shadow line at street distance, as the window sill's five does.
 STRING_PROUD = 0.06
 STRING_INTO = 0.01
+
+
+def stain_grid(width: float, length: float, seed: int):
+    """``(verts, faces, shade)`` of a stain streak in cover-local space: x across it, y out of the wall at
+    `STAIN_PROUD`, z down from its top (0) to ``-length``; ``faces`` index quads, ``shade`` the `Wear` value a
+    vertex carries -- `STAIN_DARK` at the top of a dark column's middle, 1.0 at the bottom row and the side edges.
+    Pure and deterministic for a seed."""
+    import random
+    r = random.Random(int(seed))
+    cols, rows = STAIN_COLS, STAIN_ROWS
+    col_k = [0.55 + 0.45 * r.random() for _ in range(cols + 1)]
+    verts, shade = [], []
+    for j in range(rows + 1):
+        t = j / rows                                    # 0 at the cause, 1 at the streak's foot
+        for i in range(cols + 1):
+            u = -1.0 + 2.0 * i / cols                   # -1 .. 1 across
+            edge = max(0.0, 1.0 - u * u)
+            depth = (1.0 - STAIN_DARK) * ((1.0 - t) ** 1.4) * edge * col_k[i]
+            verts.append((u * width / 2.0, STAIN_PROUD, -t * length))
+            shade.append(round(1.0 - depth, 4))
+    faces = []
+    for j in range(rows):
+        for i in range(cols):
+            a = j * (cols + 1) + i
+            faces.append((a, a + 1, a + cols + 2, a + cols + 1))
+    return verts, faces, shade
 
 
 def string_course_parts(run: float, height: float):
@@ -325,6 +370,15 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
     # and its lintels and sills are stone-coloured plaster (1.71.0)
     elif order.get("cover") in STONE_TRIM_COVERS and STONE_TRIM_KIND in genome["materials"]["options"]:
         material, color = STONE_TRIM_KIND, [round(float(c), 4) for c in STONE_TRIM_COLOR]
+    # and a stain is the wall's own skin (1.153.0): the slot's kind, the wall genome's colour for the theme, so
+    # `make_material` returns the wall's material by name
+    elif order.get("cover") in STAIN_COVERS:
+        from . import dna as _dna, genome as _genome, skins as _skins
+        kind = order.get("wall_material")
+        if kind in _skins.KNOWN_KINDS:
+            got = _dna.theme_style(_genome.load_species("wall"), theme)
+            wall_color = (got[1].get("color") if got else None) or [0.5, 0.49, 0.46]
+            material, color = kind, [round(float(c), 4) for c in wall_color]
     return {
         "species": "dress_cover",
         "tool_version": tool_version,
@@ -350,6 +404,7 @@ def dress_plan(order: dict, genome: dict, theme: str, space: str,
                       else None),
             "frame_width": float(order.get("frame_width", 0.12)),
             "head": bool(order.get("head", False)),
+            "wall_material": order.get("wall_material"),
         },
     }
 

@@ -1,3 +1,18 @@
+## [1.153.0] - a stain where water runs down a wall
+
+The factory's roadmap 324. Patina (>= 0.39.0) orders a `stain_streak` below a window's sill.
+
+### Added
+- **`stain_streak`** (`dressing.stain_grid`, `recipes/dress_cover.py`): a 6 x 6 grid `STAIN_PROUD` (2 mm) off the
+  wall, its darkening in its `Wear` colour -- `STAIN_DARK` at its cause, fading to 1.0 down its length and out to
+  both sides, each column jittered so it reads as runoff and not as a band. Its material is the wall's own skin,
+  named `<skin>_stain` (`STAIN_SUFFIX`): Level Factory's import (>= 0.271.0) draws it as black at `1 - shade` over
+  the wall, and a consumer that does not know the suffix draws the wall. `STAIN_DARK` is 0.5: 0.72 was chosen unseen
+  and measured faint on the slice (slice 17d: the sill row kept 0.80 of the wall under the inspection light, and at
+  evening read as nothing); at 0.5 (slice 17e) it keeps 0.64 under the inspection light and 0.18 at evening, and
+  reads as runoff under each sill, gone by the band below. Tests: tests/test_stain_streak.py (the grid, the plan's
+  wall skin, the build).
+
 ## [1.152.0] - a leaf card lit as part of its crown
 
 The factory's roadmap 324. On the vertical slice's leaf-card trees (1.151.0; the factory's `docs/findings/slice_look/`,

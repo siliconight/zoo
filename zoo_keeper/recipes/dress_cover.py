@@ -128,6 +128,34 @@ def build(plan, streams, collection):
         run, height = (order.get("size2") or [2.0, 0.4])[:2]
         for center, size in string_course_parts(run, height):
             geometry.add_box(bm, center, size)
+    elif cover == "stain_streak":
+        # where water runs down a wall (1.153.0); `size2` is [width, length]. The grid's own `Wear` colour is the
+        # stain, so it is finished without `wear_colors`, which would write over it.
+        import bpy
+        from ..core.dressing import STAIN_SUFFIX, stain_grid
+        width, length = (order.get("size2") or [0.8, 1.2])[:2]
+        verts, faces, shade = stain_grid(width, length, order.get("seed_offset", 0))
+        bv = [bm.verts.new(v) for v in verts]
+        layer = bm.loops.layers.color.new(geometry.WEAR_LAYER)
+        for f in faces:
+            face = bm.faces.new([bv[k] for k in f])
+            for loop, k in zip(face.loops, f):
+                s = shade[k]
+                loop[layer] = (s, s, s, 1.0)
+        # UVs as the walls take them (texel 1.0, `_arch`), for a consumer that draws the skin and not the overlay
+        geometry.cube_project_uv(bm, 1.0)
+        obj = geometry.bm_to_object(bm, f"Cover{plan.get('side') or ''}_{cover}", collection, finish=False)
+        # THE WALL'S SKIN UNDER ANOTHER NAME: `<skin>_stain`, which Level Factory's import (>= 0.271.0,
+        # `zoo_worldskin.gd`) draws as a multiply overlay of its vertex colour onto the wall
+        skin = materials.make_material(f"M_Cover_{plan['material']}", plan["color"], plan["material"])
+        name = skin.name + STAIN_SUFFIX
+        mat = bpy.data.materials.get(name)
+        if mat is None:
+            mat = skin.copy()
+            mat.name = name
+        materials.assign([obj], mat)
+        return {"objects": [obj], "collision_boxes": [], "attachments": {},
+                "uv_region": order.get("uv_region")}
     elif cover == "coping":
         # a parapet run's cap (1.146.0); `size2` is [length, width] in plan
         length, width = (order.get("size2") or [2.0, 0.4])[:2]
