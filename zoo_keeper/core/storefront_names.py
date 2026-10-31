@@ -55,6 +55,10 @@ KINDS = (
     # alone: "rental" and "movies" are words other buildings could carry.
     ("video", ("video",), ("MACDADE MOVIES",)),
     ("brewery", ("brewery",), ("DOWN THE SHORE BREWING", "HONEST HON BREW CO")),
+    # THE BEER DISTRIBUTOR (1.157.0; Deli Counter 0.297.0's `beer_distributor`): Pennsylvania's 1999 case-beer shop,
+    # the walker's liquor-store photographs (the factory's docs/reference/STORE_SIGNAGE_COMPS.md). The names the
+    # theme already gave a distributor's band.
+    ("beer", ("beer", "distributor"), ("BEER WORLD", "CASE LOT BEER")),
     ("casino", ("casino",), ("LUCKY JAWN CASINO", "THE BROKE BANK CASINO")),
     ("funeral", ("funeral",), ("STIFF & SONS FUNERAL HOME", "RESTFUL PINES FUNERAL HOME")),
     ("country", ("country",), ("PIKE HILLS COUNTRY CLUB",)),
@@ -116,7 +120,7 @@ def sign_for(business):
 #: building of no kind, says OPEN.
 TRADE = {"club": "OPEN", "gas": "OPEN 24 HOURS", "pizza": "PIZZA", "deli": "DELI", "pawn": "PAWN", "bank": "BANK",
          "pharmacy": "PHARMACY", "clinic": "CLINIC", "market": "GROCERY", "card": "CARDS", "video": "VIDEO",
-         "brewery": "BREWERY", "casino": "CASINO", "funeral": "FUNERAL HOME", "country": "CLUBHOUSE"}
+         "brewery": "BREWERY", "beer": "BEER", "casino": "CASINO", "funeral": "FUNERAL HOME", "country": "CLUBHOUSE"}
 
 
 def trade_for(business):

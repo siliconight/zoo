@@ -1,3 +1,11 @@
+## [1.157.0] - a beer distributor's door names it
+
+Deli Counter 0.297.0 builds a beer distributor (the walker, 2026-10-31: "liquor store should have neon beer company
+signs"). `storefront_names.KINDS` gains `beer` (by the words `beer` and `distributor`): BEER WORLD and CASE LOT BEER,
+the names the theme already gave a distributor's band; its door's trade is BEER.
+
+Tests: tests/test_beer_kind.py (fails on 1.156.0: a beer distributor shows a street number over its door).
+
 ## [1.156.0] - a window neon's beer bent in a script
 
 The walker, 2026-10-31: "Neon is also fun", "liquor store should have neon beer company signs", and of every sign on
