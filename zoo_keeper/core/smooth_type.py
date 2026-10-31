@@ -25,7 +25,9 @@ import numpy as np
 
 FACES = ("highway", "highway_bold", "highway_cond", "minisystem",
          "aileron", "aileron_bold", "vegur", "vegur_bold",
-         "oldstyle", "oldstyle_bold", "oldstyle_italic")
+         "oldstyle", "oldstyle_bold", "oldstyle_italic",
+         # 1.156.0: the sign faces a window neon is bent from (`neon_stroke`)
+         "dyspepsia", "deftone", "sloe_gin", "marquee")
 
 #: WHOSE VOICE EACH FACE IS (1.49.0). The walker's font catalog, 2026-10-02:
 #: "Assign a typeface to an owner." The real look began with everything in

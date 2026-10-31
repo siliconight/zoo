@@ -35,8 +35,10 @@ def test_a_line_is_as_tall_as_it_was_asked_to_be(face):
         if face == "minisystem":
             assert ST.coverage("8", cap, face).shape[0] >= cap - 1, (cap,)
         assert cov.dtype == np.uint8
-        # a hairline face (Minisystem) at 8 px never fills a pixel; at 20 it does
-        assert cov.max() > (200 if cap >= 20 else 60), (face, cap, cov.max())
+        # a hairline face (Minisystem) at 8 px never fills a pixel; at 20 it does. Marquee Moon (1.156.0) is twin
+        # hairlines: measured 195 at 20 px and full at 47, so it is held to 150 at 20
+        floor20 = 150 if face == "marquee" else 200
+        assert cov.max() > (floor20 if cap == 20 else 200 if cap > 20 else 60), (face, cap, cov.max())
 
 
 def test_type_is_anti_aliased_and_the_same_bytes_twice():

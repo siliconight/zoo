@@ -43,6 +43,7 @@ import math
 
 from . import club_forms as CF
 from . import club_names
+from . import neon_stroke
 from . import prims as P
 
 #: COPY of pixelcoat/pixelcoat/core/signage.py `_FONT` (Pixelcoat 0.41.0),
@@ -226,6 +227,157 @@ SHEET_TINT = (0.85, 0.90, 0.92)
 SHEET_OPACITY = 0.12
 
 
+#: A WINDOW NEON'S BEER IS BENT IN A SCRIPT (1.156.0). The walker, 2026-10-31: "Neon is also fun", "liquor store
+#: should have neon beer company signs" -- and its comps' window neon is a brand's script in glass, which the 5 x 7
+#: skeleton drew as dot-matrix capitals. The window form now sets its beer in title case in one of `WINDOW_FACES`
+#: (by variant), finds the tubes' centrelines (`neon_stroke`), and bends a tube along each (`club_forms.tube_path`),
+#: `SCRIPT_TUBE_OF_CAP` of a cap thick and `SCRIPT_SEGMENTS`-sided. The wall form -- a club's name -- is unchanged.
+WINDOW_FACES = ("dyspepsia", "deftone", "sloe_gin")
+SCRIPT_TUBE_OF_CAP = 0.045
+SCRIPT_SEGMENTS = 6
+#: lines of a script stand this many caps apart, foot to the next line's top
+SCRIPT_LINE_GAP = 0.25
+
+
+def title_case(text):
+    """A sign painter's upper and lower case: each word's first letter up, the rest down ("Cold One Hon")."""
+    return " ".join(w[:1].upper() + w[1:].lower() for w in text.split(" "))
+
+
+def script_layout(text, face, aw, ah):
+    """``(scale, lines, sets)``: the line break of ``text`` in ``face`` that sets largest inside ``aw`` x ``ah``
+    metres -- ``scale`` metres to the cap, ``sets`` each line's `neon_stroke.strokes`."""
+    best = None
+    for n, lines in sorted(layout_lines(text).items()):
+        sets = [neon_stroke.strokes(ln, face) for ln in lines]
+        bw = max(s[1] for s in sets)
+        bh = sum(s[2] for s in sets) + SCRIPT_LINE_GAP * (n - 1)
+        scale = min(aw / bw, ah / bh)
+        if best is None or scale > best[0] + 1e-9:
+            best = (scale, lines, sets)
+    return best
+
+
+#: each rod of a script's tubes turned by this fraction of a facet more than the last (the golden ratio's): two
+#: strokes that run side by side -- a script's loops, a junction's meeting strokes -- would otherwise present parallel
+#: facets a fraction of a millimetre apart, the coincident pair every species here is held clear of
+SCRIPT_PHASE_STEP = 0.6180339887
+
+
+def _phased_tube(pts, r, closed, first):
+    """`club_forms.tube_path`'s rods along ``pts``, each lengthened at its joints the same way, the k-th turned by
+    ``(first + k) * SCRIPT_PHASE_STEP`` of a facet."""
+    n = len(pts)
+    segs = [(k, (k + 1) % n) for k in range(n if closed else n - 1)]
+    facet = 2.0 * math.pi / SCRIPT_SEGMENTS
+    out = []
+    for idx, (i, j) in enumerate(segs):
+        a, b = pts[i], pts[j]
+        dv = CF._unit3(CF._sub3(b, a))
+        # an open stroke runs `END_EXT` radii past its ends, as the pixel lettering's runs do: two strokes ending on
+        # one junction then cross into each other's tube, where their caps would otherwise face across a hair's gap
+        ea = eb = END_EXT * r
+        if closed or i > 0:
+            ea = CF._joint_ext(CF._unit3(CF._sub3(a, pts[(i - 1) % n])), dv, r)
+        if closed or j < n - 1:
+            eb = CF._joint_ext(dv, CF._unit3(CF._sub3(pts[(j + 1) % n], b)), r)
+        p0 = tuple(a[k] - dv[k] * ea for k in range(3))
+        p1 = tuple(b[k] + dv[k] * eb for k in range(3))
+        phase = (((first + idx) * SCRIPT_PHASE_STEP) % 1.0) * facet
+        out.append(P.rod("NeonSign_Tubes", "text", p0, p1, r, segments=SCRIPT_SEGMENTS, phase=phase))
+    return out
+
+
+#: a script's tube that lies coincident with one already laid -- two strokes overlapping along a stretch -- is slimmed
+#: by this factor about its own axis, at most twice, which moves every facet plane off its neighbour's; one still
+#: coincident is left out (the stroke it overlaps carries the light there)
+SCRIPT_SLIM = 0.94
+
+
+def _slim(q, f):
+    """``q`` (a `prims.rod`: two rings of equal count) with its radius scaled by ``f`` about its own axis."""
+    v = q["verts"]
+    n = len(v) // 2
+    c0 = tuple(sum(p[k] for p in v[:n]) / n for k in range(3))
+    c1 = tuple(sum(p[k] for p in v[n:]) / n for k in range(3))
+    out = []
+    for i, p in enumerate(v):
+        c = c0 if i < n else c1
+        out.append(tuple(c[k] + (p[k] - c[k]) * f for k in range(3)))
+    return dict(q, verts=out)
+
+
+def _near(a, b, pad=0.003):
+    (alo, ahi), (blo, bhi) = P.bounds([a]), P.bounds([b])
+    return all(alo[k] - pad <= bhi[k] and blo[k] - pad <= ahi[k] for k in range(3))
+
+
+def _clear_coincident(tubes):
+    kept = []
+    for q in tubes:
+        for attempt in range(3):
+            if not any(_near(q, k) and P.coincident_pairs([q, k]) for k in kept):
+                kept.append(q)
+                break
+            q = _slim(q, SCRIPT_SLIM)
+    return kept
+
+
+def _script_tubes(prims, sets, scale, hs, yt, r, back_front):
+    """Every line's tubes, the block centred on the sheet; standoffs under the three longest strokes."""
+    first_tube = len(prims)
+    n = len(sets)
+    bh = (sum(s[2] for s in sets) + SCRIPT_LINE_GAP * (n - 1)) * scale
+    top = hs / 2 + bh / 2
+    strokes = []
+    for polylines, lw, lh in sets:
+        foot = top - lh * scale
+        x0 = -lw * scale / 2
+        for pl in polylines:
+            raw = [(x0 + x * scale, yt, foot + z * scale) for x, z in pl]
+            # a point a traced path repeats (a loop's close, a junction's centre on its neighbour) is a zero-length
+            # segment the tube cannot bend round: dropped at a tenth of a millimetre
+            pts = []
+            for q in raw:
+                if not pts or math.dist(q, pts[-1]) > 1e-4:
+                    pts.append(q)
+            closed = len(pts) > 3 and math.dist(pts[0], pts[-1]) < 1e-3
+            if closed:
+                pts = pts[:-1]
+            if len(pts) < 2:
+                cx, _y, cz = raw[0]
+                prims.append(P.rod("NeonSign_Tubes", "text", (cx, yt, cz - r), (cx, yt, cz + r), r,
+                                   segments=SCRIPT_SEGMENTS))
+                continue
+            pts = CF.merge_collinear(pts, closed=closed)
+            # a path that doubles back on itself (A, B, A) is "collinear" to the merge and leaves A, A
+            kept = []
+            for q in pts:
+                if not kept or math.dist(q, kept[-1]) > 1e-4:
+                    kept.append(q)
+            if closed and len(kept) > 1 and math.dist(kept[0], kept[-1]) <= 1e-4:
+                kept.pop()
+            pts = kept
+            if len(pts) < 2 or (closed and len(pts) < 3):
+                continue
+            prims += _phased_tube(pts, r, closed, len(prims))
+            strokes.append((sum(math.dist(pts[i], pts[i + 1]) for i in range(len(pts) - 1)), pts))
+        top = foot - SCRIPT_LINE_GAP * scale
+    # a turned tube seldom puts a vertex on the front plane exactly: the script's tubes move the last fraction of a
+    # micron forward so their fronts are the slot's front, as the pixel lettering's are (`fit_exact` at a scale of 1)
+    tubes = _clear_coincident([q for q in prims[first_tube:] if q["part"] == "NeonSign_Tubes"])
+    prims[first_tube:] = [q for q in prims[first_tube:] if q["part"] != "NeonSign_Tubes"] + tubes
+    mine = tubes
+    if mine:
+        dy = (yt - r) - min(v[1] for q in mine for v in q["verts"])
+        for q in mine:
+            q["verts"] = [(v[0], v[1] + dy, v[2]) for v in q["verts"]]
+    for _ln, pts in sorted(strokes, key=lambda s: -s[0])[:3]:
+        mx, _y, mz = pts[len(pts) // 2]
+        prims.append(P.rod("NeonSign_Standoffs", "standoff", (mx, yt, mz), (mx, back_front + 0.005, mz),
+                           max(0.003, 0.45 * r), segments=8))
+
+
 def plan_sign(w, d, h, variant=0, form="wall"):
     """``{"prims", "collision", "text", "lines", "pitch", "tube_r",
     "colours", "overshoot_m"}``. Keys "text" and "border" are emissive
@@ -241,8 +393,14 @@ def plan_sign(w, d, h, variant=0, form="wall"):
     # a hung sign's sheet stops HANG_FRAC short of the top; the chains are there
     hs = h * (1.0 - HANG_FRAC) if window else h
     margin = max(0.05, 0.12 * min(w, hs))
-    lines, pitch = plan_layout(text, w - 2.4 * margin, hs - 2.4 * margin)
-    r = max(TUBE_MIN, min(TUBE_MAX, TUBE_OF_PITCH * pitch))
+    if window:
+        # in a script, found from the face's strokes (1.156.0)
+        face = WINDOW_FACES[int(variant) % len(WINDOW_FACES)]
+        pitch, lines, sets = script_layout(title_case(text), face, w - 2.4 * margin, hs - 2.4 * margin)
+        r = max(TUBE_MIN, min(TUBE_MAX, SCRIPT_TUBE_OF_CAP * pitch))
+    else:
+        lines, pitch = plan_layout(text, w - 2.4 * margin, hs - 2.4 * margin)
+        r = max(TUBE_MIN, min(TUBE_MAX, TUBE_OF_PITCH * pitch))
     # the tube plane: the tubes' fronts are the slot's front
     yt = -d / 2 + r
     # the can's face is one standoff behind the tubes' backs, and the can
@@ -251,6 +409,9 @@ def plan_sign(w, d, h, variant=0, form="wall"):
     standoff = max(0.004, min(TUBE_STANDOFF, d - 2 * r - BACKER_T_MIN))
     back_front = yt + r + standoff
     prims = [P.box("NeonSign_Backer", "backer", (-w / 2, back_front, 0.0), (w / 2, d / 2, hs))]
+    if window:
+        _script_tubes(prims, sets, pitch, hs, yt, r, back_front)
+        lines = []                      # the pixel lettering below draws nothing for a script
     n = len(lines)
     block_h = (n * LINE - 3 - 1) * pitch
     top_z = hs / 2 + block_h / 2
@@ -303,6 +464,8 @@ def plan_sign(w, d, h, variant=0, form="wall"):
                                (x, yc, h), max(0.002, 0.3 * br), segments=6))
     over = CF._overshoot(prims, w, d, h)
     prims, _cb = P.fit_exact(prims, (-w / 2, -d / 2, 0.0), (w / 2, d / 2, h))
+    if window:
+        lines = [ln for ln in script_layout(title_case(text), face, w - 2.4 * margin, hs - 2.4 * margin)[1]]
     return {"prims": prims, "collision": [], "text": text, "lines": lines, "pitch": pitch,
             "tube_r": r, "colours": {"text": text_rgb, "border": border_rgb},
             "overshoot_m": over}

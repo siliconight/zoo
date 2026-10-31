@@ -1,3 +1,30 @@
+## [1.156.0] - a window neon's beer bent in a script
+
+The walker, 2026-10-31: "Neon is also fun", "liquor store should have neon beer company signs", and of every sign on
+the slice, "store signage still looks...wrong" (the factory's `docs/reference/STORE_SIGNAGE_COMPS.md`). A window
+neon's tubes followed `neon_forms.FONT_5X7`'s skeleton, so a beer's name read as dot-matrix capitals; the comps'
+window neon is a brand's script in bent glass.
+
+### Added
+- **`core/neon_stroke.py`**: a line of text as tube centrelines, FOUND from a smooth face -- no CC0 single-stroke font
+  exists (the Hershey fonts are public domain with conditions). Set in the face, thresholded at half coverage,
+  thinned to one pixel (Zhang-Suen), traced between its ends and junctions -- a thinned staircase's three-neighbour
+  pixels grouped into junction CLUSTERS, each path ending on its cluster's centre so a stroke runs on through a
+  junction -- cleared of a heavy stroke's corner spurs (`SPUR_OF_CAP`) and of the gaps between close junctions
+  (`JOIN_FRAG_OF_CAP`), joined through any point only two paths meet at, and simplified (`SIMPLIFY_OF_CAP`).
+- **Four smooth faces minted** from Pixelcoat 0.69.0's sign faces -- `dyspepsia`, `deftone`, `sloe_gin`, `marquee` --
+  byte for byte Pixelcoat's tables.
+- **The window form in a script** (`neon_forms.WINDOW_FACES`, `title_case`, `script_layout`): each beer of
+  `club_names.WINDOW_NAMES` in title case in one of three scripts by variant, laid out to the sheet, a tube
+  `SCRIPT_TUBE_OF_CAP` of a cap thick bent along every stroke, each rod turned `SCRIPT_PHASE_STEP` of a facet from the
+  last and an open stroke run `END_EXT` past its ends; a tube still coincident with one already laid (two strokes
+  overlapping along a stretch) is slimmed by `SCRIPT_SLIM` about its axis, and dropped only if that fails; the
+  script's fronts are seated on the slot's front. 1,956 to 3,716 triangles a sign, inside the species' 5,000. The
+  wall form -- a club's name -- is unchanged.
+
+Tests: tests/test_neon_script.py (fails on 1.155.0: no `neon_stroke`; the strokes lie on the letters and lose none,
+the beer is set in a title-cased script); tests/test_window_sign.py unchanged and passing.
+
 ## [1.155.0] - a street tree's crown raised clear of the sidewalk
 
 The factory's roadmap 324 (the vertical slice). Measured on the slice's built trees: leaf cards down to 0.53 m above

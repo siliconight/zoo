@@ -48,6 +48,11 @@ FACES = {
     "oldstyle": ("mfb_oldstyle/MFBOldstyle-Regular.otf", "oldstyle"),
     "oldstyle_bold": ("mfb_oldstyle/MFBOldstyle-Bold.otf", "oldstyle_bold"),
     "oldstyle_italic": ("mfb_oldstyle/MFBOldstyle-Italic.otf", "oldstyle_italic"),
+    # 1.156.0, the sign faces (Pixelcoat 0.69.0, `assets/fonts/typodermic_signs/`): a window neon's beer in a script
+    "dyspepsia": ("typodermic_signs/Dyspepsia.otf", "dyspepsia"),
+    "deftone": ("typodermic_signs/Deftone Stylus.otf", "deftone"),
+    "sloe_gin": ("typodermic_signs/Sloe Gin Rickey.otf", "sloe_gin"),
+    "marquee": ("typodermic_signs/Marquee Moon.otf", "marquee"),
 }
 
 HEADER = '''"""{name}: a smooth face, minted by tools/mint_smooth_type.py. DO NOT EDIT.
