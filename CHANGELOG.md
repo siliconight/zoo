@@ -1,3 +1,21 @@
+## [1.158.0] - the window neon's three fixes
+
+The walker, shown the first Blender renders of the six window beers: "fix those three first".
+
+### Fixed
+- **A capital that does not survive tracing** (`neon_forms.ILLEGIBLE_CAPS`, `window_face`): Deftone Stylus's and
+  Dyspepsia's S thin to a J -- "Scrapple Stout" read "Jcrapple Flout". A name needing a face's illegible capital is
+  set in the next script; Scrapple Stout and Shoobie Suds are now Sloe Gin Rickey. Kept, not fixed: Sloe Gin's script
+  t has no crossbar, so "Stout" reads by its context, as a script t does.
+- **Loops that read as polygons** (`neon_stroke.SMOOTH_PASSES`, `_chaikin`): every traced stroke is corner-cut once
+  after it is simplified, its ends kept; measured on Jawn Lite, the median turn between two segments 46 -> 18
+  degrees. `SIMPLIFY_OF_CAP` 0.02 -> 0.03 pays for the doubled segments: 2,476 to 4,036 triangles a sign, inside 5,000.
+- **Blocky condensed scripts** (`SCRIPT_TUBE_OF_CAP` 0.045 -> 0.03): the tube filled Dyspepsia's narrow letters; it
+  is a real tube's 8-15 mm on a window sign's lettering now.
+
+Tests: tests/test_neon_fixes.py (fails on 1.157.0); tests/test_neon_script.py sets each name in its `window_face`
+and holds its coverage at 0.85 (measured 0.89-0.90 with the coarser, smoothed trace).
+
 ## [1.157.0] - a beer distributor's door names it
 
 Deli Counter 0.297.0 builds a beer distributor (the walker, 2026-10-31: "liquor store should have neon beer company

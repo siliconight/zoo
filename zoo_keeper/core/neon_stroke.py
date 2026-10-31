@@ -24,8 +24,13 @@ from . import smooth_type as ST
 CAP_PX = 64
 #: a branch from a junction to a free end shorter than this, of the cap, is a stroke's corner, not a stroke
 SPUR_OF_CAP = 0.14
-#: the simplification's tolerance, of the cap: well inside a tube's own radius
-SIMPLIFY_OF_CAP = 0.02
+#: the simplification's tolerance, of the cap: well inside a tube's own radius (1.158.0: 0.02 -> 0.03, the budget
+#: the smoothing below spends)
+SIMPLIFY_OF_CAP = 0.03
+#: GLASS IS BENT, NOT JOINTED (1.158.0). The walker, of the first renders: the loops read as polygons -- each stroke a
+#: chain of straight rods. Every polyline is corner-cut (Chaikin) this many times after it is simplified, its ends
+#: kept: one pass doubles a stroke's segments and rounds every bend.
+SMOOTH_PASSES = 1
 #: a path from one junction to another shorter than this, of the cap, is the gap between two junction clusters, not
 #: a stroke: the strokes meeting there cover it, and a tube bent along it is a stub whose caps face its neighbours'
 JOIN_FRAG_OF_CAP = 0.08
@@ -158,6 +163,24 @@ def _join_through(paths):
         del paths[j]
 
 
+def _chaikin(pts, passes, closed):
+    """``pts`` corner-cut ``passes`` times: each segment's quarter points replace its corners; an open line keeps its
+    two ends."""
+    for _ in range(int(passes)):
+        n = len(pts)
+        if n < 3:
+            break
+        segs = [(pts[i], pts[(i + 1) % n]) for i in range(n if closed else n - 1)]
+        out = [] if closed else [pts[0]]
+        for a, b in segs:
+            out.append((0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]))
+            out.append((0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]))
+        if not closed:
+            out.append(pts[-1])
+        pts = out
+    return pts
+
+
 def _length(path):
     return sum(math.dist(path[i], path[i + 1]) for i in range(len(path) - 1))
 
@@ -201,5 +224,11 @@ def strokes(text, face, cap_px=CAP_PX):
         simple = _rdp(path, eps)
         if len(simple) < 2:
             continue
+        closed = len(simple) > 3 and simple[0] == simple[-1]
+        if closed:
+            simple = _chaikin(simple[:-1], SMOOTH_PASSES, True)
+            simple = simple + [simple[0]]
+        else:
+            simple = _chaikin(simple, SMOOTH_PASSES, False)
         out.append([(c / cap_px, (h - 1 - r) / cap_px) for r, c in simple])
     return out, w / cap_px, h / cap_px

@@ -233,7 +233,24 @@ SHEET_OPACITY = 0.12
 #: (by variant), finds the tubes' centrelines (`neon_stroke`), and bends a tube along each (`club_forms.tube_path`),
 #: `SCRIPT_TUBE_OF_CAP` of a cap thick and `SCRIPT_SEGMENTS`-sided. The wall form -- a club's name -- is unchanged.
 WINDOW_FACES = ("dyspepsia", "deftone", "sloe_gin")
-SCRIPT_TUBE_OF_CAP = 0.045
+#: A TUBE A NEON'S WIDTH (1.158.0): 0.045 of a cap filled a condensed script's letters -- Wooder Ice and Shoobie Suds
+#: read as blocks (the walker, of the first renders). 0.03 is a real tube's 8-15 mm on a window sign's lettering.
+SCRIPT_TUBE_OF_CAP = 0.03
+#: A FACE'S CAPITALS THAT DO NOT SURVIVE TRACING (1.158.0), judged from the renders: Deftone Stylus's and Dyspepsia's
+#: S thin to a J -- "Scrapple Stout" read "Jcrapple Flout". A name needing one is set in the next of `WINDOW_FACES`.
+ILLEGIBLE_CAPS = {"deftone": "S", "dyspepsia": "S"}
+
+
+def window_face(variant, text):
+    """The script a window beer is set in: `WINDOW_FACES` from the variant's own, the first whose illegible capitals
+    the name does not need (title case: each word's first letter)."""
+    caps = {w[:1].upper() for w in str(text).split(" ") if w}
+    n = len(WINDOW_FACES)
+    for k in range(n):
+        face = WINDOW_FACES[(int(variant) + k) % n]
+        if not caps & set(ILLEGIBLE_CAPS.get(face, "")):
+            return face
+    return WINDOW_FACES[int(variant) % n]
 SCRIPT_SEGMENTS = 6
 #: lines of a script stand this many caps apart, foot to the next line's top
 SCRIPT_LINE_GAP = 0.25
@@ -395,7 +412,7 @@ def plan_sign(w, d, h, variant=0, form="wall"):
     margin = max(0.05, 0.12 * min(w, hs))
     if window:
         # in a script, found from the face's strokes (1.156.0)
-        face = WINDOW_FACES[int(variant) % len(WINDOW_FACES)]
+        face = window_face(variant, text)
         pitch, lines, sets = script_layout(title_case(text), face, w - 2.4 * margin, hs - 2.4 * margin)
         r = max(TUBE_MIN, min(TUBE_MAX, SCRIPT_TUBE_OF_CAP * pitch))
     else:
