@@ -1,3 +1,28 @@
+## [1.155.0] - a street tree's crown raised clear of the sidewalk
+
+The factory's roadmap 324 (the vertical slice). Measured on the slice's built trees: leaf cards down to 0.53 m above
+the grate on the pin oak, 0.91 m on the London plane, 1.16 m on the red maple -- a body walked through cards at eye
+height, a camera on the sidewalk stood inside a crown of near-black blocks, and every sightline down a sidewalk was
+screened by leaves. A street tree is pruned clear of the walk under it: 8 ft over a sidewalk is the common municipal
+clearance, and the walker's tree guide gives a street tree a "Raised crown, pruning scars" (the factory's
+`docs/reference/PA_NATIVE_TREES_PHILLY_DELCO.md`).
+
+### Added
+- **`tree_forms.CROWN_CLEAR_M`** (8 ft, 2.4384 m) and **`crown_lift`**: before a card is placed, every point of the
+  grown skeleton above the grate is pressed toward the highest clump's centre until each card -- placed by its
+  centre, keeping its size -- clears the ground by `CROWN_CLEAR_M`. The top of the crown stays, and the limbs keep
+  their order and proportions, so a pin oak's drooping, level and rising limbs stay three zones, lifted (the guide's
+  instruction for it). Pressing the crown after its cards were on would squash them into plates, the first build's
+  lesson, so the cards are untouched.
+- **`tree_forms.squeeze`**: the recipe's last per-axis correction scales height by h / ez and can bring the lowest
+  card back a little under the clearance; one squeeze of the built vertices, its k within a few percent of 1, puts
+  it back.
+- 14 ft over a road is the street's figure and is not applied: a kerb tree's crown overhangs a parking lane only at
+  its edge.
+
+Tests: tests/test_crown_raised.py, every species built in Blender (fails on 1.154.0: every species' lowest card hangs
+under the clearance).
+
 ## [1.154.0] - grime at a wall's base
 
 The factory's roadmap 324. Patina (>= 0.40.0) orders a `stain_base` along each span of a ground storey's wall.

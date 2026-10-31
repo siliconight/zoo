@@ -235,3 +235,53 @@ LEAF_TILE_M = 4.0
 #: middle of the card's ellipse, so a card a little over twice the mass it
 #: replaces covers about what the mass did
 CARD_SCALE = 2.2
+
+#: THE CROWN RAISED (1.155.0). A street tree is pruned clear of the walk under it: 8 ft (2.4384 m) over a sidewalk is
+#: the common municipal clearance, and the walker's tree guide gives a street tree a "Raised crown, pruning scars"
+#: (the factory's docs/reference/PA_NATIVE_TREES_PHILLY_DELCO.md, its growing-situation table). Measured on the
+#: vertical slice's built trees before this (2026-10-31): leaves down to 0.53 m on the pin oak, 0.91 m on the London
+#: plane, 1.16 m on the red maple -- a body walked through cards at eye height and every sightline down the sidewalk
+#: was screened by them. 14 ft over a road is the street's figure; it is not applied, since a kerb tree's crown
+#: overhangs a parking lane only at its edge.
+CROWN_CLEAR_M = 8 * 0.3048
+#: A YOUNG TREE KEEPS ITS CROWN. A tree too short to hold a crown above `CROWN_CLEAR_M` -- the genome's smallest
+#: corner, or a newly planted one -- is lifted only so far: pressed past half its height a crown stacks its cards on
+#: each other. Measured, kept: without this floor the generic `street_tree` at its smallest corner went from 6
+#: coincident face pairs to 187 (tests/test_coincident_faces.py).
+LIFT_K_MIN = 0.5
+#: `squeeze` is the last correction, not a second lift: past this it is left undone.
+SQUEEZE_K_MIN = 0.9
+
+
+def crown_lift(clumps, z0: float, clear: float = CROWN_CLEAR_M):
+    """``(k, anchor)`` raising a crown clear of the ground before its cards are placed: ``clumps`` are (centre z,
+    card half-height) of every leaf clump, ``z0`` the ground. A point at height ``z`` moves to
+    ``anchor - (anchor - z) * k``, ``anchor`` the highest clump's centre: the top of the crown stays, every card --
+    placed by its centre, keeping its size -- clears ``z0 + clear``, and everything between keeps its order and its
+    proportions, so a pin oak's drooping, level and rising limbs stay three zones, lifted. ``k`` is 1 for a crown
+    already clear, and for one that cannot be (a card at the top reaches under the clearance); never under
+    `LIFT_K_MIN`, so a tree too short to clear is lifted as far as its crown keeps its shape."""
+    if not clumps:
+        return 1.0, z0
+    anchor = max(z for z, _h in clumps)
+    floor = z0 + clear
+    k = 1.0
+    for z, h in clumps:
+        if z - h >= floor:
+            continue
+        room = anchor - floor - h
+        if room <= 0.0 or anchor - z <= 1e-9:
+            return 1.0, anchor
+        k = min(k, room / (anchor - z))
+    return max(k, LIFT_K_MIN), anchor
+
+
+def squeeze(lo: float, top: float, z0: float, clear: float = CROWN_CLEAR_M) -> float:
+    """``k`` pressing built geometry spanning ``lo`` .. ``top`` up so ``lo`` clears ``z0 + clear``, ``top`` kept:
+    ``z -> top - (top - z) * k``. 1 when ``lo`` is already clear or ``top`` is not, and when the press would pass
+    `SQUEEZE_K_MIN` -- a crown the lift could not clear is not crushed here."""
+    floor = z0 + clear
+    if lo >= floor or top <= floor:
+        return 1.0
+    k = (top - floor) / (top - lo)
+    return k if k >= SQUEEZE_K_MIN else 1.0

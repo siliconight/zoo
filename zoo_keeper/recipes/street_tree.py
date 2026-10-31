@@ -368,8 +368,22 @@ def build(plan, streams, collection):
         kz = (h - margin * 1.2) / ez
         cx, cy = (max(xs) + min(xs)) / 2.0, (max(ys) + min(ys)) / 2.0
 
-        def _fitp(p):
+        def _fitp0(p):
             return ((p[0] - cx) * kx, (p[1] - cy) * ky, z0 + (p[2] - z0) * kz)
+
+        # THE CROWN RAISED (1.155.0, `tree_forms.crown_lift`): every point above the grate is pressed up toward the
+        # top until the lowest card's bottom clears `CROWN_CLEAR_M`, before a card is placed -- so the cards keep
+        # their size and shape (squashing a crown after its leaves were on it made plates, the first build's
+        # lesson) and the limbs keep their order. A card's reach below its centre is at most its half (an upright
+        # card); its centre stands `0.2 c` over the tip, as placed below.
+        lift_k, lift_top = tree_forms.crown_lift(
+            [(_fitp0(p)[2] + c * 0.2, c * CARD_SCALE / 2.0) for p, c in big + small], z0)
+
+        def _fitp(p):
+            q = _fitp0(p)
+            if lift_k == 1.0 or q[2] <= z0 + 1e-9:
+                return q
+            return (q[0], q[1], lift_top - (lift_top - q[2]) * lift_k)
 
         wood = geometry.new_bm()
         for a, b, r0, r1 in limbs:
@@ -416,6 +430,16 @@ def build(plan, streams, collection):
                 v.co.x = (v.co.x - cx) * kx
                 v.co.y = (v.co.y - cy) * ky
                 v.co.z = z0 + (v.co.z - z0) * kz
+        # the last correction scales height by h / ez and can bring the lowest card back under the clearance a
+        # little; a second lift on the built vertices puts it back, its k within a few percent of 1 (1.155.0)
+        lows = [v.co.z for v in leaves.verts]
+        top2 = max(lows) if lows else z0
+        k2 = tree_forms.squeeze(min(lows), top2, z0) if lows else 1.0
+        if k2 != 1.0:
+            for bmx in (wood, twigs, leaves):
+                for v in bmx.verts:
+                    if v.co.z > z0 + 1e-9:
+                        v.co.z = top2 - (top2 - v.co.z) * k2
         trunk_top_z = z0 + (first - z0)
         # after the last correction above: nothing moves a leaf after this
         clusters = _sway_layer(leaves, members)
